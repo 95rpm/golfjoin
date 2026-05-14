@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="국내 골프 임시 이미지">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#9ed0ff"/>
+      <stop offset="100%" stop-color="#eef7ff"/>
+    </linearGradient>
+    <linearGradient id="green" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#3f8f52"/>
+      <stop offset="100%" stop-color="#8fc85a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <circle cx="980" cy="150" r="70" fill="#fff4a6"/>
+  <path d="M0 520 C220 420 380 620 580 500 C760 395 940 470 1200 390 L1200 800 L0 800 Z" fill="url(#green)"/>
+  <path d="M0 640 C260 560 520 710 780 590 C950 510 1080 555 1200 510 L1200 800 L0 800 Z" fill="#2e7041" opacity=".78"/>
+  <ellipse cx="725" cy="610" rx="165" ry="45" fill="#d9ead1"/>
+  <circle cx="785" cy="600" r="8" fill="#ffffff"/>
+  <path d="M792 598 L792 500 L850 520 L792 540" fill="#e33b35"/>
+  <rect x="789" y="500" width="6" height="104" fill="#ffffff"/>
+  <text x="70" y="125" fill="#183c2a" font-family="Arial, sans-serif" font-size="64" font-weight="700">Golf Join</text>
+  <text x="74" y="180" fill="#315a41" font-family="Arial, sans-serif" font-size="30">Temporary local image</text>
+</svg>

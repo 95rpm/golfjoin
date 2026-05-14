@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="리조트 골프 임시 이미지">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#b8dcff"/>
+      <stop offset="58%" stop-color="#f8f4df"/>
+      <stop offset="100%" stop-color="#5aa45f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <path d="M120 420 L275 295 L430 420 Z" fill="#f5f0de"/>
+  <rect x="165" y="420" width="220" height="130" fill="#e6d4ba"/>
+  <rect x="235" y="462" width="70" height="88" fill="#8f6e52"/>
+  <path d="M0 610 C260 510 470 635 675 560 C860 490 1020 520 1200 470 L1200 800 L0 800 Z" fill="#438c50"/>
+  <path d="M0 710 C280 640 555 725 830 640 C980 595 1080 600 1200 580 L1200 800 L0 800 Z" fill="#2d6f3e"/>
+  <ellipse cx="830" cy="612" rx="120" ry="35" fill="#dfeecf"/>
+  <circle cx="880" cy="606" r="7" fill="#fff"/>
+  <text x="70" y="125" fill="#193f2b" font-family="Arial, sans-serif" font-size="64" font-weight="700">Golf Resort</text>
+  <text x="74" y="180" fill="#315a41" font-family="Arial, sans-serif" font-size="30">Temporary local image</text>
+</svg>

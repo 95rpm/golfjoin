@@ -22664,6 +22664,13 @@
     let externalGolfJoinProductsLoadPromise = null;
     let externalGolfJoinProductsLoadFailed = false;
     let externalGolfJoinProductsLoading = false;
+    const BUILDER_APPLICATION_JOIN_PREFIX = "sheet-builder-application-";
+    const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
+    const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = 4;
+    const BUILDER_APPLICATION_GENDER_ICONS = {
+      male: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338375/golf-join/m2rhapea0c54olhpthjz.gif",
+      female: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338402/golf-join/ohq81ykntjtv1rcavfkr.gif"
+    };
     let builderStep = 1;
     let activeBuilderFlexTarget = "start";
     let activeBuilderPopoverTarget = "start";
@@ -24937,6 +24944,222 @@
       return { ok: true };
     }
 
+    function getNestedValue(object, path) {
+      return String(path || "").split(".").reduce((current, key) => {
+        return current && current[key] !== undefined && current[key] !== null ? current[key] : "";
+      }, object);
+    }
+
+    function toBuilderApplicationArray(value) {
+      if (Array.isArray(value)) return value.filter(Boolean);
+      return String(value || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function normalizeBuilderApplicationPayload(item = {}) {
+      if (item.applicant || item.trip || item.agreements) return item;
+      return {
+        submittedAt: item.submittedAt || "",
+        source: item.source || "new_schedule_builder",
+        pageUrl: item.pageUrl || "",
+        applicant: {
+          name: item.name || "",
+          gender: item.gender || "",
+          birthYear: item.birthYear || "",
+          ageDisplay: item.ageDisplay || "",
+          phone: item.phone || "",
+          profession: item.profession || "",
+          people: item.people || "",
+          level: item.level || "",
+          styles: toBuilderApplicationArray(item.styles),
+          greeting: item.greeting || ""
+        },
+        trip: {
+          region: item.region || "",
+          regions: toBuilderApplicationArray(item.regions),
+          productId: item.productId || "",
+          productName: item.productName || "",
+          startSummary: item.startSummary || "",
+          endSummary: item.endSummary || "",
+          tripSummary: item.tripSummary || "",
+          departureDates: toBuilderApplicationArray(item.departureDates),
+          returnDates: toBuilderApplicationArray(item.returnDates),
+          flexibleDays: {
+            startBefore: item.startBefore || "",
+            startAfter: item.startAfter || "",
+            endBefore: item.endBefore || "",
+            endAfter: item.endAfter || ""
+          }
+        },
+        agreements: {
+          required: item.requiredAgreed || "",
+          marketing: item.marketingAgreed || ""
+        }
+      };
+    }
+
+    function escapeBuilderApplicationText(value) {
+      return String(value || "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    function maskBuilderApplicantName(name) {
+      const text = String(name || "").trim();
+      return text ? `${text.charAt(0)}**` : "신청자";
+    }
+
+    function getFirstISODate(value) {
+      const dates = toBuilderApplicationArray(value);
+      return dates.find((date) => /^\d{4}-\d{2}-\d{2}$/.test(date)) || "";
+    }
+
+    function getBuilderApplicationPeopleCount(payload) {
+      const rawCount = Number(String(getNestedValue(payload, "applicant.people") || "1").replace(/\D/g, ""));
+      const count = Number.isFinite(rawCount) && rawCount > 0 ? rawCount : 1;
+      return Math.min(BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS, count);
+    }
+
+    function getBuilderApplicationGenderIcon(gender, fallback) {
+      const normalizedGender = String(gender || "").trim();
+      if (normalizedGender === "여성") return BUILDER_APPLICATION_GENDER_ICONS.female;
+      if (normalizedGender === "남성") return BUILDER_APPLICATION_GENDER_ICONS.male;
+      return fallback || BUILDER_APPLICATION_GENDER_ICONS.male;
+    }
+
+    function buildBuilderApplicationParticipants(payload, fallback, idSeed, participantName) {
+      const gender = escapeBuilderApplicationText(getNestedValue(payload, "applicant.gender"));
+      const participantCount = getBuilderApplicationPeopleCount(payload);
+      const genderFallback = fallback.participants?.find((participant) => participant.gender === gender)?.gif || fallback.participants?.[0]?.gif;
+      const gif = getBuilderApplicationGenderIcon(gender, genderFallback);
+      return Array.from({ length: participantCount }, (_, index) => ({
+        id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`,
+        name: index === 0 ? participantName : `동반자${index}`,
+        gender,
+        age: escapeBuilderApplicationText(getNestedValue(payload, "applicant.ageDisplay")),
+        handicap: escapeBuilderApplicationText(getNestedValue(payload, "applicant.level") || "실력 미입력"),
+        profession: escapeBuilderApplicationText(getNestedValue(payload, "applicant.profession")),
+        preferences: toBuilderApplicationArray(getNestedValue(payload, "applicant.styles")).map(escapeBuilderApplicationText),
+        message: escapeBuilderApplicationText(index === 0 ? (getNestedValue(payload, "applicant.greeting") || "새 일정 조인을 신청했어요.") : "동반 참여 인원입니다."),
+        status: "confirmed",
+        gif
+      }));
+    }
+
+    function findBuilderApplicationProduct(payload) {
+      const productId = getNestedValue(payload, "trip.productId");
+      const productName = getNestedValue(payload, "trip.productName");
+      const source = [...(externalGolfJoinProducts || []), ...joins];
+      return source.find((item) => productId && item.id === productId)
+        || source.find((item) => productName && item.title === productName)
+        || null;
+    }
+
+    function buildBuilderApplicationJoin(payload, index = 0) {
+      const normalized = normalizeBuilderApplicationPayload(payload);
+      const product = findBuilderApplicationProduct(normalized);
+      const fallback = product || overseasJoinTemplate || joins.find(isOverseasJoin) || joins[0] || {};
+      const departureDate = getFirstISODate(getNestedValue(normalized, "trip.departureDates")) || product?.departureDate || fallback.departureDate || "2026-05-15";
+      const returnDate = getFirstISODate(getNestedValue(normalized, "trip.returnDates")) || product?.returnDate || fallback.returnDate || departureDate;
+      const region = getNestedValue(normalized, "trip.region") || toBuilderApplicationArray(getNestedValue(normalized, "trip.regions"))[0] || product?.region || fallback.region || "해외";
+      const productName = getNestedValue(normalized, "trip.productName") || product?.title || "";
+      const applicantName = getNestedValue(normalized, "applicant.name");
+      const submittedAt = normalized.submittedAt || new Date().toISOString();
+      const idSeed = `${submittedAt}-${getNestedValue(normalized, "applicant.phone")}-${productName}-${region}-${index}`.replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
+      const participantName = escapeBuilderApplicationText(maskBuilderApplicantName(applicantName));
+      const participants = buildBuilderApplicationParticipants(normalized, fallback, idSeed || index, participantName);
+
+      return {
+        ...fallback,
+        id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || index}`,
+        title: escapeBuilderApplicationText(productName || `${region} 맞춤 조인 요청`),
+        region: escapeBuilderApplicationText(region),
+        category: "해외",
+        departureDate,
+        returnDate,
+        date: `${departureDate} - ${returnDate}`,
+        duration: escapeBuilderApplicationText(getNestedValue(normalized, "trip.tripSummary")) || fallback.duration,
+        dayNightCnt: escapeBuilderApplicationText(getNestedValue(normalized, "trip.tripSummary")) || fallback.dayNightCnt,
+        price: Number(product?.price || fallback.price || 0),
+        image: product?.image || fallback.image || "",
+        badge: "신규조인",
+        badgeKind: "special",
+        badgeImage: BADGE_IMAGES.special,
+        airport: product?.airport || fallback.airport || "",
+        participants,
+        emptySlots: 0,
+        includes: product?.includes?.length ? product.includes : (fallback.includes || []),
+        excludes: product?.excludes?.length ? product.excludes : (fallback.excludes || []),
+        notes: [
+          createSecretTourDebugNote(`${participantName}님이 새 일정 만들기로 등록한 조인 요청입니다.`, "new_schedule_applications"),
+          createSecretTourDebugNote(getNestedValue(normalized, "trip.startSummary") ? `출발 희망일: ${escapeBuilderApplicationText(getNestedValue(normalized, "trip.startSummary"))}` : "", "new_schedule_applications"),
+          createSecretTourDebugNote(getNestedValue(normalized, "trip.endSummary") ? `도착 희망일: ${escapeBuilderApplicationText(getNestedValue(normalized, "trip.endSummary"))}` : "", "new_schedule_applications")
+        ].filter(Boolean).concat(product?.notes || fallback.notes || []),
+        schedule: product?.schedule?.length ? product.schedule : (fallback.schedule || []),
+        sheetApplication: normalized,
+        isBuilderApplicationJoin: true,
+        submittedAt
+      };
+    }
+
+    function upsertBuilderApplicationJoin(payload, options = {}) {
+      const join = buildBuilderApplicationJoin(payload);
+      const currentIndex = joins.findIndex((item) => item.id === join.id);
+      if (currentIndex >= 0) {
+        joins.splice(currentIndex, 1, join);
+      } else {
+        joins.unshift(join);
+      }
+      if (options.persist) saveBuilderApplicationPayloadLocally(payload);
+      if (options.render !== false) renderJoins();
+      return join;
+    }
+
+    function saveBuilderApplicationPayloadLocally(payload) {
+      try {
+        const existing = JSON.parse(localStorage.getItem(BUILDER_APPLICATIONS_STORAGE_KEY) || "[]");
+        const list = [payload, ...existing].slice(0, 10);
+        localStorage.setItem(BUILDER_APPLICATIONS_STORAGE_KEY, JSON.stringify(list));
+      } catch (error) {
+        console.warn("Failed to cache builder application payload.", error);
+      }
+    }
+
+    function hydrateBuilderApplicationJoinsFromLocalCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(BUILDER_APPLICATIONS_STORAGE_KEY) || "[]");
+        cached.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false }));
+      } catch (error) {
+        console.warn("Failed to load cached builder applications.", error);
+      }
+    }
+
+    async function hydrateBuilderApplicationJoinsFromGoogleSheet() {
+      if (!GOOGLE_SHEET_WEB_APP_URL) return [];
+      try {
+        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
+        url.searchParams.set("sheet", "new_schedule_applications");
+        url.searchParams.set("source", "new_schedule_builder");
+        url.searchParams.set("limit", "10");
+        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
+        if (!response.ok) throw new Error(`Builder applications load failed: ${response.status}`);
+        const data = await response.json();
+        const rows = Array.isArray(data) ? data : (data.items || data.rows || data.applications || []);
+        rows.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false }));
+        renderJoins();
+        return rows;
+      } catch (error) {
+        console.warn("Failed to load builder applications from Google Sheet. Add a doGet endpoint to the Apps Script to enable persisted reads.", error);
+        return [];
+      }
+    }
+
     async function submitBuilderApply() {
       const payload = getBuilderApplyPayload();
       if (!validateBuilderApplyPayload(payload)) return false;
@@ -24949,6 +25172,7 @@
       }
       try {
         await saveBuilderApplyToGoogleSheet(payload);
+        upsertBuilderApplicationJoin(payload, { persist: true });
         setBuilderStep(4);
         return true;
       } catch (error) {
@@ -26038,7 +26262,7 @@
         return category === "해외" || /oversea|overseas/i.test(category) || Boolean(item.airport);
       }).map(normalizeExternalGolfJoinProduct);
       if (!overseasProducts.length) return;
-      const overseasJoins = joins.filter((join) => String(join.category || "").trim() === "해외");
+      const overseasJoins = joins.filter((join) => String(join.category || "").trim() === "해외" && !join.isBuilderApplicationJoin);
       if (!overseasJoins.length) return;
       const sortedProducts = overseasProducts.slice().sort((a, b) => {
         const aDate = parseJoinDate(a.departureDate);
@@ -28710,6 +28934,16 @@
       `;
     }
 
+
+    function getOverseasBestItems(sortedItems) {
+      const overseasItems = sortedItems.filter(isOverseasJoin);
+      const builderApplicationItems = overseasItems
+        .filter((join) => join.isBuilderApplicationJoin)
+        .sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
+      const regularItems = overseasItems.filter((join) => !join.isBuilderApplicationJoin);
+      return [...builderApplicationItems, ...regularItems];
+    }
+
     function getHomeJoinSections() {
       const departureAsc = sortByDeparture(joins);
       return [
@@ -28736,7 +28970,7 @@
           key: "overseas",
           title: "해외조인 BEST",
           desc: "검증된 해외골프 추천여행",
-          items: departureAsc.filter(isOverseasJoin)
+          items: getOverseasBestItems(departureAsc)
         },
         {
           key: "domestic",
@@ -29686,8 +29920,10 @@
     }, { capture: true });
 
     startHeroSlider();
+    hydrateBuilderApplicationJoinsFromLocalCache();
     hydrateOverseasJoinsWithSecretProducts();
     renderJoins();
+    hydrateBuilderApplicationJoinsFromGoogleSheet();
   </script>
 </body>
 </html>

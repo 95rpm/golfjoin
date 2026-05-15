@@ -25450,25 +25450,20 @@
         ? getNestedValue(payload, "applicant.companions").map((item) => escapeBuilderApplicationText(item?.gender || ""))
         : [];
       const participantCount = getBuilderApplicationPeopleCount(payload);
-      return Array.from({ length: participantCount }, (_, index) => {
-        const gender = index === 0 ? applicantGender : (companionGenders[index - 1] || applicantGender);
-        const genderFallback = fallback.participants?.find((participant) => participant.gender === gender)?.gif || fallback.participants?.[0]?.gif;
-        const participantId = `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`;
-        const gif = getBuilderApplicationGenderIcon(gender, genderFallback, participantId);
-        return {
-          id: participantId,
-          name: index === 0 ? participantName : `동반자${index}`,
-          gender,
-          companionGroup: participantCount > 1 ? `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-companions` : "",
-          age: escapeBuilderApplicationText(getNestedValue(payload, "applicant.ageDisplay")),
-          handicap: escapeBuilderApplicationText(getNestedValue(payload, "applicant.level") || "실력 미입력"),
-          profession: escapeBuilderApplicationText(getNestedValue(payload, "applicant.profession")),
-          preferences: toBuilderApplicationArray(getNestedValue(payload, "applicant.styles")).map(escapeBuilderApplicationText),
-          message: escapeBuilderApplicationText(index === 0 ? (getNestedValue(payload, "applicant.greeting") || "새 일정 조인을 신청했어요.") : "동반 참여 인원입니다."),
-          status: "confirmed",
-          gif
-        };
-      });
+      const genderFallback = fallback.participants?.find((participant) => participant.gender === gender)?.gif || fallback.participants?.[0]?.gif;
+      const gif = getBuilderApplicationGenderIcon(gender, genderFallback);
+      return Array.from({ length: participantCount }, (_, index) => ({
+        id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`,
+        name: index === 0 ? participantName : `동반자${index}`,
+        gender,
+        age: escapeBuilderApplicationText(getNestedValue(payload, "applicant.ageDisplay")),
+        handicap: escapeBuilderApplicationText(getNestedValue(payload, "applicant.level") || "실력 미입력"),
+        profession: escapeBuilderApplicationText(getNestedValue(payload, "applicant.profession")),
+        preferences: toBuilderApplicationArray(getNestedValue(payload, "applicant.styles")).map(escapeBuilderApplicationText),
+        message: escapeBuilderApplicationText(index === 0 ? (getNestedValue(payload, "applicant.greeting") || "새 일정 조인을 신청했어요.") : "동반 참여 인원입니다."),
+        status: "confirmed",
+        gif
+      }));
     }
 
     function findBuilderApplicationProduct(payload) {
@@ -25578,77 +25573,6 @@
         return rows;
       } catch (error) {
         console.warn("Failed to load builder applications from Google Sheet. Add a doGet endpoint to the Apps Script to enable persisted reads.", error);
-        return [];
-      }
-    }
-
-    function findJoinForSheetApplication(row = {}) {
-      const targetScheduleId = row.targetScheduleId || row.scheduleId || "";
-      const targetApplicationId = row.targetApplicationId || row.sourceApplicationId || "";
-      const erpProductId = row.erpProductId || row.productId || "";
-      const erpEventSeq = row.erpEventSeq || row.eventSeq || "";
-      return joins.find((join) => {
-        if (targetScheduleId && join.scheduleId === targetScheduleId) return true;
-        if (targetApplicationId && join.sourceApplicationId === targetApplicationId) return true;
-        if (erpProductId && [join.erpProductId, join.productId, join.goodSeq, join.id].some((value) => String(value || "") === String(erpProductId))) {
-          return !erpEventSeq || String(join.erpEventSeq || join.eventSeq || "") === String(erpEventSeq);
-        }
-        return false;
-      });
-    }
-
-    function addSheetJoinApplicationParticipants(row = {}) {
-      if (row.status === "cancelled") return false;
-      const join = findJoinForSheetApplication(row);
-      if (!join) return false;
-      const recordId = row.applicationId || row.joinApplyId || buildGoogleSheetRecordId("join", row.submittedAt || "", row.phone || "");
-      if ((join.participants || []).some((participant) => String(participant.id || "").startsWith(`${recordId}-p`))) return false;
-      const requestedCount = parseApplyPeopleValue(row.people || 1);
-      const hasLimitedCapacity = Number.isFinite(Number(join.emptySlots));
-      const remainingSlots = hasLimitedCapacity ? Number(join.emptySlots) : requestedCount;
-      const participantCount = Math.max(0, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, requestedCount, remainingSlots));
-      if (participantCount <= 0) return false;
-      const companionGenders = parseCompanionList(row.companions).map((item) => item?.gender || "");
-      const participants = Array.from({ length: participantCount }, (_, index) => {
-        const participantId = `${recordId}-p${index + 1}`;
-        const gender = index === 0 ? row.gender : (companionGenders[index - 1] || row.gender);
-        return {
-          id: participantId,
-          name: index === 0 ? maskApplyName(row.name) : `동반자${index}`,
-          gender,
-          companionGroup: participantCount > 1 ? `${recordId}-companions` : "",
-          age: row.ageDisplay || row.age || "",
-          handicap: row.level || "골프 수준 미선택",
-          profession: row.profession || "",
-          preferences: toBuilderApplicationArray(row.styles),
-          message: index === 0 ? (row.greeting || "참여 신청했어요.") : "동반 참여 인원입니다.",
-          status: "confirmed",
-          gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${row.phone || ""}`)
-        };
-      });
-      join.participants = [...(join.participants || []), ...participants];
-      if (hasLimitedCapacity) {
-        join.emptySlots = Math.max(0, Number(join.emptySlots) - participants.length);
-      }
-      return true;
-    }
-
-    async function hydrateJoinApplicationsFromGoogleSheet() {
-      if (!GOOGLE_SHEET_WEB_APP_URL) return [];
-      try {
-        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
-        url.searchParams.set("sheet", "join_applications");
-        url.searchParams.set("source", "join_apply");
-        url.searchParams.set("limit", "100");
-        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
-        if (!response.ok) throw new Error(`Join applications load failed: ${response.status}`);
-        const data = await response.json();
-        const rows = Array.isArray(data) ? data : (data.items || data.rows || data.applications || []);
-        const changed = rows.reduce((updated, row) => addSheetJoinApplicationParticipants(row) || updated, false);
-        if (changed) renderJoins();
-        return rows;
-      } catch (error) {
-        console.warn("Failed to load join applications from Google Sheet.", error);
         return [];
       }
     }
@@ -27809,7 +27733,8 @@
               <span class="region-product-price-unit">원</span>
             </div>
             <div class="region-product-team" onclick="event.stopPropagation()">
-              ${renderJoinTeamSlots(join, true)}
+              ${confirmedParticipants.map((participant) => participantButtonHtml(participant, join.id, true)).join("")}
+              ${Array.from({ length: join.emptySlots }).map(() => emptySlotHtml(true, join.id)).join("")}
             </div>
           </div>
         </article>
@@ -28453,65 +28378,7 @@
       return `${value.slice(0, 1)}**`;
     }
 
-    function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
-      const sheetApplication = join?.sheetApplication || {};
-      const scheduleId = join?.scheduleId || sheetApplication.scheduleId || "";
-      const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || "";
-      return {
-        targetType: scheduleId ? "new_schedule" : "erp_product",
-        targetScheduleId: scheduleId,
-        targetApplicationId: applicationId
-      };
-    }
-
-    function getGlobalApplyMarketingAgreement() {
-      return getVisibleApplyAgreementInputs().some((input) => input.dataset.required === "false" && input.checked);
-    }
-
-    function buildJoinApplyPayload(data, join = getCurrentApplyJoin()) {
-      const target = getCurrentApplyTargetInfo(join);
-      const submittedAt = new Date().toISOString();
-      const targetSeed = target.targetScheduleId || target.targetApplicationId || join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "join";
-      return {
-        joinApplyId: buildGoogleSheetRecordId("join", submittedAt, targetSeed, data.phone || ""),
-        source: "join_apply",
-        submittedAt,
-        pageUrl: location.href,
-        targetType: target.targetType,
-        targetScheduleId: target.targetScheduleId,
-        targetApplicationId: target.targetApplicationId,
-        product: {
-          erpProductId: join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "",
-          erpEventSeq: join?.erpEventSeq || join?.eventSeq || "",
-          productName: join?.title || "",
-          departureDate: join?.departureDate || "",
-          returnDate: join?.returnDate || "",
-          category: join?.category || "",
-          region: join?.region || "",
-          airport: join?.airport || ""
-        },
-        applicant: {
-          name: data.name || "",
-          gender: data.gender || "",
-          birthYear: data.birthYear || "",
-          ageDisplay: data.ageDisplay || data.age || "",
-          phone: data.phone || "",
-          profession: data.profession || "",
-          people: data.people || 1,
-          companions: data.companions || [],
-          level: data.level || "",
-          styles: data.styles || [],
-          greeting: data.greeting || ""
-        },
-        agreements: {
-          required: Boolean(data.requiredAgreed),
-          marketing: Boolean(data.marketingAgreed)
-        },
-        status: "confirmed"
-      };
-    }
-
-    function addCurrentApplyParticipant(data, recordId = "") {
+    function addCurrentApplyParticipant(data) {
       const join = getCurrentApplyJoin();
       if (!join) return null;
       const requestedCount = parseApplyPeopleValue(data.people || 1);
@@ -28969,46 +28836,6 @@
       return `<button type="button" class="team-empty${compact ? "" : " detail-empty"}" onclick="event.stopPropagation(); ${action}" aria-label="참여 신청">+</button>`;
     }
 
-    function getParticipantSlotItems(participants, joinId, compact = true) {
-      const items = [];
-      for (let index = 0; index < participants.length; index += 1) {
-        const participant = participants[index];
-        const group = participant.companionGroup || "";
-        const next = participants[index + 1];
-        if (group && next?.companionGroup === group) {
-          items.push({
-            type: "group",
-            count: 2,
-            html: `<div class="team-couple-wrap" title="동반 신청" aria-label="동반 신청 그룹">${participantButtonHtml(participant, joinId, compact)}${participantButtonHtml(next, joinId, compact)}</div>`
-          });
-          index += 1;
-        } else {
-          items.push({
-            type: "participant",
-            count: 1,
-            html: participantButtonHtml(participant, joinId, compact)
-          });
-        }
-      }
-      return items;
-    }
-
-    function renderJoinTeamSlots(join, compact = true, maxSlots = BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS) {
-      const participantItems = getParticipantSlotItems(getConfirmedParticipants(join), join.id, compact);
-      const emptyCount = Math.max(0, Number(join.emptySlots) || 0);
-      const emptyItems = Array.from({ length: emptyCount }).map(() => ({
-        type: "empty",
-        count: 1,
-        html: emptySlotHtml(compact, join.id)
-      }));
-      let visibleCount = 0;
-      return participantItems.concat(emptyItems).reduce((html, item) => {
-        if (visibleCount + item.count > maxSlots) return html;
-        visibleCount += item.count;
-        return html + item.html;
-      }, "");
-    }
-
     function renderJoinCard(join, options = {}) {
       const badgeKind = getBadgeKind(join);
       const cardClass = ["join-card", options.cardClass].filter(Boolean).join(" ");
@@ -29071,7 +28898,8 @@
             </div>
             ${options.showReviewNote && reviewCount ? `<div class="join-card-review-note">후기 ${reviewCount}개로 검증</div>` : ""}
             <div class="team-row">
-              ${renderJoinTeamSlots(join, true)}
+              ${confirmedParticipants.map((participant) => participantButtonHtml(participant, join.id, true)).join("")}
+              ${Array.from({ length: join.emptySlots }).map(() => emptySlotHtml(true, join.id)).join("")}
             </div>
           </div>
         </article>
@@ -29224,7 +29052,12 @@
     }
 
     function renderSoonCompactTeam(join) {
-      return renderJoinTeamSlots(join, true);
+      const confirmedParticipants = getConfirmedParticipants(join);
+      const slots = [
+        ...confirmedParticipants.map((participant) => participantButtonHtml(participant, join.id, true)),
+        ...Array.from({ length: join.emptySlots }).map(() => emptySlotHtml(true, join.id))
+      ];
+      return slots.slice(0, 4).join("");
     }
 
     function renderSoonCompactCard(join) {

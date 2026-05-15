@@ -6442,7 +6442,9 @@
       gap: 10px;
     }
     .apply-complete-action-card {
-      display: grid;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
       gap: 7px;
       padding: 10px;
       border: 1px solid #dbe4ee;
@@ -6452,19 +6454,28 @@
       cursor: pointer;
     }
     .apply-complete-action-card img {
+      display: block;
+      position: static !important;
       width: 100%;
+      height: auto !important;
       aspect-ratio: 16 / 9;
       object-fit: cover;
       border-radius: 10px;
       background: #f8fafc;
+      flex: 0 0 auto;
+      transform: none !important;
     }
     .apply-complete-action-label {
       display: block;
+      position: static !important;
+      width: 100%;
+      margin: 0;
       color: var(--text);
       font-size: 14px;
       font-weight: 800;
       line-height: 1.25;
       text-align: center;
+      transform: none !important;
     }
     @media (min-width: 641px) {
       .apply-complete-copy {
@@ -11308,8 +11319,30 @@
       body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-contact-time {
         text-align: center;
       }
+      body > #builderModal.sgj-portal-overlay .apply-complete-action-card,
+      body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-action-card {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        overflow: visible;
+      }
+      body > #builderModal.sgj-portal-overlay .apply-complete-action-card img,
+      body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-action-card img {
+        display: block;
+        position: static !important;
+        width: 100%;
+        height: auto !important;
+        flex: 0 0 auto;
+        transform: none !important;
+      }
+      body > #builderModal.sgj-portal-overlay .apply-complete-action-label,
       body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-action-label {
+        display: block;
+        position: static !important;
+        width: 100%;
+        margin: 0;
         text-align: center;
+        transform: none !important;
       }
       body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-close {
         min-height: 48px;
@@ -11547,7 +11580,7 @@
       background: rgba(255, 255, 255, 0.98);
     }
     #regionSearchModal .region-search-row {
-      margin: 16px 22px 0;
+      margin: 16px 22px 16px;
       padding: 0;
       border-bottom: 0;
     }
@@ -12354,7 +12387,7 @@
         order: 4;
       }
       #regionSearchModal .region-search-row {
-        margin: 14px 18px 0;
+        margin: 14px 18px 14px;
       }
       #regionSearchModal .region-search-field {
         margin: 0;
@@ -24854,10 +24887,15 @@
       const greeting = document.getElementById("builderApplyGreeting")?.value.trim() || "";
       const requiredAgreed = hasRequiredBuilderApplyAgreements();
       const marketingAgreed = Boolean(document.querySelector("#builderApplyAgreementList .builder-apply-agreement[data-required='false']")?.checked);
+      const submittedAt = new Date().toISOString();
+      const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, phone);
+      const scheduleId = buildGoogleSheetRecordId("sch", applicationId);
 
       return {
+        applicationId,
+        scheduleId,
         source: "new_schedule_builder",
-        submittedAt: new Date().toISOString(),
+        submittedAt,
         pageUrl: location.href,
         applicant: {
           name,
@@ -24935,6 +24973,48 @@
         body: JSON.stringify(payload)
       });
       return { ok: true };
+    }
+
+    async function saveJoinApplyToGoogleSheet(payload) {
+      if (!GOOGLE_SHEET_WEB_APP_URL) {
+        console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Join apply payload was not sent.", payload);
+        return { skipped: true };
+      }
+      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+      return { ok: true };
+    }
+
+    function buildGoogleSheetRecordId(prefix, ...parts) {
+      const safe = String(parts.join("-") || new Date().toISOString())
+        .replace(/[^a-z0-9가-힣_-]+/gi, "-")
+        .replace(/^-+|-+$/g, "");
+      return `${prefix}_${safe}`;
+    }
+
+    function getNestedValue(object, path) {
+      return String(path || "").split(".").reduce((current, key) => {
+        return current && current[key] !== undefined && current[key] !== null ? current[key] : "";
+      }, object);
+    }
+
+    function ensureBuilderApplicationIdentifiers(payload = {}) {
+      const submittedAt = payload.submittedAt || new Date().toISOString();
+      const phone = getNestedValue(payload, "applicant.phone") || payload.creatorPhone || payload.phone || "";
+      const applicationId = payload.applicationId || buildGoogleSheetRecordId("nsa", submittedAt, phone);
+      const scheduleId = payload.scheduleId || buildGoogleSheetRecordId("sch", applicationId);
+      return {
+        ...payload,
+        applicationId,
+        scheduleId,
+        submittedAt
+      };
     }
 
     async function submitBuilderApply() {
@@ -27739,6 +27819,60 @@
       return `${value.slice(0, 1)}**`;
     }
 
+    function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
+      const sheetApplication = join?.sheetApplication || {};
+      const scheduleId = join?.scheduleId || sheetApplication.scheduleId || "";
+      const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || "";
+      return {
+        targetType: scheduleId ? "new_schedule" : "erp_product",
+        targetScheduleId: scheduleId,
+        targetApplicationId: applicationId
+      };
+    }
+
+    function getGlobalApplyMarketingAgreement() {
+      return getVisibleApplyAgreementInputs().some((input) => input.dataset.required === "false" && input.checked);
+    }
+
+    function buildJoinApplyPayload(data, join = getCurrentApplyJoin()) {
+      const target = getCurrentApplyTargetInfo(join);
+      return {
+        source: "join_apply",
+        submittedAt: new Date().toISOString(),
+        pageUrl: location.href,
+        targetType: target.targetType,
+        targetScheduleId: target.targetScheduleId,
+        targetApplicationId: target.targetApplicationId,
+        product: {
+          erpProductId: join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "",
+          erpEventSeq: join?.erpEventSeq || join?.eventSeq || "",
+          productName: join?.title || "",
+          departureDate: join?.departureDate || "",
+          returnDate: join?.returnDate || "",
+          category: join?.category || "",
+          region: join?.region || "",
+          airport: join?.airport || ""
+        },
+        applicant: {
+          name: data.name || "",
+          gender: data.gender || "",
+          birthYear: data.birthYear || "",
+          ageDisplay: data.ageDisplay || data.age || "",
+          phone: data.phone || "",
+          profession: data.profession || "",
+          people: data.people || "1명",
+          level: data.level || "",
+          styles: data.styles || [],
+          greeting: data.greeting || ""
+        },
+        agreements: {
+          required: Boolean(data.requiredAgreed),
+          marketing: Boolean(data.marketingAgreed)
+        },
+        status: "confirmed"
+      };
+    }
+
     function addCurrentApplyParticipant(data) {
       const join = getCurrentApplyJoin();
       if (!join) return null;
@@ -27820,7 +27954,7 @@
       closePrivacyApplyModal();
     }
 
-    function submitGlobalApply() {
+    async function submitGlobalApply() {
       clearApplyErrors();
       const name = document.getElementById("globalApplyName")?.value.trim();
       const birthYear = document.getElementById("globalApplyBirthYear")?.value.trim();
@@ -27828,6 +27962,7 @@
       const ageDisplay = getApplyAgeDisplay();
       const phone = document.getElementById("globalApplyPhone")?.value.trim();
       const profession = document.getElementById("globalApplyProfession")?.value.trim();
+      const people = document.getElementById("globalApplyPeople")?.value || "1명";
       const level = getApplyChipValue("global-level");
       const styles = getApplyChipValues("global-style");
       const greeting = document.getElementById("globalApplyGreeting")?.value.trim();
@@ -27854,16 +27989,41 @@
         document.getElementById("globalApplyPrivacy")?.focus();
         return;
       }
-      addCurrentApplyParticipant({
+
+      const applyData = {
         name,
         gender,
+        birthYear,
         age: ageDisplay,
+        ageDisplay,
+        phone,
         profession,
+        people,
         level,
         styles,
-        greeting
-      });
-      showGlobalApplyCompleteState();
+        greeting,
+        requiredAgreed: true,
+        marketingAgreed: getGlobalApplyMarketingAgreement()
+      };
+      const submitButton = document.getElementById("globalApplySubmitButton");
+      const previousText = submitButton?.textContent || "신청완료";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "저장 중";
+      }
+      try {
+        await saveJoinApplyToGoogleSheet(buildJoinApplyPayload(applyData));
+        addCurrentApplyParticipant(applyData);
+        showGlobalApplyCompleteState();
+      } catch (error) {
+        console.error("Failed to save join apply payload.", error);
+        alert("참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      } finally {
+        if (submitButton && !document.getElementById("globalApplyPanel")?.classList.contains("is-complete")) {
+          submitButton.disabled = false;
+          submitButton.textContent = previousText;
+        }
+      }
     }
 
     function ensurePhonePrefix(input) {

@@ -7546,6 +7546,117 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
     }
+    .apply-people-group-panel {
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      gap: 14px;
+      padding-top: 2px;
+    }
+    .apply-people-total-head,
+    .apply-companion-head {
+      display: grid;
+      gap: 3px;
+    }
+    .apply-people-total-title,
+    .apply-companion-title {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.35;
+    }
+    .apply-people-total-helper,
+    .apply-companion-helper {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+    .apply-people-count-stepper {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) 48px;
+      align-items: center;
+      gap: 10px;
+    }
+    .apply-people-stepper-button {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .apply-people-stepper-button:disabled {
+      color: #cbd5e1;
+      background: #f8fafc;
+      cursor: not-allowed;
+      opacity: .78;
+    }
+    .apply-people-count-value {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+    .apply-companion-list {
+      display: grid;
+      gap: 10px;
+    }
+    .apply-companion-card {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #fff;
+    }
+    .apply-companion-name {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.35;
+    }
+    .apply-companion-gender-options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .apply-companion-gender-button {
+      min-height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+    .apply-companion-gender-button.active {
+      border-color: #6b7280;
+      background: var(--apply-accent-soft);
+      box-shadow: inset 0 0 0 1px #6b7280;
+    }
+    .apply-companion-error {
+      display: none;
+      color: var(--red);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .field.has-error .apply-companion-error {
+      display: block;
+    }
     .apply-people-radio {
       display: inline-flex;
       align-items: center;
@@ -21275,22 +21386,34 @@
                     <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('공공')">공공</button>
                   </div>
                 </div>
-                <div class="field full">
+                <div class="field full" data-companion-field="builder">
                   <div class="apply-people-label-row">
                     <label>참여 인원</label>
-                    <span class="apply-remaining-seat">잔여좌석 확인중</span>
+                    <span class="apply-remaining-seat">최대 4명</span>
                   </div>
                   <div class="apply-people-select">
-                    <input id="builderApplyPeople" type="hidden" value="1명">
+                    <input id="builderApplyPeople" type="hidden" value="1">
                     <div class="apply-people-mode" data-builder-apply-single>
                       <button type="button" class="apply-people-button active" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('solo')">혼자가요</button>
                       <button type="button" class="apply-people-button" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('group')">함께가요</button>
                     </div>
                     <div class="apply-people-accordion" id="builderApplyPeopleAccordion">
-                      <div class="apply-people-options" data-builder-apply-single>
-                        <label class="apply-people-radio" onclick="setBuilderApplyPeople('2명')"><input type="radio" name="builderApplyPeopleCount" value="2명"><span>2명</span></label>
-                        <label class="apply-people-radio" onclick="setBuilderApplyPeople('3명')"><input type="radio" name="builderApplyPeopleCount" value="3명"><span>3명</span></label>
-                        <label class="apply-people-radio" onclick="setBuilderApplyPeople('4명')"><input type="radio" name="builderApplyPeopleCount" value="4명"><span>4명</span></label>
+                      <div class="apply-people-group-panel">
+                        <div class="apply-people-total-head">
+                          <div class="apply-people-total-title">총 인원</div>
+                          <div class="apply-people-total-helper">신청자 포함 총 인원</div>
+                        </div>
+                        <div class="apply-people-count-stepper" data-people-stepper="builder">
+                          <button type="button" class="apply-people-stepper-button" data-people-step="minus" onclick="changeCompanionPeople('builder', -1)" aria-label="총 인원 줄이기">-</button>
+                          <div class="apply-people-count-value" id="builderApplyPeopleDisplay">2명</div>
+                          <button type="button" class="apply-people-stepper-button" data-people-step="plus" onclick="changeCompanionPeople('builder', 1)" aria-label="총 인원 늘리기">+</button>
+                        </div>
+                        <div class="apply-companion-head">
+                          <div class="apply-companion-title">동반자 성별</div>
+                          <div class="apply-companion-helper">동반자 성별을 선택해 주세요.</div>
+                        </div>
+                        <div class="apply-companion-list" id="builderCompanionList"></div>
+                        <div class="apply-companion-error">모든 동반자 성별을 선택해 주세요.</div>
                       </div>
                     </div>
                   </div>
@@ -21552,22 +21675,34 @@
                 <button type="button" class="profession-chip" data-profession-chip="공공" onclick="setApplyProfession('공공')">공공</button>
               </div>
             </div>
-            <div class="field full">
+            <div class="field full" data-companion-field="global">
               <div class="apply-people-label-row">
                 <label>참여 인원</label>
                 <span class="apply-remaining-seat" id="globalApplyRemainingSeat">잔여좌석 확인중</span>
               </div>
               <div class="apply-people-select">
-                <input id="globalApplyPeople" type="hidden" value="1명">
+                <input id="globalApplyPeople" type="hidden" value="1">
                 <div class="apply-people-mode" data-people-mode="global">
                   <button type="button" class="apply-people-button active" data-mode="solo" onclick="setGlobalApplyPeopleMode('solo')">혼자가요</button>
                   <button type="button" class="apply-people-button" data-mode="group" onclick="setGlobalApplyPeopleMode('group')">함께가요</button>
                 </div>
                 <div class="apply-people-accordion" id="globalApplyPeopleAccordion">
-                  <div class="apply-people-options">
-                    <label class="apply-people-radio" onclick="handleGlobalApplyPeopleOptionClick(event, '2명')"><input type="radio" name="globalApplyPeopleCount" value="2명" checked><span>2명</span></label>
-                    <label class="apply-people-radio" onclick="handleGlobalApplyPeopleOptionClick(event, '3명')"><input type="radio" name="globalApplyPeopleCount" value="3명"><span>3명</span></label>
-                    <label class="apply-people-radio" onclick="handleGlobalApplyPeopleOptionClick(event, '4명')"><input type="radio" name="globalApplyPeopleCount" value="4명"><span>4명</span></label>
+                  <div class="apply-people-group-panel">
+                    <div class="apply-people-total-head">
+                      <div class="apply-people-total-title">총 인원</div>
+                      <div class="apply-people-total-helper">신청자 포함 총 인원</div>
+                    </div>
+                    <div class="apply-people-count-stepper" data-people-stepper="global">
+                      <button type="button" class="apply-people-stepper-button" data-people-step="minus" onclick="changeCompanionPeople('global', -1)" aria-label="총 인원 줄이기">-</button>
+                      <div class="apply-people-count-value" id="globalApplyPeopleDisplay">2명</div>
+                      <button type="button" class="apply-people-stepper-button" data-people-step="plus" onclick="changeCompanionPeople('global', 1)" aria-label="총 인원 늘리기">+</button>
+                    </div>
+                    <div class="apply-companion-head">
+                      <div class="apply-companion-title">동반자 성별</div>
+                      <div class="apply-companion-helper">동반자 성별을 선택해 주세요.</div>
+                    </div>
+                    <div class="apply-companion-list" id="globalCompanionList"></div>
+                    <div class="apply-companion-error">모든 동반자 성별을 선택해 주세요.</div>
                   </div>
                 </div>
               </div>
@@ -22699,10 +22834,21 @@
     let externalGolfJoinProductsLoading = false;
     const BUILDER_APPLICATION_JOIN_PREFIX = "sheet-builder-application-";
     const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
-    const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = 4;
-    const BUILDER_APPLICATION_GENDER_ICONS = {
-      male: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338375/golf-join/m2rhapea0c54olhpthjz.gif",
-      female: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338402/golf-join/ohq81ykntjtv1rcavfkr.gif"
+    const BUILDER_APPLICATION_MAX_CAPACITY = 4;
+    const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = BUILDER_APPLICATION_MAX_CAPACITY;
+    const BUILDER_APPLICATION_GENDER_ICON_POOLS = {
+      male: [
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338375/golf-join/m2rhapea0c54olhpthjz.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338380/golf-join/uc57znxamswpwmd3zmqo.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338384/golf-join/kkdtp3rsjt0fudwvjzmq.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338388/golf-join/ofyvqqtsunsjaqzzfvih.gif"
+      ],
+      female: [
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338402/golf-join/ohq81ykntjtv1rcavfkr.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338407/golf-join/jxzh69vxbqwskstgpyux.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338411/golf-join/q5yo8ahrzkiftg4997fu.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338415/golf-join/ekh4jizja2fpveim6vmu.gif"
+      ]
     };
     let builderStep = 1;
     let activeBuilderFlexTarget = "start";
@@ -24737,35 +24883,146 @@
       updateBuilderApplySummary();
     }
 
+    function getCompanionScopeConfig(scope) {
+      const isBuilder = scope === "builder";
+      return {
+        scope,
+        inputId: isBuilder ? "builderApplyPeople" : "globalApplyPeople",
+        displayId: isBuilder ? "builderApplyPeopleDisplay" : "globalApplyPeopleDisplay",
+        listId: isBuilder ? "builderCompanionList" : "globalCompanionList",
+        accordionId: isBuilder ? "builderApplyPeopleAccordion" : "globalApplyPeopleAccordion",
+        fieldSelector: `[data-companion-field="${scope}"]`,
+        modeSelector: isBuilder ? ".builder-apply-form .apply-people-mode" : '[data-people-mode="global"]',
+        summary: isBuilder ? updateBuilderApplySummary : updateApplyProgressive
+      };
+    }
+
+    function parseApplyPeopleValue(value) {
+      const count = Number(String(value || "1").replace(/\D/g, "")) || 1;
+      return Math.max(1, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, count));
+    }
+
+    function getCompanionPeople(scope) {
+      const config = getCompanionScopeConfig(scope);
+      return parseApplyPeopleValue(document.getElementById(config.inputId)?.value || "1");
+    }
+
+    function getCompanionGenders(scope) {
+      const config = getCompanionScopeConfig(scope);
+      return Array.from(document.querySelectorAll(`#${config.listId} .apply-companion-card`)).map((card) => {
+        return card.querySelector(".apply-companion-gender-button.active")?.dataset.gender || "";
+      });
+    }
+
+    function clearCompanionGenderError(scope) {
+      const config = getCompanionScopeConfig(scope);
+      document.querySelector(config.fieldSelector)?.classList.remove("has-error");
+    }
+
+    function renderCompanionGenderRows(scope) {
+      const config = getCompanionScopeConfig(scope);
+      const totalPeople = getCompanionPeople(scope);
+      const companionCount = Math.max(0, totalPeople - 1);
+      const preserved = getCompanionGenders(scope);
+      const list = document.getElementById(config.listId);
+      const display = document.getElementById(config.displayId);
+      const minus = document.querySelector(`[data-people-stepper="${scope}"] [data-people-step="minus"]`);
+      const plus = document.querySelector(`[data-people-stepper="${scope}"] [data-people-step="plus"]`);
+      if (display) display.textContent = `${totalPeople}명`;
+      if (minus) minus.disabled = totalPeople <= 2;
+      if (plus) plus.disabled = totalPeople >= BUILDER_APPLICATION_MAX_CAPACITY;
+      if (!list) return;
+      list.innerHTML = Array.from({ length: companionCount }, (_, index) => {
+        const selected = preserved[index] || "";
+        return `
+          <div class="apply-companion-card" data-companion-index="${index}">
+            <div class="apply-companion-name">동반자 ${index + 1}</div>
+            <div class="apply-companion-gender-options" role="group" aria-label="동반자 ${index + 1} 성별">
+              <button type="button" class="apply-companion-gender-button${selected === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')">남성</button>
+              <button type="button" class="apply-companion-gender-button${selected === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')">여성</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function setCompanionPeople(scope, value, options = {}) {
+      const config = getCompanionScopeConfig(scope);
+      const count = parseApplyPeopleValue(value);
+      const input = document.getElementById(config.inputId);
+      if (input) input.value = String(count);
+      renderCompanionGenderRows(scope);
+      clearCompanionGenderError(scope);
+      if (options.update !== false) config.summary?.();
+    }
+
+    function changeCompanionPeople(scope, delta) {
+      const next = Math.max(2, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, getCompanionPeople(scope) + delta));
+      if (scope === "global") {
+        const remaining = getGlobalApplyRemainingSeats();
+        if (next > remaining && !globalApplyWaitlistApproved) {
+          showWaitlistApplyModal(
+            `${formatRemainingSeatText(remaining)}\n대기로 신청하시겠어요?`,
+            () => {
+              globalApplyWaitlistApproved = true;
+              setCompanionPeople(scope, next);
+            },
+            () => setGlobalApplyPeopleMode("solo")
+          );
+          return;
+        }
+      }
+      setCompanionPeople(scope, next);
+    }
+
+    function selectCompanionGender(scope, index, gender) {
+      const config = getCompanionScopeConfig(scope);
+      const card = document.querySelector(`#${config.listId} [data-companion-index="${index}"]`);
+      card?.querySelectorAll(".apply-companion-gender-button").forEach((button) => {
+        button.classList.toggle("active", button.dataset.gender === gender);
+      });
+      clearCompanionGenderError(scope);
+    }
+
+    function getCompanionPayload(scope) {
+      return getCompanionGenders(scope).map((gender) => ({ gender })).filter((item) => item.gender);
+    }
+
+    function validateCompanionGenders(scope) {
+      const config = getCompanionScopeConfig(scope);
+      const requiredCount = Math.max(0, getCompanionPeople(scope) - 1);
+      const genders = getCompanionGenders(scope);
+      const valid = requiredCount === 0 || (genders.length === requiredCount && genders.every(Boolean));
+      const field = document.querySelector(config.fieldSelector);
+      field?.classList.toggle("has-error", !valid);
+      if (!valid) {
+        const firstIncomplete = Array.from(field?.querySelectorAll(".apply-companion-card") || [])
+          .find((card) => !card.querySelector(".apply-companion-gender-button.active"));
+        firstIncomplete?.querySelector(".apply-companion-gender-button")?.focus?.();
+      }
+      return valid;
+    }
+
     function setBuilderApplyPeople(value) {
-      const input = document.getElementById("builderApplyPeople");
-      if (input) input.value = value;
-      updateBuilderApplySummary();
-      if (value !== "1명") {
+      const count = parseApplyPeopleValue(value);
+      setCompanionPeople("builder", count);
+      if (count > 1) {
         const modeGroup = document.querySelector(".builder-apply-form .apply-people-mode");
         modeGroup?.querySelectorAll(".apply-people-button").forEach((button) => {
           button.classList.toggle("active", button.textContent.trim() === "함께가요");
         });
+        document.getElementById("builderApplyPeopleAccordion")?.classList.add("open");
       }
     }
 
     function setBuilderApplyPeopleMode(mode) {
       const accordion = document.getElementById("builderApplyPeopleAccordion");
-      const input = document.getElementById("builderApplyPeople");
       const isGroup = mode === "group";
       accordion?.classList.toggle("open", isGroup);
       if (isGroup) {
-        const checked = document.querySelector('input[name="builderApplyPeopleCount"]:checked');
-        if (!checked) {
-          const first = document.querySelector('input[name="builderApplyPeopleCount"][value="2명"]');
-          if (first) first.checked = true;
-        }
-        if (input) input.value = document.querySelector('input[name="builderApplyPeopleCount"]:checked')?.value || "2명";
+        setCompanionPeople("builder", Math.max(2, getCompanionPeople("builder")));
       } else {
-        document.querySelectorAll('input[name="builderApplyPeopleCount"]').forEach((radio) => {
-          radio.checked = false;
-        });
-        if (input) input.value = "1명";
+        setCompanionPeople("builder", 1);
       }
       updateBuilderApplySummary();
     }
@@ -24832,7 +25089,8 @@
         return `${decade}대 ${phase}`;
       };
       const participantText = [maskName(nameValue), genderValue, formatAgeBand(birthValue)].filter(Boolean).join(" · ");
-      const peopleText = document.getElementById("builderApplyPeople")?.value || "";
+      const peopleCount = getCompanionPeople("builder");
+      const peopleText = peopleCount ? `${peopleCount}명` : "";
       const levelText = document.querySelector('[data-chip-group="builder-level"] .apply-chip.active')?.dataset.value || "";
       const pairs = [
         ["builderApplyNameSummaryLine", "builderApplyNameSummary", participantText],
@@ -24888,16 +25146,22 @@
       const gender = document.querySelector('[data-chip-group="builder-gender"] .apply-chip.active')?.dataset.value || "";
       const phone = document.getElementById("builderApplyPhone")?.value.trim() || "";
       const profession = document.getElementById("builderApplyProfession")?.value.trim() || "";
-      const people = document.getElementById("builderApplyPeople")?.value || "1명";
+      const people = getCompanionPeople("builder");
+      const companions = getCompanionPayload("builder");
       const level = document.querySelector('[data-chip-group="builder-level"] .apply-chip.active')?.dataset.value || "";
       const styles = Array.from(document.querySelectorAll('[data-chip-group="builder-style"] .apply-chip.active')).map((chip) => chip.dataset.value || chip.textContent.trim());
       const greeting = document.getElementById("builderApplyGreeting")?.value.trim() || "";
       const requiredAgreed = hasRequiredBuilderApplyAgreements();
       const marketingAgreed = Boolean(document.querySelector("#builderApplyAgreementList .builder-apply-agreement[data-required='false']")?.checked);
+      const submittedAt = new Date().toISOString();
+      const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, phone);
+      const scheduleId = buildGoogleSheetRecordId("sch", applicationId);
 
       return {
+        applicationId,
+        scheduleId,
         source: "new_schedule_builder",
-        submittedAt: new Date().toISOString(),
+        submittedAt,
         pageUrl: location.href,
         applicant: {
           name,
@@ -24907,6 +25171,7 @@
           phone,
           profession,
           people,
+          companions,
           level,
           styles,
           greeting
@@ -24953,6 +25218,9 @@
         markBuilderApplyFieldError("phone");
         return false;
       }
+      if (!validateCompanionGenders("builder")) {
+        return false;
+      }
       if (!payload.agreements.required) {
         document.getElementById("builderApplyPrivacyError")?.classList.add("is-visible");
         document.getElementById("builderApplyPrivacy")?.focus();
@@ -24977,6 +25245,42 @@
       return { ok: true };
     }
 
+    async function saveJoinApplyToGoogleSheet(payload) {
+      if (!GOOGLE_SHEET_WEB_APP_URL) {
+        console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Join apply payload was not sent.", payload);
+        return { skipped: true };
+      }
+      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+      return { ok: true };
+    }
+
+    function buildGoogleSheetRecordId(prefix, ...parts) {
+      const safe = String(parts.join("-") || new Date().toISOString())
+        .replace(/[^a-z0-9가-힣_-]+/gi, "-")
+        .replace(/^-+|-+$/g, "");
+      return `${prefix}_${safe}`;
+    }
+
+    function ensureBuilderApplicationIdentifiers(payload = {}) {
+      const submittedAt = payload.submittedAt || new Date().toISOString();
+      const phone = getNestedValue(payload, "applicant.phone") || payload.creatorPhone || payload.phone || "";
+      const applicationId = payload.applicationId || buildGoogleSheetRecordId("nsa", submittedAt, phone);
+      const scheduleId = payload.scheduleId || buildGoogleSheetRecordId("sch", applicationId);
+      return {
+        ...payload,
+        applicationId,
+        scheduleId,
+        submittedAt
+      };
+    }
+
     function getNestedValue(object, path) {
       return String(path || "").split(".").reduce((current, key) => {
         return current && current[key] !== undefined && current[key] !== null ? current[key] : "";
@@ -24992,8 +25296,10 @@
     }
 
     function normalizeBuilderApplicationPayload(item = {}) {
-      if (item.applicant || item.trip || item.agreements) return item;
-      return {
+      if (item.applicant || item.trip || item.agreements) return ensureBuilderApplicationIdentifiers(item);
+      return ensureBuilderApplicationIdentifiers({
+        applicationId: item.applicationId || "",
+        scheduleId: item.scheduleId || "",
         submittedAt: item.submittedAt || "",
         source: item.source || "new_schedule_builder",
         pageUrl: item.pageUrl || "",
@@ -25004,7 +25310,8 @@
           ageDisplay: item.ageDisplay || "",
           phone: item.phone || "",
           profession: item.profession || "",
-          people: item.people || "",
+          people: item.people || 1,
+          companions: Array.isArray(item.companions) ? item.companions : [],
           level: item.level || "",
           styles: toBuilderApplicationArray(item.styles),
           greeting: item.greeting || ""
@@ -25012,7 +25319,9 @@
         trip: {
           region: item.region || "",
           regions: toBuilderApplicationArray(item.regions),
-          productId: item.productId || "",
+          productId: item.erpProductId || item.productId || "",
+          erpProductId: item.erpProductId || item.productId || "",
+          erpEventSeq: item.erpEventSeq || item.eventSeq || "",
           productName: item.productName || "",
           startSummary: item.startSummary || "",
           endSummary: item.endSummary || "",
@@ -25030,7 +25339,7 @@
           required: item.requiredAgreed || "",
           marketing: item.marketingAgreed || ""
         }
-      };
+      });
     }
 
     function escapeBuilderApplicationText(value) {
@@ -25059,30 +25368,52 @@
       return Math.min(BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS, count);
     }
 
-    function getBuilderApplicationGenderIcon(gender, fallback) {
+    function getBuilderApplicationIconPoolKey(gender) {
       const normalizedGender = String(gender || "").trim();
-      if (normalizedGender === "여성") return BUILDER_APPLICATION_GENDER_ICONS.female;
-      if (normalizedGender === "남성") return BUILDER_APPLICATION_GENDER_ICONS.male;
-      return fallback || BUILDER_APPLICATION_GENDER_ICONS.male;
+      if (normalizedGender === "여성") return "female";
+      return "male";
+    }
+
+    function getStableIconIndex(seed, length) {
+      if (!length) return 0;
+      const source = String(seed || Math.random());
+      let hash = 0;
+      for (let index = 0; index < source.length; index += 1) {
+        hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0;
+      }
+      return Math.abs(hash) % length;
+    }
+
+    function getBuilderApplicationGenderIcon(gender, fallback, seed = "") {
+      const poolKey = getBuilderApplicationIconPoolKey(gender);
+      const pool = BUILDER_APPLICATION_GENDER_ICON_POOLS[poolKey] || [];
+      return pool[getStableIconIndex(seed, pool.length)] || fallback || BUILDER_APPLICATION_GENDER_ICON_POOLS.male[0];
     }
 
     function buildBuilderApplicationParticipants(payload, fallback, idSeed, participantName) {
-      const gender = escapeBuilderApplicationText(getNestedValue(payload, "applicant.gender"));
+      const applicantGender = escapeBuilderApplicationText(getNestedValue(payload, "applicant.gender"));
+      const companionGenders = Array.isArray(getNestedValue(payload, "applicant.companions"))
+        ? getNestedValue(payload, "applicant.companions").map((item) => escapeBuilderApplicationText(item?.gender || ""))
+        : [];
       const participantCount = getBuilderApplicationPeopleCount(payload);
-      const genderFallback = fallback.participants?.find((participant) => participant.gender === gender)?.gif || fallback.participants?.[0]?.gif;
-      const gif = getBuilderApplicationGenderIcon(gender, genderFallback);
-      return Array.from({ length: participantCount }, (_, index) => ({
-        id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`,
-        name: index === 0 ? participantName : `동반자${index}`,
-        gender,
-        age: escapeBuilderApplicationText(getNestedValue(payload, "applicant.ageDisplay")),
-        handicap: escapeBuilderApplicationText(getNestedValue(payload, "applicant.level") || "실력 미입력"),
-        profession: escapeBuilderApplicationText(getNestedValue(payload, "applicant.profession")),
-        preferences: toBuilderApplicationArray(getNestedValue(payload, "applicant.styles")).map(escapeBuilderApplicationText),
-        message: escapeBuilderApplicationText(index === 0 ? (getNestedValue(payload, "applicant.greeting") || "새 일정 조인을 신청했어요.") : "동반 참여 인원입니다."),
-        status: "confirmed",
-        gif
-      }));
+      return Array.from({ length: participantCount }, (_, index) => {
+        const gender = index === 0 ? applicantGender : (companionGenders[index - 1] || applicantGender);
+        const genderFallback = fallback.participants?.find((participant) => participant.gender === gender)?.gif || fallback.participants?.[0]?.gif;
+        const participantId = `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`;
+        const gif = getBuilderApplicationGenderIcon(gender, genderFallback, participantId);
+        return {
+          id: participantId,
+          name: index === 0 ? participantName : `동반자${index}`,
+          gender,
+          age: escapeBuilderApplicationText(getNestedValue(payload, "applicant.ageDisplay")),
+          handicap: escapeBuilderApplicationText(getNestedValue(payload, "applicant.level") || "실력 미입력"),
+          profession: escapeBuilderApplicationText(getNestedValue(payload, "applicant.profession")),
+          preferences: toBuilderApplicationArray(getNestedValue(payload, "applicant.styles")).map(escapeBuilderApplicationText),
+          message: escapeBuilderApplicationText(index === 0 ? (getNestedValue(payload, "applicant.greeting") || "새 일정 조인을 신청했어요.") : "동반 참여 인원입니다."),
+          status: "confirmed",
+          gif
+        };
+      });
     }
 
     function findBuilderApplicationProduct(payload) {
@@ -25104,13 +25435,15 @@
       const productName = getNestedValue(normalized, "trip.productName") || product?.title || "";
       const applicantName = getNestedValue(normalized, "applicant.name");
       const submittedAt = normalized.submittedAt || new Date().toISOString();
-      const idSeed = `${submittedAt}-${getNestedValue(normalized, "applicant.phone")}-${productName}-${region}-${index}`.replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
+      const idSeed = normalized.scheduleId || normalized.applicationId || `${submittedAt}-${getNestedValue(normalized, "applicant.phone")}-${productName}-${region}-${index}`.replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
       const participantName = escapeBuilderApplicationText(maskBuilderApplicantName(applicantName));
       const participants = buildBuilderApplicationParticipants(normalized, fallback, idSeed || index, participantName);
 
       return {
         ...fallback,
         id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || index}`,
+        scheduleId: normalized.scheduleId || "",
+        sourceApplicationId: normalized.applicationId || "",
         title: escapeBuilderApplicationText(productName || `${region} 맞춤 조인 요청`),
         region: escapeBuilderApplicationText(region),
         category: "해외",
@@ -25126,7 +25459,8 @@
         badgeImage: BADGE_IMAGES.special,
         airport: product?.airport || fallback.airport || "",
         participants,
-        emptySlots: 0,
+        maxCapacity: BUILDER_APPLICATION_MAX_CAPACITY,
+        emptySlots: Math.max(0, BUILDER_APPLICATION_MAX_CAPACITY - participants.length),
         includes: product?.includes?.length ? product.includes : (fallback.includes || []),
         excludes: product?.excludes?.length ? product.excludes : (fallback.excludes || []),
         notes: [
@@ -25290,7 +25624,7 @@
         if (input.type === "checkbox" || input.type === "radio") {
           input.checked = false;
         } else if (input.id === "builderApplyPeople") {
-          input.value = "1명";
+          input.value = "1";
         } else {
           input.value = "";
         }
@@ -25302,6 +25636,7 @@
         button.classList.toggle("active", button.textContent.trim() === "혼자가요");
       });
       document.getElementById("builderApplyPeopleAccordion")?.classList.remove("open");
+      setCompanionPeople("builder", 1, { update: false });
       document.querySelectorAll(".builder-apply-form .traveler-field").forEach((field) => field.classList.remove("is-filled"));
       document.querySelector(".builder-apply-form .apply-agree-box")?.classList.remove("is-collapsed");
       updateBuilderAgreeCollapsedLayout();
@@ -27899,8 +28234,6 @@
       });
       document.querySelector("#globalApplyPanel .apply-agree-box")?.classList.remove("is-collapsed");
       renderGlobalApplyAgreements();
-      const defaultPeople = document.querySelector('input[name="globalApplyPeopleCount"][value="2명"]');
-      if (defaultPeople) defaultPeople.checked = true;
       globalApplyWaitlistApproved = false;
       updateGlobalApplyRemainingSeat();
       setGlobalApplyPeopleMode("solo");
@@ -27996,28 +28329,99 @@
       return `${value.slice(0, 1)}**`;
     }
 
+    function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
+      const sheetApplication = join?.sheetApplication || {};
+      const scheduleId = join?.scheduleId || sheetApplication.scheduleId || "";
+      const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || "";
+      return {
+        targetType: scheduleId ? "new_schedule" : "erp_product",
+        targetScheduleId: scheduleId,
+        targetApplicationId: applicationId
+      };
+    }
+
+    function getGlobalApplyMarketingAgreement() {
+      return getVisibleApplyAgreementInputs().some((input) => input.dataset.required === "false" && input.checked);
+    }
+
+    function buildJoinApplyPayload(data, join = getCurrentApplyJoin()) {
+      const target = getCurrentApplyTargetInfo(join);
+      const submittedAt = new Date().toISOString();
+      const targetSeed = target.targetScheduleId || target.targetApplicationId || join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "join";
+      return {
+        joinApplyId: buildGoogleSheetRecordId("join", submittedAt, targetSeed, data.phone || ""),
+        source: "join_apply",
+        submittedAt,
+        pageUrl: location.href,
+        targetType: target.targetType,
+        targetScheduleId: target.targetScheduleId,
+        targetApplicationId: target.targetApplicationId,
+        product: {
+          erpProductId: join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "",
+          erpEventSeq: join?.erpEventSeq || join?.eventSeq || "",
+          productName: join?.title || "",
+          departureDate: join?.departureDate || "",
+          returnDate: join?.returnDate || "",
+          category: join?.category || "",
+          region: join?.region || "",
+          airport: join?.airport || ""
+        },
+        applicant: {
+          name: data.name || "",
+          gender: data.gender || "",
+          birthYear: data.birthYear || "",
+          ageDisplay: data.ageDisplay || data.age || "",
+          phone: data.phone || "",
+          profession: data.profession || "",
+          people: data.people || 1,
+          companions: data.companions || [],
+          level: data.level || "",
+          styles: data.styles || [],
+          greeting: data.greeting || ""
+        },
+        agreements: {
+          required: Boolean(data.requiredAgreed),
+          marketing: Boolean(data.marketingAgreed)
+        },
+        status: "confirmed"
+      };
+    }
+
     function addCurrentApplyParticipant(data) {
       const join = getCurrentApplyJoin();
       if (!join) return null;
-      const participant = {
-        id: `apply-${Date.now()}`,
-        name: maskApplyName(data.name),
-        gender: data.gender,
-        age: data.age,
-        handicap: data.level || "골프 수준 미선택",
-        profession: data.profession,
-        preferences: data.styles,
-        message: data.greeting,
-        status: "confirmed",
-        gif: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338380/golf-join/uc57znxamswpwmd3zmqo.gif"
-      };
-      join.participants = [...(join.participants || []), participant];
-      join.emptySlots = Math.max(0, (join.emptySlots || 0) - 1);
+      const requestedCount = parseApplyPeopleValue(data.people || 1);
+      const hasLimitedCapacity = Number.isFinite(Number(join.emptySlots));
+      const remainingSlots = hasLimitedCapacity ? Number(join.emptySlots) : requestedCount;
+      const participantCount = Math.max(0, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, requestedCount, remainingSlots));
+      if (participantCount <= 0) return null;
+      const createdAt = Date.now();
+      const companionGenders = Array.isArray(data.companions) ? data.companions.map((item) => item?.gender || "") : [];
+      const participants = Array.from({ length: participantCount }, (_, index) => {
+        const participantId = `apply-${createdAt}-${index + 1}`;
+        const gender = index === 0 ? data.gender : (companionGenders[index - 1] || data.gender);
+        return {
+          id: participantId,
+          name: index === 0 ? maskApplyName(data.name) : `동반자${index}`,
+          gender,
+          age: data.age,
+          handicap: data.level || "골프 수준 미선택",
+          profession: data.profession,
+          preferences: data.styles,
+          message: index === 0 ? data.greeting : "동반 참여 인원입니다.",
+          status: "confirmed",
+          gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${data.phone || ""}`)
+        };
+      });
+      join.participants = [...(join.participants || []), ...participants];
+      if (hasLimitedCapacity) {
+        join.emptySlots = Math.max(0, Number(join.emptySlots) - participants.length);
+      }
       renderJoins();
       if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinId === join.id) {
         renderDetailContent(join);
       }
-      return participant;
+      return participants[0] || null;
     }
 
     function clearApplyErrors() {
@@ -28077,7 +28481,7 @@
       closePrivacyApplyModal();
     }
 
-    function submitGlobalApply() {
+    async function submitGlobalApply() {
       clearApplyErrors();
       const name = document.getElementById("globalApplyName")?.value.trim();
       const birthYear = document.getElementById("globalApplyBirthYear")?.value.trim();
@@ -28085,6 +28489,8 @@
       const ageDisplay = getApplyAgeDisplay();
       const phone = document.getElementById("globalApplyPhone")?.value.trim();
       const profession = document.getElementById("globalApplyProfession")?.value.trim();
+      const people = getCompanionPeople("global");
+      const companions = getCompanionPayload("global");
       const level = getApplyChipValue("global-level");
       const styles = getApplyChipValues("global-style");
       const greeting = document.getElementById("globalApplyGreeting")?.value.trim();
@@ -28111,16 +28517,46 @@
         document.getElementById("globalApplyPrivacy")?.focus();
         return;
       }
-      addCurrentApplyParticipant({
+      if (!validateCompanionGenders("global")) {
+        return;
+      }
+
+      const applyData = {
         name,
         gender,
+        birthYear,
         age: ageDisplay,
+        ageDisplay,
+        phone,
         profession,
+        people,
+        companions,
         level,
         styles,
-        greeting
-      });
-      showGlobalApplyCompleteState();
+        greeting,
+        requiredAgreed: true,
+        marketingAgreed: getGlobalApplyMarketingAgreement()
+      };
+      const submitButton = document.getElementById("globalApplySubmitButton");
+      if (submitButton?.disabled) return;
+      const previousText = submitButton?.textContent || "신청완료";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "저장 중";
+      }
+      try {
+        await saveJoinApplyToGoogleSheet(buildJoinApplyPayload(applyData));
+        addCurrentApplyParticipant(applyData);
+        showGlobalApplyCompleteState();
+      } catch (error) {
+        console.error("Failed to save join apply payload.", error);
+        alert("참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      } finally {
+        if (submitButton && !document.getElementById("globalApplyPanel")?.classList.contains("is-complete")) {
+          submitButton.disabled = false;
+          submitButton.textContent = previousText;
+        }
+      }
     }
 
     function ensurePhonePrefix(input) {
@@ -28171,26 +28607,20 @@
         );
         return;
       }
-      const input = document.getElementById("globalApplyPeople");
       const accordion = document.getElementById("globalApplyPeopleAccordion");
       document.querySelectorAll('[data-people-mode="global"] .apply-people-button').forEach((button) => {
         button.classList.toggle("active", button.dataset.mode === mode);
       });
       accordion?.classList.toggle("open", isGroup);
-      if (!input) return;
       if (!isGroup) {
-        input.value = "1명";
+        setCompanionPeople("global", 1);
         return;
       }
-      const checked = document.querySelector('input[name="globalApplyPeopleCount"]:checked');
-      input.value = checked?.value || "2명";
+      setCompanionPeople("global", Math.max(2, getCompanionPeople("global")));
     }
 
     function setGlobalApplyPeopleCount(value) {
-      const input = document.getElementById("globalApplyPeople");
-      if (input) input.value = value;
-      const radio = document.querySelector(`input[name="globalApplyPeopleCount"][value="${value}"]`);
-      if (radio) radio.checked = true;
+      setCompanionPeople("global", value);
     }
 
     function getGlobalApplyRemainingSeats() {

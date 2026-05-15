@@ -16717,6 +16717,7 @@ const oTop = {
     let detailReviewResetTimer = null;
     let heroSlideIndex = 1;
     let heroRealSlideCount = 0;
+    const QUICK_SECTION_DISPLAY_LIMIT = 2;
     let quickSectionFeaturedIndex = 0;
     let quickMobileCarouselTimer = null;
     let quickMobileCarouselScrollTimer = null;
@@ -18787,9 +18788,13 @@ const oTop = {
     }
 
     function getSectionDisplayItems(section) {
-      if (section.key !== "quick" || section.items.length < 2) return section.items;
+      if (section.key !== "quick") return section.items;
+      if (section.items.length <= QUICK_SECTION_DISPLAY_LIMIT) return section.items;
       const start = ((quickSectionFeaturedIndex % section.items.length) + section.items.length) % section.items.length;
-      return section.items.slice(start).concat(section.items.slice(0, start));
+      return section.items
+        .slice(start)
+        .concat(section.items.slice(0, start))
+        .slice(0, QUICK_SECTION_DISPLAY_LIMIT);
     }
 
     function changeQuickFeatured(delta) {

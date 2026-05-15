@@ -24996,7 +24996,9 @@
       const field = document.querySelector(config.fieldSelector);
       field?.classList.toggle("has-error", !valid);
       if (!valid) {
-        field?.querySelector(".apply-companion-gender-button:not(.active)")?.focus?.();
+        const firstIncomplete = Array.from(field?.querySelectorAll(".apply-companion-card") || [])
+          .find((card) => !card.querySelector(".apply-companion-gender-button.active"));
+        firstIncomplete?.querySelector(".apply-companion-gender-button")?.focus?.();
       }
       return valid;
     }
@@ -25308,7 +25310,8 @@
           ageDisplay: item.ageDisplay || "",
           phone: item.phone || "",
           profession: item.profession || "",
-          people: item.people || "",
+          people: item.people || 1,
+          companions: Array.isArray(item.companions) ? item.companions : [],
           level: item.level || "",
           styles: toBuilderApplicationArray(item.styles),
           greeting: item.greeting || ""
@@ -28343,9 +28346,12 @@
 
     function buildJoinApplyPayload(data, join = getCurrentApplyJoin()) {
       const target = getCurrentApplyTargetInfo(join);
+      const submittedAt = new Date().toISOString();
+      const targetSeed = target.targetScheduleId || target.targetApplicationId || join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "join";
       return {
+        joinApplyId: buildGoogleSheetRecordId("join", submittedAt, targetSeed, data.phone || ""),
         source: "join_apply",
-        submittedAt: new Date().toISOString(),
+        submittedAt,
         pageUrl: location.href,
         targetType: target.targetType,
         targetScheduleId: target.targetScheduleId,
@@ -28384,7 +28390,7 @@
     function addCurrentApplyParticipant(data) {
       const join = getCurrentApplyJoin();
       if (!join) return null;
-      const requestedCount = Number(String(data.people || "1").replace(/\D/g, "")) || 1;
+      const requestedCount = parseApplyPeopleValue(data.people || 1);
       const hasLimitedCapacity = Number.isFinite(Number(join.emptySlots));
       const remainingSlots = hasLimitedCapacity ? Number(join.emptySlots) : requestedCount;
       const participantCount = Math.max(0, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, requestedCount, remainingSlots));
@@ -28408,7 +28414,9 @@
         };
       });
       join.participants = [...(join.participants || []), ...participants];
-      join.emptySlots = Math.max(0, (join.emptySlots || 0) - participants.length);
+      if (hasLimitedCapacity) {
+        join.emptySlots = Math.max(0, Number(join.emptySlots) - participants.length);
+      }
       renderJoins();
       if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinId === join.id) {
         renderDetailContent(join);
@@ -28530,6 +28538,7 @@
         marketingAgreed: getGlobalApplyMarketingAgreement()
       };
       const submitButton = document.getElementById("globalApplySubmitButton");
+      if (submitButton?.disabled) return;
       const previousText = submitButton?.textContent || "신청완료";
       if (submitButton) {
         submitButton.disabled = true;

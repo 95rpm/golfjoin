@@ -497,3 +497,86 @@ function value_(object, path) {
 function join_(value) {
   return Array.isArray(value) ? value.join(", ") : value || "";
 }
+
+function jsonOutput_(payload) {
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function resolveReadSheetName_(value) {
+  const requested = String(value || "").trim();
+  if (!requested || requested === "all") return "";
+  const aliases = {
+    new_schedule: SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS,
+    new_schedule_applications: SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS,
+    builder: SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS,
+    join: SHEET_NAMES.JOIN_APPLICATIONS,
+    join_applications: SHEET_NAMES.JOIN_APPLICATIONS,
+    schedule_participant_summary: SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY,
+    summary: SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY,
+    product_display_rules: SHEET_NAMES.PRODUCT_DISPLAY_RULES,
+    display_rules: SHEET_NAMES.PRODUCT_DISPLAY_RULES
+  };
+  return aliases[requested] || (SHEET_HEADERS[requested] ? requested : SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS);
+}
+
+function filterRowsForRequest_(rows, params) {
+  let filtered = rows;
+  const source = String(params.source || "").trim();
+  const status = String(params.status || "").trim();
+  const displayStatus = String(params.displayStatus || "").trim();
+  const approvalStatus = String(params.approvalStatus || "").trim();
+  const since = params.since ? new Date(params.since).getTime() : 0;
+
+  if (source) {
+    filtered = filtered.filter(function (row) { return String(row.source || "") === source; });
+  }
+  if (status) {
+    filtered = filtered.filter(function (row) { return String(row.status || "") === status; });
+  }
+  if (displayStatus) {
+    filtered = filtered.filter(function (row) { return String(row.displayStatus || "") === displayStatus; });
+  }
+  if (approvalStatus) {
+    filtered = filtered.filter(function (row) { return String(row.approvalStatus || "") === approvalStatus; });
+  }
+  if (since) {
+    filtered = filtered.filter(function (row) {
+      const updatedAt = new Date(row.updatedAt || row.submittedAt || 0).getTime();
+      return updatedAt && updatedAt >= since;
+    });
+  }
+
+  filtered = filtered.sort(function (a, b) {
+    return new Date(b.updatedAt || b.submittedAt || 0).getTime() - new Date(a.updatedAt || a.submittedAt || 0).getTime();
+  });
+
+  const limit = parsePositiveInteger_(params.limit);
+  return limit ? filtered.slice(0, limit) : filtered;
+}
+
+function normalizeRowForJson_(row) {
+  return Object.keys(row).reduce(function (object, key) {
+    object[key] = normalizeCellForJson_(row[key]);
+    return object;
+  }, {});
+}
+
+function normalizeCellForJson_(value) {
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return value.toISOString();
+  }
+  return value;
+}
+
+function parsePositiveInteger_(value) {
+  const count = Number(String(value || "").replace(/\D/g, ""));
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
+
+function stringifyCompanions_(value) {
+  if (!value) return "";
+  return JSON.stringify(Array.isArray(value) ? value : [value]);
+}

@@ -25321,17 +25321,16 @@
         source: item.source || "new_schedule_builder",
         pageUrl: item.pageUrl || "",
         applicant: {
-          name: item.creatorName || item.name || "",
-          gender: item.creatorGender || item.gender || "",
-          birthYear: item.creatorBirthYear || item.birthYear || "",
-          ageDisplay: item.creatorAgeDisplay || item.ageDisplay || "",
-          phone: item.creatorPhone || item.phone || "",
-          profession: item.creatorProfession || item.profession || "",
-          people: item.creatorPeople || item.people || 1,
-          companions: parseCompanionList(item.creatorCompanions || item.companions),
-          level: item.creatorLevel || item.level || "",
-          styles: toBuilderApplicationArray(item.creatorStyles || item.styles),
-          greeting: item.creatorGreeting || item.greeting || ""
+          name: item.name || "",
+          gender: item.gender || "",
+          birthYear: item.birthYear || "",
+          ageDisplay: item.ageDisplay || "",
+          phone: item.phone || "",
+          profession: item.profession || "",
+          people: item.people || "",
+          level: item.level || "",
+          styles: toBuilderApplicationArray(item.styles),
+          greeting: item.greeting || ""
         },
         trip: {
           region: item.region || "",
@@ -28472,37 +28471,81 @@
       };
     }
 
+    function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
+      const sheetApplication = join?.sheetApplication || {};
+      const scheduleId = join?.scheduleId || sheetApplication.scheduleId || "";
+      const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || "";
+      return {
+        targetType: scheduleId ? "new_schedule" : "erp_product",
+        targetScheduleId: scheduleId,
+        targetApplicationId: applicationId
+      };
+    }
+
+    function getGlobalApplyMarketingAgreement() {
+      return getVisibleApplyAgreementInputs().some((input) => input.dataset.required === "false" && input.checked);
+    }
+
+    function buildJoinApplyPayload(data, join = getCurrentApplyJoin()) {
+      const target = getCurrentApplyTargetInfo(join);
+      const submittedAt = new Date().toISOString();
+      const targetSeed = target.targetScheduleId || target.targetApplicationId || join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "join";
+      return {
+        joinApplyId: buildGoogleSheetRecordId("join", submittedAt, targetSeed, data.phone || ""),
+        source: "join_apply",
+        submittedAt,
+        pageUrl: location.href,
+        targetType: target.targetType,
+        targetScheduleId: target.targetScheduleId,
+        targetApplicationId: target.targetApplicationId,
+        product: {
+          erpProductId: join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "",
+          erpEventSeq: join?.erpEventSeq || join?.eventSeq || "",
+          productName: join?.title || "",
+          departureDate: join?.departureDate || "",
+          returnDate: join?.returnDate || "",
+          category: join?.category || "",
+          region: join?.region || "",
+          airport: join?.airport || ""
+        },
+        applicant: {
+          name: data.name || "",
+          gender: data.gender || "",
+          birthYear: data.birthYear || "",
+          ageDisplay: data.ageDisplay || data.age || "",
+          phone: data.phone || "",
+          profession: data.profession || "",
+          people: data.people || 1,
+          companions: data.companions || [],
+          level: data.level || "",
+          styles: data.styles || [],
+          greeting: data.greeting || ""
+        },
+        agreements: {
+          required: Boolean(data.requiredAgreed),
+          marketing: Boolean(data.marketingAgreed)
+        },
+        status: "confirmed"
+      };
+    }
+
     function addCurrentApplyParticipant(data, recordId = "") {
       const join = getCurrentApplyJoin();
       if (!join) return null;
-      const requestedCount = parseApplyPeopleValue(data.people || 1);
-      const hasLimitedCapacity = Number.isFinite(Number(join.emptySlots));
-      const remainingSlots = hasLimitedCapacity ? Number(join.emptySlots) : requestedCount;
-      const participantCount = Math.max(0, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, requestedCount, remainingSlots));
-      if (participantCount <= 0) return null;
-      const createdAt = Date.now();
-      const participantSeed = recordId || `apply-${createdAt}`;
-      const companionGenders = parseCompanionList(data.companions).map((item) => item?.gender || "");
-      const participants = Array.from({ length: participantCount }, (_, index) => {
-        const participantId = `${participantSeed}-p${index + 1}`;
-        const gender = index === 0 ? data.gender : (companionGenders[index - 1] || data.gender);
-        return {
-          id: participantId,
-          name: index === 0 ? maskApplyName(data.name) : `동반자${index}`,
-          gender,
-          age: data.age,
-          handicap: data.level || "골프 수준 미선택",
-          profession: data.profession,
-          preferences: data.styles,
-          message: index === 0 ? data.greeting : "동반 참여 인원입니다.",
-          status: "confirmed",
-          gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${data.phone || ""}`)
-        };
-      });
-      join.participants = [...(join.participants || []), ...participants];
-      if (hasLimitedCapacity) {
-        join.emptySlots = Math.max(0, Number(join.emptySlots) - participants.length);
-      }
+      const participant = {
+        id: `apply-${Date.now()}`,
+        name: maskApplyName(data.name),
+        gender: data.gender,
+        age: data.age,
+        handicap: data.level || "골프 수준 미선택",
+        profession: data.profession,
+        preferences: data.styles,
+        message: data.greeting,
+        status: "confirmed",
+        gif: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338380/golf-join/uc57znxamswpwmd3zmqo.gif"
+      };
+      join.participants = [...(join.participants || []), participant];
+      join.emptySlots = Math.max(0, (join.emptySlots || 0) - 1);
       renderJoins();
       if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinId === join.id) {
         renderDetailContent(join);
@@ -28619,31 +28662,9 @@
         companions,
         level,
         styles,
-        greeting,
-        requiredAgreed: true,
-        marketingAgreed: getGlobalApplyMarketingAgreement()
-      };
-      const submitButton = document.getElementById("globalApplySubmitButton");
-      if (submitButton?.disabled) return;
-      const previousText = submitButton?.textContent || "신청완료";
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "저장 중";
-      }
-      try {
-        const applyPayload = buildJoinApplyPayload(applyData);
-        await saveJoinApplyToGoogleSheet(applyPayload);
-        addCurrentApplyParticipant(applyData, applyPayload.joinApplyId);
-        showGlobalApplyCompleteState();
-      } catch (error) {
-        console.error("Failed to save join apply payload.", error);
-        alert("참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-      } finally {
-        if (submitButton && !document.getElementById("globalApplyPanel")?.classList.contains("is-complete")) {
-          submitButton.disabled = false;
-          submitButton.textContent = previousText;
-        }
-      }
+        greeting
+      });
+      showGlobalApplyCompleteState();
     }
 
     function ensurePhonePrefix(input) {

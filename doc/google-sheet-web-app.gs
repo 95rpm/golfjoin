@@ -19,6 +19,7 @@ const SHEET_HEADERS = {
     "creatorPhone",
     "creatorProfession",
     "creatorPeople",
+    "creatorCompanions",
     "creatorLevel",
     "creatorStyles",
     "creatorGreeting",
@@ -67,6 +68,7 @@ const SHEET_HEADERS = {
     "phone",
     "profession",
     "people",
+    "companions",
     "level",
     "styles",
     "greeting",
@@ -219,7 +221,7 @@ function ensureSheetHeaders_(sheetName, headers) {
   if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS) {
     migrateSheetToHeaders_(sheet, headers, mapLegacyNewScheduleRow_);
   } else {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    migrateSheetToHeaders_(sheet, headers, mapLegacyGenericRow_);
   }
   return sheet;
 }
@@ -260,6 +262,7 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
     creatorPhone: row.creatorPhone || row.phone,
     creatorProfession: row.creatorProfession || row.profession,
     creatorPeople: row.creatorPeople || row.people,
+    creatorCompanions: row.creatorCompanions || row.companions,
     creatorLevel: row.creatorLevel || row.level,
     creatorStyles: row.creatorStyles || row.styles,
     creatorGreeting: row.creatorGreeting || row.greeting,
@@ -271,6 +274,11 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
     updatedAt: row.updatedAt || new Date().toISOString()
   };
   return aliases[header] !== undefined ? aliases[header] : row[header] || "";
+}
+
+
+function mapLegacyGenericRow_(row, header) {
+  return row[header] !== undefined ? row[header] : "";
 }
 
 function getPayloadColumnValue_(payload, header, sheetName) {
@@ -297,6 +305,7 @@ function getNewScheduleApplicationValue_(payload, header) {
     creatorPhone: value_(payload, "applicant.phone"),
     creatorProfession: value_(payload, "applicant.profession"),
     creatorPeople: value_(payload, "applicant.people"),
+    creatorCompanions: stringifyCompanions_(value_(payload, "applicant.companions")),
     creatorLevel: value_(payload, "applicant.level"),
     creatorStyles: join_(value_(payload, "applicant.styles")),
     creatorGreeting: value_(payload, "applicant.greeting"),
@@ -351,6 +360,7 @@ function getJoinApplicationValue_(payload, header) {
     phone: value_(payload, "applicant.phone"),
     profession: value_(payload, "applicant.profession"),
     people: value_(payload, "applicant.people"),
+    companions: stringifyCompanions_(value_(payload, "applicant.companions")),
     level: value_(payload, "applicant.level"),
     styles: join_(value_(payload, "applicant.styles")),
     greeting: value_(payload, "applicant.greeting"),
@@ -563,4 +573,10 @@ function normalizeCellForJson_(value) {
 function parsePositiveInteger_(value) {
   const count = Number(String(value || "").replace(/\D/g, ""));
   return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
+
+function stringifyCompanions_(value) {
+  if (!value) return "";
+  return JSON.stringify(Array.isArray(value) ? value : [value]);
 }

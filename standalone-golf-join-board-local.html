@@ -11319,8 +11319,30 @@
       body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-contact-time {
         text-align: center;
       }
+      body > #builderModal.sgj-portal-overlay .apply-complete-action-card,
+      body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-action-card {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        overflow: visible;
+      }
+      body > #builderModal.sgj-portal-overlay .apply-complete-action-card img,
+      body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-action-card img {
+        display: block;
+        position: static !important;
+        width: 100%;
+        height: auto !important;
+        flex: 0 0 auto;
+        transform: none !important;
+      }
+      body > #builderModal.sgj-portal-overlay .apply-complete-action-label,
       body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-action-label {
+        display: block;
+        position: static !important;
+        width: 100%;
+        margin: 0;
         text-align: center;
+        transform: none !important;
       }
       body > #globalApplyOverlay.sgj-portal-overlay .apply-complete-close {
         min-height: 48px;
@@ -11558,7 +11580,7 @@
       background: rgba(255, 255, 255, 0.98);
     }
     #regionSearchModal .region-search-row {
-      margin: 16px 22px 0;
+      margin: 16px 22px 16px;
       padding: 0;
       border-bottom: 0;
     }
@@ -12365,7 +12387,7 @@
         order: 4;
       }
       #regionSearchModal .region-search-row {
-        margin: 14px 18px 0;
+        margin: 14px 18px 14px;
       }
       #regionSearchModal .region-search-field {
         margin: 0;
@@ -22677,10 +22699,21 @@
     let externalGolfJoinProductsLoading = false;
     const BUILDER_APPLICATION_JOIN_PREFIX = "sheet-builder-application-";
     const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
-    const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = 4;
-    const BUILDER_APPLICATION_GENDER_ICONS = {
-      male: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338375/golf-join/m2rhapea0c54olhpthjz.gif",
-      female: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338402/golf-join/ohq81ykntjtv1rcavfkr.gif"
+    const BUILDER_APPLICATION_MAX_CAPACITY = 4;
+    const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = BUILDER_APPLICATION_MAX_CAPACITY;
+    const BUILDER_APPLICATION_GENDER_ICON_POOLS = {
+      male: [
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338375/golf-join/m2rhapea0c54olhpthjz.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338380/golf-join/uc57znxamswpwmd3zmqo.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338384/golf-join/kkdtp3rsjt0fudwvjzmq.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338388/golf-join/ofyvqqtsunsjaqzzfvih.gif"
+      ],
+      female: [
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338402/golf-join/ohq81ykntjtv1rcavfkr.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338407/golf-join/jxzh69vxbqwskstgpyux.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338411/golf-join/q5yo8ahrzkiftg4997fu.gif",
+        "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338415/golf-join/ekh4jizja2fpveim6vmu.gif"
+      ]
     };
     let builderStep = 1;
     let activeBuilderFlexTarget = "start";
@@ -24872,10 +24905,15 @@
       const greeting = document.getElementById("builderApplyGreeting")?.value.trim() || "";
       const requiredAgreed = hasRequiredBuilderApplyAgreements();
       const marketingAgreed = Boolean(document.querySelector("#builderApplyAgreementList .builder-apply-agreement[data-required='false']")?.checked);
+      const submittedAt = new Date().toISOString();
+      const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, phone);
+      const scheduleId = buildGoogleSheetRecordId("sch", applicationId);
 
       return {
+        applicationId,
+        scheduleId,
         source: "new_schedule_builder",
-        submittedAt: new Date().toISOString(),
+        submittedAt,
         pageUrl: location.href,
         applicant: {
           name,
@@ -24955,6 +24993,42 @@
       return { ok: true };
     }
 
+    async function saveJoinApplyToGoogleSheet(payload) {
+      if (!GOOGLE_SHEET_WEB_APP_URL) {
+        console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Join apply payload was not sent.", payload);
+        return { skipped: true };
+      }
+      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+      return { ok: true };
+    }
+
+    function buildGoogleSheetRecordId(prefix, ...parts) {
+      const safe = String(parts.join("-") || new Date().toISOString())
+        .replace(/[^a-z0-9가-힣_-]+/gi, "-")
+        .replace(/^-+|-+$/g, "");
+      return `${prefix}_${safe}`;
+    }
+
+    function ensureBuilderApplicationIdentifiers(payload = {}) {
+      const submittedAt = payload.submittedAt || new Date().toISOString();
+      const phone = getNestedValue(payload, "applicant.phone") || payload.creatorPhone || payload.phone || "";
+      const applicationId = payload.applicationId || buildGoogleSheetRecordId("nsa", submittedAt, phone);
+      const scheduleId = payload.scheduleId || buildGoogleSheetRecordId("sch", applicationId);
+      return {
+        ...payload,
+        applicationId,
+        scheduleId,
+        submittedAt
+      };
+    }
+
     function getNestedValue(object, path) {
       return String(path || "").split(".").reduce((current, key) => {
         return current && current[key] !== undefined && current[key] !== null ? current[key] : "";
@@ -24970,8 +25044,10 @@
     }
 
     function normalizeBuilderApplicationPayload(item = {}) {
-      if (item.applicant || item.trip || item.agreements) return item;
-      return {
+      if (item.applicant || item.trip || item.agreements) return ensureBuilderApplicationIdentifiers(item);
+      return ensureBuilderApplicationIdentifiers({
+        applicationId: item.applicationId || "",
+        scheduleId: item.scheduleId || "",
         submittedAt: item.submittedAt || "",
         source: item.source || "new_schedule_builder",
         pageUrl: item.pageUrl || "",
@@ -24990,7 +25066,9 @@
         trip: {
           region: item.region || "",
           regions: toBuilderApplicationArray(item.regions),
-          productId: item.productId || "",
+          productId: item.erpProductId || item.productId || "",
+          erpProductId: item.erpProductId || item.productId || "",
+          erpEventSeq: item.erpEventSeq || item.eventSeq || "",
           productName: item.productName || "",
           startSummary: item.startSummary || "",
           endSummary: item.endSummary || "",
@@ -25008,7 +25086,7 @@
           required: item.requiredAgreed || "",
           marketing: item.marketingAgreed || ""
         }
-      };
+      });
     }
 
     function escapeBuilderApplicationText(value) {
@@ -25037,30 +25115,48 @@
       return Math.min(BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS, count);
     }
 
-    function getBuilderApplicationGenderIcon(gender, fallback) {
+    function getBuilderApplicationIconPoolKey(gender) {
       const normalizedGender = String(gender || "").trim();
-      if (normalizedGender === "여성") return BUILDER_APPLICATION_GENDER_ICONS.female;
-      if (normalizedGender === "남성") return BUILDER_APPLICATION_GENDER_ICONS.male;
-      return fallback || BUILDER_APPLICATION_GENDER_ICONS.male;
+      if (normalizedGender === "여성") return "female";
+      return "male";
+    }
+
+    function getStableIconIndex(seed, length) {
+      if (!length) return 0;
+      const source = String(seed || Math.random());
+      let hash = 0;
+      for (let index = 0; index < source.length; index += 1) {
+        hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0;
+      }
+      return Math.abs(hash) % length;
+    }
+
+    function getBuilderApplicationGenderIcon(gender, fallback, seed = "") {
+      const poolKey = getBuilderApplicationIconPoolKey(gender);
+      const pool = BUILDER_APPLICATION_GENDER_ICON_POOLS[poolKey] || [];
+      return pool[getStableIconIndex(seed, pool.length)] || fallback || BUILDER_APPLICATION_GENDER_ICON_POOLS.male[0];
     }
 
     function buildBuilderApplicationParticipants(payload, fallback, idSeed, participantName) {
       const gender = escapeBuilderApplicationText(getNestedValue(payload, "applicant.gender"));
       const participantCount = getBuilderApplicationPeopleCount(payload);
       const genderFallback = fallback.participants?.find((participant) => participant.gender === gender)?.gif || fallback.participants?.[0]?.gif;
-      const gif = getBuilderApplicationGenderIcon(gender, genderFallback);
-      return Array.from({ length: participantCount }, (_, index) => ({
-        id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`,
-        name: index === 0 ? participantName : `동반자${index}`,
-        gender,
-        age: escapeBuilderApplicationText(getNestedValue(payload, "applicant.ageDisplay")),
-        handicap: escapeBuilderApplicationText(getNestedValue(payload, "applicant.level") || "실력 미입력"),
-        profession: escapeBuilderApplicationText(getNestedValue(payload, "applicant.profession")),
-        preferences: toBuilderApplicationArray(getNestedValue(payload, "applicant.styles")).map(escapeBuilderApplicationText),
-        message: escapeBuilderApplicationText(index === 0 ? (getNestedValue(payload, "applicant.greeting") || "새 일정 조인을 신청했어요.") : "동반 참여 인원입니다."),
-        status: "confirmed",
-        gif
-      }));
+      return Array.from({ length: participantCount }, (_, index) => {
+        const participantId = `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`;
+        const gif = getBuilderApplicationGenderIcon(gender, genderFallback, participantId);
+        return {
+          id: participantId,
+          name: index === 0 ? participantName : `동반자${index}`,
+          gender,
+          age: escapeBuilderApplicationText(getNestedValue(payload, "applicant.ageDisplay")),
+          handicap: escapeBuilderApplicationText(getNestedValue(payload, "applicant.level") || "실력 미입력"),
+          profession: escapeBuilderApplicationText(getNestedValue(payload, "applicant.profession")),
+          preferences: toBuilderApplicationArray(getNestedValue(payload, "applicant.styles")).map(escapeBuilderApplicationText),
+          message: escapeBuilderApplicationText(index === 0 ? (getNestedValue(payload, "applicant.greeting") || "새 일정 조인을 신청했어요.") : "동반 참여 인원입니다."),
+          status: "confirmed",
+          gif
+        };
+      });
     }
 
     function findBuilderApplicationProduct(payload) {
@@ -25082,13 +25178,15 @@
       const productName = getNestedValue(normalized, "trip.productName") || product?.title || "";
       const applicantName = getNestedValue(normalized, "applicant.name");
       const submittedAt = normalized.submittedAt || new Date().toISOString();
-      const idSeed = `${submittedAt}-${getNestedValue(normalized, "applicant.phone")}-${productName}-${region}-${index}`.replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
+      const idSeed = normalized.scheduleId || normalized.applicationId || `${submittedAt}-${getNestedValue(normalized, "applicant.phone")}-${productName}-${region}-${index}`.replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
       const participantName = escapeBuilderApplicationText(maskBuilderApplicantName(applicantName));
       const participants = buildBuilderApplicationParticipants(normalized, fallback, idSeed || index, participantName);
 
       return {
         ...fallback,
         id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || index}`,
+        scheduleId: normalized.scheduleId || "",
+        sourceApplicationId: normalized.applicationId || "",
         title: escapeBuilderApplicationText(productName || `${region} 맞춤 조인 요청`),
         region: escapeBuilderApplicationText(region),
         category: "해외",
@@ -25104,7 +25202,8 @@
         badgeImage: BADGE_IMAGES.special,
         airport: product?.airport || fallback.airport || "",
         participants,
-        emptySlots: 0,
+        maxCapacity: BUILDER_APPLICATION_MAX_CAPACITY,
+        emptySlots: Math.max(0, BUILDER_APPLICATION_MAX_CAPACITY - participants.length),
         includes: product?.includes?.length ? product.includes : (fallback.includes || []),
         excludes: product?.excludes?.length ? product.excludes : (fallback.excludes || []),
         notes: [
@@ -27974,28 +28073,91 @@
       return `${value.slice(0, 1)}**`;
     }
 
+    function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
+      const sheetApplication = join?.sheetApplication || {};
+      const scheduleId = join?.scheduleId || sheetApplication.scheduleId || "";
+      const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || "";
+      return {
+        targetType: scheduleId ? "new_schedule" : "erp_product",
+        targetScheduleId: scheduleId,
+        targetApplicationId: applicationId
+      };
+    }
+
+    function getGlobalApplyMarketingAgreement() {
+      return getVisibleApplyAgreementInputs().some((input) => input.dataset.required === "false" && input.checked);
+    }
+
+    function buildJoinApplyPayload(data, join = getCurrentApplyJoin()) {
+      const target = getCurrentApplyTargetInfo(join);
+      return {
+        source: "join_apply",
+        submittedAt: new Date().toISOString(),
+        pageUrl: location.href,
+        targetType: target.targetType,
+        targetScheduleId: target.targetScheduleId,
+        targetApplicationId: target.targetApplicationId,
+        product: {
+          erpProductId: join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "",
+          erpEventSeq: join?.erpEventSeq || join?.eventSeq || "",
+          productName: join?.title || "",
+          departureDate: join?.departureDate || "",
+          returnDate: join?.returnDate || "",
+          category: join?.category || "",
+          region: join?.region || "",
+          airport: join?.airport || ""
+        },
+        applicant: {
+          name: data.name || "",
+          gender: data.gender || "",
+          birthYear: data.birthYear || "",
+          ageDisplay: data.ageDisplay || data.age || "",
+          phone: data.phone || "",
+          profession: data.profession || "",
+          people: data.people || "1명",
+          level: data.level || "",
+          styles: data.styles || [],
+          greeting: data.greeting || ""
+        },
+        agreements: {
+          required: Boolean(data.requiredAgreed),
+          marketing: Boolean(data.marketingAgreed)
+        },
+        status: "confirmed"
+      };
+    }
+
     function addCurrentApplyParticipant(data) {
       const join = getCurrentApplyJoin();
       if (!join) return null;
-      const participant = {
-        id: `apply-${Date.now()}`,
-        name: maskApplyName(data.name),
-        gender: data.gender,
-        age: data.age,
-        handicap: data.level || "골프 수준 미선택",
-        profession: data.profession,
-        preferences: data.styles,
-        message: data.greeting,
-        status: "confirmed",
-        gif: "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338380/golf-join/uc57znxamswpwmd3zmqo.gif"
-      };
-      join.participants = [...(join.participants || []), participant];
-      join.emptySlots = Math.max(0, (join.emptySlots || 0) - 1);
+      const requestedCount = Number(String(data.people || "1").replace(/\D/g, "")) || 1;
+      const hasLimitedCapacity = Number.isFinite(Number(join.emptySlots));
+      const remainingSlots = hasLimitedCapacity ? Number(join.emptySlots) : requestedCount;
+      const participantCount = Math.max(0, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, requestedCount, remainingSlots));
+      if (participantCount <= 0) return null;
+      const createdAt = Date.now();
+      const participants = Array.from({ length: participantCount }, (_, index) => {
+        const participantId = `apply-${createdAt}-${index + 1}`;
+        return {
+          id: participantId,
+          name: index === 0 ? maskApplyName(data.name) : `동반자${index}`,
+          gender: data.gender,
+          age: data.age,
+          handicap: data.level || "골프 수준 미선택",
+          profession: data.profession,
+          preferences: data.styles,
+          message: index === 0 ? data.greeting : "동반 참여 인원입니다.",
+          status: "confirmed",
+          gif: getBuilderApplicationGenderIcon(data.gender, null, `${join.id}-${participantId}-${data.phone || ""}`)
+        };
+      });
+      join.participants = [...(join.participants || []), ...participants];
+      join.emptySlots = Math.max(0, (join.emptySlots || 0) - participants.length);
       renderJoins();
       if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinId === join.id) {
         renderDetailContent(join);
       }
-      return participant;
+      return participants[0] || null;
     }
 
     function clearApplyErrors() {
@@ -28055,7 +28217,7 @@
       closePrivacyApplyModal();
     }
 
-    function submitGlobalApply() {
+    async function submitGlobalApply() {
       clearApplyErrors();
       const name = document.getElementById("globalApplyName")?.value.trim();
       const birthYear = document.getElementById("globalApplyBirthYear")?.value.trim();
@@ -28063,6 +28225,7 @@
       const ageDisplay = getApplyAgeDisplay();
       const phone = document.getElementById("globalApplyPhone")?.value.trim();
       const profession = document.getElementById("globalApplyProfession")?.value.trim();
+      const people = document.getElementById("globalApplyPeople")?.value || "1명";
       const level = getApplyChipValue("global-level");
       const styles = getApplyChipValues("global-style");
       const greeting = document.getElementById("globalApplyGreeting")?.value.trim();
@@ -28089,16 +28252,41 @@
         document.getElementById("globalApplyPrivacy")?.focus();
         return;
       }
-      addCurrentApplyParticipant({
+
+      const applyData = {
         name,
         gender,
+        birthYear,
         age: ageDisplay,
+        ageDisplay,
+        phone,
         profession,
+        people,
         level,
         styles,
-        greeting
-      });
-      showGlobalApplyCompleteState();
+        greeting,
+        requiredAgreed: true,
+        marketingAgreed: getGlobalApplyMarketingAgreement()
+      };
+      const submitButton = document.getElementById("globalApplySubmitButton");
+      const previousText = submitButton?.textContent || "신청완료";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "저장 중";
+      }
+      try {
+        await saveJoinApplyToGoogleSheet(buildJoinApplyPayload(applyData));
+        addCurrentApplyParticipant(applyData);
+        showGlobalApplyCompleteState();
+      } catch (error) {
+        console.error("Failed to save join apply payload.", error);
+        alert("참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      } finally {
+        if (submitButton && !document.getElementById("globalApplyPanel")?.classList.contains("is-complete")) {
+          submitButton.disabled = false;
+          submitButton.textContent = previousText;
+        }
+      }
     }
 
     function ensurePhonePrefix(input) {

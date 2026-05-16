@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+  <!-- Generator: Adobe Illustrator 30.1.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 136)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: none;
+        stroke: #231f20;
+        stroke-miterlimit: 10;
+        stroke-width: 4px;
+      }
+
+      .st1 {
+        display: none;
+      }
+    </style>
+  </defs>
+  <g id="Layer_1" class="st1">
+    <image width="46" height="45" transform="translate(.79) scale(2.22)" xlink:href="data:image/png;base64,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"/>
+  </g>
+  <g id="Layer_2">
+    <g>
+      <path class="st0" d="M60.84,72.06h6.08c1.65,0,2.98,1.34,2.98,2.98v13.33h-12.04v-13.33c0-1.65,1.34-2.98,2.98-2.98Z"/>
+      <line class="st0" x1="18.15" y1="39.55" x2="28.84" y2="39.55"/>
+      <line class="st0" x1="18.15" y1="52.35" x2="28.84" y2="52.35"/>
+      <line class="st0" x1="18.15" y1="64.3" x2="28.84" y2="64.3"/>
+      <path class="st0" d="M60.45,88.38h24.75v-51.3c0-3.54-2.87-6.41-6.41-6.41h-18.34"/>
+      <path class="st0" d="M48.75,30.66h11.7v-10.91c0-3.54-2.87-6.41-6.41-6.41h-29.47c-3.54,0-6.41,2.87-6.41,6.41v68.62h24.19v-51.3c0-3.54,2.87-6.41,6.41-6.41Z"/>
+      <path class="st0" d="M60.45,30.66h-11.7c-3.54,0-6.41,2.87-6.41,6.41v51.3h18.11"/>
+    </g>
+  </g>
+  <g id="Layer_3">
+    <line class="st0" x1="57.86" y1="45.17" x2="57.86" y2="59.52"/>
+    <line class="st0" x1="69.9" y1="45.17" x2="69.9" y2="59.52"/>
+    <line class="st0" x1="57.86" y1="52.35" x2="69.9" y2="52.35"/>
+  </g>
+</svg>

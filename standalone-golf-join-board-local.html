@@ -1934,6 +1934,7 @@
       width: 48px;
       height: 48px;
       flex-basis: 48px;
+      flex-shrink: 0;
       position: relative;
       z-index: 1;
     }
@@ -5039,11 +5040,56 @@
         font-weight: 800;
         margin-left: 3px;
       }
-      .builder-date-stepper-stage {
+      .builder-date-mode-toggle {
+        position: relative;
         display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #f8fafc;
+        overflow: hidden;
+      }
+      .builder-date-mode-toggle::before {
+        content: "";
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 4px;
+        width: calc((100% - 8px) / 2);
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+        transform: translateX(0);
+        transition: transform .22s ease;
+      }
+      .builder-date-popover.flex-open .builder-date-mode-toggle::before {
+        transform: translateX(100%);
+      }
+      .builder-date-mode-button {
+        position: relative;
+        z-index: 1;
+        min-height: 38px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: #64748b;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+      .builder-date-mode-button.active {
+        color: var(--text);
+      }
+      .builder-date-stepper-stage {
+        display: none;
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
         align-items: center;
         gap: 10px;
+      }
+      .builder-date-popover.flex-open .builder-date-stepper-stage {
+        display: grid;
       }
       .builder-date-side-stepper {
         display: grid;
@@ -6237,6 +6283,13 @@
     .modal-title {
       font-size: var(--modal-main-title-pc);
       font-weight: var(--modal-main-title-weight);
+    }
+    #detailModalTitle {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .modal-close-icon {
       width: var(--modal-close-size);
@@ -7648,17 +7701,28 @@
     }
     .apply-companion-list {
       display: grid;
-      gap: 10px;
-    }
-    .apply-companion-card {
-      display: grid;
-      gap: 8px;
-      padding: 10px;
+      gap: 0;
+      overflow: hidden;
       border: 1px solid #e2e8f0;
       border-radius: 14px;
       background: #fff;
     }
+    .apply-companion-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+      padding: 12px 14px;
+      border-bottom: 1px solid #edf2f7;
+      background: transparent;
+    }
+    .apply-companion-card:last-child {
+      border-bottom: 0;
+    }
     .apply-companion-name {
+      flex: 1 1 auto;
+      min-width: 0;
       color: var(--text);
       font-size: 14px;
       font-weight: 900;
@@ -7667,21 +7731,35 @@
     .apply-companion-gender-options {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+      flex: 0 0 112px;
+      width: 112px;
+      height: 40px;
+      min-height: 40px;
+      gap: 0;
     }
     .apply-companion-gender-button {
-      min-height: 44px;
+      position: relative;
+      min-width: 0;
+      min-height: 40px;
       border: 1px solid var(--border);
-      border-radius: 12px;
       background: #fff;
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 900;
+      color: #626466;
+      font-size: 15px;
+      font-weight: 700;
       line-height: 1.25;
     }
+    .apply-companion-gender-button:first-child {
+      border-radius: 12px 0 0 12px;
+      margin-right: -1px;
+    }
+    .apply-companion-gender-button:last-child {
+      border-radius: 0 12px 12px 0;
+    }
     .apply-companion-gender-button.active {
+      z-index: 1;
       border-color: #6b7280;
-      background: var(--apply-accent-soft);
+      background: #f8fafc;
+      color: var(--text);
       box-shadow: inset 0 0 0 1px #6b7280;
     }
     .apply-companion-error {
@@ -8695,6 +8773,7 @@
       gap: 12px;
     }
     .participant-thumb {
+      position: relative;
       width: 48px;
       height: 48px;
       flex: 0 0 48px;
@@ -8709,6 +8788,42 @@
       object-fit: cover;
       transform: scale(1.2);
       transform-origin: center;
+    }
+    .participant-thumb-stack {
+      position: relative;
+      width: 60px;
+      height: 52px;
+      flex: 0 0 60px;
+    }
+    .participant-thumb-stack .participant-thumb {
+      position: absolute;
+      left: 0;
+      top: 2px;
+      z-index: 3;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+    }
+    .participant-thumb-stack::before,
+    .participant-thumb-stack::after {
+      content: "";
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      background: #f8fafc;
+      box-sizing: border-box;
+    }
+    .participant-thumb-stack::before {
+      left: 6px;
+      top: 2px;
+      z-index: 2;
+      opacity: .78;
+    }
+    .participant-thumb-stack::after {
+      left: 12px;
+      top: 2px;
+      z-index: 1;
+      opacity: .52;
     }
     .participant-meta {
       font-size: 13px;
@@ -9042,6 +9157,39 @@
       }
       .calendar-mobile-selected-panel .calendar-accordion-list {
         border-top: 0;
+      }
+      .calendar-selection-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .calendar-selection-sort {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .calendar-selection-sort button {
+        min-height: 30px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+      .calendar-selection-sort button.active {
+        color: var(--blue);
+      }
+      .calendar-selection-sort-divider {
+        content: "";
+        flex: 0 0 1px;
+        width: 1px;
+        height: 11px;
+        background: #cbd5e1;
       }
       .calendar-month-title {
         font-size: 17px;
@@ -9445,7 +9593,7 @@
         display: flex !important;
       }
       #secret-golf-join.sgj-page .join-soon-compact-title {
-        font-size: 22px;
+        font-size: 17px;
       }
       #secret-golf-join.sgj-page .join-category-row.join-soon-category-row {
         margin-bottom: 4px;
@@ -10486,6 +10634,12 @@
       .sgj-page .join-product-section.layout-domestic .join-grid::-webkit-scrollbar {
         display: none;
       }
+      .sgj-page .join-product-section.layout-overseas .join-grid::after,
+      .sgj-page .join-product-section.layout-domestic .join-grid::after {
+        content: "";
+        flex: 0 0 calc(var(--mobile-page-gutter) + 1px);
+        scroll-snap-align: none;
+      }
       .sgj-page .join-product-section.layout-quick .join-card {
         flex: 0 0 calc(100% - var(--mobile-page-gutter) - 11px);
         max-width: calc(100% - var(--mobile-page-gutter) - 11px);
@@ -10934,6 +11088,9 @@
       .sgj-page .team-avatar-wrap {
         width: 48px;
         height: 48px;
+        flex: 0 0 48px;
+      }
+      .sgj-page .team-couple-wrap .team-avatar-wrap {
         flex: 0 0 48px;
       }
       .sgj-page .team-avatar,
@@ -11618,11 +11775,36 @@
       .participant-hero {
         gap: 14px;
       }
+      .participant-hero-info {
+        transform: translateY(5px);
+      }
       .participant-thumb {
         width: 58px;
         height: 58px;
         flex-basis: 58px;
         border-radius: 12px;
+      }
+      .participant-thumb-stack {
+        width: 72px;
+        height: 64px;
+        flex-basis: 72px;
+      }
+      .participant-thumb-stack .participant-thumb {
+        top: 3px;
+      }
+      .participant-thumb-stack::before,
+      .participant-thumb-stack::after {
+        width: 58px;
+        height: 58px;
+        border-radius: 12px;
+      }
+      .participant-thumb-stack::before {
+        left: 7px;
+        top: 3px;
+      }
+      .participant-thumb-stack::after {
+        left: 14px;
+        top: 3px;
       }
       .participant-name {
         font-size: 19px;
@@ -12035,6 +12217,24 @@
       height: 38px;
       flex-basis: 38px;
     }
+    #regionSearchModal .region-product-team .team-couple-wrap,
+    .calendar-accordion-list .region-product-team .team-couple-wrap {
+      height: 38px;
+      gap: 3px;
+    }
+    #regionSearchModal .region-product-team .team-couple-wrap::before,
+    .calendar-accordion-list .region-product-team .team-couple-wrap::before {
+      inset: -3px;
+      border-radius: 13px;
+    }
+    #regionSearchModal .region-product-team .team-couple-wrap .team-avatar-wrap,
+    #regionSearchModal .region-product-team .team-couple-wrap .team-avatar,
+    .calendar-accordion-list .region-product-team .team-couple-wrap .team-avatar-wrap,
+    .calendar-accordion-list .region-product-team .team-couple-wrap .team-avatar {
+      width: 38px;
+      height: 38px;
+      flex-basis: 38px;
+    }
     .calendar-accordion-list .region-product-card {
       width: 100%;
       min-width: 0;
@@ -12148,6 +12348,36 @@
       justify-content: flex-end;
       gap: 6px;
     }
+    .calendar-accordion-list .region-product-team.has-detail-button {
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .calendar-accordion-list .region-product-team-slots {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .calendar-accordion-list .region-product-detail-button {
+      flex: 0 0 auto;
+      min-height: 34px;
+      padding: 0 13px;
+      border: 1px solid #dbe5f1;
+      border-radius: 999px;
+      background: #fff;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .calendar-accordion-list .region-product-detail-button:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: #eff6ff;
+    }
     .calendar-accordion-list .region-product-team .team-avatar,
     .calendar-accordion-list .region-product-team .team-empty {
       width: 38px;
@@ -12226,6 +12456,12 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
+      align-items: start;
+    }
+    #regionSearchModal .region-empty-recommend-column {
+      min-width: 0;
+      display: grid;
+      gap: 12px;
     }
     #regionSearchModal .region-empty-recommend-group {
       min-width: 0;
@@ -12233,10 +12469,35 @@
       gap: 8px;
     }
     #regionSearchModal .region-empty-recommend-region {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
       color: var(--blue);
       font-size: 16px;
       font-weight: 700;
       line-height: 1.3;
+    }
+    #regionSearchModal .region-empty-recommend-more {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      padding: 0;
+      color: #64748b;
+      background: transparent;
+      border: 0;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+    #regionSearchModal .region-empty-recommend-more svg {
+      width: 12px;
+      height: 12px;
+      stroke-width: 2.4;
+    }
+    #regionSearchModal .region-empty-recommend-more:hover {
+      color: var(--blue);
     }
     #regionSearchModal .region-empty-recommend-card {
       min-width: 0;
@@ -12249,6 +12510,7 @@
       border-radius: 14px;
       background: #fff;
       text-align: left;
+      min-height: 92px;
     }
     #regionSearchModal .region-empty-recommend-card:hover {
       border-color: #bfdbfe;
@@ -12668,6 +12930,7 @@
         justify-items: start;
         gap: 13px;
         margin-right: 0;
+        width: 100%;
       }
       #regionSearchModal .region-product-price {
         width: 100%;
@@ -12683,9 +12946,14 @@
       #regionSearchModal .region-product-team {
         justify-content: flex-start;
       }
-      .calendar-accordion-list .region-product-price,
+      .calendar-accordion-list .region-product-price {
+        justify-content: flex-start;
+      }
       .calendar-accordion-list .region-product-team {
         justify-content: flex-start;
+      }
+      .calendar-accordion-list .region-product-team.has-detail-button {
+        justify-content: space-between;
       }
     }
     @media (max-width: 640px) {
@@ -22479,6 +22747,30 @@
     const overseasJoinTemplate = joins.find((join) => join.id === "j3") || joins[0];
     joins.push(
       {
+        ...overseasJoinTemplate,
+        id: "dummy-test-bangkok-more",
+        title: "방콕 더보기 테스트 조인",
+        region: "방콕",
+        category: "해외",
+        departureDate: "2026-05-16",
+        returnDate: "2026-05-19",
+        date: "2026.05.16 - 2026.05.19",
+        price: 1710000,
+        badge: "",
+        badgeClass: "",
+        badgeImage: "",
+        badgeKind: "",
+        airport: "인천",
+        reviewCount: 0,
+        isRecommendationFixture: true,
+        participants: overseasJoinTemplate.participants.slice(0, 1).map((participant, index) => ({
+          ...participant,
+          id: `dummy-test-bangkok-more-p${index + 1}`,
+          status: "confirmed"
+        })),
+        emptySlots: 3
+      },
+      {
         ...domesticJoinTemplate,
         id: "dummy-quick-domestic",
         title: "남해 아난티 조인 라운드",
@@ -22872,8 +23164,10 @@
     let externalGolfJoinProductsLoading = false;
     const BUILDER_APPLICATION_JOIN_PREFIX = "sheet-builder-application-";
     const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
+    const JOIN_APPLICATIONS_STORAGE_KEY = "secretGolfJoinApplications";
     const BUILDER_APPLICATION_MAX_CAPACITY = 4;
     const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = BUILDER_APPLICATION_MAX_CAPACITY;
+    const joinApplicationPayloadMemory = new Map();
     const BUILDER_APPLICATION_GENDER_ICON_POOLS = {
       male: [
         "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777338375/golf-join/m2rhapea0c54olhpthjz.gif",
@@ -23103,16 +23397,17 @@
         return { type: "secretTour", items: join.flightScheduleItems };
       }
       if (options.allowFallback === false) return null;
-      if (join.category !== "Overseas" && join.source !== "secret-tour-goods-event") return null;
+      if (getJoinCategoryClass(join) !== "overseas" && join.source !== "secret-tour-goods-event") return null;
       const flight = join.flight || {};
+      const airline = flight.airline || "티웨이항공";
       return {
         type: "fallback",
-        airline: flight.airline || "",
-        duration: flight.duration || "",
-        departureTime: formatFlightDateTime(join.departureDate, flight.departureTime || ""),
-        returnTime: formatFlightDateTime(join.returnDate || join.departureDate, flight.returnTime || ""),
-        departureCode: flight.departureCode || "",
-        returnCode: flight.returnCode || ""
+        airline,
+        duration: flight.duration || formatTripDuration(join),
+        departureTime: formatFlightDateTime(join.departureDate, flight.departureTime || "06:20"),
+        returnTime: formatFlightDateTime(join.returnDate || join.departureDate, flight.returnTime || "17:00"),
+        departureCode: flight.departureCode || "TW0214",
+        returnCode: flight.returnCode || "TW0243"
       };
     }
 
@@ -23132,14 +23427,14 @@
       return [
         '<div class="flight-info-card">',
         '<div class="flight-segment">',
-        '<div class="flight-label">Departure</div>',
+        '<div class="flight-label">출발</div>',
         renderFlightTime(flight.departureTime),
         '<div class="flight-airline">' + flight.airline + '</div>',
         '<div class="flight-code">' + flight.departureCode + '</div>',
         '</div>',
         '<div class="flight-duration">' + flight.duration + '</div>',
         '<div class="flight-segment">',
-        '<div class="flight-label">Arrival</div>',
+        '<div class="flight-label">도착</div>',
         renderFlightTime(flight.returnTime),
         '<div class="flight-airline">' + flight.airline + '</div>',
         '<div class="flight-code">' + flight.returnCode + '</div>',
@@ -23658,6 +23953,7 @@
     }
 
     let calendarViewMonth = null;
+    let calendarMobileSelectionSort = "region";
 
     function getCalendarMonthBounds() {
       const today = new Date("2026-04-24T00:00:00");
@@ -23766,7 +24062,38 @@
     }
 
     function renderCalendarProductCards(events) {
-      return events.map((join) => renderRegionProductCard(join)).join("");
+      return events.map((join) => renderRegionProductCard(join, { showDetailButton: true })).join("");
+    }
+
+    function getCalendarSortedEvents(events, sort = calendarMobileSelectionSort) {
+      return [...events].sort((a, b) => {
+        if (sort === "price-asc") {
+          return (Number(a.price) || 0) - (Number(b.price) || 0) || String(a.region || "").localeCompare(String(b.region || ""), "ko");
+        }
+        return String(a.region || "").localeCompare(String(b.region || ""), "ko") || (Number(a.price) || 0) - (Number(b.price) || 0);
+      });
+    }
+
+    function renderCalendarSelectionHeader(dateKey) {
+      return `
+        <div class="calendar-selection-head">
+          <div class="detail-section-title" style="margin:0;">${formatCalendarAccordionDate(dateKey)}</div>
+          <div class="calendar-selection-sort" aria-label="일정 정렬">
+            <button type="button" class="${calendarMobileSelectionSort === "region" ? "active" : ""}" onclick="setCalendarMobileSelectionSort('region')">지역순</button>
+            <span class="calendar-selection-sort-divider" aria-hidden="true"></span>
+            <button type="button" class="${calendarMobileSelectionSort === "price-asc" ? "active" : ""}" onclick="setCalendarMobileSelectionSort('price-asc')">가격낮은순</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function setCalendarMobileSelectionSort(sort) {
+      calendarMobileSelectionSort = sort === "price-asc" ? "price-asc" : "region";
+      const body = document.getElementById("calendarSheetBody");
+      const dateKey = body?.dataset.mobileSelectedDate;
+      const monthKey = body?.dataset.mobileSelectedMonth;
+      if (!dateKey || !monthKey) return;
+      openCalendarMobileSelection(monthKey, dateKey, getJoinEventsByDate()[dateKey] || []);
     }
 
     function renderCalendarWeekdayLabels() {
@@ -23912,8 +24239,8 @@
         </button>
         <div class="calendar-mobile-selected-panel">
           <div class="calendar-accordion-list">
-            <div class="detail-section-title" style="margin:0;">${formatCalendarAccordionDate(dateKey)}</div>
-            ${renderCalendarProductCards(events)}
+            ${renderCalendarSelectionHeader(dateKey)}
+            ${renderCalendarProductCards(getCalendarSortedEvents(events))}
           </div>
         </div>
       `;
@@ -24448,6 +24775,10 @@
           <span class="builder-date-title-label">${label}</span>
           <span class="builder-date-title-range">${rangeText}</span>
         </div>
+        <div class="builder-date-mode-toggle" role="group" aria-label="${label} 선택 방식">
+          <button type="button" class="builder-date-mode-button${activeBuilderPopoverFlexOpen ? "" : " active"}" aria-pressed="${activeBuilderPopoverFlexOpen ? "false" : "true"}" onclick="setBuilderPopoverMode('fixed')">이날만</button>
+          <button type="button" class="builder-date-mode-button${activeBuilderPopoverFlexOpen ? " active" : ""}" aria-pressed="${activeBuilderPopoverFlexOpen ? "true" : "false"}" onclick="setBuilderPopoverMode('flex')">여유롭게</button>
+        </div>
         <div class="builder-date-stepper-stage">
           <div class="builder-date-side-stepper">
             <div class="builder-date-side-label">전</div>
@@ -24540,11 +24871,13 @@
       builderPopoverFlexSnapshot = null;
       if (window.matchMedia("(max-width: 640px)").matches) {
         const prefix = isStart ? "start" : "end";
-        activeBuilderPopoverFlexOpen = true;
-        builderPopoverFlexSnapshot = {
-          before: builderState[`${prefix}Before`],
-          after: builderState[`${prefix}After`]
-        };
+        activeBuilderPopoverFlexOpen = builderState[`${prefix}Before`] > 0 || builderState[`${prefix}After`] > 0;
+        if (activeBuilderPopoverFlexOpen) {
+          builderPopoverFlexSnapshot = {
+            before: builderState[`${prefix}Before`],
+            after: builderState[`${prefix}After`]
+          };
+        }
       }
       activeBuilderPopoverTrigger = trigger;
       renderBuilderDatePopoverTitle(target, day, flexBefore, flexAfter);
@@ -24554,6 +24887,7 @@
 
       popover.classList.remove("above", "flex-open");
       popover.classList.add("open");
+      popover.classList.toggle("flex-open", activeBuilderPopoverFlexOpen);
       positionBuilderDatePopover(popover, trigger, card);
       bindBuilderPopoverHoverClose();
       if (window.matchMedia("(hover: hover) and (pointer: fine)").matches && trigger.dataset.hoverBound !== "true") {
@@ -24700,6 +25034,43 @@
         };
       }
       popover.classList.toggle("flex-open", activeBuilderPopoverFlexOpen);
+      if (window.matchMedia("(max-width: 640px)").matches) {
+        const prefix = activeBuilderPopoverTarget === "start" ? "start" : "end";
+        renderBuilderDatePopoverTitle(activeBuilderPopoverTarget, activeBuilderPopoverDay, builderState[`${prefix}Before`], builderState[`${prefix}After`]);
+      }
+      requestAnimationFrame(() => {
+        positionBuilderDatePopover(popover, activeBuilderPopoverTrigger, activeBuilderPopoverTrigger?.closest(".builder-calendar-card"));
+      });
+    }
+
+    function setBuilderPopoverMode(mode) {
+      const popover = document.getElementById("builderDatePopover");
+      if (!popover) return;
+      const prefix = activeBuilderPopoverTarget === "start" ? "start" : "end";
+      if (mode === "flex") {
+        activeBuilderPopoverFlexOpen = true;
+        builderPopoverFlexSnapshot = {
+          before: builderState[`${prefix}Before`],
+          after: builderState[`${prefix}After`]
+        };
+      } else {
+        activeBuilderPopoverFlexOpen = false;
+        builderState[`${prefix}Before`] = 0;
+        builderState[`${prefix}After`] = 0;
+        builderPopoverFlexSnapshot = null;
+        renderBuilderCalendar();
+        activeBuilderPopoverTrigger = getBuilderDateButton(activeBuilderPopoverDay) || activeBuilderPopoverTrigger;
+      }
+      const before = builderState[`${prefix}Before`];
+      const after = builderState[`${prefix}After`];
+      renderBuilderDatePopoverTitle(activeBuilderPopoverTarget, activeBuilderPopoverDay, before, after);
+      document.getElementById("builderPopoverBeforeFlex").textContent = `${before}일`;
+      document.getElementById("builderPopoverAfterFlex").textContent = `${after}일`;
+      popover.classList.add("open");
+      popover.classList.toggle("flex-open", activeBuilderPopoverFlexOpen);
+      updateBuilderPopoverFlexButtons();
+      updateBuilderSummary();
+      updateBuilderNotice();
       requestAnimationFrame(() => {
         positionBuilderDatePopover(popover, activeBuilderPopoverTrigger, activeBuilderPopoverTrigger?.closest(".builder-calendar-card"));
       });
@@ -24976,8 +25347,8 @@
           <div class="apply-companion-card" data-companion-index="${index}">
             <div class="apply-companion-name">동반자 ${index + 1}</div>
             <div class="apply-companion-gender-options" role="group" aria-label="동반자 ${index + 1} 성별">
-              <button type="button" class="apply-companion-gender-button${selected === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')">남성</button>
-              <button type="button" class="apply-companion-gender-button${selected === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')">여성</button>
+              <button type="button" class="apply-companion-gender-button${selected === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')">남</button>
+              <button type="button" class="apply-companion-gender-button${selected === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')">여</button>
             </div>
           </div>
         `;
@@ -25299,6 +25670,174 @@
       return { ok: true };
     }
 
+    function buildJoinApplyPayload(data) {
+      const join = getCurrentApplyJoin() || {};
+      const submittedAt = new Date().toISOString();
+      const phone = data.phone || "";
+      const joinApplyId = buildGoogleSheetRecordId("ja", submittedAt, phone, join.id || "");
+      return {
+        joinApplyId,
+        source: "join_apply",
+        submittedAt,
+        pageUrl: location.href,
+        join: {
+          id: join.id || "",
+          title: join.title || "",
+          region: join.region || "",
+          category: join.category || "",
+          departureDate: join.departureDate || "",
+          returnDate: join.returnDate || ""
+        },
+        applicant: {
+          name: data.name || "",
+          gender: data.gender || "",
+          birthYear: data.birthYear || "",
+          ageDisplay: data.ageDisplay || data.age || "",
+          phone,
+          profession: data.profession || "",
+          people: data.people || 1,
+          companions: data.companions || [],
+          level: data.level || "",
+          styles: data.styles || [],
+          greeting: data.greeting || ""
+        },
+        agreements: {
+          required: Boolean(data.requiredAgreed),
+          marketing: Boolean(data.marketingAgreed)
+        }
+      };
+    }
+
+    function normalizeJoinApplyPayload(item = {}) {
+      if (item.applicant || item.join || item.agreements) return item;
+      return {
+        joinApplyId: item.joinApplyId || item.applicationId || "",
+        source: item.source || "join_apply",
+        submittedAt: item.submittedAt || "",
+        pageUrl: item.pageUrl || "",
+        join: {
+          id: item.joinId || item.productId || "",
+          title: item.joinTitle || item.productName || "",
+          region: item.joinRegion || item.region || "",
+          category: item.joinCategory || item.category || "",
+          departureDate: item.departureDate || "",
+          returnDate: item.returnDate || ""
+        },
+        applicant: {
+          name: item.name || item.applicantName || "",
+          gender: item.gender || item.applicantGender || "",
+          birthYear: item.birthYear || "",
+          ageDisplay: item.ageDisplay || item.age || "",
+          phone: item.phone || "",
+          profession: item.profession || "",
+          people: item.people || 1,
+          companions: parseCompanionList(item.companions),
+          level: item.level || "",
+          styles: toBuilderApplicationArray(item.styles),
+          greeting: item.greeting || ""
+        },
+        agreements: {
+          required: item.requiredAgreed || "",
+          marketing: item.marketingAgreed || ""
+        }
+      };
+    }
+
+    function saveJoinApplicationPayloadLocally(payload) {
+      try {
+        const existing = JSON.parse(localStorage.getItem(JOIN_APPLICATIONS_STORAGE_KEY) || "[]");
+        const list = [payload, ...existing].slice(0, 30);
+        localStorage.setItem(JOIN_APPLICATIONS_STORAGE_KEY, JSON.stringify(list));
+      } catch (error) {
+        console.warn("Failed to cache join application payload.", error);
+      }
+    }
+
+    function rememberJoinApplicationPayload(payload) {
+      const normalized = normalizeJoinApplyPayload(payload);
+      const key = normalized.joinApplyId || buildGoogleSheetRecordId("ja", normalized.submittedAt, getNestedValue(normalized, "applicant.phone"), getNestedValue(normalized, "join.id"));
+      if (key) joinApplicationPayloadMemory.set(key, normalized);
+      return normalized;
+    }
+
+    function reapplyRememberedJoinApplications(options = {}) {
+      joinApplicationPayloadMemory.forEach((payload) => {
+        applyJoinApplicationPayload(payload, { render: false, remember: false });
+      });
+      if (options.render !== false) renderJoins();
+    }
+
+    function applyJoinApplicationPayload(payload, options = {}) {
+      const normalized = options.remember === false ? normalizeJoinApplyPayload(payload) : rememberJoinApplicationPayload(payload);
+      const joinId = getNestedValue(normalized, "join.id");
+      const join = joins.find((item) => item.id === joinId);
+      if (!join) return null;
+      const recordId = normalized.joinApplyId || buildGoogleSheetRecordId("ja", normalized.submittedAt, getNestedValue(normalized, "applicant.phone"), joinId);
+      if ((join.participants || []).some((participant) => String(participant.id || "").startsWith(`${recordId}-p`))) {
+        join.emptySlots = Math.max(0, BUILDER_APPLICATION_MAX_CAPACITY - getConfirmedParticipants(join).length);
+        return join;
+      }
+      const applicant = normalized.applicant || {};
+      const requestedCount = parseApplyPeopleValue(applicant.people || 1);
+      const remainingSlots = Number.isFinite(Number(join.emptySlots)) ? Number(join.emptySlots) : requestedCount;
+      const participantCount = Math.max(0, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, requestedCount, remainingSlots));
+      if (participantCount <= 0) return join;
+      const companionGenders = parseCompanionList(applicant.companions).map((item) => item?.gender || "");
+      const participants = Array.from({ length: participantCount }, (_, index) => {
+        const participantId = `${recordId}-p${index + 1}`;
+        const gender = index === 0 ? applicant.gender : (companionGenders[index - 1] || applicant.gender);
+        return {
+          id: participantId,
+          name: index === 0 ? maskApplyName(applicant.name) : `동반자${index}`,
+          gender,
+          companionGroup: participantCount > 1 ? `${recordId}-companions` : "",
+          age: applicant.ageDisplay || applicant.age || "",
+          handicap: applicant.level || "골프 수준 미선택",
+          profession: applicant.profession || "",
+          preferences: toBuilderApplicationArray(applicant.styles),
+          message: index === 0 ? (applicant.greeting || "잘 부탁드립니다.") : "동반 참여 인원입니다.",
+          status: "confirmed",
+          gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${applicant.phone || ""}`)
+        };
+      });
+      join.participants = [...(join.participants || []), ...participants];
+      if (Number.isFinite(Number(join.emptySlots))) {
+        join.emptySlots = Math.max(0, Number(join.emptySlots) - participants.length);
+      }
+      if (options.persist) saveJoinApplicationPayloadLocally(normalized);
+      if (options.render !== false) renderJoins();
+      return join;
+    }
+
+    function hydrateJoinApplicationsFromLocalCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(JOIN_APPLICATIONS_STORAGE_KEY) || "[]");
+        cached.map(normalizeJoinApplyPayload).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+      } catch (error) {
+        console.warn("Failed to load cached join applications.", error);
+      }
+    }
+
+    async function hydrateJoinApplicationsFromGoogleSheet() {
+      if (!GOOGLE_SHEET_WEB_APP_URL) return [];
+      try {
+        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
+        url.searchParams.set("sheet", "join_applications");
+        url.searchParams.set("source", "join_apply");
+        url.searchParams.set("limit", "50");
+        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
+        if (!response.ok) throw new Error(`Join applications load failed: ${response.status}`);
+        const data = await response.json();
+        const rows = Array.isArray(data) ? data : (data.items || data.rows || data.applications || []);
+        rows.map(normalizeJoinApplyPayload).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+        renderJoins();
+        return rows;
+      } catch (error) {
+        console.warn("Failed to load join applications from Google Sheet. Add matching join_applications reads to the Apps Script doGet endpoint.", error);
+        return [];
+      }
+    }
+
     function buildGoogleSheetRecordId(prefix, ...parts) {
       const safe = String(parts.join("-") || new Date().toISOString())
         .replace(/[^a-z0-9가-힣_-]+/gi, "-")
@@ -25451,19 +25990,22 @@
         ? getNestedValue(payload, "applicant.companions").map((item) => escapeBuilderApplicationText(item?.gender || ""))
         : [];
       const participantCount = getBuilderApplicationPeopleCount(payload);
-      const genderFallback = fallback.participants?.find((participant) => participant.gender === gender)?.gif || fallback.participants?.[0]?.gif;
-      const gif = getBuilderApplicationGenderIcon(gender, genderFallback);
       return Array.from({ length: participantCount }, (_, index) => ({
         id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`,
         name: index === 0 ? participantName : `동반자${index}`,
-        gender,
+        gender: index === 0 ? applicantGender : (companionGenders[index - 1] || applicantGender),
+        companionGroup: participantCount > 1 ? `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-companions` : "",
         age: escapeBuilderApplicationText(getNestedValue(payload, "applicant.ageDisplay")),
         handicap: escapeBuilderApplicationText(getNestedValue(payload, "applicant.level") || "실력 미입력"),
         profession: escapeBuilderApplicationText(getNestedValue(payload, "applicant.profession")),
         preferences: toBuilderApplicationArray(getNestedValue(payload, "applicant.styles")).map(escapeBuilderApplicationText),
         message: escapeBuilderApplicationText(index === 0 ? (getNestedValue(payload, "applicant.greeting") || "새 일정 조인을 신청했어요.") : "동반 참여 인원입니다."),
         status: "confirmed",
-        gif
+        gif: (() => {
+          const gender = index === 0 ? applicantGender : (companionGenders[index - 1] || applicantGender);
+          const genderFallback = fallback.participants?.find((participant) => participant.gender === gender)?.gif || fallback.participants?.[0]?.gif;
+          return getBuilderApplicationGenderIcon(gender, genderFallback, `${idSeed}-${index}-${gender}`);
+        })()
       }));
     }
 
@@ -25530,10 +26072,22 @@
       const join = buildBuilderApplicationJoin(payload);
       const currentIndex = joins.findIndex((item) => item.id === join.id);
       if (currentIndex >= 0) {
+        const existingJoin = joins[currentIndex];
+        const baseParticipantIds = new Set((join.participants || []).map((participant) => String(participant.id || "")));
+        const appliedParticipants = (existingJoin.participants || [])
+          .filter((participant) => {
+            const participantId = String(participant.id || "");
+            return participantId && !baseParticipantIds.has(participantId);
+          });
+        if (appliedParticipants.length) {
+          join.participants = [...(join.participants || []), ...appliedParticipants].slice(0, BUILDER_APPLICATION_MAX_CAPACITY);
+          join.emptySlots = Math.max(0, BUILDER_APPLICATION_MAX_CAPACITY - getConfirmedParticipants(join).length);
+        }
         joins.splice(currentIndex, 1, join);
       } else {
         joins.unshift(join);
       }
+      reapplyRememberedJoinApplications({ render: false });
       if (options.persist) saveBuilderApplicationPayloadLocally(payload);
       if (options.render !== false) renderJoins();
       return join;
@@ -26681,7 +27235,7 @@
         return category === "해외" || /oversea|overseas/i.test(category) || Boolean(item.airport);
       }).map(normalizeExternalGolfJoinProduct);
       if (!overseasProducts.length) return;
-      const overseasJoins = joins.filter((join) => String(join.category || "").trim() === "해외" && !join.isBuilderApplicationJoin);
+      const overseasJoins = joins.filter((join) => String(join.category || "").trim() === "해외" && !join.isBuilderApplicationJoin && !join.isRecommendationFixture);
       if (!overseasJoins.length) return;
       const sortedProducts = overseasProducts.slice().sort((a, b) => {
         const aDate = parseJoinDate(a.departureDate);
@@ -26724,6 +27278,7 @@
           join.emptySlots = Number(product.emptySlots);
         }
       });
+      reapplyRememberedJoinApplications({ render: false });
     }
 
     function ensureExternalGolfJoinProductsLoaded() {
@@ -27709,7 +28264,8 @@
       return tokens.some((token) => haystack.includes(token));
     }
 
-    function renderRegionProductCard(join) {
+    function renderRegionProductCard(join, options = {}) {
+      const showDetailButton = Boolean(options.showDetailButton);
       return `
         <article class="region-product-card" onclick="openDetail('${join.id}')">
           <div class="region-product-thumb">
@@ -27733,9 +28289,8 @@
               <strong>${formatPrice(join.price)}</strong>
               <span class="region-product-price-unit">원</span>
             </div>
-            <div class="region-product-team" onclick="event.stopPropagation()">
-              ${confirmedParticipants.map((participant) => participantButtonHtml(participant, join.id, true)).join("")}
-              ${Array.from({ length: join.emptySlots }).map(() => emptySlotHtml(true, join.id)).join("")}
+            <div class="region-product-team${showDetailButton ? " has-detail-button" : ""}" onclick="event.stopPropagation()">
+              ${showDetailButton ? `<div class="region-product-team-slots">${renderCardTeamSlots(join)}</div><button type="button" class="region-product-detail-button" onclick="openDetail('${join.id}')">자세히보기</button>` : renderCardTeamSlots(join)}
             </div>
           </div>
         </article>
@@ -27793,13 +28348,44 @@
       const activeType = regionEmptyRecommendType === "domestic" ? "domestic" : "overseas";
       const groups = new Map();
       joins
-        .filter((join) => Number(join.emptySlots) === 1 && join.region && !joinMatchesRegionSearch(join, query) && getJoinCategoryClass(join) === activeType)
+        .filter((join) => Number(join.emptySlots) > 0 && join.region && !joinMatchesRegionSearch(join, query) && getJoinCategoryClass(join) === activeType)
         .forEach((join) => {
           if (!groups.has(join.region)) groups.set(join.region, []);
-          if (groups.get(join.region).length < 2) groups.get(join.region).push(join);
+          groups.get(join.region).push(join);
         });
-      const items = [...groups.entries()].slice(0, 4);
+      const items = [...groups.entries()].slice(0, 4).map(([region, products]) => [region, products.slice(0, 2), products.length]);
       if (!items.length) return "";
+      const columns = [[], []];
+      const columnWeights = [0, 0];
+      const balancedItems = items
+        .map((item, index) => ({ item, index }))
+        .sort((a, b) => b.item[1].length - a.item[1].length || a.index - b.index);
+      balancedItems.forEach(({ item }) => {
+        const targetIndex = columnWeights[0] <= columnWeights[1] ? 0 : 1;
+        columns[targetIndex].push(item);
+        columnWeights[targetIndex] += item[1].length;
+      });
+      const renderRecommendationGroup = ([region, products, totalCount]) => `
+        <div class="region-empty-recommend-group">
+          <div class="region-empty-recommend-region">
+            <span>${region}</span>
+            ${totalCount >= 3 ? `<button type="button" class="region-empty-recommend-more" onclick="selectRegionResult('${escapeJsString(region)}')">더보기<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ""}
+          </div>
+          ${products.map((join) => `
+            <button type="button" class="region-empty-recommend-card" onclick="openDetail('${join.id}')">
+              <div class="region-empty-recommend-thumb"><img src="${join.image}" alt="${join.title}"></div>
+              <div>
+                <div class="region-empty-recommend-name">${join.title}</div>
+                <div class="region-empty-recommend-meta">${formatCardDateRange(join)}</div>
+                <div class="region-empty-recommend-bottom">
+                  <div class="region-empty-recommend-price">1인 ${formatPrice(join.price)}원</div>
+                  <div class="region-empty-recommend-slot">${join.emptySlots}자리 남음</div>
+                </div>
+              </div>
+            </button>
+          `).join("")}
+        </div>
+      `;
       return `
         <div class="region-empty-recommend">
           <div class="region-empty-recommend-title">지금 합류 가능한 다른 지역</div>
@@ -27808,22 +28394,9 @@
             <button type="button" class="region-empty-recommend-tab ${activeType === "domestic" ? "active" : ""}" onclick="setRegionEmptyRecommendType('domestic')">국내</button>
           </div>
           <div class="region-empty-recommend-grid">
-            ${items.map(([region, products]) => `
-              <div class="region-empty-recommend-group">
-                <div class="region-empty-recommend-region">${region}</div>
-                ${products.map((join) => `
-                  <button type="button" class="region-empty-recommend-card" onclick="openDetail('${join.id}')">
-                    <div class="region-empty-recommend-thumb"><img src="${join.image}" alt="${join.title}"></div>
-                    <div>
-                      <div class="region-empty-recommend-name">${join.title}</div>
-                      <div class="region-empty-recommend-meta">${formatCardDateRange(join)}</div>
-                      <div class="region-empty-recommend-bottom">
-                        <div class="region-empty-recommend-price">1인 ${formatPrice(join.price)}원</div>
-                        <div class="region-empty-recommend-slot">1자리 남음</div>
-                      </div>
-                    </div>
-                  </button>
-                `).join("")}
+            ${columns.map((column) => `
+              <div class="region-empty-recommend-column">
+                ${column.map(renderRecommendationGroup).join("")}
               </div>
             `).join("")}
           </div>
@@ -28077,6 +28650,10 @@
 
     function hasRequiredApplyAgreements() {
       return getVisibleApplyAgreementInputs().filter((input) => input.dataset.required === "true").every((input) => input.checked);
+    }
+
+    function getGlobalApplyMarketingAgreement() {
+      return getVisibleApplyAgreementInputs().some((input) => input.dataset.required === "false" && input.checked);
     }
 
     function getApplyChipValue(groupName) {
@@ -28379,7 +28956,7 @@
       return `${value.slice(0, 1)}**`;
     }
 
-    function addCurrentApplyParticipant(data) {
+    function addCurrentApplyParticipant(data, recordId = "") {
       const join = getCurrentApplyJoin();
       if (!join) return null;
       const requestedCount = parseApplyPeopleValue(data.people || 1);
@@ -28541,7 +29118,10 @@
       try {
         const applyPayload = buildJoinApplyPayload(applyData);
         await saveJoinApplyToGoogleSheet(applyPayload);
-        addCurrentApplyParticipant(applyData, applyPayload.joinApplyId);
+        applyJoinApplicationPayload(applyPayload, { persist: true });
+        if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinId === getNestedValue(applyPayload, "join.id")) {
+          renderDetailContent(getCurrentApplyJoin());
+        }
         showGlobalApplyCompleteState();
       } catch (error) {
         console.error("Failed to save join apply payload.", error);
@@ -28729,7 +29309,23 @@
 
     function getParticipantProfessionIcon(tag) {
       const value = String(tag || "");
-      if (value.indexOf("IT") >= 0) return "&#x1F4BB;";
+      if (/IT|개발|소프트웨어|테크|기술|데이터/i.test(value)) return "&#x1F4BB;";
+      if (value.indexOf("경영") >= 0) return "&#x1F4CA;";
+      if (value.indexOf("사업") >= 0 || value.indexOf("창업") >= 0) return "&#x1F3E2;";
+      if (value.indexOf("부동산") >= 0) return "&#x1F3D8;&#xFE0F;";
+      if (value.indexOf("건설") >= 0 || value.indexOf("건축") >= 0) return "&#x1F3D7;&#xFE0F;";
+      if (value.indexOf("금융") >= 0 || value.indexOf("투자") >= 0) return "&#x1F4B9;";
+      if (value.indexOf("보험") >= 0) return "&#x1F6E1;&#xFE0F;";
+      if (value.indexOf("세무") >= 0 || value.indexOf("회계") >= 0) return "&#x1F9FE;";
+      if (value.indexOf("법률") >= 0 || value.indexOf("법무") >= 0) return "&#x2696;&#xFE0F;";
+      if (value.indexOf("의료") >= 0 || value.indexOf("병원") >= 0 || value.indexOf("의사") >= 0) return "&#x1FA7A;";
+      if (value.indexOf("제조") >= 0 || value.indexOf("공장") >= 0) return "&#x1F3ED;";
+      if (value.indexOf("유통") >= 0 || value.indexOf("물류") >= 0) return "&#x1F69A;";
+      if (value.indexOf("무역") >= 0 || value.indexOf("수출") >= 0 || value.indexOf("수입") >= 0) return "&#x1F30F;";
+      if (value.indexOf("영업") >= 0 || value.indexOf("세일즈") >= 0) return "&#x1F91D;";
+      if (value.indexOf("교육") >= 0 || value.indexOf("강의") >= 0) return "&#x1F393;";
+      if (value.indexOf("공공") >= 0 || value.indexOf("공무") >= 0 || value.indexOf("행정") >= 0) return "&#x1F3DB;&#xFE0F;";
+      if (value.indexOf("마케팅") >= 0 || value.indexOf("홍보") >= 0 || value.indexOf("광고") >= 0) return "&#x1F4E3;";
       return "&#x1F4BC;";
     }
 
@@ -28773,6 +29369,55 @@
         </svg>`;
     }
 
+    function getParticipantGroup(join, participant) {
+      if (!join || !participant?.companionGroup) return [participant].filter(Boolean);
+      return getConfirmedParticipants(join).filter((item) => item.companionGroup === participant.companionGroup);
+    }
+
+    function getCompactGenderLabel(gender) {
+      const value = String(gender || "").trim();
+      if (/여/.test(value)) return "여";
+      if (/남/.test(value)) return "남";
+      return value || "미상";
+    }
+
+    function formatParticipantGroupName(participants) {
+      const leader = participants[0] || {};
+      const leaderName = String(leader.name || "대표 신청자").trim();
+      const extraCount = Math.max(0, participants.length - 1);
+      return extraCount > 0 ? `${leaderName} 외 ${extraCount}명` : leaderName;
+    }
+
+    function formatParticipantGroupGender(participants, primaryParticipant) {
+      const counts = participants.reduce((acc, participant) => {
+        const label = getCompactGenderLabel(participant.gender);
+        acc[label] = (acc[label] || 0) + 1;
+        return acc;
+      }, {});
+      const primaryLabel = getCompactGenderLabel(primaryParticipant?.gender);
+      const orderedLabels = Object.keys(counts).sort((a, b) => {
+        if (a === primaryLabel) return -1;
+        if (b === primaryLabel) return 1;
+        return a.localeCompare(b, "ko");
+      });
+      return orderedLabels.map((label) => `${label}${counts[label]}`).join(", ");
+    }
+
+    function formatParticipantGroupAges(participants) {
+      const counts = participants.reduce((acc, participant) => {
+        const label = formatParticipantAge(participant) || "연령 미입력";
+        acc[label] = (acc[label] || 0) + 1;
+        return acc;
+      }, {});
+      return Object.entries(counts).map(([label, count]) => count > 1 ? `${label} ${count}명` : label).join(", ");
+    }
+
+    function renderParticipantHeroThumb(participants, primaryParticipant) {
+      const first = primaryParticipant || participants[0] || {};
+      const img = `<div class="participant-thumb"><img src="${first.gif}" alt="${escapeHtml(first.name || "참여자")}"></div>`;
+      return participants.length > 1 ? `<div class="participant-thumb-stack" aria-hidden="true">${img}</div>` : img;
+    }
+
     function toggleParticipantInfoHint(event) {
       event.stopPropagation();
       const wrap = event.currentTarget.closest(".participant-info-wrap");
@@ -28801,6 +29446,34 @@
         </button>
         ${participant.status === "pending" ? '<div class="participant-badge">대기</div>' : ""}
       </div>`;
+    }
+
+    function renderParticipantGroupHtml(participants, joinId, compact = true) {
+      if (!participants.length) return "";
+      if (participants.length === 1 || !participants[0].companionGroup) {
+        return participantButtonHtml(participants[0], joinId, compact);
+      }
+      return `<div class="team-couple-wrap">${participants.map((participant) => participantButtonHtml(participant, joinId, compact)).join("")}</div>`;
+    }
+
+    function renderGroupedParticipantsHtml(participants, joinId, compact = true) {
+      const renderedGroups = [];
+      for (let index = 0; index < participants.length;) {
+        const participant = participants[index];
+        const groupKey = participant.companionGroup || "";
+        if (!groupKey) {
+          renderedGroups.push(participantButtonHtml(participant, joinId, compact));
+          index += 1;
+          continue;
+        }
+        const groupedParticipants = [];
+        while (index < participants.length && participants[index].companionGroup === groupKey) {
+          groupedParticipants.push(participants[index]);
+          index += 1;
+        }
+        renderedGroups.push(renderParticipantGroupHtml(groupedParticipants, joinId, compact));
+      }
+      return renderedGroups.join("");
     }
 
     function getBadgeKind(join) {
@@ -28835,6 +29508,21 @@
     function emptySlotHtml(compact = true, joinId = "") {
       const action = `openGlobalApplyFor('${joinId}')`;
       return `<button type="button" class="team-empty${compact ? "" : " detail-empty"}" onclick="event.stopPropagation(); ${action}" aria-label="참여 신청">+</button>`;
+    }
+
+    function renderCardTeamSlots(join, compact = true, maxSlots = 4) {
+      const confirmedParticipants = getConfirmedParticipants(join).slice(0, maxSlots);
+      const emptyCount = Math.max(0, Math.min(Number(join.emptySlots) || 0, maxSlots - confirmedParticipants.length));
+      return [
+        renderGroupedParticipantsHtml(confirmedParticipants, join.id, compact),
+        ...Array.from({ length: emptyCount }).map(() => emptySlotHtml(compact, join.id))
+      ].join("");
+    }
+
+    function getCardTeamCapacity(join, maxSlots = 4) {
+      const confirmedCount = getConfirmedParticipants(join).length;
+      const rawCapacity = confirmedCount + (Number(join.emptySlots) || 0);
+      return Math.max(confirmedCount, Math.min(maxSlots, rawCapacity || maxSlots));
     }
 
     function renderJoinCard(join, options = {}) {
@@ -28899,8 +29587,7 @@
             </div>
             ${options.showReviewNote && reviewCount ? `<div class="join-card-review-note">후기 ${reviewCount}개로 검증</div>` : ""}
             <div class="team-row">
-              ${confirmedParticipants.map((participant) => participantButtonHtml(participant, join.id, true)).join("")}
-              ${Array.from({ length: join.emptySlots }).map(() => emptySlotHtml(true, join.id)).join("")}
+              ${renderCardTeamSlots(join)}
             </div>
           </div>
         </article>
@@ -28976,7 +29663,7 @@
       if (section.key === "quick") {
         return {
           cardClass: index === 0 ? "featured" : "",
-          featureTag: "마지막 1자리",
+          featureTag: Number(join.emptySlots) === 1 ? "마지막 1자리" : "마감임박",
           showIncludes: true,
           showParticipantCopy: true
         };
@@ -29057,12 +29744,7 @@
     }
 
     function renderSoonCompactTeam(join) {
-      const confirmedParticipants = getConfirmedParticipants(join);
-      const slots = [
-        ...confirmedParticipants.map((participant) => participantButtonHtml(participant, join.id, true)),
-        ...Array.from({ length: join.emptySlots }).map(() => emptySlotHtml(true, join.id))
-      ];
-      return slots.slice(0, 4).join("");
+      return renderCardTeamSlots(join);
     }
 
     function renderSoonCompactCard(join) {
@@ -29405,6 +30087,20 @@
       return [...builderApplicationItems, ...regularItems];
     }
 
+    function getQuickDeadlineItems(sortedItems) {
+      return sortedItems
+        .filter((join) => Number(join.emptySlots) === 1 || join.badgeKind === "justgo")
+        .sort((a, b) => {
+          const aLastSeat = Number(a.emptySlots) === 1 ? 0 : 1;
+          const bLastSeat = Number(b.emptySlots) === 1 ? 0 : 1;
+          if (aLastSeat !== bLastSeat) return aLastSeat - bLastSeat;
+          const aJustGo = a.badgeKind === "justgo" ? 0 : 1;
+          const bJustGo = b.badgeKind === "justgo" ? 0 : 1;
+          if (aJustGo !== bJustGo) return aJustGo - bJustGo;
+          return parseJoinDate(a.departureDate) - parseJoinDate(b.departureDate);
+        });
+    }
+
     function getHomeJoinSections() {
       const departureAsc = sortByDeparture(joins);
       return [
@@ -29412,7 +30108,7 @@
           key: "quick",
           title: "마감임박",
           desc: "마지막 한 자리, 지금 합류하세요",
-          items: departureAsc.filter((join) => join.emptySlots === 1 && join.badgeKind === "justgo")
+          items: getQuickDeadlineItems(departureAsc)
         },
         {
           key: "soon",
@@ -29677,6 +30373,7 @@
       if (!join) return;
       const isBuilderMode = options.mode === "builder";
       const confirmedParticipants = getConfirmedParticipants(join);
+      const participantCapacity = getCardTeamCapacity(join);
       const slides = getDetailSlides(join);
       const slideIndex = Math.max(0, Math.min(currentDetailSlideIndex, slides.length - 1));
       currentDetailSlideIndex = slideIndex;
@@ -29732,14 +30429,14 @@
         </div>
         ${isBuilderMode ? "" : `
           <div class="detail-section-title with-people" data-detail-section="participants" style="margin-top:24px;">
-            <div>현재 참여자 (${confirmedParticipants.length}/${confirmedParticipants.length + join.emptySlots}명)</div>
+            <div>현재 참여자 (${confirmedParticipants.length}/${participantCapacity}명)</div>
             <div class="participant-info-wrap">
               <button type="button" class="participant-info-button" onclick="toggleParticipantInfoHint(event)" aria-label="참여자 정보 안내"></button>
               <div class="participant-info-tooltip" role="tooltip">아래 참여자 아이콘을 누르면 참여자 정보를 볼 수 있어요.</div>
             </div>
           </div>
           <div class="team-row detail-team" style="border-top:0; padding-top:0;">
-            ${renderJoinTeamSlots(join, false)}
+            ${renderCardTeamSlots(join, false)}
           </div>
         `}
       `;
@@ -29964,6 +30661,11 @@
       const join = joins.find((item) => item.id === joinId);
       const participant = join && join.participants.find((item) => item.id === participantId);
       if (!participant) return;
+      const participants = getParticipantGroup(join, participant);
+      const isGroup = participants.length > 1;
+      const displayName = isGroup ? formatParticipantGroupName(participants) : participant.name;
+      const displayGender = isGroup ? formatParticipantGroupGender(participants, participant) : participant.gender;
+      const displayAge = isGroup ? formatParticipantGroupAges(participants) : formatParticipantAge(participant);
 
       const floating = portalOverlayToBody("participantModal");
       if (!floating) return;
@@ -29980,15 +30682,13 @@
         </div>
         <div class="participant-profile">
           <div class="participant-hero">
-            <div class="participant-thumb">
-              <img src="${participant.gif}" alt="${participant.name}">
-            </div>
-            <div>
-              <div class="participant-name">${participant.name}</div>
+            ${renderParticipantHeroThumb(participants, participant)}
+            <div class="participant-hero-info">
+              <div class="participant-name">${escapeHtml(displayName)}</div>
               <div class="participant-meta">
-                <div>${participant.gender}</div>
+                <div>${escapeHtml(displayGender)}</div>
                 <div>·</div>
-                <div>${formatParticipantAge(participant)}</div>
+                <div>${escapeHtml(displayAge)}</div>
               </div>
             </div>
           </div>
@@ -30381,9 +31081,13 @@
 
     startHeroSlider();
     hydrateBuilderApplicationJoinsFromLocalCache();
+    hydrateJoinApplicationsFromLocalCache();
     hydrateOverseasJoinsWithSecretProducts();
     renderJoins();
-    hydrateBuilderApplicationJoinsFromGoogleSheet().then(() => hydrateJoinApplicationsFromGoogleSheet());
+    Promise.all([
+      hydrateBuilderApplicationJoinsFromGoogleSheet(),
+      hydrateJoinApplicationsFromGoogleSheet()
+    ]).then(() => renderJoins());
   </script>
 </body>
 </html>

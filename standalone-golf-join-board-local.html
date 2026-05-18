@@ -1964,6 +1964,13 @@
       transition: none;
     }
 
+    .team-avatar:not(.participant-flow-avatar) {
+      --participant-border-angle: 0deg;
+      --participant-flow-color-1: #3b82f6;
+      --participant-flow-color-2: #60a5fa;
+      --participant-flow-glow: rgba(59, 130, 246, 0.28);
+    }
+
     .team-avatar.participant-flow-avatar.participant-gender-male {
       --participant-flow-color-1: #4a72f24d;
       --participant-flow-color-2: #3ac4ff9c;
@@ -13320,12 +13327,19 @@
       }
     }
 
+    .team-avatar,
     .team-avatar.participant-flow-avatar,
+    .sgj-page .team-avatar,
     .sgj-page .team-avatar.participant-flow-avatar,
+    .sgj-page .join-soon-compact-team .team-avatar,
     .sgj-page .join-soon-compact-team .team-avatar.participant-flow-avatar,
+    .calendar-product-participants .team-avatar,
+    #regionSearchModal .region-product-team .team-avatar,
     #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
+    .calendar-accordion-list .region-product-team .team-avatar,
     .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
-      border: 2px solid transparent;
+      border-color: transparent;
+      border-style: solid;
       background:
         linear-gradient(#fbfcfe, #fbfcfe) padding-box,
         conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
@@ -13333,24 +13347,39 @@
       animation: participant-border-spin 8s linear infinite;
       animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
+      transform: none;
       transition: none;
     }
 
+    .team-avatar:hover,
     .team-avatar.participant-flow-avatar:hover,
+    .sgj-page .team-avatar:hover,
     .sgj-page .team-avatar.participant-flow-avatar:hover,
-    .detail-team .team-avatar.participant-flow-avatar:hover {
-      border: 2px solid transparent;
+    .detail-team .team-avatar:hover,
+    .detail-team .team-avatar.participant-flow-avatar:hover,
+    .calendar-product-participants .team-avatar:hover,
+    #regionSearchModal .region-product-team .team-avatar:hover,
+    .calendar-accordion-list .region-product-team .team-avatar:hover {
+      border-color: transparent;
       background:
         linear-gradient(#fbfcfe, #fbfcfe) padding-box,
         conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
         linear-gradient(#d1d5db, #d1d5db) border-box;
+      box-shadow: none;
+      transform: none;
     }
 
     @media (prefers-reduced-motion: reduce) {
+      .team-avatar,
       .team-avatar.participant-flow-avatar,
+      .sgj-page .team-avatar,
       .sgj-page .team-avatar.participant-flow-avatar,
+      .sgj-page .join-soon-compact-team .team-avatar,
       .sgj-page .join-soon-compact-team .team-avatar.participant-flow-avatar,
+      .calendar-product-participants .team-avatar,
+      #regionSearchModal .region-product-team .team-avatar,
       #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
+      .calendar-accordion-list .region-product-team .team-avatar,
       .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
         animation: none;
       }

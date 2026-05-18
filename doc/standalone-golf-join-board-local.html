@@ -1946,11 +1946,13 @@
       --participant-flow-color-1: #3b82f6;
       --participant-flow-color-2: #60a5fa;
       --participant-flow-glow: rgba(59, 130, 246, 0.28);
-      border: 4px solid transparent;
+      border: 2px solid transparent;
       background:
         linear-gradient(#fbfcfe, #fbfcfe) padding-box,
-        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box;
+        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
+        linear-gradient(#d1d5db, #d1d5db) border-box;
       animation: participant-border-spin 4.5s linear infinite;
+      animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
     }
 
@@ -12811,18 +12813,14 @@
     .sgj-page .join-soon-compact-team .team-avatar.participant-flow-avatar,
     #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
     .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
-      border: 4px solid transparent;
+      border: 2px solid transparent;
       background:
         linear-gradient(#fbfcfe, #fbfcfe) padding-box,
-        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box;
+        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
+        linear-gradient(#d1d5db, #d1d5db) border-box;
       animation: participant-border-spin 4.5s linear infinite;
+      animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
-    }
-
-    .calendar-product-participants .team-avatar.participant-flow-avatar,
-    #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
-    .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
-      border-width: 3px;
     }
 
     .team-avatar.participant-flow-avatar:hover,
@@ -28618,11 +28616,22 @@
       return "participant-gender-male";
     }
 
+    function getParticipantFlowDelayStyle(participant, joinId) {
+      const source = [joinId, participant?.id, participant?.gender, participant?.name].filter(Boolean).join("|");
+      let hash = 0;
+      for (let index = 0; index < source.length; index += 1) {
+        hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0;
+      }
+      const delaySeconds = (Math.abs(hash) % 4500) / 1000;
+      return `--participant-flow-delay:-${delaySeconds.toFixed(2)}s;`;
+    }
+
     function participantButtonHtml(participant, joinId, compact = true) {
       const payload = encodeURIComponent(JSON.stringify({ joinId, participantId: participant.id }));
       const genderFlowClass = getParticipantGenderFlowClass(participant.gender);
+      const flowDelayStyle = getParticipantFlowDelayStyle(participant, joinId);
       return `<div class="team-avatar-wrap">
-        <button type="button" class="team-avatar participant-flow-avatar ${genderFlowClass}${compact ? "" : " detail-avatar"}" data-participant="${payload}" data-participant-gender="${escapeHtml(participant.gender || "")}" onclick="event.stopPropagation(); handleParticipantClick(this)" title="${participant.name} / ${participant.age} / ${participant.handicap}" aria-label="${participant.name} 참여자 정보">
+        <button type="button" class="team-avatar participant-flow-avatar ${genderFlowClass}${compact ? "" : " detail-avatar"}" data-participant="${payload}" data-participant-gender="${escapeHtml(participant.gender || "")}" style="${flowDelayStyle}" onclick="event.stopPropagation(); handleParticipantClick(this)" title="${participant.name} / ${participant.age} / ${participant.handicap}" aria-label="${participant.name} 참여자 정보">
           <img src="${participant.gif}" alt="${participant.name}">
         </button>
         ${participant.status === "pending" ? '<div class="participant-badge">대기</div>' : ""}

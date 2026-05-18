@@ -1951,21 +1951,21 @@
         linear-gradient(#fbfcfe, #fbfcfe) padding-box,
         conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
         linear-gradient(#d1d5db, #d1d5db) border-box;
-      animation: participant-border-spin 4.5s linear infinite;
+      animation: participant-border-spin 8s linear infinite;
       animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
     }
 
     .team-avatar.participant-flow-avatar.participant-gender-male {
-      --participant-flow-color-1: #2563eb;
-      --participant-flow-color-2: #7dd3fc;
-      --participant-flow-glow: rgba(37, 99, 235, 0.32);
+      --participant-flow-color-1: #4a72f24d;
+      --participant-flow-color-2: #3ac4ff9c;
+      --participant-flow-glow: rgb(37 99 235 / 0%);
     }
 
     .team-avatar.participant-flow-avatar.participant-gender-female {
-      --participant-flow-color-1: #ec4899;
-      --participant-flow-color-2: #f9a8d4;
-      --participant-flow-glow: rgba(236, 72, 153, 0.32);
+      --participant-flow-color-1: #ffd9ec;
+      --participant-flow-color-2: #ffbfe2;
+      --participant-flow-glow: rgb(236 72 153 / 0%);
     }
 
     .team-avatar {
@@ -12818,7 +12818,7 @@
         linear-gradient(#fbfcfe, #fbfcfe) padding-box,
         conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
         linear-gradient(#d1d5db, #d1d5db) border-box;
-      animation: participant-border-spin 4.5s linear infinite;
+      animation: participant-border-spin 8s linear infinite;
       animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
     }
@@ -28622,7 +28622,7 @@
       for (let index = 0; index < source.length; index += 1) {
         hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0;
       }
-      const delaySeconds = (Math.abs(hash) % 4500) / 1000;
+      const delaySeconds = (Math.abs(hash) % 8000) / 1000;
       return `--participant-flow-delay:-${delaySeconds.toFixed(2)}s;`;
     }
 

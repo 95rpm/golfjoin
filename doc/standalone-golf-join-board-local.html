@@ -6951,49 +6951,98 @@
       box-shadow: inset 0 0 0 1px #6b7280;
     }
     .traveler-gender-select {
+      position: relative;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0 !important;
+      width: 100%;
       height: 52px;
       min-height: 52px;
       align-self: start;
+      padding: 4px;
       border: 0;
-      border-radius: 0;
-      overflow: visible;
-      background: transparent;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #f1f5f9;
+      cursor: pointer;
+      user-select: none;
+    }
+    .traveler-gender-select::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 4px;
+      width: calc(50% - 4px);
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.16), 0 1px 2px rgba(15, 23, 42, 0.08);
+      opacity: 0;
+      transform: translateX(0);
+      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), opacity .16s ease;
+      pointer-events: none;
+    }
+    .traveler-gender-select:has(.apply-chip.active)::before {
+      opacity: 1;
+    }
+    .traveler-gender-select:has(.apply-chip:last-child.active)::before {
+      transform: translateX(100%);
     }
     .traveler-gender-select .apply-chip {
       position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       width: 100%;
       min-width: 0;
-      height: 52px;
-      min-height: 52px;
-      border: 1px solid var(--border);
-      background: #fff;
+      height: 44px;
+      min-height: 44px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
       box-shadow: none;
-      color: #626466;
-      font-size: 17px !important;
-      font-weight: 500;
+      color: #94a3b8;
+      font-size: 15px !important;
+      font-weight: 800;
+      transition: color .3s ease;
     }
-    .traveler-gender-select .apply-chip:first-child {
-      border-radius: 12px 0 0 12px;
-      margin-right: -1px;
+    .traveler-gender-select .apply-chip:hover {
+      border-color: transparent;
+      background: transparent;
+      color: #64748b;
     }
-    .traveler-gender-select .apply-chip:last-child {
-      border-radius: 0 12px 12px 0;
-    }
-    .traveler-gender-select .apply-chip + .apply-chip {
-      border-left: 1px solid var(--border);
+    .traveler-gender-select .apply-chip:focus-visible {
+      outline: 2px solid rgba(59, 130, 246, 0.32);
+      outline-offset: -2px;
     }
     .traveler-gender-select .apply-chip.active {
       z-index: 1;
-      border-color: #6b7280;
-      background: #f8fafc;
-      color: var(--text);
-      box-shadow: inset 0 0 0 1px #6b7280;
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+      font-weight: 900;
+    }
+    .traveler-gender-select .apply-chip:first-child.active {
+      color: #2563eb;
+    }
+    .traveler-gender-select .apply-chip:last-child.active {
+      color: #f43f5e;
+    }
+    .gender-toggle-icon {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      stroke: currentColor;
+      stroke-width: 2.3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
     }
     .detail-apply-panel .field.has-error .traveler-gender-select {
-      border-color: #ef4444;
+      border: 1px solid #ef4444;
       box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
     }
     .apply-error {
@@ -21370,8 +21419,8 @@
                 </div>
                 <div class="field" data-builder-apply-field="gender">
                   <div class="apply-chip-group traveler-gender-select" data-chip-group="builder-gender">
-                    <button type="button" class="apply-chip" data-value="남성">남</button>
-                    <button type="button" class="apply-chip" data-value="여성">여</button>
+                    <button type="button" class="apply-chip" data-value="남성"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="14" r="5"/><path d="M14 10l6-6"/><path d="M15 4h5v5"/></svg><span>남성</span></button>
+                    <button type="button" class="apply-chip" data-value="여성"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg><span>여성</span></button>
                   </div>
                   <div class="apply-error">성별을 선택해 주세요.</div>
                 </div>
@@ -21657,8 +21706,8 @@
             </div>
             <div class="field" data-apply-field="gender">
               <div class="apply-chip-group traveler-gender-select" data-chip-group="global-gender">
-                <button type="button" class="apply-chip" data-value="남성">남</button>
-                <button type="button" class="apply-chip" data-value="여성">여</button>
+                <button type="button" class="apply-chip" data-value="남성"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="14" r="5"/><path d="M14 10l6-6"/><path d="M15 4h5v5"/></svg><span>남성</span></button>
+                <button type="button" class="apply-chip" data-value="여성"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg><span>여성</span></button>
               </div>
               <div class="apply-error">성별을 선택해 주세요.</div>
             </div>

@@ -1733,11 +1733,17 @@
     .badge-red { background: var(--red); }
     .join-body { padding: 18px; }
     .join-title {
+      display: -webkit-box;
       margin: 6px 0 3px;
       min-height: 25px;
+      overflow: hidden;
       font-size: var(--font-card-title);
       line-height: 1.35;
       font-weight: 800;
+      text-overflow: ellipsis;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
     }
     .card-meta {
       font-size: var(--font-card-meta);
@@ -9183,11 +9189,16 @@
       gap: 2px;
     }
     #secret-golf-join .join-title {
-      display: block !important;
+      display: -webkit-box !important;
       float: none !important;
       width: auto !important;
       clear: none !important;
+      overflow: hidden !important;
       white-space: normal !important;
+      text-overflow: ellipsis !important;
+      -webkit-box-orient: vertical !important;
+      -webkit-line-clamp: 2 !important;
+      line-clamp: 2 !important;
     }
     #secret-golf-join .card-meta-text,
     #secret-golf-join .card-meta-text-date,

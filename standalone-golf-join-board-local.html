@@ -28266,6 +28266,32 @@
       renderBuilderRegionSearch("");
     }
 
+    function syncBuilderRegionAutoExpand(displayCategories) {
+      if (!Array.isArray(displayCategories) || !displayCategories.length) return;
+      const activeCategoryStillAvailable = displayCategories.some(({ categoryIndex }) => categoryIndex === activeBuilderRegionCategoryIndex);
+      if (displayCategories.length === 1 || !activeCategoryStillAvailable) {
+        activeBuilderRegionCategoryIndex = displayCategories[0].categoryIndex;
+      }
+
+      const activeCategoryItem = displayCategories.find(({ categoryIndex }) => categoryIndex === activeBuilderRegionCategoryIndex);
+      if (!activeCategoryItem) return;
+      const countries = getBuilderAvailableCountries(activeCategoryItem.category);
+      const hasActiveCountryInCategory = countries.some(({ country, countryIndex }) => {
+        const cities = Array.isArray(country?.cities) ? country.cities : [];
+        return cities.length > 0 && activeBuilderRegionCountryKey === `${activeBuilderRegionCategoryIndex}:${countryIndex}`;
+      });
+      if (countries.length === 1) {
+        const [{ country, countryIndex }] = countries;
+        if (Array.isArray(country?.cities) && country.cities.length > 0) {
+          activeBuilderRegionCountryKey = `${activeBuilderRegionCategoryIndex}:${countryIndex}`;
+        }
+        return;
+      }
+      if (!hasActiveCountryInCategory) {
+        activeBuilderRegionCountryKey = getDefaultBuilderRegionCountryKey(activeBuilderRegionCategoryIndex);
+      }
+    }
+
     function renderBuilderRegionSearch(keyword = "") {
       const shell = document.querySelector(".builder-region-search");
       const body = document.getElementById("builderRegionSearchBody");
@@ -28312,6 +28338,7 @@
       const displayCategories = regionTree
         .map((category, categoryIndex) => ({ category, categoryIndex }))
         .filter(({ category }) => isBuilderCategoryAvailable(category));
+      syncBuilderRegionAutoExpand(displayCategories);
       body.innerHTML = displayCategories.length ? displayCategories.map(({ category, categoryIndex }) => {
         const countries = getBuilderAvailableCountries(category);
         const rows = [];

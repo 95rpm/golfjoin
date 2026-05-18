@@ -25747,6 +25747,7 @@
           erpProductId: selectedProductReference.id || builderState.productId || "",
           erpEventSeq: selectedProductReference.eventSeq || "",
           productName: builderState.productName || "",
+          productPrice: Number(selectedProduct?.price) || 0,
           startSummary: document.getElementById("builderStartSummary")?.textContent.trim() || "",
           endSummary: document.getElementById("builderEndSummary")?.textContent.trim() || "",
           tripSummary: document.getElementById("builderTripSummary")?.textContent.trim() || "",
@@ -26101,7 +26102,8 @@
           ...(normalized.trip || {}),
           productId: getNestedValue(normalized, "trip.productId") || reference.id,
           erpProductId: getNestedValue(normalized, "trip.erpProductId") || reference.id,
-          erpEventSeq: getNestedValue(normalized, "trip.erpEventSeq") || reference.eventSeq
+          erpEventSeq: getNestedValue(normalized, "trip.erpEventSeq") || reference.eventSeq,
+          productPrice: getNestedValue(normalized, "trip.productPrice") || normalized.productPrice || normalized.price || ""
         };
         return normalized;
       }
@@ -26138,6 +26140,7 @@
           erpProductId: reference.id || item.erpProductId || item.productId || "",
           erpEventSeq: reference.eventSeq || item.erpEventSeq || item.eventSeq || "",
           productName: item.productName || "",
+          productPrice: item.productPrice || item.price || "",
           startSummary: item.startSummary || "",
           endSummary: item.endSummary || "",
           tripSummary: item.tripSummary || "",
@@ -26175,6 +26178,11 @@
     function getFirstISODate(value) {
       const dates = toBuilderApplicationArray(value);
       return dates.find((date) => /^\d{4}-\d{2}-\d{2}$/.test(date)) || "";
+    }
+
+    function parseBuilderApplicationPrice(value) {
+      const price = Number(String(value || "").replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(price) && price > 0 ? price : 0;
     }
 
     function getBuilderApplicationPeopleCount(payload) {
@@ -26270,6 +26278,7 @@
       const idSeed = normalized.scheduleId || normalized.applicationId || `${submittedAt}-${getNestedValue(normalized, "applicant.phone")}-${productName}-${region}-${index}`.replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
       const participantName = escapeBuilderApplicationText(maskBuilderApplicantName(applicantName));
       const participants = buildBuilderApplicationParticipants(normalized, fallback, idSeed || index, participantName);
+      const savedProductPrice = parseBuilderApplicationPrice(getNestedValue(normalized, "trip.productPrice") || normalized.productPrice || normalized.price);
 
       return {
         ...fallback,
@@ -26284,7 +26293,7 @@
         date: `${departureDate} - ${returnDate}`,
         duration: escapeBuilderApplicationText(getNestedValue(normalized, "trip.tripSummary")) || fallback.duration,
         dayNightCnt: escapeBuilderApplicationText(getNestedValue(normalized, "trip.tripSummary")) || fallback.dayNightCnt,
-        price: Number(product?.price || fallback.price || 0),
+        price: savedProductPrice || Number(product?.price || fallback.price || 0),
         image: product?.image || fallback.image || "",
         badge: "신규조인",
         badgeKind: "special",

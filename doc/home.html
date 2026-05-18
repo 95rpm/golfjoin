@@ -21905,6 +21905,7 @@ const oTop = {
           erpProductId: selectedProductReference.id || builderState.productId || "",
           erpEventSeq: selectedProductReference.eventSeq || "",
           productName: builderState.productName || "",
+          productPrice: Number(selectedProduct?.price) || 0,
           startSummary: document.getElementById("builderStartSummary")?.textContent.trim() || "",
           endSummary: document.getElementById("builderEndSummary")?.textContent.trim() || "",
           tripSummary: document.getElementById("builderTripSummary")?.textContent.trim() || "",

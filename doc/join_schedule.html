@@ -2533,13 +2533,11 @@ const oTop = {
     .participant-thumb.participant-ring-flow {
       --participant-ring-color: #64748b;
       --participant-ring-soft: rgba(100, 116, 139, 0.28);
-      --participant-ring-glow: rgba(100, 116, 139, 0.22);
       --participant-ring-radius: 12px;
       position: relative;
       isolation: isolate;
       border-color: transparent;
       background: #f9fafb;
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.72), 0 0 14px var(--participant-ring-glow);
     }
     .team-avatar.participant-ring-flow::before,
     .participant-thumb.participant-ring-flow::before {
@@ -2549,14 +2547,13 @@ const oTop = {
       z-index: 0;
       pointer-events: none;
       background: conic-gradient(from 0deg,
-        transparent 0deg,
-        var(--participant-ring-soft) 42deg,
-        var(--participant-ring-color) 82deg,
-        rgba(255, 255, 255, 0.95) 104deg,
-        var(--participant-ring-color) 126deg,
-        var(--participant-ring-soft) 166deg,
-        transparent 222deg,
-        transparent 360deg);
+        var(--participant-ring-soft) 0deg,
+        var(--participant-ring-soft) 58deg,
+        var(--participant-ring-color) 96deg,
+        rgba(255, 255, 255, 0.95) 116deg,
+        var(--participant-ring-color) 138deg,
+        var(--participant-ring-soft) 184deg,
+        var(--participant-ring-soft) 360deg);
       animation: participantRingFlow 3.6s linear infinite;
     }
     .team-avatar.participant-ring-flow::after,
@@ -2579,31 +2576,27 @@ const oTop = {
     .participant-thumb.participant-gender-male {
       --participant-ring-color: #2563eb;
       --participant-ring-soft: rgba(37, 99, 235, 0.24);
-      --participant-ring-glow: rgba(37, 99, 235, 0.22);
     }
     .team-avatar.participant-gender-female,
     .participant-thumb.participant-gender-female {
       --participant-ring-color: #ec4899;
       --participant-ring-soft: rgba(236, 72, 153, 0.24);
-      --participant-ring-glow: rgba(236, 72, 153, 0.22);
     }
     .team-avatar.participant-gender-mixed,
     .participant-thumb.participant-gender-mixed {
       --participant-ring-color: #8b5cf6;
       --participant-ring-soft: rgba(37, 99, 235, 0.22);
-      --participant-ring-glow: rgba(236, 72, 153, 0.20);
     }
     .team-avatar.participant-gender-mixed::before,
     .participant-thumb.participant-gender-mixed::before {
       background: conic-gradient(from 0deg,
-        transparent 0deg,
-        rgba(37, 99, 235, 0.26) 38deg,
-        #2563eb 78deg,
-        rgba(255, 255, 255, 0.96) 100deg,
-        #ec4899 128deg,
-        rgba(236, 72, 153, 0.24) 168deg,
-        transparent 226deg,
-        transparent 360deg);
+        rgba(37, 99, 235, 0.22) 0deg,
+        rgba(37, 99, 235, 0.28) 48deg,
+        #2563eb 84deg,
+        rgba(255, 255, 255, 0.96) 106deg,
+        #ec4899 132deg,
+        rgba(236, 72, 153, 0.28) 180deg,
+        rgba(37, 99, 235, 0.22) 360deg);
     }
     .participant-thumb.participant-ring-flow {
       --participant-ring-radius: 8px;
@@ -2629,7 +2622,7 @@ const oTop = {
     .team-avatar.participant-ring-flow:hover,
     .detail-team .team-avatar.participant-ring-flow:hover {
       border-color: transparent;
-      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14), 0 0 18px var(--participant-ring-glow);
+      box-shadow: none;
     }
     .team-empty {
       border: 2px dashed #d1d5db;

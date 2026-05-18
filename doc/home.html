@@ -2479,11 +2479,17 @@ const oTop = {
     .badge-red { background: var(--red); }
     .join-body { padding: 18px; }
     .join-title {
+      display: -webkit-box;
       margin: 6px 0 3px;
       min-height: 25px;
+      overflow: hidden;
       font-size: var(--font-card-title);
       line-height: 1.35;
       font-weight: 800;
+      text-overflow: ellipsis;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
     }
     .card-meta {
       font-size: var(--font-card-meta);
@@ -9858,11 +9864,16 @@ const oTop = {
       gap: 2px;
     }
     #secret-golf-join .join-title {
-      display: block !important;
+      display: -webkit-box !important;
       float: none !important;
       width: auto !important;
       clear: none !important;
+      overflow: hidden !important;
       white-space: normal !important;
+      text-overflow: ellipsis !important;
+      -webkit-box-orient: vertical !important;
+      -webkit-line-clamp: 2 !important;
+      line-clamp: 2 !important;
     }
     #secret-golf-join .card-meta-text,
     #secret-golf-join .card-meta-text-date,
@@ -19782,17 +19793,13 @@ const oTop = {
       if (Array.isArray(join.flightScheduleItems) && join.flightScheduleItems.length) {
         return { type: "secretTour", items: join.flightScheduleItems };
       }
-      if (options.allowFallback === false) return null;
-      if (join.category !== "Overseas" && join.source !== "secret-tour-goods-event") return null;
-      const flight = join.flight || {};
+      const isOverseas = getJoinCategoryClass(join) === "overseas"
+        || /해외|oversea|overseas/i.test(String(join.category || ""))
+        || join.source === "secret-tour-goods-event";
+      if (!isOverseas) return null;
       return {
-        type: "fallback",
-        airline: flight.airline || "",
-        duration: flight.duration || "",
-        departureTime: formatFlightDateTime(join.departureDate, flight.departureTime || ""),
-        returnTime: formatFlightDateTime(join.returnDate || join.departureDate, flight.returnTime || ""),
-        departureCode: flight.departureCode || "",
-        returnCode: flight.returnCode || ""
+        type: "notice",
+        message: "예정 정보이며 실제 항공편은 확정 후 안내"
       };
     }
 
@@ -19802,30 +19809,24 @@ const oTop = {
       if (flight.type === "secretTour") {
         return [
           '<div class="flight-info-card">',
-          '<div class="detail-label">Flight schedule</div>',
+          '<div class="detail-label">항공정보</div>',
           '<div class="detail-note-card">',
           flight.items.map((item) => '<div>' + item + '</div>').join(''),
           '</div>',
           '</div>'
         ].join('');
       }
-      return [
-        '<div class="flight-info-card">',
-        '<div class="flight-segment">',
-        '<div class="flight-label">Departure</div>',
-        renderFlightTime(flight.departureTime),
-        '<div class="flight-airline">' + flight.airline + '</div>',
-        '<div class="flight-code">' + flight.departureCode + '</div>',
-        '</div>',
-        '<div class="flight-duration">' + flight.duration + '</div>',
-        '<div class="flight-segment">',
-        '<div class="flight-label">Arrival</div>',
-        renderFlightTime(flight.returnTime),
-        '<div class="flight-airline">' + flight.airline + '</div>',
-        '<div class="flight-code">' + flight.returnCode + '</div>',
-        '</div>',
-        '</div>'
-      ].join('');
+      if (flight.type === "notice") {
+        return [
+          '<div class="flight-info-card">',
+          '<div class="detail-label">항공정보</div>',
+          '<div class="detail-note-card">',
+          '<div>' + flight.message + '</div>',
+          '</div>',
+          '</div>'
+        ].join('');
+      }
+      return "";
     }
 
     function renderDetailPeriod(join) {
@@ -19935,9 +19936,14 @@ const oTop = {
     }
 
     function splitScheduleItems(content) {
-      return String(content || "")
+      const protectedSlashToken = "__SCHEDULE_SLASH__";
+      const protectedContent = String(content || "").replace(
+        /([가-힣A-Za-z0-9]+(?:\/[가-힣A-Za-z0-9]+){2,})(?=\s*골프장\s*중\s*한\s*곳)/g,
+        (match) => match.replace(/\//g, protectedSlashToken)
+      );
+      return protectedContent
         .split(/,\s*|및|\/|·/)
-        .map((item) => item.trim())
+        .map((item) => item.replaceAll(protectedSlashToken, "/").trim())
         .filter(Boolean);
     }
 
@@ -21762,6 +21768,8 @@ const oTop = {
       const submittedAt = new Date().toISOString();
       const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, phone);
       const scheduleId = buildGoogleSheetRecordId("sch", applicationId);
+      const selectedProduct = [...(externalGolfJoinProducts || []), ...joins].find((item) => item.id === builderState.productId) || { id: builderState.productId };
+      const selectedProductReference = getSecretTourProductReference(selectedProduct);
 
       return {
         applicationId,
@@ -21784,7 +21792,9 @@ const oTop = {
         trip: {
           region: builderState.region || (builderState.regions || []).join(", "),
           regions: builderState.regions || [],
-          productId: builderState.productId || "",
+          productId: builderState.productId || selectedProductReference.id || "",
+          erpProductId: selectedProductReference.id || builderState.productId || "",
+          erpEventSeq: selectedProductReference.eventSeq || "",
           productName: builderState.productName || "",
           startSummary: document.getElementById("builderStartSummary")?.textContent.trim() || "",
           endSummary: document.getElementById("builderEndSummary")?.textContent.trim() || "",
@@ -22537,6 +22547,54 @@ const oTop = {
       return value ? { text: value, source } : null;
     }
 
+    function parseSecretTourProductReference(value, eventSeqValue = "") {
+      const raw = String(value || "").trim();
+      const explicitEventSeq = String(eventSeqValue || "").trim();
+      const compositeMatch = /^(?:secret-tour|erp)-(\d+)-(\d+)$/i.exec(raw);
+      if (compositeMatch) {
+        return {
+          id: raw,
+          goodSeq: compositeMatch[1],
+          eventSeq: compositeMatch[2]
+        };
+      }
+      const goodSeq = /^\d+$/.test(raw) ? raw : "";
+      return {
+        id: raw,
+        goodSeq,
+        eventSeq: explicitEventSeq
+      };
+    }
+
+    function getSecretTourProductReference(product = {}) {
+      const parsed = parseSecretTourProductReference(
+        product.erpProductId || product.productId || product.id || product.goodSeq,
+        product.erpEventSeq || product.eventSeq
+      );
+      const goodSeq = String(product.goodSeq || parsed.goodSeq || "").trim();
+      const eventSeq = String(product.eventSeq || parsed.eventSeq || "").trim();
+      const parsedIdIsComposite = /^(?:secret-tour|erp)-\d+-\d+$/i.test(parsed.id);
+      return {
+        id: goodSeq && eventSeq
+          ? (parsedIdIsComposite ? parsed.id : `secret-tour-${goodSeq}-${eventSeq}`)
+          : (parsed.id || String(product.id || "").trim()),
+        goodSeq,
+        eventSeq
+      };
+    }
+
+    function withSecretTourProductReference(product = {}) {
+      const reference = getSecretTourProductReference(product);
+      return {
+        ...product,
+        id: product.id || reference.id,
+        goodSeq: product.goodSeq || reference.goodSeq,
+        eventSeq: product.eventSeq || reference.eventSeq,
+        erpProductId: product.erpProductId || reference.id,
+        erpEventSeq: product.erpEventSeq || reference.eventSeq
+      };
+    }
+
     function normalizeSecretTourGoodsItem(item, index) {
       const departureDate = secretTourDateToISO(item.minStartDay);
       const dayCnt = Number(item.dayCnt) || 1;
@@ -22803,10 +22861,11 @@ const oTop = {
     }
 
     async function loadSecretTourGoodsDetail(product) {
-      if (!product?.goodSeq || !product?.eventSeq) return {};
-      const cacheKey = `${product.goodSeq}:${product.eventSeq}`;
+      const lookupProduct = withSecretTourProductReference(product);
+      if (!lookupProduct.goodSeq || !lookupProduct.eventSeq) return {};
+      const cacheKey = `${lookupProduct.goodSeq}:${lookupProduct.eventSeq}`;
       if (secretTourGoodsDetailCache.has(cacheKey)) return secretTourGoodsDetailCache.get(cacheKey);
-      const detailPromise = fetch(buildSecretTourGoodsViewUrl(product), {
+      const detailPromise = fetch(buildSecretTourGoodsViewUrl(lookupProduct), {
         method: "GET",
         credentials: "same-origin",
         cache: "no-store"
@@ -22819,10 +22878,10 @@ const oTop = {
         .then(async (detail) => {
           try {
             const flightScheduleItems = await loadSecretTourFlightSchedule({
-              ...product,
+              ...lookupProduct,
               ...detail,
-              departureDate: secretTourDateToISO(detail.startDay) || product.departureDate,
-              returnDate: secretTourDateToISO(detail.endDay) || product.returnDate
+              departureDate: secretTourDateToISO(detail.startDay) || lookupProduct.departureDate,
+              returnDate: secretTourDateToISO(detail.endDay) || lookupProduct.returnDate
             });
             return { ...detail, flightScheduleItems };
           } catch (error) {
@@ -22859,6 +22918,31 @@ const oTop = {
         slides: detail.slides?.length ? detail.slides : product.slides
       };
     }
+
+    async function enrichOpenDetailWithSecretTourData(join, renderOptions = {}) {
+      const lookupProduct = withSecretTourProductReference(join);
+      if (!lookupProduct.goodSeq || !lookupProduct.eventSeq || join.secretTourDetailLoaded) return join;
+      try {
+        const detail = await loadSecretTourGoodsDetail(lookupProduct);
+        const enrichedJoin = mergeSecretTourGoodsDetail(lookupProduct, detail);
+        Object.assign(join, enrichedJoin, { secretTourDetailLoaded: true });
+        const isSameDetail = currentDetailJoinId === join.id && document.getElementById("detailModal")?.classList.contains("open");
+        if (isSameDetail) {
+          currentDetailJoinData = join;
+          document.getElementById("detailModalTitle").textContent = join.title;
+          renderDetailContent(join, renderOptions);
+          requestAnimationFrame(() => {
+            prepareDetailScheduleHeights({ forceOpen: true });
+            resetDetailModalScroll();
+          });
+        }
+        return join;
+      } catch (error) {
+        console.warn("Failed to enrich Secret Tour detail from ERP.", error);
+        return join;
+      }
+    }
+
 
     async function loadSecretTourGoodsEvents(goodSeq) {
       if (!goodSeq) return [];
@@ -22954,10 +23038,15 @@ const oTop = {
       const fallback = item.airport ? overseasJoinTemplate : domesticJoinTemplate;
       const badgeKind = item.badgeKind || "";
       const duration = getExplicitTripDuration(item) || extractDurationFromProductText(item) || getExplicitTripDuration(fallback);
+      const productReference = getSecretTourProductReference(item);
       return {
         ...fallback,
         ...item,
-        id: item.id || `external-product-${index}`,
+        id: item.id || productReference.id || `external-product-${index}`,
+        goodSeq: item.goodSeq || productReference.goodSeq,
+        eventSeq: item.eventSeq || productReference.eventSeq,
+        erpProductId: item.erpProductId || item.id || productReference.id,
+        erpEventSeq: item.erpEventSeq || item.eventSeq || productReference.eventSeq,
         title: item.title || fallback.title || "골프 조인 상품",
         region: item.region || fallback.region || "",
         category: item.category || (item.airport ? "해외" : "국내"),
@@ -24646,6 +24735,7 @@ const oTop = {
 
     function buildJoinApplyPayload(data, join = getCurrentApplyJoin()) {
       const target = getCurrentApplyTargetInfo(join);
+      const productReference = getSecretTourProductReference(join || {});
       return {
         source: "join_apply",
         submittedAt: new Date().toISOString(),
@@ -24654,8 +24744,8 @@ const oTop = {
         targetScheduleId: target.targetScheduleId,
         targetApplicationId: target.targetApplicationId,
         product: {
-          erpProductId: join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "",
-          erpEventSeq: join?.erpEventSeq || join?.eventSeq || "",
+          erpProductId: join?.erpProductId || productReference.id || join?.productId || join?.goodSeq || join?.id || "",
+          erpEventSeq: join?.erpEventSeq || productReference.eventSeq || join?.eventSeq || "",
           productName: join?.title || "",
           departureDate: join?.departureDate || "",
           returnDate: join?.returnDate || "",
@@ -26118,6 +26208,7 @@ const oTop = {
         prepareDetailScheduleHeights({ forceOpen: true });
         resetDetailModalScroll();
       });
+      enrichOpenDetailWithSecretTourData(join);
     }
 
     function openBuilderDetail(id) {

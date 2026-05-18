@@ -1948,40 +1948,38 @@
     }
     .team-avatar.participant-ring-flow,
     .participant-thumb.participant-ring-flow {
-      --participant-ring-color: #64748b;
-      --participant-ring-soft: rgba(100, 116, 139, 0.28);
+      --participant-ring-color: #2563eb;
+      --participant-ring-track: #d1d5db;
+      --participant-ring-size: 2px;
       --participant-ring-radius: 12px;
       position: relative;
       isolation: isolate;
-      border-color: transparent;
+      border: var(--participant-ring-size) solid var(--participant-ring-track);
       background: #f9fafb;
+      box-shadow: none;
     }
     .team-avatar.participant-ring-flow::before,
     .participant-thumb.participant-ring-flow::before {
       content: "";
       position: absolute;
-      inset: -62%;
-      z-index: 0;
+      inset: calc(-1 * var(--participant-ring-size));
+      z-index: 2;
       pointer-events: none;
+      border-radius: var(--participant-ring-radius);
+      padding: var(--participant-ring-size);
       background: conic-gradient(from 0deg,
-        var(--participant-ring-soft) 0deg,
-        var(--participant-ring-soft) 58deg,
-        var(--participant-ring-color) 96deg,
-        rgba(255, 255, 255, 0.95) 116deg,
-        var(--participant-ring-color) 138deg,
-        var(--participant-ring-soft) 184deg,
-        var(--participant-ring-soft) 360deg);
-      animation: participantRingFlow 3.6s linear infinite;
-    }
-    .team-avatar.participant-ring-flow::after,
-    .participant-thumb.participant-ring-flow::after {
-      content: "";
-      position: absolute;
-      inset: 2px;
-      z-index: 0;
-      border-radius: calc(var(--participant-ring-radius) - 2px);
-      background: #f9fafb;
-      pointer-events: none;
+        transparent 0deg,
+        transparent 288deg,
+        rgba(37, 99, 235, 0.16) 294deg,
+        #2563eb 318deg,
+        rgba(37, 99, 235, 0.16) 346deg,
+        transparent 352deg,
+        transparent 360deg);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: participantRingFlow 4.8s cubic-bezier(.45, 0, .25, 1) infinite;
+      will-change: transform;
     }
     .team-avatar.participant-ring-flow img,
     .participant-thumb.participant-ring-flow img {
@@ -1989,37 +1987,18 @@
       z-index: 1;
       border-radius: calc(var(--participant-ring-radius) - 3px);
     }
-    .team-avatar.participant-gender-male,
-    .participant-thumb.participant-gender-male {
-      --participant-ring-color: #2563eb;
-      --participant-ring-soft: rgba(37, 99, 235, 0.24);
-    }
-    .team-avatar.participant-gender-female,
-    .participant-thumb.participant-gender-female {
-      --participant-ring-color: #ec4899;
-      --participant-ring-soft: rgba(236, 72, 153, 0.24);
-    }
-    .team-avatar.participant-gender-mixed,
-    .participant-thumb.participant-gender-mixed {
-      --participant-ring-color: #8b5cf6;
-      --participant-ring-soft: rgba(37, 99, 235, 0.22);
-    }
-    .team-avatar.participant-gender-mixed::before,
-    .participant-thumb.participant-gender-mixed::before {
-      background: conic-gradient(from 0deg,
-        rgba(37, 99, 235, 0.22) 0deg,
-        rgba(37, 99, 235, 0.28) 48deg,
-        #2563eb 84deg,
-        rgba(255, 255, 255, 0.96) 106deg,
-        #ec4899 132deg,
-        rgba(236, 72, 153, 0.28) 180deg,
-        rgba(37, 99, 235, 0.22) 360deg);
-    }
     .participant-thumb.participant-ring-flow {
       --participant-ring-radius: 8px;
     }
     @keyframes participantRingFlow {
-      to { transform: rotate(360deg); }
+      0% { transform: rotate(0deg); animation-timing-function: cubic-bezier(.42, 0, .78, .44); }
+      21% { transform: rotate(82deg); animation-timing-function: cubic-bezier(.18, .74, .36, 1); }
+      27% { transform: rotate(90deg); animation-timing-function: cubic-bezier(.42, 0, .78, .44); }
+      48% { transform: rotate(172deg); animation-timing-function: cubic-bezier(.18, .74, .36, 1); }
+      54% { transform: rotate(180deg); animation-timing-function: cubic-bezier(.42, 0, .78, .44); }
+      75% { transform: rotate(262deg); animation-timing-function: cubic-bezier(.18, .74, .36, 1); }
+      81% { transform: rotate(270deg); animation-timing-function: cubic-bezier(.42, 0, .78, .44); }
+      100% { transform: rotate(360deg); }
     }
     @media (prefers-reduced-motion: reduce) {
       .team-avatar.participant-ring-flow::before,
@@ -2084,7 +2063,7 @@
     }
     .team-avatar.participant-ring-flow:hover,
     .detail-team .team-avatar.participant-ring-flow:hover {
-      border-color: transparent;
+      border-color: var(--participant-ring-track);
       box-shadow: none;
     }
     .team-empty {
@@ -29900,8 +29879,7 @@
         ...participants.filter((participant) => participant && participant !== first)
       ].filter(Boolean);
       if (orderedParticipants.length <= 1) {
-        const genderClass = getParticipantGenderClass(first.gender);
-        return `<div class="participant-thumb participant-ring-flow ${genderClass}"><img src="${first.gif}" alt="${escapeHtml(first.name || "참여자")}"></div>`;
+        return `<div class="participant-thumb participant-ring-flow"><img src="${first.gif}" alt="${escapeHtml(first.name || "참여자")}"></div>`;
       }
       const stackCount = orderedParticipants.length;
       const desktopWidth = 48 + (stackCount - 1) * 6;
@@ -29909,8 +29887,7 @@
       const thumbs = orderedParticipants.map((participant, index) => {
         const zIndex = stackCount - index;
         const opacity = index === 0 ? 1 : Math.max(0.52, 0.86 - (index - 1) * 0.18);
-        const genderClass = getParticipantGenderClass(participant.gender);
-        return `<div class="participant-thumb participant-ring-flow ${genderClass}" style="--participant-stack-left:${index * 6}px; --participant-stack-mobile-left:${index * 7}px; --participant-stack-z:${zIndex}; --participant-stack-opacity:${opacity};"><img src="${participant.gif}" alt="${escapeHtml(participant.name || "참여자")}"></div>`;
+        return `<div class="participant-thumb participant-ring-flow" style="--participant-stack-left:${index * 6}px; --participant-stack-mobile-left:${index * 7}px; --participant-stack-z:${zIndex}; --participant-stack-opacity:${opacity};"><img src="${participant.gif}" alt="${escapeHtml(participant.name || "참여자")}"></div>`;
       }).join("");
       return `<div class="participant-thumb-stack" style="--participant-stack-width:${desktopWidth}px; --participant-stack-mobile-width:${mobileWidth}px;" aria-hidden="true">${thumbs}</div>`;
     }
@@ -29935,18 +29912,10 @@
       return join.participants.filter((participant) => participant.status === "confirmed");
     }
 
-    function getParticipantGenderClass(gender) {
-      const value = String(gender || "").trim();
-      if (/여/.test(value)) return "participant-gender-female";
-      if (/남/.test(value)) return "participant-gender-male";
-      return "participant-gender-unknown";
-    }
-
     function participantButtonHtml(participant, joinId, compact = true) {
       const payload = encodeURIComponent(JSON.stringify({ joinId, participantId: participant.id }));
-      const genderClass = getParticipantGenderClass(participant.gender);
       return `<div class="team-avatar-wrap">
-        <button type="button" class="team-avatar participant-ring-flow ${genderClass}${compact ? "" : " detail-avatar"}" data-participant="${payload}" onclick="event.stopPropagation(); handleParticipantClick(this)" title="${participant.name} / ${participant.age} / ${participant.handicap}" aria-label="${participant.name} 참여자 정보">
+        <button type="button" class="team-avatar participant-ring-flow${compact ? "" : " detail-avatar"}" data-participant="${payload}" onclick="event.stopPropagation(); handleParticipantClick(this)" title="${participant.name} / ${participant.age} / ${participant.handicap}" aria-label="${participant.name} 참여자 정보">
           <img src="${participant.gif}" alt="${participant.name}">
         </button>
         ${participant.status === "pending" ? '<div class="participant-badge">대기</div>' : ""}

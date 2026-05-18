@@ -22923,17 +22923,13 @@
       if (Array.isArray(join.flightScheduleItems) && join.flightScheduleItems.length) {
         return { type: "secretTour", items: join.flightScheduleItems };
       }
-      if (options.allowFallback === false) return null;
-      if (join.category !== "Overseas" && join.source !== "secret-tour-goods-event") return null;
-      const flight = join.flight || {};
+      const isOverseas = getJoinCategoryClass(join) === "overseas"
+        || /해외|oversea|overseas/i.test(String(join.category || ""))
+        || join.source === "secret-tour-goods-event";
+      if (!isOverseas) return null;
       return {
-        type: "fallback",
-        airline: flight.airline || "",
-        duration: flight.duration || "",
-        departureTime: formatFlightDateTime(join.departureDate, flight.departureTime || ""),
-        returnTime: formatFlightDateTime(join.returnDate || join.departureDate, flight.returnTime || ""),
-        departureCode: flight.departureCode || "",
-        returnCode: flight.returnCode || ""
+        type: "notice",
+        message: "예정 정보이며 실제 항공편은 확정 후 안내"
       };
     }
 
@@ -22943,30 +22939,24 @@
       if (flight.type === "secretTour") {
         return [
           '<div class="flight-info-card">',
-          '<div class="detail-label">Flight schedule</div>',
+          '<div class="detail-label">항공정보</div>',
           '<div class="detail-note-card">',
           flight.items.map((item) => '<div>' + item + '</div>').join(''),
           '</div>',
           '</div>'
         ].join('');
       }
-      return [
-        '<div class="flight-info-card">',
-        '<div class="flight-segment">',
-        '<div class="flight-label">Departure</div>',
-        renderFlightTime(flight.departureTime),
-        '<div class="flight-airline">' + flight.airline + '</div>',
-        '<div class="flight-code">' + flight.departureCode + '</div>',
-        '</div>',
-        '<div class="flight-duration">' + flight.duration + '</div>',
-        '<div class="flight-segment">',
-        '<div class="flight-label">Arrival</div>',
-        renderFlightTime(flight.returnTime),
-        '<div class="flight-airline">' + flight.airline + '</div>',
-        '<div class="flight-code">' + flight.returnCode + '</div>',
-        '</div>',
-        '</div>'
-      ].join('');
+      if (flight.type === "notice") {
+        return [
+          '<div class="flight-info-card">',
+          '<div class="detail-label">항공정보</div>',
+          '<div class="detail-note-card">',
+          '<div>' + flight.message + '</div>',
+          '</div>',
+          '</div>'
+        ].join('');
+      }
+      return "";
     }
 
     function renderDetailPeriod(join) {
@@ -23074,9 +23064,14 @@
     }
 
     function splitScheduleItems(content) {
-      return String(content || "")
+      const protectedSlashToken = "__SCHEDULE_SLASH__";
+      const protectedContent = String(content || "").replace(
+        /([가-힣A-Za-z0-9]+(?:\/[가-힣A-Za-z0-9]+){2,})(?=\s*골프장\s*중\s*한\s*곳)/g,
+        (match) => match.replace(/\//g, protectedSlashToken)
+      );
+      return protectedContent
         .split(/,\s*|및|\/|·/)
-        .map((item) => item.trim())
+        .map((item) => item.replaceAll(protectedSlashToken, "/").trim())
         .filter(Boolean);
     }
 

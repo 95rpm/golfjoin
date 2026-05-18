@@ -22,6 +22,8 @@ const SHEET_HEADERS = {
     "creatorCompanions",
     "creatorLevel",
     "creatorStyles",
+    "creatorMemberPreferences",
+    "creatorPreferredMemberComposition",
     "creatorGreeting",
     "region",
     "regions",
@@ -71,6 +73,8 @@ const SHEET_HEADERS = {
     "companions",
     "level",
     "styles",
+    "memberPreferences",
+    "preferredMemberComposition",
     "greeting",
     "status",
     "requiredAgreed",
@@ -102,6 +106,7 @@ const SHEET_HEADERS = {
     "ageSummary",
     "levelSummary",
     "styleSummary",
+    "memberPreferenceSummary",
     "status",
     "approvalStatus",
     "displayStatus",
@@ -265,6 +270,8 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
     creatorCompanions: row.creatorCompanions || row.companions,
     creatorLevel: row.creatorLevel || row.level,
     creatorStyles: row.creatorStyles || row.styles,
+    creatorMemberPreferences: row.creatorMemberPreferences || row.memberPreferences || row.preferredMemberComposition,
+    creatorPreferredMemberComposition: row.creatorPreferredMemberComposition || row.preferredMemberComposition || row.memberPreferences,
     creatorGreeting: row.creatorGreeting || row.greeting,
     erpProductId: row.erpProductId || row.productId,
     erpEventSeq: row.erpEventSeq || row.eventSeq,
@@ -308,6 +315,8 @@ function getNewScheduleApplicationValue_(payload, header) {
     creatorCompanions: stringifyCompanions_(value_(payload, "applicant.companions")),
     creatorLevel: value_(payload, "applicant.level"),
     creatorStyles: join_(value_(payload, "applicant.styles")),
+    creatorMemberPreferences: join_(value_(payload, "applicant.memberPreferences") || value_(payload, "applicant.preferredMemberComposition")),
+    creatorPreferredMemberComposition: join_(value_(payload, "applicant.preferredMemberComposition") || value_(payload, "applicant.memberPreferences")),
     creatorGreeting: value_(payload, "applicant.greeting"),
     region: value_(payload, "trip.region"),
     regions: join_(value_(payload, "trip.regions")),
@@ -363,6 +372,8 @@ function getJoinApplicationValue_(payload, header) {
     companions: stringifyCompanions_(value_(payload, "applicant.companions")),
     level: value_(payload, "applicant.level"),
     styles: join_(value_(payload, "applicant.styles")),
+    memberPreferences: join_(value_(payload, "applicant.memberPreferences") || value_(payload, "applicant.preferredMemberComposition")),
+    preferredMemberComposition: join_(value_(payload, "applicant.preferredMemberComposition") || value_(payload, "applicant.memberPreferences")),
     greeting: value_(payload, "applicant.greeting"),
     status: payload.status || "confirmed",
     requiredAgreed: value_(payload, "agreements.required"),
@@ -399,7 +410,8 @@ function refreshScheduleParticipantSummary_() {
         gender: schedule.creatorGender,
         age: schedule.creatorAgeDisplay,
         level: schedule.creatorLevel,
-        styles: schedule.creatorStyles
+        styles: schedule.creatorStyles,
+        memberPreferences: schedule.creatorMemberPreferences || schedule.creatorPreferredMemberComposition
       }
     ].concat(confirmedJoins.map(function (join) {
       return {
@@ -408,7 +420,8 @@ function refreshScheduleParticipantSummary_() {
         gender: join.gender,
         age: join.ageDisplay,
         level: join.level,
-        styles: join.styles
+        styles: join.styles,
+        memberPreferences: join.memberPreferences || join.preferredMemberComposition
       };
     }));
     const values = {
@@ -434,6 +447,7 @@ function refreshScheduleParticipantSummary_() {
       ageSummary: summarize_(participants.map(function (item) { return item.age; })),
       levelSummary: summarize_(participants.map(function (item) { return item.level; })),
       styleSummary: summarize_(participants.flatMap(function (item) { return String(item.styles || "").split(",").map(function (style) { return style.trim(); }); })),
+      memberPreferenceSummary: summarize_(participants.flatMap(function (item) { return String(item.memberPreferences || "").split(",").map(function (preference) { return preference.trim(); }); })),
       status: schedule.status || "open",
       approvalStatus: schedule.approvalStatus || "pending",
       displayStatus: schedule.displayStatus || "visible",

@@ -8849,40 +8849,22 @@
       transform-origin: center;
     }
     .participant-thumb-stack {
+      --participant-thumb-size: 48px;
+      --participant-thumb-overlap: 6px;
+      --participant-stack-width: var(--participant-thumb-size);
+      --participant-stack-mobile-width: var(--participant-stack-width);
       position: relative;
-      width: 60px;
+      width: var(--participant-stack-width);
       height: 52px;
-      flex: 0 0 60px;
+      flex: 0 0 var(--participant-stack-width);
     }
     .participant-thumb-stack .participant-thumb {
       position: absolute;
-      left: 0;
+      left: var(--participant-stack-left, 0);
       top: 2px;
-      z-index: 3;
+      z-index: var(--participant-stack-z, 1);
+      opacity: var(--participant-stack-opacity, 1);
       box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
-    }
-    .participant-thumb-stack::before,
-    .participant-thumb-stack::after {
-      content: "";
-      position: absolute;
-      width: 48px;
-      height: 48px;
-      border: 2px solid #d1d5db;
-      border-radius: 8px;
-      background: #f8fafc;
-      box-sizing: border-box;
-    }
-    .participant-thumb-stack::before {
-      left: 6px;
-      top: 2px;
-      z-index: 2;
-      opacity: .78;
-    }
-    .participant-thumb-stack::after {
-      left: 12px;
-      top: 2px;
-      z-index: 1;
-      opacity: .52;
     }
     .participant-meta {
       font-size: 13px;
@@ -11858,25 +11840,14 @@
         border-radius: 12px;
       }
       .participant-thumb-stack {
-        width: 72px;
+        --participant-thumb-size: 58px;
+        --participant-thumb-overlap: 7px;
+        width: var(--participant-stack-mobile-width);
         height: 64px;
-        flex-basis: 72px;
+        flex-basis: var(--participant-stack-mobile-width);
       }
       .participant-thumb-stack .participant-thumb {
-        top: 3px;
-      }
-      .participant-thumb-stack::before,
-      .participant-thumb-stack::after {
-        width: 58px;
-        height: 58px;
-        border-radius: 12px;
-      }
-      .participant-thumb-stack::before {
-        left: 7px;
-        top: 3px;
-      }
-      .participant-thumb-stack::after {
-        left: 14px;
+        left: var(--participant-stack-mobile-left, var(--participant-stack-left, 0));
         top: 3px;
       }
       .participant-name {
@@ -29712,10 +29683,10 @@
       return getConfirmedParticipants(join).filter((item) => item.companionGroup === participant.companionGroup);
     }
 
-    function getCompactGenderLabel(gender) {
+    function getParticipantGenderLabel(gender) {
       const value = String(gender || "").trim();
-      if (/여/.test(value)) return "여";
-      if (/남/.test(value)) return "남";
+      if (/여/.test(value)) return "여성";
+      if (/남/.test(value)) return "남성";
       return value || "미상";
     }
 
@@ -29728,11 +29699,11 @@
 
     function formatParticipantGroupGender(participants, primaryParticipant) {
       const counts = participants.reduce((acc, participant) => {
-        const label = getCompactGenderLabel(participant.gender);
+        const label = getParticipantGenderLabel(participant.gender);
         acc[label] = (acc[label] || 0) + 1;
         return acc;
       }, {});
-      const primaryLabel = getCompactGenderLabel(primaryParticipant?.gender);
+      const primaryLabel = getParticipantGenderLabel(primaryParticipant?.gender);
       const orderedLabels = Object.keys(counts).sort((a, b) => {
         if (a === primaryLabel) return -1;
         if (b === primaryLabel) return 1;
@@ -29747,13 +29718,27 @@
         acc[label] = (acc[label] || 0) + 1;
         return acc;
       }, {});
-      return Object.entries(counts).map(([label, count]) => count > 1 ? `${label} ${count}명` : label).join(", ");
+      return Object.keys(counts).join(", ");
     }
 
     function renderParticipantHeroThumb(participants, primaryParticipant) {
       const first = primaryParticipant || participants[0] || {};
-      const img = `<div class="participant-thumb"><img src="${first.gif}" alt="${escapeHtml(first.name || "참여자")}"></div>`;
-      return participants.length > 1 ? `<div class="participant-thumb-stack" aria-hidden="true">${img}</div>` : img;
+      const orderedParticipants = [
+        first,
+        ...participants.filter((participant) => participant && participant !== first)
+      ].filter(Boolean);
+      if (orderedParticipants.length <= 1) {
+        return `<div class="participant-thumb"><img src="${first.gif}" alt="${escapeHtml(first.name || "참여자")}"></div>`;
+      }
+      const stackCount = orderedParticipants.length;
+      const desktopWidth = 48 + (stackCount - 1) * 6;
+      const mobileWidth = 58 + (stackCount - 1) * 7;
+      const thumbs = orderedParticipants.map((participant, index) => {
+        const zIndex = stackCount - index;
+        const opacity = index === 0 ? 1 : Math.max(0.52, 0.86 - (index - 1) * 0.18);
+        return `<div class="participant-thumb" style="--participant-stack-left:${index * 6}px; --participant-stack-mobile-left:${index * 7}px; --participant-stack-z:${zIndex}; --participant-stack-opacity:${opacity};"><img src="${participant.gif}" alt="${escapeHtml(participant.name || "참여자")}"></div>`;
+      }).join("");
+      return `<div class="participant-thumb-stack" style="--participant-stack-width:${desktopWidth}px; --participant-stack-mobile-width:${mobileWidth}px;" aria-hidden="true">${thumbs}</div>`;
     }
 
     function toggleParticipantInfoHint(event) {

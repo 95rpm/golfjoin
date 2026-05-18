@@ -1950,12 +1950,12 @@
       --participant-flow-color-1: #3b82f6;
       --participant-flow-color-2: #60a5fa;
       --participant-flow-glow: rgba(59, 130, 246, 0.28);
-      border-color: transparent;
+      border: 4px solid transparent;
       background:
-        linear-gradient(#f9fafb, #f9fafb) padding-box,
-        conic-gradient(from var(--participant-border-angle), transparent 18%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 82%) border-box;
-      animation: participant-border-spin 2.8s linear infinite;
-      box-shadow: 0 0 14px var(--participant-flow-glow);
+        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
+        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box;
+      animation: participant-border-spin 4.5s linear infinite;
+      box-shadow: none;
     }
 
     .team-avatar.participant-flow-avatar.participant-gender-male {
@@ -2035,7 +2035,7 @@
     }
     .team-avatar.participant-flow-avatar:hover {
       border-color: transparent;
-      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14), 0 0 18px var(--participant-flow-glow);
+      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
     }
     .detail-team .team-avatar:hover {
       border-color: #3b82f6;
@@ -2044,7 +2044,7 @@
     }
     .detail-team .team-avatar.participant-flow-avatar:hover {
       border-color: transparent;
-      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14), 0 0 20px var(--participant-flow-glow);
+      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -13270,6 +13270,42 @@
         font-weight: 500;
         text-align: center;
         white-space: nowrap;
+      }
+    }
+
+    .team-avatar.participant-flow-avatar,
+    .sgj-page .team-avatar.participant-flow-avatar,
+    .sgj-page .join-soon-compact-team .team-avatar.participant-flow-avatar,
+    #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
+    .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
+      border: 4px solid transparent;
+      background:
+        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
+        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box;
+      animation: participant-border-spin 4.5s linear infinite;
+      box-shadow: none;
+    }
+
+    .calendar-product-participants .team-avatar.participant-flow-avatar,
+    #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
+    .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
+      border-width: 3px;
+    }
+
+    .team-avatar.participant-flow-avatar:hover,
+    .sgj-page .team-avatar.participant-flow-avatar:hover,
+    .detail-team .team-avatar.participant-flow-avatar:hover {
+      border-color: transparent;
+      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .team-avatar.participant-flow-avatar,
+      .sgj-page .team-avatar.participant-flow-avatar,
+      .sgj-page .join-soon-compact-team .team-avatar.participant-flow-avatar,
+      #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
+      .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
+        animation: none;
       }
     }
   </style>

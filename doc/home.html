@@ -2543,6 +2543,27 @@ const oTop = {
       background: #eff6ff;
       color: #2563eb;
     }
+    .join-flight-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      min-height: 22px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: var(--font-card-category);
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .join-flight-chip.included {
+      background: #fff7ed;
+      color: #c2410c;
+    }
+    .join-flight-chip.excluded {
+      background: #f1f5f9;
+      color: #475569;
+    }
     .join-category-row {
       display: flex;
       align-items: center;
@@ -5977,7 +5998,8 @@ const oTop = {
     }
     #secret-golf-join .card-meta-item,
     #secret-golf-join .join-price,
-    #secret-golf-join .join-category-chip {
+    #secret-golf-join .join-category-chip,
+    #secret-golf-join .join-flight-chip {
       display: flex !important;
     }
     #secret-golf-join .card-meta-text,
@@ -8554,6 +8576,11 @@ const oTop = {
       font-weight: 500;
       text-align: center;
       white-space: nowrap;
+    }
+    .flight-info-card.is-flight-placeholder .flight-time,
+    .flight-info-card.is-flight-placeholder .flight-airline,
+    .flight-info-card.is-flight-placeholder .flight-code {
+      display: none;
     }
     .detail-label {
       font-size: var(--font-detail-label);
@@ -19816,43 +19843,63 @@ const oTop = {
     }
 
     function getFlightInfo(join, options = {}) {
-      if (Array.isArray(join.flightScheduleItems) && join.flightScheduleItems.length) {
-        return { type: "secretTour", items: join.flightScheduleItems };
-      }
       const isOverseas = getJoinCategoryClass(join) === "overseas"
         || /해외|oversea|overseas/i.test(String(join.category || ""))
         || join.source === "secret-tour-goods-event";
       if (!isOverseas) return null;
       return {
-        type: "notice",
-        message: "예정 정보이며 실제 항공편은 확정 후 안내"
+        type: "flightCard",
+        items: Array.isArray(join.flightScheduleItems) ? join.flightScheduleItems : []
       };
+    }
+
+    function parseFlightScheduleItem(item = {}, fallbackLabel = "") {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        return {
+          label: item.label || item.type || fallbackLabel,
+          time: item.time || item.dateTime || item.datetime || item.departureTime || item.arrivalTime || "",
+          airline: item.airline || item.airlineName || item.airlineNm || "",
+          code: item.code || item.flightCode || item.flightNo || item.flightNumber || ""
+        };
+      }
+      const text = cleanSecretTourDetailText(item);
+      const codeMatch = text.match(/\b[A-Z0-9]{2}\s?\d{3,4}\b/);
+      const airlineMatch = text.match(/([가-힣A-Za-z]+항공|아시아나|진에어|티웨이|에어서울|에어부산|제주항공|대한항공)/);
+      const timeMatch = text.match(/(\d{1,2}[.:]\d{2})/);
+      const dateMatch = text.match(/(\d{1,2}[./-]\d{1,2}\s*\([^)]+\)|\d{4}[./-]\d{1,2}[./-]\d{1,2}(?:\s*\([^)]+\))?)/);
+      return {
+        label: /도착|귀국|복항|인천\s*도착/.test(text) ? "도착" : fallbackLabel,
+        time: [dateMatch?.[1], timeMatch?.[1]?.replace(".", ":")].filter(Boolean).join(" "),
+        airline: airlineMatch?.[1] || "",
+        code: codeMatch?.[0]?.replace(/\s+/g, "") || ""
+      };
+    }
+
+    function renderFlightSegment(label, segment = {}) {
+      return `
+        <div class="flight-segment">
+          <div class="flight-label">${label}</div>
+          ${renderFlightTime(segment.time || "")}
+          <div class="flight-airline">${segment.airline || ""}</div>
+          <div class="flight-code">${segment.code || ""}</div>
+        </div>
+      `;
     }
 
     function renderFlightInfo(join, options = {}) {
       const flight = getFlightInfo(join, options);
       if (!flight) return "";
-      if (flight.type === "secretTour") {
-        return [
-          '<div class="flight-info-card">',
-          '<div class="detail-label">항공정보</div>',
-          '<div class="detail-note-card">',
-          flight.items.map((item) => '<div>' + item + '</div>').join(''),
-          '</div>',
-          '</div>'
-        ].join('');
-      }
-      if (flight.type === "notice") {
-        return [
-          '<div class="flight-info-card">',
-          '<div class="detail-label">항공정보</div>',
-          '<div class="detail-note-card">',
-          '<div>' + flight.message + '</div>',
-          '</div>',
-          '</div>'
-        ].join('');
-      }
-      return "";
+      const rawItems = flight.items || [];
+      const departure = parseFlightScheduleItem(rawItems[0], "출발");
+      const arrival = parseFlightScheduleItem(rawItems[1], "도착");
+      const hasVisibleFlightInfo = [departure, arrival].some((segment) => segment.time || segment.airline || segment.code);
+      return `
+        <div class="flight-info-card${hasVisibleFlightInfo ? "" : " is-flight-placeholder"}">
+          ${renderFlightSegment("출발", departure)}
+          <div class="flight-duration">${formatTripDuration(join)}</div>
+          ${renderFlightSegment("도착", arrival)}
+        </div>
+      `;
     }
 
     function renderDetailPeriod(join) {
@@ -20300,7 +20347,7 @@ const oTop = {
     }
 
     function renderDetailMeta(join) {
-      const airportLabel = join.airport ? `${join.airport}출발` : "";
+      const airportLabel = getJoinAirportDepartureLabel(join);
       return `
         <div class="card-meta card-meta-row detail-meta-row">
           <div class="card-meta-item">
@@ -20463,6 +20510,39 @@ const oTop = {
       const categoryClass = getJoinCategoryClass(join);
       const label = categoryClass === "overseas" ? "해외" : "국내";
       return `<div class="join-category-chip ${categoryClass}">${label}</div>`;
+    }
+
+    function isIndividualAirProduct(join = {}) {
+      const source = [
+        join.airport,
+        join.airlineType,
+        join.flightType,
+        join.title,
+        ...[].concat(join.includes || []),
+        ...[].concat(join.excludes || [])
+      ].join(" ");
+      return /개[별발]\s*항공|항공\s*불포함/i.test(source);
+    }
+
+    function hasIncludedFlight(join = {}) {
+      if (isIndividualAirProduct(join)) return false;
+      const includesText = [].concat(join.includes || []).join(" ");
+      return Boolean(String(join.airport || "").trim()) || /항공|항공권/i.test(includesText);
+    }
+
+    function renderJoinFlightChip(join) {
+      const isIncluded = hasIncludedFlight(join);
+      return `<div class="join-flight-chip ${isIncluded ? "included" : "excluded"}">${isIncluded ? "항공포함" : "항공불포함"}</div>`;
+    }
+
+    function getJoinAirportDepartureLabel(join = {}) {
+      const airport = String(join.airport || "").trim();
+      if (!airport || isIndividualAirProduct(join)) return "";
+      return `${airport}출발`;
+    }
+
+    function getJoinLocationLabel(join = {}) {
+      return [join.region, getJoinAirportDepartureLabel(join)].filter(Boolean).join(" · ");
     }
 
     function getCalendarEventSummary(events) {
@@ -23474,7 +23554,7 @@ const oTop = {
                 <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
               </svg>
-              <div class="region-product-location">${product.region}${product.airport ? " · " + product.airport + "출발" : ""}</div>
+              <div class="region-product-location">${getJoinLocationLabel(product)}</div>
               ${renderJoinCategoryChip(product)}
             </div>
             <div class="region-product-name">${product.title}</div>
@@ -24087,7 +24167,7 @@ const oTop = {
                 <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
               </svg>
-              <div class="region-product-location">${join.region}${join.airport ? " · " + join.airport + "출발" : ""}</div>
+              <div class="region-product-location">${getJoinLocationLabel(join)}</div>
               ${renderJoinCategoryChip(join)}
             </div>
             <div class="region-product-name">${join.title}</div>
@@ -24362,7 +24442,7 @@ const oTop = {
         `;
         return;
       }
-      const location = [join.region, join.airport ? `${join.airport}출발` : ""].filter(Boolean).join(" · ");
+      const location = getJoinLocationLabel(join);
       summary.innerHTML = `
         <div class="apply-join-summary-head">
           <div class="apply-join-summary-title">${join.title}</div>
@@ -25242,7 +25322,7 @@ const oTop = {
           <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
         </svg>
-        <div class="join-location-badge-text">${join.region}${join.airport ? " · " + join.airport + "출발" : ""}</div>
+        <div class="join-location-badge-text">${getJoinLocationLabel(join)}</div>
       </div>`;
     }
 
@@ -25273,7 +25353,7 @@ const oTop = {
                     <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
                   </svg>
-                  <div class="card-meta-text card-meta-text-location">${join.region}${join.airport ? " · " + join.airport + "출발" : ""}</div>
+                  <div class="card-meta-text card-meta-text-location">${getJoinLocationLabel(join)}</div>
                   ${renderJoinCategoryChip(join)}
                 </div>
               </div>
@@ -25281,6 +25361,7 @@ const oTop = {
               <div class="join-category-row">
                 ${options.featureTag ? `<div class="join-card-feature-tag"${options.featureTagColor ? ` style="--feature-tag-color:${options.featureTagColor};--feature-tag-soft:${options.featureTagSoft || "rgba(241, 245, 249, .9)"};"` : ""}>${options.featureTag}</div>` : ""}
                 ${renderJoinCategoryChip(join)}
+                ${renderJoinFlightChip(join)}
               </div>
             `}
             ${false ? `
@@ -25290,7 +25371,7 @@ const oTop = {
                   <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
                 </svg>
-                <div class="card-meta-text card-meta-text-location">${join.region}${join.airport ? " · " + join.airport + "출발" : ""}</div>
+                <div class="card-meta-text card-meta-text-location">${getJoinLocationLabel(join)}</div>
                 ${renderJoinCategoryChip(join)}
               </div>
             </div>
@@ -25494,12 +25575,13 @@ const oTop = {
                   <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
                 </svg>
-                <div class="card-meta-text card-meta-text-location">${join.region}${join.airport ? " · " + join.airport + "출발" : ""}</div>
+                <div class="card-meta-text card-meta-text-location">${getJoinLocationLabel(join)}</div>
                 ${renderJoinCategoryChip(join)}
               </div>
             </div>
             <div class="join-category-row join-soon-category-row">
               ${renderJoinCategoryChip(join)}
+              ${renderJoinFlightChip(join)}
             </div>
             <div class="join-title join-soon-compact-title">${join.title}</div>
             <div class="card-meta card-meta-row join-soon-compact-date">

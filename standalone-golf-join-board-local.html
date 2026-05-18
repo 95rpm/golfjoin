@@ -1961,6 +1961,7 @@
       animation: participant-border-spin 8s linear infinite;
       animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
+      transition: box-shadow .3s ease, transform .3s ease;
     }
 
     .team-avatar.participant-flow-avatar.participant-gender-male {
@@ -2039,7 +2040,11 @@
       box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
     }
     .team-avatar.participant-flow-avatar:hover {
-      border-color: transparent;
+      border: 2px solid transparent;
+      background:
+        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
+        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
+        linear-gradient(#d1d5db, #d1d5db) border-box;
       box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
     }
     .detail-team .team-avatar:hover {
@@ -2048,7 +2053,11 @@
       transform: translateY(-1px);
     }
     .detail-team .team-avatar.participant-flow-avatar:hover {
-      border-color: transparent;
+      border: 2px solid transparent;
+      background:
+        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
+        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
+        linear-gradient(#d1d5db, #d1d5db) border-box;
       box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
     }
 
@@ -13341,12 +13350,17 @@
       animation: participant-border-spin 8s linear infinite;
       animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
+      transition: box-shadow .3s ease, transform .3s ease;
     }
 
     .team-avatar.participant-flow-avatar:hover,
     .sgj-page .team-avatar.participant-flow-avatar:hover,
     .detail-team .team-avatar.participant-flow-avatar:hover {
-      border-color: transparent;
+      border: 2px solid transparent;
+      background:
+        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
+        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
+        linear-gradient(#d1d5db, #d1d5db) border-box;
       box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
     }
 

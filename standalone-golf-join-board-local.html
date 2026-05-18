@@ -7006,46 +7006,73 @@
       box-shadow: inset 0 0 0 1px #6b7280;
     }
     .traveler-gender-select {
+      position: relative;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0 !important;
       height: 52px;
       min-height: 52px;
       align-self: start;
-      border: 0;
-      border-radius: 0;
-      overflow: visible;
-      background: transparent;
+      padding: 4px;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #f1f5f9;
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+    .traveler-gender-select::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: calc((100% - 8px) / 2);
+      height: calc(100% - 8px);
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.08);
+      opacity: 0;
+      transform: translateX(0);
+      transition: transform .24s cubic-bezier(.4, 0, .2, 1), opacity .16s ease;
+      pointer-events: none;
+    }
+    .traveler-gender-select:has(.apply-chip.active)::before {
+      opacity: 1;
+    }
+    .traveler-gender-select:has(.apply-chip:last-child.active)::before {
+      transform: translateX(100%);
     }
     .traveler-gender-select .apply-chip {
       position: relative;
+      z-index: 1;
       width: 100%;
       min-width: 0;
-      height: 52px;
-      min-height: 52px;
-      border: 1px solid var(--border);
-      background: #fff;
+      height: 42px;
+      min-height: 42px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
       box-shadow: none;
-      color: #626466;
+      color: #94a3b8;
       font-size: 17px !important;
-      font-weight: 500;
+      font-weight: 800;
+      transition: color .18s ease;
     }
-    .traveler-gender-select .apply-chip:first-child {
-      border-radius: 12px 0 0 12px;
-      margin-right: -1px;
+    .traveler-gender-select .apply-chip:hover {
+      border-color: transparent;
+      background: transparent;
+      color: #64748b;
     }
-    .traveler-gender-select .apply-chip:last-child {
-      border-radius: 0 12px 12px 0;
-    }
-    .traveler-gender-select .apply-chip + .apply-chip {
-      border-left: 1px solid var(--border);
+    .traveler-gender-select .apply-chip:focus-visible {
+      outline: 2px solid rgba(107, 114, 128, 0.36);
+      outline-offset: -2px;
     }
     .traveler-gender-select .apply-chip.active {
       z-index: 1;
-      border-color: #6b7280;
-      background: #f8fafc;
+      border-color: transparent;
+      background: transparent;
       color: var(--text);
-      box-shadow: inset 0 0 0 1px #6b7280;
+      box-shadow: none;
     }
     .detail-apply-panel .field.has-error .traveler-gender-select {
       border-color: #ef4444;
@@ -7783,6 +7810,7 @@
       line-height: 1.35;
     }
     .apply-companion-gender-options {
+      position: relative;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       flex: 0 0 112px;
@@ -7790,31 +7818,61 @@
       height: 40px;
       min-height: 40px;
       gap: 0;
+      padding: 3px;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #f1f5f9;
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+    .apply-companion-gender-options::before {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: calc((100% - 6px) / 2);
+      height: calc(100% - 6px);
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 5px 12px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.08);
+      opacity: 0;
+      transform: translateX(0);
+      transition: transform .24s cubic-bezier(.4, 0, .2, 1), opacity .16s ease;
+      pointer-events: none;
+    }
+    .apply-companion-gender-options:has(.apply-companion-gender-button.active)::before {
+      opacity: 1;
+    }
+    .apply-companion-gender-options:has(.apply-companion-gender-button:last-child.active)::before {
+      transform: translateX(100%);
     }
     .apply-companion-gender-button {
       position: relative;
+      z-index: 1;
       min-width: 0;
-      min-height: 40px;
-      border: 1px solid var(--border);
-      background: #fff;
-      color: #626466;
+      min-height: 32px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #94a3b8;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 800;
       line-height: 1.25;
+      transition: color .18s ease;
     }
-    .apply-companion-gender-button:first-child {
-      border-radius: 12px 0 0 12px;
-      margin-right: -1px;
+    .apply-companion-gender-button:hover {
+      color: #64748b;
     }
-    .apply-companion-gender-button:last-child {
-      border-radius: 0 12px 12px 0;
+    .apply-companion-gender-button:focus-visible {
+      outline: 2px solid rgba(107, 114, 128, 0.36);
+      outline-offset: -2px;
     }
     .apply-companion-gender-button.active {
       z-index: 1;
-      border-color: #6b7280;
-      background: #f8fafc;
+      border-color: transparent;
+      background: transparent;
       color: var(--text);
-      box-shadow: inset 0 0 0 1px #6b7280;
+      box-shadow: none;
     }
     .apply-companion-error {
       display: none;

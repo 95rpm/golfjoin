@@ -22904,6 +22904,11 @@
       if (!raw) return "";
       const directMatch = raw.match(/(\d+)\s*박\s*(\d+)\s*일/);
       if (directMatch) return `${directMatch[1]}박 ${directMatch[2]}일`;
+      const dayOnlyMatch = raw.match(/^(\d+)\s*일$/);
+      if (dayOnlyMatch) {
+        const days = Number(dayOnlyMatch[1]);
+        return `${Math.max(days - 1, 0)}박 ${days}일`;
+      }
       if (options.loose) {
         const looseMatch = raw.match(/^\D*(\d+)\D+(\d+)\D*$/);
         if (looseMatch) return `${looseMatch[1]}박 ${looseMatch[2]}일`;
@@ -22962,9 +22967,31 @@
       return `${mm}.${dd} (${dayNames[date.getDay()]}) ${time}`;
     }
 
+    function formatFlightDateOnly(dateString) {
+      if (!dateString) return "";
+      const date = new Date(dateString + "T00:00:00");
+      if (Number.isNaN(date.getTime())) return "";
+      const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+      return `${date.getMonth() + 1}.${date.getDate()} (${dayNames[date.getDay()]})`;
+    }
+
+    function hasFlightDateText(value) {
+      return /\d{1,4}[.\/-]\d{1,2}(?:[.\/-]\d{1,2})?|\d{1,2}\.\d{1,2}|\([월화수목금토일]\)/.test(String(value || ""));
+    }
+
+    function getFlightTimeWithDateFallback(segment = {}, dateString = "") {
+      const timeText = String(segment.time || "").trim();
+      const dateText = formatFlightDateOnly(dateString);
+      if (!timeText) return dateText;
+      if (!dateText || hasFlightDateText(timeText)) return timeText;
+      return `${dateText} ${timeText}`;
+    }
+
     function renderFlightTime(value) {
-      const parts = String(value || "").trim().split(/\s+/);
-      const clock = parts.pop() || "";
+      const parts = String(value || "").trim().split(/\s+/).filter(Boolean);
+      const lastPart = parts[parts.length - 1] || "";
+      const hasClock = /^\d{1,2}[:.]\d{2}$/.test(lastPart);
+      const clock = hasClock ? parts.pop().replace(".", ":") : "";
       const dateText = parts.join(" ");
       const weekdayMatch = dateText.match(/\(([^)]+)\)$/);
       const cleanDate = weekdayMatch ? dateText.replace(/\s*\([^)]+\)$/, "") : dateText;
@@ -23005,11 +23032,12 @@
       };
     }
 
-    function renderFlightSegment(label, segment = {}) {
+    function renderFlightSegment(label, segment = {}, dateString = "") {
+      const timeText = getFlightTimeWithDateFallback(segment, dateString);
       return `
         <div class="flight-segment">
           <div class="flight-label">${label}</div>
-          ${renderFlightTime(segment.time || "")}
+          ${renderFlightTime(timeText)}
           <div class="flight-airline">${segment.airline || ""}</div>
           <div class="flight-code">${segment.code || ""}</div>
         </div>
@@ -23022,12 +23050,14 @@
       const rawItems = flight.items || [];
       const departure = parseFlightScheduleItem(rawItems[0], "출발");
       const arrival = parseFlightScheduleItem(rawItems[1], "도착");
-      const hasVisibleFlightInfo = [departure, arrival].some((segment) => segment.time || segment.airline || segment.code);
+      const departureTime = getFlightTimeWithDateFallback(departure, join.departureDate);
+      const arrivalTime = getFlightTimeWithDateFallback(arrival, join.returnDate || join.departureDate);
+      const hasVisibleFlightInfo = Boolean(departureTime || arrivalTime || [departure, arrival].some((segment) => segment.airline || segment.code));
       return `
         <div class="flight-info-card${hasVisibleFlightInfo ? "" : " is-flight-placeholder"}">
-          ${renderFlightSegment("출발", departure)}
+          ${renderFlightSegment("출발", departure, join.departureDate)}
           <div class="flight-duration">${formatTripDuration(join)}</div>
-          ${renderFlightSegment("도착", arrival)}
+          ${renderFlightSegment("도착", arrival, join.returnDate || join.departureDate)}
         </div>
       `;
     }

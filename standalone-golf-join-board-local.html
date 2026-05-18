@@ -1057,6 +1057,10 @@
       padding-top: 15px;
       border-top: 1px solid #edf2f7;
     }
+    .join-soon-compact-team .team-couple-wrap {
+      --team-avatar-size: 47px;
+      height: var(--team-avatar-size);
+    }
     .join-soon-compact-team .team-avatar,
     .join-soon-compact-team .team-empty {
       width: 47px;
@@ -1944,11 +1948,14 @@
     }
 
     .team-couple-wrap {
+      --team-avatar-size: 48px;
+      --team-connector-color: #d1d5db;
+      --team-connector-thickness: 2px;
       position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 2px;
-      height: 48px;
+      gap: 8px;
+      height: var(--team-avatar-size);
       padding: 0;
       box-sizing: border-box;
       flex: 0 0 auto;
@@ -1956,9 +1963,13 @@
     .team-couple-wrap::before {
       content: "";
       position: absolute;
-      inset: -2px;
-      border-radius: 13px;
-      background: rgb(119 119 119 / 15%);
+      top: 50%;
+      left: calc(var(--team-avatar-size) / 2);
+      right: calc(var(--team-avatar-size) / 2);
+      height: var(--team-connector-thickness);
+      border-radius: 999px;
+      background: var(--team-connector-color);
+      transform: translateY(-50%);
       pointer-events: none;
       z-index: 0;
     }
@@ -1972,7 +1983,8 @@
       z-index: 1;
     }
     .detail-team .team-couple-wrap {
-      height: 56px;
+      --team-avatar-size: 56px;
+      height: var(--team-avatar-size);
     }
     .detail-team .team-couple-wrap .team-avatar-wrap,
     .detail-team .team-couple-wrap .team-avatar {
@@ -2477,6 +2489,12 @@
       gap: 4px;
       max-width: 100%;
       overflow: hidden;
+    }
+    .calendar-product-participants .team-couple-wrap {
+      --team-avatar-size: var(--calendar-product-avatar-size);
+      --team-connector-thickness: 1px;
+      height: var(--team-avatar-size);
+      gap: 5px;
     }
     .calendar-product-participants .team-avatar {
       width: var(--calendar-product-avatar-size);
@@ -9331,6 +9349,10 @@
         font-size: var(--calendar-product-price-unit-mobile-font);
         font-weight: var(--calendar-product-price-unit-mobile-weight);
       }
+      .calendar-product-participants .team-couple-wrap {
+        --team-avatar-size: var(--calendar-product-avatar-mobile-size);
+        height: var(--team-avatar-size);
+      }
       .calendar-product-participants .team-avatar,
       .calendar-product-participants .team-empty {
         width: var(--calendar-product-avatar-mobile-size);
@@ -11038,6 +11060,10 @@
         padding-top: 12px;
         border-top: 1px solid #edf2f7;
       }
+      .sgj-page .join-soon-compact-team .team-couple-wrap {
+        --team-avatar-size: 48px;
+        height: var(--team-avatar-size);
+      }
       .sgj-page .join-soon-compact-team .team-avatar,
       .sgj-page .join-soon-compact-team .team-empty {
         width: 48px;
@@ -12266,13 +12292,9 @@
     }
     #regionSearchModal .region-product-team .team-couple-wrap,
     .calendar-accordion-list .region-product-team .team-couple-wrap {
-      height: 38px;
-      gap: 2px;
-    }
-    #regionSearchModal .region-product-team .team-couple-wrap::before,
-    .calendar-accordion-list .region-product-team .team-couple-wrap::before {
-      inset: -2px;
-      border-radius: 11px;
+      --team-avatar-size: 38px;
+      height: var(--team-avatar-size);
+      gap: 6px;
     }
     #regionSearchModal .region-product-team .team-couple-wrap .team-avatar-wrap,
     #regionSearchModal .region-product-team .team-couple-wrap .team-avatar,

@@ -9003,7 +9003,8 @@
     }
     .participant-thumb-stack {
       --participant-thumb-size: 48px;
-      --participant-thumb-overlap: 6px;
+      --participant-thumb-step: 14px;
+      --participant-thumb-gap: 2px;
       --participant-stack-width: var(--participant-thumb-size);
       --participant-stack-mobile-width: var(--participant-stack-width);
       position: relative;
@@ -9015,9 +9016,15 @@
       position: absolute;
       left: var(--participant-stack-left, 0);
       top: 2px;
+      transform: translateY(calc((var(--participant-thumb-size) - var(--participant-stack-size, var(--participant-thumb-size))) / 2));
       z-index: var(--participant-stack-z, 1);
-      opacity: var(--participant-stack-opacity, 1);
-      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+      width: var(--participant-stack-size, var(--participant-thumb-size));
+      height: var(--participant-stack-size, var(--participant-thumb-size));
+      flex-basis: var(--participant-stack-size, var(--participant-thumb-size));
+      border: var(--participant-thumb-gap) solid #fff;
+      outline: 1px solid #d1d5db;
+      opacity: 1;
+      box-shadow: none;
     }
     .participant-meta {
       font-size: 13px;
@@ -11994,7 +12001,7 @@
       }
       .participant-thumb-stack {
         --participant-thumb-size: 58px;
-        --participant-thumb-overlap: 7px;
+        --participant-thumb-step: 16px;
         width: var(--participant-stack-mobile-width);
         height: 64px;
         flex-basis: var(--participant-stack-mobile-width);
@@ -12002,6 +12009,10 @@
       .participant-thumb-stack .participant-thumb {
         left: var(--participant-stack-mobile-left, var(--participant-stack-left, 0));
         top: 3px;
+        transform: translateY(calc((var(--participant-thumb-size) - var(--participant-stack-mobile-size, var(--participant-stack-size, var(--participant-thumb-size))) / 2));
+        width: var(--participant-stack-mobile-size, var(--participant-stack-size, var(--participant-thumb-size)));
+        height: var(--participant-stack-mobile-size, var(--participant-stack-size, var(--participant-thumb-size)));
+        flex-basis: var(--participant-stack-mobile-size, var(--participant-stack-size, var(--participant-thumb-size)));
       }
       .participant-name {
         font-size: 19px;
@@ -29970,12 +29981,15 @@
         return `<div class="participant-thumb"><img src="${first.gif}" alt="${escapeHtml(first.name || "참여자")}"></div>`;
       }
       const stackCount = orderedParticipants.length;
-      const desktopWidth = 48 + (stackCount - 1) * 6;
-      const mobileWidth = 58 + (stackCount - 1) * 7;
+      const desktopStep = 14;
+      const mobileStep = 16;
+      const desktopWidth = 48 + (stackCount - 1) * desktopStep;
+      const mobileWidth = 58 + (stackCount - 1) * mobileStep;
       const thumbs = orderedParticipants.map((participant, index) => {
         const zIndex = stackCount - index;
-        const opacity = index === 0 ? 1 : Math.max(0.52, 0.86 - (index - 1) * 0.18);
-        return `<div class="participant-thumb" style="--participant-stack-left:${index * 6}px; --participant-stack-mobile-left:${index * 7}px; --participant-stack-z:${zIndex}; --participant-stack-opacity:${opacity};"><img src="${participant.gif}" alt="${escapeHtml(participant.name || "참여자")}"></div>`;
+        const desktopSize = Math.max(36, 48 - index * 4);
+        const mobileSize = Math.max(44, 58 - index * 5);
+        return `<div class="participant-thumb" style="--participant-stack-left:${index * desktopStep}px; --participant-stack-mobile-left:${index * mobileStep}px; --participant-stack-size:${desktopSize}px; --participant-stack-mobile-size:${mobileSize}px; --participant-stack-z:${zIndex};"><img src="${participant.gif}" alt="${escapeHtml(participant.name || "참여자")}"></div>`;
       }).join("");
       return `<div class="participant-thumb-stack" style="--participant-stack-width:${desktopWidth}px; --participant-stack-mobile-width:${mobileWidth}px;" aria-hidden="true">${thumbs}</div>`;
     }

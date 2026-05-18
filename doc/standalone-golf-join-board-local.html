@@ -1733,11 +1733,17 @@
     .badge-red { background: var(--red); }
     .join-body { padding: 18px; }
     .join-title {
+      display: -webkit-box;
       margin: 6px 0 3px;
       min-height: 25px;
+      overflow: hidden;
       font-size: var(--font-card-title);
       line-height: 1.35;
       font-weight: 800;
+      text-overflow: ellipsis;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
     }
     .card-meta {
       font-size: var(--font-card-meta);
@@ -9183,11 +9189,16 @@
       gap: 2px;
     }
     #secret-golf-join .join-title {
-      display: block !important;
+      display: -webkit-box !important;
       float: none !important;
       width: auto !important;
       clear: none !important;
+      overflow: hidden !important;
       white-space: normal !important;
+      text-overflow: ellipsis !important;
+      -webkit-box-orient: vertical !important;
+      -webkit-line-clamp: 2 !important;
+      line-clamp: 2 !important;
     }
     #secret-golf-join .card-meta-text,
     #secret-golf-join .card-meta-text-date,
@@ -24891,6 +24902,8 @@
       const submittedAt = new Date().toISOString();
       const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, phone);
       const scheduleId = buildGoogleSheetRecordId("sch", applicationId);
+      const selectedProduct = [...(externalGolfJoinProducts || []), ...joins].find((item) => item.id === builderState.productId) || { id: builderState.productId };
+      const selectedProductReference = getSecretTourProductReference(selectedProduct);
 
       return {
         applicationId,
@@ -24913,7 +24926,9 @@
         trip: {
           region: builderState.region || (builderState.regions || []).join(", "),
           regions: builderState.regions || [],
-          productId: builderState.productId || "",
+          productId: builderState.productId || selectedProductReference.id || "",
+          erpProductId: selectedProductReference.id || builderState.productId || "",
+          erpEventSeq: selectedProductReference.eventSeq || "",
           productName: builderState.productName || "",
           startSummary: document.getElementById("builderStartSummary")?.textContent.trim() || "",
           endSummary: document.getElementById("builderEndSummary")?.textContent.trim() || "",
@@ -25666,6 +25681,54 @@
       return value ? { text: value, source } : null;
     }
 
+    function parseSecretTourProductReference(value, eventSeqValue = "") {
+      const raw = String(value || "").trim();
+      const explicitEventSeq = String(eventSeqValue || "").trim();
+      const compositeMatch = /^(?:secret-tour|erp)-(\d+)-(\d+)$/i.exec(raw);
+      if (compositeMatch) {
+        return {
+          id: raw,
+          goodSeq: compositeMatch[1],
+          eventSeq: compositeMatch[2]
+        };
+      }
+      const goodSeq = /^\d+$/.test(raw) ? raw : "";
+      return {
+        id: raw,
+        goodSeq,
+        eventSeq: explicitEventSeq
+      };
+    }
+
+    function getSecretTourProductReference(product = {}) {
+      const parsed = parseSecretTourProductReference(
+        product.erpProductId || product.productId || product.id || product.goodSeq,
+        product.erpEventSeq || product.eventSeq
+      );
+      const goodSeq = String(product.goodSeq || parsed.goodSeq || "").trim();
+      const eventSeq = String(product.eventSeq || parsed.eventSeq || "").trim();
+      const parsedIdIsComposite = /^(?:secret-tour|erp)-\d+-\d+$/i.test(parsed.id);
+      return {
+        id: goodSeq && eventSeq
+          ? (parsedIdIsComposite ? parsed.id : `secret-tour-${goodSeq}-${eventSeq}`)
+          : (parsed.id || String(product.id || "").trim()),
+        goodSeq,
+        eventSeq
+      };
+    }
+
+    function withSecretTourProductReference(product = {}) {
+      const reference = getSecretTourProductReference(product);
+      return {
+        ...product,
+        id: product.id || reference.id,
+        goodSeq: product.goodSeq || reference.goodSeq,
+        eventSeq: product.eventSeq || reference.eventSeq,
+        erpProductId: product.erpProductId || reference.id,
+        erpEventSeq: product.erpEventSeq || reference.eventSeq
+      };
+    }
+
     function normalizeSecretTourGoodsItem(item, index) {
       const departureDate = secretTourDateToISO(item.minStartDay);
       const dayCnt = Number(item.dayCnt) || 1;
@@ -25937,10 +26000,11 @@
     }
 
     async function loadSecretTourGoodsDetail(product) {
-      if (!product?.goodSeq || !product?.eventSeq) return {};
-      const cacheKey = `${product.goodSeq}:${product.eventSeq}`;
+      const lookupProduct = withSecretTourProductReference(product);
+      if (!lookupProduct.goodSeq || !lookupProduct.eventSeq) return {};
+      const cacheKey = `${lookupProduct.goodSeq}:${lookupProduct.eventSeq}`;
       if (secretTourGoodsDetailCache.has(cacheKey)) return secretTourGoodsDetailCache.get(cacheKey);
-      const detailPromise = fetch(buildSecretTourGoodsViewUrl(product), {
+      const detailPromise = fetch(buildSecretTourGoodsViewUrl(lookupProduct), {
         method: "GET",
         credentials: "same-origin",
         cache: "no-store"
@@ -25953,10 +26017,10 @@
         .then(async (detail) => {
           try {
             const flightScheduleItems = await loadSecretTourFlightSchedule({
-              ...product,
+              ...lookupProduct,
               ...detail,
-              departureDate: secretTourDateToISO(detail.startDay) || product.departureDate,
-              returnDate: secretTourDateToISO(detail.endDay) || product.returnDate
+              departureDate: secretTourDateToISO(detail.startDay) || lookupProduct.departureDate,
+              returnDate: secretTourDateToISO(detail.endDay) || lookupProduct.returnDate
             });
             return { ...detail, flightScheduleItems };
           } catch (error) {
@@ -25993,6 +26057,31 @@
         slides: detail.slides?.length ? detail.slides : product.slides
       };
     }
+
+    async function enrichOpenDetailWithSecretTourData(join, renderOptions = {}) {
+      const lookupProduct = withSecretTourProductReference(join);
+      if (!lookupProduct.goodSeq || !lookupProduct.eventSeq || join.secretTourDetailLoaded) return join;
+      try {
+        const detail = await loadSecretTourGoodsDetail(lookupProduct);
+        const enrichedJoin = mergeSecretTourGoodsDetail(lookupProduct, detail);
+        Object.assign(join, enrichedJoin, { secretTourDetailLoaded: true });
+        const isSameDetail = currentDetailJoinId === join.id && document.getElementById("detailModal")?.classList.contains("open");
+        if (isSameDetail) {
+          currentDetailJoinData = join;
+          document.getElementById("detailModalTitle").textContent = join.title;
+          renderDetailContent(join, renderOptions);
+          requestAnimationFrame(() => {
+            prepareDetailScheduleHeights({ forceOpen: true });
+            resetDetailModalScroll();
+          });
+        }
+        return join;
+      } catch (error) {
+        console.warn("Failed to enrich Secret Tour detail from ERP.", error);
+        return join;
+      }
+    }
+
 
     async function loadSecretTourGoodsEvents(goodSeq) {
       if (!goodSeq) return [];
@@ -26088,10 +26177,15 @@
       const fallback = item.airport ? overseasJoinTemplate : domesticJoinTemplate;
       const badgeKind = item.badgeKind || "";
       const duration = getExplicitTripDuration(item) || extractDurationFromProductText(item) || getExplicitTripDuration(fallback);
+      const productReference = getSecretTourProductReference(item);
       return {
         ...fallback,
         ...item,
-        id: item.id || `external-product-${index}`,
+        id: item.id || productReference.id || `external-product-${index}`,
+        goodSeq: item.goodSeq || productReference.goodSeq,
+        eventSeq: item.eventSeq || productReference.eventSeq,
+        erpProductId: item.erpProductId || item.id || productReference.id,
+        erpEventSeq: item.erpEventSeq || item.eventSeq || productReference.eventSeq,
         title: item.title || fallback.title || "골프 조인 상품",
         region: item.region || fallback.region || "",
         category: item.category || (item.airport ? "해외" : "국내"),
@@ -27837,6 +27931,7 @@
 
     function buildJoinApplyPayload(data, join = getCurrentApplyJoin()) {
       const target = getCurrentApplyTargetInfo(join);
+      const productReference = getSecretTourProductReference(join || {});
       return {
         source: "join_apply",
         submittedAt: new Date().toISOString(),
@@ -27845,8 +27940,8 @@
         targetScheduleId: target.targetScheduleId,
         targetApplicationId: target.targetApplicationId,
         product: {
-          erpProductId: join?.erpProductId || join?.productId || join?.goodSeq || join?.id || "",
-          erpEventSeq: join?.erpEventSeq || join?.eventSeq || "",
+          erpProductId: join?.erpProductId || productReference.id || join?.productId || join?.goodSeq || join?.id || "",
+          erpEventSeq: join?.erpEventSeq || productReference.eventSeq || join?.eventSeq || "",
           productName: join?.title || "",
           departureDate: join?.departureDate || "",
           returnDate: join?.returnDate || "",
@@ -29319,6 +29414,7 @@
         prepareDetailScheduleHeights({ forceOpen: true });
         resetDetailModalScroll();
       });
+      enrichOpenDetailWithSecretTourData(join);
     }
 
     function openBuilderDetail(id) {

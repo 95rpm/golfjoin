@@ -6612,6 +6612,7 @@
     .modal-body { padding: 22px; }
     .detail-modal .modal-body {
       flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
       padding-right: 20px;
       scrollbar-gutter: stable;
@@ -10741,6 +10742,31 @@
     @media (max-width: 1024px) {
       .sgj-page .join-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (min-width: 641px) and (max-width: 1024px) {
+      body > #detailModal.sgj-portal-overlay {
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: hidden;
+      }
+      body > #detailModal.sgj-portal-overlay .detail-modal {
+        display: flex;
+        flex-direction: column;
+        width: min(760px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
+        height: auto;
+        min-height: 0;
+        max-height: calc(100dvh - 40px);
+        overflow: hidden;
+        border-radius: 24px;
+      }
+      body > #detailModal.sgj-portal-overlay .detail-modal .modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
     }
     @media (min-width: 641px) and (max-width: 875px) {

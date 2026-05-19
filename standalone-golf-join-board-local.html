@@ -23177,58 +23177,49 @@
         </div>
         <div class="region-search-type">
           <button type="button" class="active">해외</button>
-          <button type="button">국내</button>
         </div>
         <div class="region-search-body">
           <details class="region-group featured" open>
             <summary>동남아/서남아</summary>
             <div class="region-grid-list">
               <details class="region-subgroup" open>
-                <summary>태국</summary>
+                <summary><span>태국</span><span class="region-desktop-hot-badge">HOT</span></summary>
                 <div class="region-subregion-list">
-                  <button type="button" class="region-subregion" data-region="방콕, 태국">방콕</button>
+                  <button type="button" class="region-subregion" data-region="방콕, 태국"><span>방콕</span><span class="region-desktop-hot-badge">HOT</span></button>
                   <button type="button" class="region-subregion" data-region="치앙마이, 태국">치앙마이</button>
                 </div>
               </details>
               <details class="region-subgroup">
-                <summary>베트남</summary>
+                <summary><span>베트남</span><span class="region-desktop-hot-badge">HOT</span></summary>
                 <div class="region-subregion-list">
-                  <button type="button" class="region-subregion" data-region="다낭, 베트남">다낭</button>
-                  <button type="button" class="region-subregion" data-region="푸꾸옥, 베트남">푸꾸옥</button>
+                  <button type="button" class="region-subregion" data-region="다낭, 베트남"><span>다낭</span><span class="region-desktop-hot-badge">HOT</span></button>
+                  <button type="button" class="region-subregion" data-region="푸꾸옥, 베트남"><span>푸꾸옥</span><span class="region-desktop-hot-badge">HOT</span></button>
                   <button type="button" class="region-subregion" data-region="하노이, 베트남">하노이</button>
                   <button type="button" class="region-subregion" data-region="호치민, 베트남">호치민</button>
                 </div>
               </details>
               <details class="region-subgroup">
-                <summary>필리핀</summary>
+                <summary><span>필리핀</span><span class="region-desktop-hot-badge">HOT</span></summary>
                 <div class="region-subregion-list">
-                  <button type="button" class="region-subregion" data-region="클락, 필리핀">클락</button>
+                  <button type="button" class="region-subregion" data-region="클락, 필리핀"><span>클락</span><span class="region-desktop-hot-badge">HOT</span></button>
                   <button type="button" class="region-subregion" data-region="마닐라, 필리핀">마닐라</button>
                 </div>
               </details>
             </div>
           </details>
           <details class="region-group">
-            <summary>일본</summary>
+            <summary><span>일본</span><span class="region-desktop-hot-badge">HOT</span></summary>
             <div class="region-grid-list">
-              <button type="button" class="region-option" data-region="후쿠오카, 일본">후쿠오카</button>
+              <button type="button" class="region-option" data-region="후쿠오카, 일본"><span>후쿠오카</span><span class="region-desktop-hot-badge">HOT</span></button>
               <button type="button" class="region-option" data-region="미야자키, 일본">미야자키</button>
               <button type="button" class="region-option" data-region="가고시마, 일본">가고시마</button>
             </div>
           </details>
           <details class="region-group">
-            <summary>괌/사이판</summary>
+            <summary><span>괌/사이판</span><span class="region-desktop-hot-badge">HOT</span></summary>
             <div class="region-grid-list">
-              <button type="button" class="region-option" data-region="괌">괌</button>
+              <button type="button" class="region-option" data-region="괌"><span>괌</span><span class="region-desktop-hot-badge">HOT</span></button>
               <button type="button" class="region-option" data-region="사이판">사이판</button>
-            </div>
-          </details>
-          <details class="region-group">
-            <summary>국내</summary>
-            <div class="region-grid-list">
-              <button type="button" class="region-option" data-region="제주">제주</button>
-              <button type="button" class="region-option" data-region="경기">경기</button>
-              <button type="button" class="region-option" data-region="강원">강원</button>
             </div>
           </details>
         </div>
@@ -27821,7 +27812,7 @@
     let regionProductSort = "recommended";
     let regionProductSortMenuOpen = false;
     let regionEmptyRecommendType = "overseas";
-    let regionRecent = ["제주", "미야자키", "다낭", "클락"];
+    let regionRecent = ["미야자키", "다낭", "클락", "방콕"];
 
     function getJoinRegionSearchNames(join) {
       const names = new Set([join.region, join.category].filter(Boolean));

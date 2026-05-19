@@ -7066,72 +7066,57 @@
     }
     .traveler-gender-select {
       position: relative;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      width: 100%;
       gap: 0 !important;
-      height: 52px;
-      min-height: 52px;
+      height: auto;
+      min-height: 0;
       align-self: start;
       padding: 4px;
-      border: 1px solid #e2e8f0;
-      border-radius: 999px;
+      border: 0;
+      border-radius: 10px;
       overflow: hidden;
-      background: #fff;
+      background: #f1f5f9;
       box-shadow: none;
+      user-select: none;
     }
     .traveler-gender-select::before {
-      content: "";
-      position: absolute;
-      top: 4px;
-      left: 4px;
-      width: calc((100% - 8px) / 2);
-      height: calc(100% - 8px);
-      border-radius: 999px;
-      background: #fff;
-      box-shadow: none;
-      opacity: 0;
-      transform: translateX(0);
-      transition: transform .24s cubic-bezier(.4, 0, .2, 1), opacity .16s ease;
-      pointer-events: none;
-    }
-    .traveler-gender-select:has(.apply-chip.active)::before {
-      opacity: 1;
-    }
-    .traveler-gender-select:has(.apply-chip:last-child.active)::before {
-      transform: translateX(100%);
+      display: none;
     }
     .traveler-gender-select .apply-chip {
       position: relative;
       z-index: 1;
+      flex: 1 1 0;
       width: 100%;
       min-width: 0;
-      height: 42px;
-      min-height: 42px;
-      padding: 0 10px;
+      height: auto;
+      min-height: 34px;
+      padding: 8px 10px;
       border: 0;
-      border-radius: 999px;
+      border-radius: 8px;
       background: transparent;
       box-shadow: none;
-      color: #94a3b8;
-      font-size: 15px !important;
+      color: #64748b;
+      font-size: 13px !important;
       font-weight: 800;
-      transition: color .18s ease;
+      line-height: 1;
+      transition: color .2s ease, background .2s ease, box-shadow .2s ease;
     }
     .traveler-gender-select .apply-chip:hover {
       border-color: transparent;
       background: transparent;
-      color: #64748b;
+      color: #1e293b;
     }
     .traveler-gender-select .apply-chip:focus-visible {
-      outline: 2px solid rgba(107, 114, 128, 0.36);
+      outline: 2px solid rgba(59, 130, 246, 0.32);
       outline-offset: -2px;
     }
     .traveler-gender-select .apply-chip.active {
       z-index: 1;
       border-color: transparent;
-      background: transparent;
-      color: var(--text);
-      box-shadow: none;
+      background: #fff;
+      color: #0f172a;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
     }
     .detail-apply-panel .field.has-error .traveler-gender-select {
       border-color: #ef4444;
@@ -7870,68 +7855,48 @@
     }
     .apply-companion-gender-options {
       position: relative;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      flex: 0 0 112px;
-      width: 112px;
-      height: 40px;
-      min-height: 40px;
+      display: flex;
+      flex: 0 0 120px;
+      width: 120px;
+      height: 42px;
+      min-height: 42px;
       gap: 0;
-      padding: 3px;
-      border: 1px solid #e2e8f0;
-      border-radius: 999px;
+      padding: 4px;
+      border: 0;
+      border-radius: 10px;
       overflow: hidden;
-      background: #fff;
+      background: #f1f5f9;
       box-shadow: none;
-    }
-    .apply-companion-gender-options::before {
-      content: "";
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: calc((100% - 6px) / 2);
-      height: calc(100% - 6px);
-      border-radius: 999px;
-      background: #fff;
-      box-shadow: none;
-      opacity: 0;
-      transform: translateX(0);
-      transition: transform .24s cubic-bezier(.4, 0, .2, 1), opacity .16s ease;
-      pointer-events: none;
-    }
-    .apply-companion-gender-options:has(.apply-companion-gender-button.active)::before {
-      opacity: 1;
-    }
-    .apply-companion-gender-options:has(.apply-companion-gender-button:last-child.active)::before {
-      transform: translateX(100%);
+      user-select: none;
     }
     .apply-companion-gender-button {
       position: relative;
       z-index: 1;
+      flex: 1 1 0;
       min-width: 0;
-      min-height: 32px;
+      min-height: 34px;
       border: 0;
-      border-radius: 999px;
+      border-radius: 8px;
       background: transparent;
-      color: #94a3b8;
-      font-size: 14px;
+      color: #64748b;
+      font-size: 13px;
       font-weight: 800;
-      line-height: 1.25;
-      transition: color .18s ease;
+      line-height: 1;
+      transition: color .2s ease, background .2s ease, box-shadow .2s ease;
     }
     .apply-companion-gender-button:hover {
-      color: #64748b;
+      color: #1e293b;
     }
     .apply-companion-gender-button:focus-visible {
-      outline: 2px solid rgba(107, 114, 128, 0.36);
+      outline: 2px solid rgba(59, 130, 246, 0.32);
       outline-offset: -2px;
     }
     .apply-companion-gender-button.active {
       z-index: 1;
       border-color: transparent;
-      background: transparent;
-      color: var(--text);
-      box-shadow: none;
+      background: #fff;
+      color: #0f172a;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
     }
     .apply-companion-error {
       display: none;
@@ -21846,8 +21811,8 @@
                 </div>
                 <div class="field" data-builder-apply-field="gender">
                   <div class="apply-chip-group traveler-gender-select" data-chip-group="builder-gender">
-                    <button type="button" class="apply-chip" data-value="남성">남</button>
-                    <button type="button" class="apply-chip" data-value="여성">여</button>
+                    <button type="button" class="apply-chip" data-value="남성">남성</button>
+                    <button type="button" class="apply-chip" data-value="여성">여성</button>
                   </div>
                   <div class="apply-error">성별을 선택해 주세요.</div>
                 </div>
@@ -21955,6 +21920,7 @@
                   <label>선호 멤버 구성</label>
                   <div class="apply-field-helper">맞춤형 조인 노출 조건에 반영돼요. 원하는 구성을 선택해 주세요.</div>
                   <div class="apply-chip-group" data-chip-group="builder-member-preference" data-multi="true" data-max="3">
+                    <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 &#x1F389;</button>
                     <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 &#x1F465;</button>
                     <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 &#x1F382;</button>
                     <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 &#x26F3;</button>
@@ -22144,8 +22110,8 @@
             </div>
             <div class="field" data-apply-field="gender">
               <div class="apply-chip-group traveler-gender-select" data-chip-group="global-gender">
-                <button type="button" class="apply-chip" data-value="남성">남</button>
-                <button type="button" class="apply-chip" data-value="여성">여</button>
+                <button type="button" class="apply-chip" data-value="남성">남성</button>
+                <button type="button" class="apply-chip" data-value="여성">여성</button>
               </div>
               <div class="apply-error">성별을 선택해 주세요.</div>
             </div>
@@ -22253,6 +22219,7 @@
               <label>선호 멤버 구성</label>
               <div class="apply-field-helper">맞춤형 조인 노출 조건에 반영돼요. 원하는 구성을 선택해 주세요.</div>
               <div class="apply-chip-group" data-chip-group="global-member-preference" data-multi="true" data-max="3">
+                <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 &#x1F389;</button>
                 <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 &#x1F465;</button>
                 <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 &#x1F382;</button>
                 <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 &#x26F3;</button>
@@ -25650,8 +25617,8 @@
           <div class="apply-companion-card" data-companion-index="${index}">
             <div class="apply-companion-name">동반자 ${index + 1}</div>
             <div class="apply-companion-gender-options" role="group" aria-label="동반자 ${index + 1} 성별">
-              <button type="button" class="apply-companion-gender-button${selected === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')">남</button>
-              <button type="button" class="apply-companion-gender-button${selected === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')">여</button>
+              <button type="button" class="apply-companion-gender-button${selected === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')">남성</button>
+              <button type="button" class="apply-companion-gender-button${selected === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')">여성</button>
             </div>
           </div>
         `;

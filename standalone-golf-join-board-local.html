@@ -21884,7 +21884,7 @@
                 </div>
                 <div class="field" data-builder-apply-field="gender">
                   <div class="apply-chip-group traveler-gender-select" data-chip-group="builder-gender">
-                    <button type="button" class="apply-chip" data-value="남성">남성</button>
+                    <button type="button" class="apply-chip active" data-value="남성">남성</button>
                     <button type="button" class="apply-chip" data-value="여성">여성</button>
                   </div>
                   <div class="apply-error">성별을 선택해 주세요.</div>
@@ -22188,7 +22188,7 @@
             </div>
             <div class="field" data-apply-field="gender">
               <div class="apply-chip-group traveler-gender-select" data-chip-group="global-gender">
-                <button type="button" class="apply-chip" data-value="남성">남성</button>
+                <button type="button" class="apply-chip active" data-value="남성">남성</button>
                 <button type="button" class="apply-chip" data-value="여성">여성</button>
               </div>
               <div class="apply-error">성별을 선택해 주세요.</div>
@@ -25875,7 +25875,7 @@
       if (plus) plus.disabled = totalPeople >= BUILDER_APPLICATION_MAX_CAPACITY;
       if (!list) return;
       list.innerHTML = Array.from({ length: companionCount }, (_, index) => {
-        const selected = preserved[index] || "";
+        const selected = preserved[index] || "남성";
         return `
           <div class="apply-companion-card" data-companion-index="${index}">
             <div class="apply-companion-name">동반자 ${index + 1}</div>
@@ -26872,6 +26872,7 @@
       const greeting = document.getElementById("builderApplyGreeting");
       if (greeting) greeting.value = "잘 부탁드립니다.";
       document.querySelectorAll(".builder-apply-form .apply-chip.active, .builder-apply-form .profession-chip.active").forEach((item) => item.classList.remove("active"));
+      document.querySelector('[data-chip-group="builder-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
       document.querySelectorAll(".builder-apply-form .apply-people-button").forEach((button) => {
         button.classList.toggle("active", button.textContent.trim() === "혼자가요");
       });
@@ -29649,6 +29650,7 @@
       renderGlobalApplyJoinSummary();
       clearApplyErrors();
       document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip.active').forEach((chip) => chip.classList.remove("active"));
+      document.querySelector('[data-chip-group="global-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
       const privacy = document.getElementById("globalApplyPrivacy");
       if (privacy) {
         privacy.checked = false;

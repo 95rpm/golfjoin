@@ -8048,15 +8048,21 @@
       font-weight: 900;
     }
     .apply-companion-status-line {
-      display: inline-flex;
+      display: grid;
+      grid-template-columns: 30px 1px 54px 1px minmax(0, 1fr);
       align-items: center;
-      gap: 8px;
+      column-gap: 8px;
+      min-width: 0;
+    }
+    .apply-companion-status-count {
+      white-space: nowrap;
+    }
+    .apply-companion-status-gender {
       min-width: 0;
     }
     .apply-companion-status-divider {
       width: 1px;
       height: 12px;
-      flex: 0 0 auto;
       color: #d8dee8;
     }
     .apply-participant-rail {
@@ -26303,13 +26309,14 @@
       const hasExistingDivider = existing.length === 2;
       const canAdd = genders.length < Math.max(0, availablePeople - 1);
       const newParticipants = [applicant, ...companions];
+      const statusDivider = `<svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg>`;
       const existingStatusLine = scope === "global"
-        ? `<span class="apply-companion-status-line"><strong>기존 참여 ${existing.length}명</strong><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg><span>${formatApplyParticipantGenderCounts(existing)}</span></span>`
+        ? `<span class="apply-companion-status-line"><strong>기존</strong>${statusDivider}<span class="apply-companion-status-count">총 ${existing.length}명</span>${statusDivider}<span class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(existing)}</span></span>`
         : "";
       list.innerHTML = `
         <div class="apply-companion-status">
           ${existingStatusLine}
-          <span class="apply-companion-status-line"><strong>신규 신청 ${newParticipants.length}명</strong><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg><span>${formatApplyParticipantGenderCounts(newParticipants)}</span></span>
+          <span class="apply-companion-status-line"><strong>신규</strong>${statusDivider}<span class="apply-companion-status-count">총 ${newParticipants.length}명</span>${statusDivider}<span class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(newParticipants)}</span></span>
         </div>
         <div class="apply-participant-rail${hasExistingDivider ? " has-existing-divider" : ""}">
           ${slots.map((participant, index) => renderApplyParticipantSlot(participant, index, scope)).join("")}

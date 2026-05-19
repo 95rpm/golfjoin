@@ -23244,6 +23244,58 @@
         emptySlots: 2
       },
       {
+        ...overseasJoinTemplate,
+        id: "dummy-overseas-beginner-quick-1",
+        title: "초보전용 다낭 마감임박 조인",
+        region: "다낭",
+        category: "해외",
+        departureDate: "2026-05-28",
+        returnDate: "2026-05-31",
+        date: "2026.05.28 - 2026.05.31",
+        price: 1690000,
+        badge: "바로출발",
+        badgeClass: "badge-green",
+        badgeImage: BADGE_IMAGES.justgo,
+        badgeKind: "justgo",
+        airport: "인천",
+        reviewCount: 13,
+        customTheme: "beginner",
+        isRecommendationFixture: true,
+        participants: overseasJoinTemplate.participants.slice(0, 2).map((participant, index) => ({
+          ...participant,
+          id: `dummy-overseas-beginner-quick-1-p${index + 1}`,
+          handicap: index === 0 ? "110타" : "105타",
+          status: "confirmed"
+        })),
+        emptySlots: 1
+      },
+      {
+        ...overseasJoinTemplate,
+        id: "dummy-overseas-beginner-quick-2",
+        title: "초보전용 방콕 곧출발 조인",
+        region: "방콕",
+        category: "해외",
+        departureDate: "2026-06-04",
+        returnDate: "2026-06-07",
+        date: "2026.06.04 - 2026.06.07",
+        price: 1780000,
+        badge: "마감임박",
+        badgeClass: "badge-red",
+        badgeImage: BADGE_IMAGES.justgo,
+        badgeKind: "justgo",
+        airport: "인천",
+        reviewCount: 10,
+        customTheme: "beginner",
+        isRecommendationFixture: true,
+        participants: overseasJoinTemplate.participants.slice(0, 1).map((participant, index) => ({
+          ...participant,
+          id: `dummy-overseas-beginner-quick-2-p${index + 1}`,
+          handicap: "108타",
+          status: "confirmed"
+        })),
+        emptySlots: 2
+      },
+      {
         ...domesticJoinTemplate,
         id: "dummy-test-july-1",
         title: "\u0037\uc6d4 \ud14c\uc2a4\ud2b8 \uc870\uc778 \uace8\ud504",

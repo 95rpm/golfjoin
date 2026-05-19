@@ -24123,6 +24123,10 @@
       const tabs = body?.querySelector(".detail-anchor-tabs");
       if (!body || !target) return;
 
+      if (tabs) {
+        tabs.dataset.pinnedVisible = "true";
+        tabs.dataset.forcedActive = sectionName;
+      }
       body.querySelectorAll(".detail-anchor-chip").forEach((chip) => {
         chip.classList.toggle("active", chip.dataset.anchorTarget === sectionName);
       });
@@ -24150,27 +24154,29 @@
         const headerBottom = header?.getBoundingClientRect().bottom || body.getBoundingClientRect().top;
         const showLine = headerBottom + (tabs.offsetHeight || 0) + 8;
         const titleTop = includeTitle.getBoundingClientRect().top;
-        tabs.classList.toggle("is-visible", titleTop <= showLine);
+        tabs.classList.toggle("is-visible", tabs.dataset.pinnedVisible === "true" || titleTop <= showLine);
       } else {
         const threshold = Number(tabs.dataset.showAt || includes.offsetTop);
-        tabs.classList.toggle("is-visible", body.scrollTop > threshold);
+        tabs.classList.toggle("is-visible", tabs.dataset.pinnedVisible === "true" || body.scrollTop > threshold);
       }
 
       const stickyOffset = (tabs.offsetHeight || 0) + 16;
-      let activeSection = "includes";
+      let activeSection = tabs.dataset.forcedActive || "includes";
       const sectionNames = Array.from(body.querySelectorAll(".detail-anchor-chip"))
         .map((chip) => chip.dataset.anchorTarget)
         .filter(Boolean);
-      sectionNames.forEach((sectionName) => {
-        const section = body.querySelector(`[data-detail-section="${sectionName}"]`);
-        if (section && body.scrollTop + stickyOffset >= section.offsetTop) {
-          activeSection = sectionName;
+      if (!tabs.dataset.forcedActive) {
+        sectionNames.forEach((sectionName) => {
+          const section = body.querySelector(`[data-detail-section="${sectionName}"]`);
+          if (section && body.scrollTop + stickyOffset >= section.offsetTop) {
+            activeSection = sectionName;
+          }
+        });
+        const lastSectionName = sectionNames[sectionNames.length - 1];
+        if (body.scrollTop + body.clientHeight >= body.scrollHeight - 4 && lastSectionName) {
+          tabs.classList.add("is-visible");
+          activeSection = lastSectionName;
         }
-      });
-      const lastSectionName = sectionNames[sectionNames.length - 1];
-      if (body.scrollTop + body.clientHeight >= body.scrollHeight - 4 && lastSectionName) {
-        tabs.classList.add("is-visible");
-        activeSection = lastSectionName;
       }
       body.querySelectorAll(".detail-anchor-chip").forEach((chip) => {
         chip.classList.toggle("active", chip.dataset.anchorTarget === activeSection);
@@ -31126,6 +31132,12 @@
       `;
       const detailBody = document.getElementById("detailContent");
       detailBody.onscroll = updateDetailAnchorTabs;
+      detailBody.onwheel = () => {
+        delete detailBody.querySelector(".detail-anchor-tabs")?.dataset.forcedActive;
+      };
+      detailBody.ontouchstart = () => {
+        delete detailBody.querySelector(".detail-anchor-tabs")?.dataset.forcedActive;
+      };
       detailBody.scrollTop = 0;
       const anchorTabs = detailBody.querySelector(".detail-anchor-tabs");
       const includesSection = detailBody.querySelector('[data-detail-section="includes"]');

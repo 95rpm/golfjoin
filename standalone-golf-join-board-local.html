@@ -26551,7 +26551,7 @@
         const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
         url.searchParams.set("sheet", "new_schedule_applications");
         url.searchParams.set("source", "new_schedule_builder");
-        url.searchParams.set("limit", "10");
+        url.searchParams.set("limit", "100");
         const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
         if (!response.ok) throw new Error(`Builder applications load failed: ${response.status}`);
         const data = await response.json();
@@ -30584,6 +30584,11 @@
       if (preferences.includes("같은 성별끼리") && isWomenCustomJoin(join)) return "women";
       if (preferences.includes("같은 연령대") && isSeniorCustomJoin(join)) return "senior";
       if (preferences.includes("비슷한 실력끼리") && isBeginnerCustomJoin(join)) return "beginner";
+      if (join.isBuilderApplicationJoin) {
+        if (isBeginnerCustomJoin(join)) return "beginner";
+        if (isWomenCustomJoin(join)) return "women";
+        if (isSeniorCustomJoin(join)) return "senior";
+      }
       return "";
     }
 

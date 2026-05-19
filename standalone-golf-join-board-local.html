@@ -2280,6 +2280,9 @@
     .calendar-cell.has-data {
       background: transparent;
     }
+    .calendar-cell.can-create:not(.has-data) .calendar-day-button strong {
+      color: var(--text);
+    }
     .calendar-sheet-overlay {
       position: fixed;
       inset: 0;
@@ -2433,6 +2436,42 @@
     }
     .calendar-day-button:disabled {
       cursor: default;
+    }
+    .calendar-empty-schedule-sheet {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      z-index: 100220;
+      width: min(420px, calc(100vw - 32px));
+      padding: 22px;
+      border-radius: 22px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.24);
+      transform: translate(-50%, calc(100% + 32px));
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .28s ease, opacity .22s ease;
+    }
+    .calendar-empty-schedule-sheet.open {
+      transform: translate(-50%, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .calendar-empty-schedule-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+    .calendar-empty-schedule-copy {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.45;
+      padding-right: 28px;
+      margin-bottom: 18px;
+    }
+    .calendar-empty-schedule-action {
+      width: 100%;
     }
     .calendar-accordion {
       max-height: 0;
@@ -11262,6 +11301,18 @@
         padding: 0 8px 16px;
         --calendar-sticky-month-height: 36px;
         --calendar-sticky-weekday-height: 43px;
+      }
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-empty-schedule-sheet {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: none;
+        border-radius: 22px 22px 0 0;
+        transform: translateY(100%);
+      }
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-empty-schedule-sheet.open {
+        transform: translateY(0);
       }
       body > .sgj-portal-overlay.calendar-sheet-overlay.open .calendar-sheet {
         transform: none;
@@ -22068,6 +22119,11 @@
       </div>
       <div class="calendar-sheet-body" id="calendarSheetBody"></div>
     </div>
+    <div class="calendar-empty-schedule-sheet" id="calendarEmptyScheduleSheet" onclick="event.stopPropagation()">
+      <button type="button" class="modal-close-icon calendar-empty-schedule-close" onclick="closeCalendarEmptyScheduleSheet()" aria-label="닫기"></button>
+      <div class="calendar-empty-schedule-copy">내가 먼저 일정을 만들어<br>멤버를 모집해보세요.</div>
+      <button type="button" class="button primary large calendar-empty-schedule-action" onclick="openBuilderFromCalendarEmptyDate()">새 일정 만들기</button>
+    </div>
   </div>
 
   
@@ -24261,20 +24317,32 @@
 
     let calendarViewMonth = null;
     let calendarMobileSelectionSort = "region";
+    let calendarEmptyScheduleDate = "";
+
+    function getISODateKey(date) {
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
 
     function getCalendarMonthBounds() {
       const today = new Date("2026-04-24T00:00:00");
-      const minDate = joins.reduce((earliest, join) => {
+      const visibleJoins = getVisibleJoinProducts();
+      const fallbackDate = visibleJoins[0]?.departureDate || getBuilderMinDepartureISO();
+      const builderBounds = getBuilderProductDateBounds();
+      const minDate = visibleJoins.reduce((earliest, join) => {
         const candidate = new Date(join.departureDate + "T00:00:00");
         return candidate < earliest ? candidate : earliest;
-      }, new Date(joins[0].departureDate + "T00:00:00"));
-      const maxDate = joins.reduce((latest, join) => {
+      }, new Date((builderBounds.startDate || fallbackDate) + "T00:00:00"));
+      const maxDate = visibleJoins.reduce((latest, join) => {
         const candidate = new Date((join.returnDate || join.departureDate) + "T00:00:00");
         return candidate > latest ? candidate : latest;
-      }, today);
+      }, new Date((builderBounds.endDate || fallbackDate) + "T00:00:00"));
+      const minDeparture = new Date(`${getBuilderMinDepartureISO()}T00:00:00`);
+      const fallbackMaxDate = new Date(minDeparture);
+      fallbackMaxDate.setMonth(fallbackMaxDate.getMonth() + 6);
+      const boundedMaxDate = maxDate > today ? maxDate : fallbackMaxDate;
       return {
         startMonth: new Date(minDate.getFullYear(), minDate.getMonth(), 1),
-        endMonth: new Date(maxDate.getFullYear(), maxDate.getMonth(), 1)
+        endMonth: new Date(boundedMaxDate.getFullYear(), boundedMaxDate.getMonth(), 1)
       };
     }
 
@@ -24315,6 +24383,29 @@
     function hasJoinEventsInMonth(monthDate) {
       const monthKey = getMonthKey(monthDate);
       return getVisibleJoinProducts().some((join) => String(join.departureDate || "").startsWith(monthKey));
+    }
+
+    function isCalendarBuilderDepartureSelectable(date) {
+      const iso = getISODateKey(date);
+      if (iso < getBuilderMinDepartureISO()) return false;
+      const { startDate, endDate } = getBuilderProductDateBounds();
+      if (startDate && iso < startDate) return false;
+      if (endDate && iso > endDate) return false;
+      const products = getBuilderRegisteredProductsForDateSelection();
+      if (products.length) return products.some((product) => product.departureDate === iso);
+      return true;
+    }
+
+    function hasCalendarActiveDatesInMonth(monthDate, eventsByDate = getJoinEventsByDate()) {
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth();
+      const last = new Date(year, month + 1, 0);
+      for (let day = 1; day <= last.getDate(); day += 1) {
+        const date = new Date(year, month, day);
+        const dateKey = getISODateKey(date);
+        if ((eventsByDate[dateKey] || []).length || isCalendarBuilderDepartureSelectable(date)) return true;
+      }
+      return false;
     }
 
     function getKoreanHolidaySet(year) {
@@ -24566,6 +24657,51 @@
       if (selection) selection.innerHTML = "";
     }
 
+    function closeCalendarEmptyScheduleSheet() {
+      document.getElementById("calendarEmptyScheduleSheet")?.classList.remove("open");
+      calendarEmptyScheduleDate = "";
+    }
+
+    function openCalendarEmptyScheduleSheet(dateKey) {
+      calendarEmptyScheduleDate = dateKey;
+      clearCalendarMobileSelection();
+      clearCalendarDesktopSelection();
+      document.querySelectorAll(".calendar-accordion").forEach((item) => {
+        item.classList.remove("open");
+        item.innerHTML = "";
+        delete item.dataset.dateKey;
+      });
+      document.getElementById("calendarEmptyScheduleSheet")?.classList.add("open");
+    }
+
+    function applyBuilderStartDateFromISO(dateKey) {
+      if (!dateKey) return;
+      const date = new Date(`${dateKey}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return;
+      builderState.viewYear = date.getFullYear();
+      builderState.viewMonth = date.getMonth();
+      builderState.startDay = date.getDate();
+      builderState.endDay = null;
+      builderState.startBefore = 0;
+      builderState.startAfter = 0;
+      builderState.endBefore = 0;
+      builderState.endAfter = 0;
+      builderState.durationFilter = "";
+      builderState.productId = "";
+      builderState.productName = "";
+      renderBuilderCalendar();
+      updateBuilderSummary();
+      updateBuilderNotice();
+    }
+
+    function openBuilderFromCalendarEmptyDate() {
+      const selectedDate = calendarEmptyScheduleDate;
+      closeCalendarEmptyScheduleSheet();
+      closeCalendarSheet();
+      openModal("builderModal");
+      applyBuilderStartDateFromISO(selectedDate);
+    }
+
     function toggleMobileCalendarArea() {
       const body = document.getElementById("calendarSheetBody");
       if (!body) return;
@@ -24726,12 +24862,14 @@
           const events = eventsByDate[dateKey] || [];
           const summary = getCalendarEventSummary(events);
           const date = new Date(`${dateKey}T00:00:00`);
+          const canCreateSchedule = isCalendarBuilderDepartureSelectable(date);
+          const canClickDate = events.length > 0 || canCreateSchedule;
           const isSunday = date.getDay() === 0;
           const isHoliday = holidaySet.has(dateKey);
           const weekKey = `${getMonthKey(monthDate)}-${weekStart / 7}`;
           weekCells.push(`
-            <div class="calendar-cell${events.length ? " has-data" : ""}${dateKey === todayKey ? " today" : ""}${isSunday ? " sunday" : ""}${isHoliday ? " holiday" : ""}">
-              <button type="button" class="calendar-day-button" ${events.length ? `onclick="toggleCalendarDay('${weekKey}', '${dateKey}')"` : "disabled"}>
+            <div class="calendar-cell${events.length ? " has-data" : ""}${!events.length && canCreateSchedule ? " can-create" : ""}${dateKey === todayKey ? " today" : ""}${isSunday ? " sunday" : ""}${isHoliday ? " holiday" : ""}">
+              <button type="button" class="calendar-day-button" ${canClickDate ? `onclick="toggleCalendarDay('${weekKey}', '${dateKey}')"` : "disabled"}>
                 <strong>${dayNumber}</strong>
                 ${summary.domestic ? `<div class="calendar-event domestic">국내 ${summary.domestic}</div>` : ""}
                 ${summary.overseas ? `<div class="calendar-event overseas">해외 ${summary.overseas}</div>` : ""}
@@ -24762,6 +24900,7 @@
       const eventsByDate = getJoinEventsByDate();
       const months = [];
       const body = document.getElementById("calendarSheetBody");
+      closeCalendarEmptyScheduleSheet();
 
       if (isCalendarDesktopMode()) {
         clampCalendarViewMonth(startMonth, endMonth);
@@ -24784,7 +24923,7 @@
         while (getMonthKey(cursor) <= mobileEndMonthKey) {
           months.push(renderCalendarMonth(cursor, eventsByDate, {
             hideWeekdays: true,
-            inactiveMonth: !hasJoinEventsInMonth(cursor)
+            inactiveMonth: !hasCalendarActiveDatesInMonth(cursor, eventsByDate)
           }));
           cursor = addMonths(cursor, 1);
         }
@@ -24810,11 +24949,21 @@
       const accordion = document.getElementById(`calendarAccordion-${monthKey}`);
       if (!accordion) return;
       const events = getJoinEventsByDate()[dateKey] || [];
+      const canCreateSchedule = isCalendarBuilderDepartureSelectable(new Date(`${dateKey}T00:00:00`));
+
+      if (events.length === 0) {
+        if (canCreateSchedule) {
+          openCalendarEmptyScheduleSheet(dateKey);
+        }
+        return;
+      }
+
+      closeCalendarEmptyScheduleSheet();
 
       if (!isCalendarDesktopMode()) {
         const body = document.getElementById("calendarSheetBody");
         const isSameMobileDate = body?.dataset.mobileSelectedDate === dateKey;
-        if (isSameMobileDate || events.length === 0) {
+        if (isSameMobileDate) {
           clearCalendarMobileSelection();
           document.querySelectorAll(".calendar-accordion").forEach((item) => {
             item.classList.remove("open");
@@ -24840,7 +24989,7 @@
         delete item.dataset.dateKey;
       });
 
-      if (isSameDesktopDate || events.length === 0) {
+      if (isSameDesktopDate) {
         clearCalendarDesktopSelection();
         return;
       }
@@ -24852,9 +25001,15 @@
       renderCalendarSheet();
       portalOverlayToBody("calendarSheet")?.classList.add("open");
       setWidgetModalOpen(true);
+      ensureExternalGolfJoinProductsLoaded().then(() => {
+        if (document.getElementById("calendarSheet")?.classList.contains("open")) {
+          renderCalendarSheet();
+        }
+      });
     }
 
     function closeCalendarSheet() {
+      closeCalendarEmptyScheduleSheet();
       document.getElementById("calendarSheet").classList.remove("open");
       setWidgetModalOpen(false);
     }

@@ -7781,9 +7781,6 @@
       position: relative;
       width: 100%;
       height: 56px;
-      display: flex;
-      align-items: center;
-      gap: 0;
       padding: 4px;
       border-radius: 14px;
       background: #f1f5f9;
@@ -7791,10 +7788,11 @@
     }
     .apply-people-button,
     .apply-people-radio {
-      position: relative;
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
       z-index: 1;
-      flex: 1 1 0;
-      min-height: 48px;
+      min-height: 0;
       border: 1px solid transparent;
       border-radius: 12px;
       background: transparent;
@@ -7802,7 +7800,105 @@
       font-size: 15px;
       font-weight: 800;
       line-height: 1.25;
-      transition: border-color .22s ease, background .22s ease, box-shadow .22s ease, color .22s ease;
+      transition: left .28s cubic-bezier(0.16, 1, 0.3, 1), right .28s cubic-bezier(0.16, 1, 0.3, 1), width .28s cubic-bezier(0.16, 1, 0.3, 1), border-color .22s ease, background .22s ease, box-shadow .22s ease, color .22s ease;
+    }
+    .apply-people-button[data-mode="solo"] {
+      left: 4px;
+      width: calc(50% - 7px);
+    }
+    .apply-people-button[data-mode="group"],
+    .apply-people-button[data-join-mode="group"] {
+      left: calc(50% + 3px);
+      width: calc(50% - 7px);
+    }
+    .apply-people-mode.is-group .apply-people-button[data-mode="solo"] {
+      width: 40px;
+      color: #64748b;
+    }
+    .apply-people-mode.is-group .apply-people-button[data-mode="group"],
+    .apply-people-mode.is-group .apply-people-button[data-join-mode="group"] {
+      left: 50px;
+      width: calc(50% - 7px);
+    }
+    .apply-people-button-label,
+    .apply-people-button-back {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity .2s ease, transform .2s ease;
+    }
+    .apply-people-button-back {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: scale(.75);
+    }
+    .apply-people-button-back svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2.6;
+    }
+    .apply-people-mode.is-group .apply-people-button[data-mode="solo"] .apply-people-button-label {
+      opacity: 0;
+      transform: scale(.75);
+      pointer-events: none;
+    }
+    .apply-people-mode.is-group .apply-people-button[data-mode="solo"] .apply-people-button-back {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .apply-people-inline-add {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: calc(50% + 49px);
+      right: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(16px);
+      transition: opacity .24s ease, transform .28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .apply-people-mode.is-group .apply-people-inline-add {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+    .apply-people-inline-add-button {
+      flex: 1 1 0;
+      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border: 1px solid #dbe4ee;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+    }
+    .apply-people-inline-add-button:hover:not(:disabled) {
+      border-color: rgba(104, 124, 214, 0.34);
+      background: #f7f8ff;
+      color: #4f63c6;
+    }
+    .apply-people-inline-add-button:active:not(:disabled) {
+      transform: scale(.97);
+    }
+    .apply-people-inline-add-button:disabled {
+      opacity: .35;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .apply-people-inline-add-button svg {
+      width: 15px;
+      height: 15px;
+      stroke-width: 2.6;
     }
     .apply-people-button.active,
     .apply-people-radio:has(input:checked) {
@@ -7819,7 +7915,11 @@
       display: none;
     }
     .apply-people-mode.single-only .apply-people-button {
-      flex-basis: 100%;
+      left: 4px;
+      width: calc(100% - 8px);
+    }
+    .apply-people-mode.single-only .apply-people-inline-add {
+      display: none;
     }
     .apply-people-accordion {
       display: grid;
@@ -7951,27 +8051,29 @@
       place-items: center;
       gap: 5px;
       padding: 9px 6px;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      background: #f8fafc;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       color: #94a3b8;
       text-align: center;
       overflow: hidden;
     }
     .apply-participant-slot.filled {
-      background: #fff;
       color: var(--text);
     }
     .apply-participant-slot.is-existing {
-      background: #f7f8ff;
-      border-color: rgba(104, 124, 214, 0.18);
+      color: var(--text);
     }
     .apply-participant-slot img {
-      width: 42px;
-      height: 42px;
-      border-radius: 999px;
+      width: 48px;
+      height: 48px;
+      border: 2px solid #d1d5db;
+      border-radius: 12px;
+      background: #f9fafb;
       object-fit: cover;
       display: block;
+      transform: scale(1.08);
+      transform-origin: center;
     }
     .apply-participant-label {
       max-width: 100%;
@@ -7984,8 +8086,8 @@
     }
     .apply-participant-remove {
       position: absolute;
-      top: 5px;
-      right: 5px;
+      top: 3px;
+      right: 3px;
       width: 20px;
       height: 20px;
       border-radius: 999px;
@@ -7996,7 +8098,7 @@
       line-height: 1;
     }
     .apply-companion-add-row {
-      display: grid;
+      display: none;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
@@ -22061,8 +22163,23 @@
                   <div class="apply-people-select">
                     <input id="builderApplyPeople" type="hidden" value="1">
                     <div class="apply-people-mode" data-builder-apply-single>
-                      <button type="button" class="apply-people-button active" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('solo')">혼자가요</button>
-                      <button type="button" class="apply-people-button" data-join-mode="group" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('group')">같이가요</button>
+                      <button type="button" class="apply-people-button active" data-mode="solo" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('solo')">
+                        <span class="apply-people-button-label">혼자가요</span>
+                        <span class="apply-people-button-back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 18 9 12l6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                      </button>
+                      <button type="button" class="apply-people-button" data-mode="group" data-join-mode="group" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('group')">
+                        <span class="apply-people-button-label">같이가요</span>
+                      </button>
+                      <div class="apply-people-inline-add" aria-label="동반자 성별 추가">
+                        <button type="button" class="apply-people-inline-add-button" onclick="event.stopPropagation(); addCompanionGender('builder', '남성')">
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"/></svg>
+                          <span>남</span>
+                        </button>
+                        <button type="button" class="apply-people-inline-add-button" onclick="event.stopPropagation(); addCompanionGender('builder', '여성')">
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"/></svg>
+                          <span>여</span>
+                        </button>
+                      </div>
                     </div>
                     <div class="apply-people-accordion" id="builderApplyPeopleAccordion">
                       <div class="apply-people-group-panel">
@@ -22365,8 +22482,23 @@
               <div class="apply-people-select">
                 <input id="globalApplyPeople" type="hidden" value="1">
                 <div class="apply-people-mode" data-people-mode="global">
-                  <button type="button" class="apply-people-button active" data-mode="solo" onclick="setGlobalApplyPeopleMode('solo')">혼자가요</button>
-                  <button type="button" class="apply-people-button" data-mode="group" onclick="setGlobalApplyPeopleMode('group')">같이가요</button>
+                  <button type="button" class="apply-people-button active" data-mode="solo" onclick="setGlobalApplyPeopleMode('solo')">
+                    <span class="apply-people-button-label">혼자가요</span>
+                    <span class="apply-people-button-back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 18 9 12l6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  </button>
+                  <button type="button" class="apply-people-button" data-mode="group" onclick="setGlobalApplyPeopleMode('group')">
+                    <span class="apply-people-button-label">같이가요</span>
+                  </button>
+                  <div class="apply-people-inline-add" aria-label="동반자 성별 추가">
+                    <button type="button" class="apply-people-inline-add-button" onclick="event.stopPropagation(); addCompanionGender('global', '남성')">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"/></svg>
+                      <span>남</span>
+                    </button>
+                    <button type="button" class="apply-people-inline-add-button" onclick="event.stopPropagation(); addCompanionGender('global', '여성')">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"/></svg>
+                      <span>여</span>
+                    </button>
+                  </div>
                 </div>
                 <div class="apply-people-accordion" id="globalApplyPeopleAccordion">
                   <div class="apply-people-group-panel">
@@ -26016,6 +26148,7 @@
       if (!modeGroup) return;
       const canGroup = getApplyAvailablePeople(scope) > 1;
       modeGroup.classList.toggle("single-only", !canGroup);
+      if (!canGroup) modeGroup.classList.remove("is-group");
       if (!canGroup) {
         modeGroup.querySelectorAll(".apply-people-button").forEach((button) => {
           const isGroupButton = button.dataset.mode === "group" || button.dataset.joinMode === "group";
@@ -26023,6 +26156,10 @@
           button.classList.toggle("active", isSolo);
         });
       }
+      const canAdd = getCompanionGenders(scope).length < Math.max(0, getApplyAvailablePeople(scope) - 1);
+      modeGroup.querySelectorAll(".apply-people-inline-add-button").forEach((button) => {
+        button.disabled = !canGroup || !canAdd;
+      });
     }
 
     function getApplyApplicantGender(scope) {
@@ -26049,11 +26186,12 @@
         return `<div class="apply-participant-slot empty"><div class="team-empty">+</div><div class="apply-participant-label">빈자리</div></div>`;
       }
       const removable = participant.type === "companion";
+      const label = participant.type === "applicant" ? `👑 ${participant.label}` : participant.type === "companion" ? `👤 ${participant.label}` : participant.label;
       return `
         <div class="apply-participant-slot filled ${participant.type === "existing" ? "is-existing" : ""}" data-apply-participant-index="${index}">
           ${removable ? `<button type="button" class="apply-participant-remove" onclick="removeCompanionGender('${scope}', ${participant.companionIndex})" aria-label="동반자 삭제">×</button>` : ""}
           <img src="${participant.gif}" alt="${escapeHtml(participant.label)}">
-          <div class="apply-participant-label">${escapeHtml(participant.label)}</div>
+          <div class="apply-participant-label">${escapeHtml(label)}</div>
         </div>
       `;
     }
@@ -26090,7 +26228,7 @@
       const companions = genders.map((gender, index) => ({
         type: "companion",
         companionIndex: index,
-        label: `동반자 ${index + 1}`,
+        label: "동반자",
         gender,
         gif: getBuilderApplicationGenderIcon(gender, null, `${scope}-companion-${index}-${gender}`)
       }));
@@ -26112,16 +26250,6 @@
         <div class="apply-participant-rail">
           ${slots.map((participant, index) => renderApplyParticipantSlot(participant, index, scope)).join("")}
         </div>
-        <div class="apply-companion-add-row">
-          <button type="button" class="apply-companion-add-button" onclick="addCompanionGender('${scope}', '남성')" ${canAdd ? "" : "disabled"}>
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"/></svg>
-            <span>남 추가</span>
-          </button>
-          <button type="button" class="apply-companion-add-button" onclick="addCompanionGender('${scope}', '여성')" ${canAdd ? "" : "disabled"}>
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"/></svg>
-            <span>여 추가</span>
-          </button>
-        </div>
         ${genders.map((gender, index) => `
           <div class="apply-companion-card" data-companion-index="${index}" hidden>
             <div class="apply-companion-gender-options is-hidden" role="group" aria-label="동반자 ${index + 1} 성별">
@@ -26131,6 +26259,9 @@
           </div>
         `).join("")}
       `;
+      document.querySelectorAll(`${config.modeSelector} .apply-people-inline-add-button`).forEach((button) => {
+        button.disabled = !canAdd;
+      });
     }
 
     function setCompanionGenders(scope, genders, options = {}) {
@@ -26228,7 +26359,9 @@
     function setBuilderApplyPeopleMode(mode) {
       const accordion = document.getElementById("builderApplyPeopleAccordion");
       const isGroup = mode === "group";
-      document.querySelectorAll(".builder-apply-form .apply-people-mode .apply-people-button").forEach((button) => {
+      const modeGroup = document.querySelector(".builder-apply-form .apply-people-mode");
+      modeGroup?.classList.toggle("is-group", isGroup);
+      modeGroup?.querySelectorAll(".apply-people-button").forEach((button) => {
         const isGroupButton = button.dataset.joinMode === "group";
         button.classList.toggle("active", isGroup ? isGroupButton : !isGroupButton);
       });
@@ -27145,7 +27278,9 @@
       if (greeting) greeting.value = "잘 부탁드립니다.";
       document.querySelectorAll(".builder-apply-form .apply-chip.active, .builder-apply-form .profession-chip.active").forEach((item) => item.classList.remove("active"));
       document.querySelector('[data-chip-group="builder-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
-      document.querySelectorAll(".builder-apply-form .apply-people-button").forEach((button) => {
+      const builderPeopleMode = document.querySelector(".builder-apply-form .apply-people-mode");
+      builderPeopleMode?.classList.remove("is-group");
+      builderPeopleMode?.querySelectorAll(".apply-people-button").forEach((button) => {
         button.classList.toggle("active", button.dataset.joinMode !== "group");
       });
       document.getElementById("builderApplyPeopleAccordion")?.classList.remove("open");
@@ -30248,6 +30383,7 @@
       const isGroup = mode === "group" && canGroup;
       const accordion = document.getElementById("globalApplyPeopleAccordion");
       syncApplyPeopleModeAvailability("global");
+      document.querySelector('[data-people-mode="global"]')?.classList.toggle("is-group", isGroup);
       document.querySelectorAll('[data-people-mode="global"] .apply-people-button').forEach((button) => {
         button.classList.toggle("active", button.dataset.mode === (isGroup ? "group" : "solo"));
       });

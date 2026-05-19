@@ -8043,15 +8043,15 @@
       font-weight: 800;
       line-height: 1.4;
     }
-    .apply-companion-status strong {
+    .apply-companion-status-label {
       color: var(--text);
       font-weight: 800;
     }
     .apply-companion-status-line {
       display: grid;
-      grid-template-columns: 26px 1px 45px 1px minmax(0, 1fr);
+      grid-template-columns: 25px 1px 43px 1px minmax(0, 1fr);
       align-items: center;
-      column-gap: 5px;
+      column-gap: 3px;
       min-width: 0;
     }
     .apply-companion-status-count {
@@ -26311,12 +26311,12 @@
       const newParticipants = [applicant, ...companions];
       const statusDivider = `<svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg>`;
       const existingStatusLine = scope === "global"
-        ? `<span class="apply-companion-status-line"><strong>기존</strong>${statusDivider}<span class="apply-companion-status-count">총 ${existing.length}명</span>${statusDivider}<span class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(existing)}</span></span>`
+        ? `<div class="apply-companion-status-line"><div class="apply-companion-status-label">기존</div>${statusDivider}<div class="apply-companion-status-count">총 ${existing.length}명</div>${statusDivider}<div class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(existing)}</div></div>`
         : "";
       list.innerHTML = `
         <div class="apply-companion-status">
           ${existingStatusLine}
-          <span class="apply-companion-status-line"><strong>신규</strong>${statusDivider}<span class="apply-companion-status-count">총 ${newParticipants.length}명</span>${statusDivider}<span class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(newParticipants)}</span></span>
+          <div class="apply-companion-status-line"><div class="apply-companion-status-label">신규</div>${statusDivider}<div class="apply-companion-status-count">총 ${newParticipants.length}명</div>${statusDivider}<div class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(newParticipants)}</div></div>
         </div>
         <div class="apply-participant-rail${hasExistingDivider ? " has-existing-divider" : ""}">
           ${slots.map((participant, index) => renderApplyParticipantSlot(participant, index, scope)).join("")}

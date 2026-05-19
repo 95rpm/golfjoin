@@ -7778,26 +7778,48 @@
       white-space: nowrap;
     }
     .apply-people-mode {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
+      position: relative;
+      width: 100%;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 4px;
+      border-radius: 14px;
+      background: #f1f5f9;
+      overflow: hidden;
     }
     .apply-people-button,
     .apply-people-radio {
+      position: relative;
+      z-index: 1;
+      flex: 1 1 0;
       min-height: 48px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: #fff;
-      color: var(--text);
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      color: #64748b;
       font-size: 15px;
       font-weight: 800;
       line-height: 1.25;
+      transition: border-color .22s ease, background .22s ease, box-shadow .22s ease, color .22s ease;
     }
     .apply-people-button.active,
     .apply-people-radio:has(input:checked) {
-      border-color: #6b7280;
-      background: var(--apply-accent-soft);
-      box-shadow: inset 0 0 0 1px #6b7280;
+      border-color: #dbe4ee;
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
+    .apply-people-mode.single-only {
+      grid-template-columns: 1fr;
+    }
+    .apply-people-mode.single-only .apply-people-button[data-mode="group"],
+    .apply-people-mode.single-only .apply-people-button[data-join-mode="group"] {
+      display: none;
+    }
+    .apply-people-mode.single-only .apply-people-button {
+      flex-basis: 100%;
     }
     .apply-people-accordion {
       display: grid;
@@ -7822,6 +7844,11 @@
       display: grid;
       gap: 14px;
       padding-top: 2px;
+    }
+    .apply-people-group-panel .apply-people-total-head,
+    .apply-people-group-panel .apply-people-count-stepper,
+    .apply-people-group-panel .apply-companion-head {
+      display: none;
     }
     .apply-people-total-head,
     .apply-companion-head {
@@ -7881,11 +7908,12 @@
     }
     .apply-companion-list {
       display: grid;
-      gap: 0;
+      gap: 12px;
       overflow: hidden;
       border: 1px solid #e2e8f0;
-      border-radius: 14px;
+      border-radius: 16px;
       background: #fff;
+      padding: 14px;
     }
     .apply-companion-card {
       display: flex;
@@ -7893,12 +7921,117 @@
       justify-content: space-between;
       gap: 12px;
       min-width: 0;
-      padding: 12px 14px;
-      border-bottom: 1px solid #edf2f7;
+      padding: 0;
+      border-bottom: 0;
       background: transparent;
     }
-    .apply-companion-card:last-child {
-      border-bottom: 0;
+    .apply-companion-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+    .apply-companion-status strong {
+      color: var(--text);
+      font-weight: 900;
+    }
+    .apply-participant-rail {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .apply-participant-slot {
+      position: relative;
+      min-height: 82px;
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      padding: 9px 6px;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      background: #f8fafc;
+      color: #94a3b8;
+      text-align: center;
+      overflow: hidden;
+    }
+    .apply-participant-slot.filled {
+      background: #fff;
+      color: var(--text);
+    }
+    .apply-participant-slot.is-existing {
+      background: #f7f8ff;
+      border-color: rgba(104, 124, 214, 0.18);
+    }
+    .apply-participant-slot img {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      object-fit: cover;
+      display: block;
+    }
+    .apply-participant-label {
+      max-width: 100%;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .apply-participant-remove {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .apply-companion-add-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .apply-companion-add-button {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 900;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+    }
+    .apply-companion-add-button:hover:not(:disabled) {
+      border-color: rgba(104, 124, 214, 0.34);
+      background: #f7f8ff;
+      color: #4f63c6;
+    }
+    .apply-companion-add-button:disabled {
+      opacity: .36;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    .apply-companion-add-button svg {
+      width: 17px;
+      height: 17px;
+      stroke-width: 2.5;
+    }
+    .apply-companion-gender-options.is-hidden {
+      display: none;
     }
     .apply-companion-name {
       flex: 1 1 auto;
@@ -21929,7 +22062,7 @@
                     <input id="builderApplyPeople" type="hidden" value="1">
                     <div class="apply-people-mode" data-builder-apply-single>
                       <button type="button" class="apply-people-button active" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('solo')">혼자가요</button>
-                      <button type="button" class="apply-people-button" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('group')">함께가요</button>
+                      <button type="button" class="apply-people-button" data-join-mode="group" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('group')">같이가요</button>
                     </div>
                     <div class="apply-people-accordion" id="builderApplyPeopleAccordion">
                       <div class="apply-people-group-panel">
@@ -22233,7 +22366,7 @@
                 <input id="globalApplyPeople" type="hidden" value="1">
                 <div class="apply-people-mode" data-people-mode="global">
                   <button type="button" class="apply-people-button active" data-mode="solo" onclick="setGlobalApplyPeopleMode('solo')">혼자가요</button>
-                  <button type="button" class="apply-people-button" data-mode="group" onclick="setGlobalApplyPeopleMode('group')">함께가요</button>
+                  <button type="button" class="apply-people-button" data-mode="group" onclick="setGlobalApplyPeopleMode('group')">같이가요</button>
                 </div>
                 <div class="apply-people-accordion" id="globalApplyPeopleAccordion">
                   <div class="apply-people-group-panel">
@@ -25861,59 +25994,194 @@
       document.querySelector(config.fieldSelector)?.classList.remove("has-error");
     }
 
-    function renderCompanionGenderRows(scope) {
+    function getApplyScopeCapacity(scope) {
+      if (scope === "builder") return BUILDER_APPLICATION_MAX_CAPACITY;
+      return JOIN_MAX_CAPACITY;
+    }
+
+    function getApplyExistingParticipants(scope) {
+      if (scope !== "global") return [];
+      const join = getCurrentApplyJoin();
+      return join && Array.isArray(join.participants) ? getConfirmedParticipants(join).slice(0, JOIN_MAX_CAPACITY) : [];
+    }
+
+    function getApplyAvailablePeople(scope) {
+      if (scope === "builder") return BUILDER_APPLICATION_MAX_CAPACITY;
+      return Math.max(1, Math.min(JOIN_MAX_CAPACITY, getGlobalApplyRemainingSeats()));
+    }
+
+    function syncApplyPeopleModeAvailability(scope) {
       const config = getCompanionScopeConfig(scope);
-      const totalPeople = getCompanionPeople(scope);
+      const modeGroup = document.querySelector(config.modeSelector);
+      if (!modeGroup) return;
+      const canGroup = getApplyAvailablePeople(scope) > 1;
+      modeGroup.classList.toggle("single-only", !canGroup);
+      if (!canGroup) {
+        modeGroup.querySelectorAll(".apply-people-button").forEach((button) => {
+          const isGroupButton = button.dataset.mode === "group" || button.dataset.joinMode === "group";
+          const isSolo = !isGroupButton;
+          button.classList.toggle("active", isSolo);
+        });
+      }
+    }
+
+    function getApplyApplicantGender(scope) {
+      const group = scope === "builder" ? "builder-gender" : "global-gender";
+      return document.querySelector(`[data-chip-group="${group}"] .apply-chip.active`)?.dataset.value || "남성";
+    }
+
+    function getApplyParticipantGenderCounts(participants) {
+      return participants.reduce((acc, participant) => {
+        const label = getParticipantGenderLabel(participant.gender);
+        acc[label] = (acc[label] || 0) + 1;
+        return acc;
+      }, {});
+    }
+
+    function formatApplyParticipantGenderCounts(participants) {
+      const counts = getApplyParticipantGenderCounts(participants);
+      const labels = ["남성", "여성"].filter((label) => counts[label]);
+      return labels.length ? labels.map((label) => `${label} ${counts[label]}명`).join(" / ") : "성비 미정";
+    }
+
+    function renderApplyParticipantSlot(participant, index, scope) {
+      if (!participant) {
+        return `<div class="apply-participant-slot empty"><div class="team-empty">+</div><div class="apply-participant-label">빈자리</div></div>`;
+      }
+      const removable = participant.type === "companion";
+      return `
+        <div class="apply-participant-slot filled ${participant.type === "existing" ? "is-existing" : ""}" data-apply-participant-index="${index}">
+          ${removable ? `<button type="button" class="apply-participant-remove" onclick="removeCompanionGender('${scope}', ${participant.companionIndex})" aria-label="동반자 삭제">×</button>` : ""}
+          <img src="${participant.gif}" alt="${escapeHtml(participant.label)}">
+          <div class="apply-participant-label">${escapeHtml(participant.label)}</div>
+        </div>
+      `;
+    }
+
+    function renderCompanionGenderRows(scope, overrideGenders = null) {
+      const config = getCompanionScopeConfig(scope);
+      const availablePeople = getApplyAvailablePeople(scope);
+      const totalPeople = Math.min(getCompanionPeople(scope), availablePeople);
       const companionCount = Math.max(0, totalPeople - 1);
-      const preserved = getCompanionGenders(scope);
+      const preserved = (Array.isArray(overrideGenders) ? overrideGenders : getCompanionGenders(scope)).slice(0, Math.max(0, availablePeople - 1));
       const list = document.getElementById(config.listId);
       const display = document.getElementById(config.displayId);
       const minus = document.querySelector(`[data-people-stepper="${scope}"] [data-people-step="minus"]`);
       const plus = document.querySelector(`[data-people-stepper="${scope}"] [data-people-step="plus"]`);
       if (display) display.textContent = `${totalPeople}명`;
       if (minus) minus.disabled = totalPeople <= 2;
-      if (plus) plus.disabled = totalPeople >= BUILDER_APPLICATION_MAX_CAPACITY;
+      if (plus) plus.disabled = totalPeople >= availablePeople;
+      syncApplyPeopleModeAvailability(scope);
       if (!list) return;
-      list.innerHTML = Array.from({ length: companionCount }, (_, index) => {
-        const selected = preserved[index] || "남성";
-        return `
-          <div class="apply-companion-card" data-companion-index="${index}">
-            <div class="apply-companion-name">동반자 ${index + 1}</div>
-            <div class="apply-companion-gender-options" role="group" aria-label="동반자 ${index + 1} 성별">
-              <button type="button" class="apply-companion-gender-button${selected === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')">남성</button>
-              <button type="button" class="apply-companion-gender-button${selected === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')">여성</button>
+      const genders = Array.from({ length: companionCount }, (_, index) => preserved[index] || "남성");
+      const existing = getApplyExistingParticipants(scope).map((participant) => ({
+        type: "existing",
+        label: participant.name || "참여자",
+        gender: participant.gender,
+        gif: participant.gif || getBuilderApplicationGenderIcon(participant.gender, null, `${scope}-existing-${participant.id || ""}`)
+      }));
+      const applicantGender = getApplyApplicantGender(scope);
+      const applicant = {
+        type: "applicant",
+        label: "나",
+        gender: applicantGender,
+        gif: getBuilderApplicationGenderIcon(applicantGender, null, `${scope}-applicant`)
+      };
+      const companions = genders.map((gender, index) => ({
+        type: "companion",
+        companionIndex: index,
+        label: `동반자 ${index + 1}`,
+        gender,
+        gif: getBuilderApplicationGenderIcon(gender, null, `${scope}-companion-${index}-${gender}`)
+      }));
+      const visibleParticipants = [applicant, ...existing, ...companions].slice(0, JOIN_MAX_CAPACITY);
+      const slots = [
+        ...visibleParticipants,
+        ...Array.from({ length: Math.max(0, JOIN_MAX_CAPACITY - visibleParticipants.length) }).map(() => null)
+      ];
+      const canAdd = genders.length < Math.max(0, availablePeople - 1);
+      const statusParticipants = [...existing, applicant, ...companions];
+      const statusPrefix = scope === "global"
+        ? `현재 ${existing.length}명 · 신청 ${1 + genders.length}명`
+        : `신청 ${1 + genders.length}명`;
+      list.innerHTML = `
+        <div class="apply-companion-status">
+          <span><strong>${statusPrefix}</strong> · ${formatApplyParticipantGenderCounts(statusParticipants)}</span>
+          <span>${Math.min(JOIN_MAX_CAPACITY, statusParticipants.length)}/${JOIN_MAX_CAPACITY}명</span>
+        </div>
+        <div class="apply-participant-rail">
+          ${slots.map((participant, index) => renderApplyParticipantSlot(participant, index, scope)).join("")}
+        </div>
+        <div class="apply-companion-add-row">
+          <button type="button" class="apply-companion-add-button" onclick="addCompanionGender('${scope}', '남성')" ${canAdd ? "" : "disabled"}>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"/></svg>
+            <span>남 추가</span>
+          </button>
+          <button type="button" class="apply-companion-add-button" onclick="addCompanionGender('${scope}', '여성')" ${canAdd ? "" : "disabled"}>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"/></svg>
+            <span>여 추가</span>
+          </button>
+        </div>
+        ${genders.map((gender, index) => `
+          <div class="apply-companion-card" data-companion-index="${index}" hidden>
+            <div class="apply-companion-gender-options is-hidden" role="group" aria-label="동반자 ${index + 1} 성별">
+              <button type="button" class="apply-companion-gender-button${gender === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')">남성</button>
+              <button type="button" class="apply-companion-gender-button${gender === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')">여성</button>
             </div>
           </div>
-        `;
-      }).join("");
+        `).join("")}
+      `;
+    }
+
+    function setCompanionGenders(scope, genders, options = {}) {
+      const config = getCompanionScopeConfig(scope);
+      const availablePeople = getApplyAvailablePeople(scope);
+      const normalized = (genders || []).slice(0, Math.max(0, availablePeople - 1));
+      const input = document.getElementById(config.inputId);
+      if (input) input.value = String(Math.max(1, normalized.length + 1));
+      renderCompanionGenderRows(scope, normalized);
+      clearCompanionGenderError(scope);
+      if (options.update !== false) config.summary?.();
+    }
+
+    function addCompanionGender(scope, gender) {
+      const current = getCompanionGenders(scope);
+      setCompanionGenders(scope, [...current, gender]);
+    }
+
+    function removeCompanionGender(scope, index) {
+      const current = getCompanionGenders(scope);
+      current.splice(index, 1);
+      if (!current.length) {
+        if (scope === "builder") {
+          setBuilderApplyPeopleMode("solo");
+        } else {
+          setGlobalApplyPeopleMode("solo");
+        }
+        return;
+      }
+      setCompanionGenders(scope, current);
     }
 
     function setCompanionPeople(scope, value, options = {}) {
       const config = getCompanionScopeConfig(scope);
-      const count = parseApplyPeopleValue(value);
+      const count = Math.max(1, Math.min(getApplyAvailablePeople(scope), parseApplyPeopleValue(value)));
+      const preserved = getCompanionGenders(scope).slice(0, Math.max(0, count - 1));
       const input = document.getElementById(config.inputId);
       if (input) input.value = String(count);
-      renderCompanionGenderRows(scope);
+      renderCompanionGenderRows(scope, preserved);
       clearCompanionGenderError(scope);
       if (options.update !== false) config.summary?.();
     }
 
     function changeCompanionPeople(scope, delta) {
-      const next = Math.max(2, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, getCompanionPeople(scope) + delta));
-      if (scope === "global") {
-        const remaining = getGlobalApplyRemainingSeats();
-        if (next > remaining && !globalApplyWaitlistApproved) {
-          showWaitlistApplyModal(
-            `${formatRemainingSeatText(remaining)}\n대기로 신청하시겠어요?`,
-            () => {
-              globalApplyWaitlistApproved = true;
-              setCompanionPeople(scope, next);
-            },
-            () => setGlobalApplyPeopleMode("solo")
-          );
-          return;
-        }
+      const availablePeople = getApplyAvailablePeople(scope);
+      if (availablePeople < 2) {
+        if (scope === "builder") setBuilderApplyPeopleMode("solo");
+        else setGlobalApplyPeopleMode("solo");
+        return;
       }
+      const next = Math.max(2, Math.min(availablePeople, getCompanionPeople(scope) + delta));
       setCompanionPeople(scope, next);
     }
 
@@ -25951,7 +26219,7 @@
       if (count > 1) {
         const modeGroup = document.querySelector(".builder-apply-form .apply-people-mode");
         modeGroup?.querySelectorAll(".apply-people-button").forEach((button) => {
-          button.classList.toggle("active", button.textContent.trim() === "함께가요");
+          button.classList.toggle("active", button.dataset.joinMode === "group");
         });
         document.getElementById("builderApplyPeopleAccordion")?.classList.add("open");
       }
@@ -25960,6 +26228,10 @@
     function setBuilderApplyPeopleMode(mode) {
       const accordion = document.getElementById("builderApplyPeopleAccordion");
       const isGroup = mode === "group";
+      document.querySelectorAll(".builder-apply-form .apply-people-mode .apply-people-button").forEach((button) => {
+        const isGroupButton = button.dataset.joinMode === "group";
+        button.classList.toggle("active", isGroup ? isGroupButton : !isGroupButton);
+      });
       accordion?.classList.toggle("open", isGroup);
       if (isGroup) {
         setCompanionPeople("builder", Math.max(2, getCompanionPeople("builder")));
@@ -26874,7 +27146,7 @@
       document.querySelectorAll(".builder-apply-form .apply-chip.active, .builder-apply-form .profession-chip.active").forEach((item) => item.classList.remove("active"));
       document.querySelector('[data-chip-group="builder-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
       document.querySelectorAll(".builder-apply-form .apply-people-button").forEach((button) => {
-        button.classList.toggle("active", button.textContent.trim() === "혼자가요");
+        button.classList.toggle("active", button.dataset.joinMode !== "group");
       });
       document.getElementById("builderApplyPeopleAccordion")?.classList.remove("open");
       setCompanionPeople("builder", 1, { update: false });
@@ -29972,22 +30244,12 @@
     }
 
     function setGlobalApplyPeopleMode(mode) {
-      const isGroup = mode === "group";
-      const remaining = getGlobalApplyRemainingSeats();
-      if (isGroup && remaining < 2 && !globalApplyWaitlistApproved) {
-        showWaitlistApplyModal(
-          `${formatRemainingSeatText(remaining)}\n대기로 신청하시겠어요?`,
-          () => {
-            globalApplyWaitlistApproved = true;
-            setGlobalApplyPeopleMode("group");
-          },
-          () => setGlobalApplyPeopleMode("solo")
-        );
-        return;
-      }
+      const canGroup = getApplyAvailablePeople("global") > 1;
+      const isGroup = mode === "group" && canGroup;
       const accordion = document.getElementById("globalApplyPeopleAccordion");
+      syncApplyPeopleModeAvailability("global");
       document.querySelectorAll('[data-people-mode="global"] .apply-people-button').forEach((button) => {
-        button.classList.toggle("active", button.dataset.mode === mode);
+        button.classList.toggle("active", button.dataset.mode === (isGroup ? "group" : "solo"));
       });
       accordion?.classList.toggle("open", isGroup);
       if (!isGroup) {
@@ -30013,24 +30275,13 @@
     function updateGlobalApplyRemainingSeat() {
       const target = document.getElementById("globalApplyRemainingSeat");
       if (target) target.textContent = formatRemainingSeatText(getGlobalApplyRemainingSeats());
+      syncApplyPeopleModeAvailability("global");
     }
 
     function handleGlobalApplyPeopleOptionClick(event, value) {
       event?.preventDefault();
       const selectedCount = Number(String(value).replace(/\D/g, "")) || 2;
-      const remaining = getGlobalApplyRemainingSeats();
-      if (selectedCount > remaining && !globalApplyWaitlistApproved) {
-        showWaitlistApplyModal(
-          `${formatRemainingSeatText(remaining)}\n대기로 신청하시겠어요?`,
-          () => {
-            globalApplyWaitlistApproved = true;
-            setGlobalApplyPeopleCount(value);
-          },
-          () => setGlobalApplyPeopleMode("solo")
-        );
-        return;
-      }
-      setGlobalApplyPeopleCount(value);
+      setGlobalApplyPeopleCount(Math.min(selectedCount, getApplyAvailablePeople("global")));
     }
 
     function showWaitlistApplyModal(message, onConfirm, onSolo) {
@@ -31748,6 +31999,11 @@
         updateApplyProgressive();
         if (group.closest(".builder-apply-form")) {
           updateBuilderApplySummary();
+        }
+        if (group.dataset.chipGroup === "builder-gender") {
+          renderCompanionGenderRows("builder");
+        } else if (group.dataset.chipGroup === "global-gender") {
+          renderCompanionGenderRows("global");
         }
       });
     });

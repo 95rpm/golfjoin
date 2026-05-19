@@ -10756,12 +10756,17 @@
         min-height: 260px;
       }
       .sgj-page .join-product-section.layout-quick .join-card .join-thumb {
-        height: 100%;
+        align-self: stretch;
+        height: auto;
         min-height: 260px;
+        overflow: hidden;
         border-radius: 22px 0 0 22px;
       }
       .sgj-page .join-product-section.layout-quick .join-card .join-thumb > img:first-child {
+        display: block;
         height: 100%;
+        min-height: 100%;
+        max-height: 100%;
         border-radius: 22px 0 0 22px;
         clip-path: inset(0 round 22px 0 0 22px);
       }

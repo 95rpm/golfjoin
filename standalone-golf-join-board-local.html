@@ -2388,6 +2388,35 @@
     .calendar-sheet-body.is-loading-products .calendar-month {
       opacity: .82;
     }
+    .calendar-sheet-loading {
+      display: grid;
+      gap: 14px;
+      padding: 16px 0 24px;
+    }
+    .calendar-sheet-loading-title {
+      width: 42%;
+      height: 26px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #eef2f7, #f8fafc);
+    }
+    .calendar-sheet-loading-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .calendar-sheet-loading-cell {
+      aspect-ratio: 1;
+      min-height: 54px;
+      border: 1px solid rgba(219, 228, 238, 0.92);
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.78));
+    }
+    .calendar-sheet-loading-card {
+      height: 104px;
+      border: 1px solid rgba(219, 228, 238, 0.92);
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.78));
+    }
     .calendar-mobile-sticky {
       display: none;
     }
@@ -25411,6 +25440,29 @@
       `;
     }
 
+    function renderCalendarSheetLoading() {
+      const body = document.getElementById("calendarSheetBody");
+      if (!body) return;
+      closeCalendarEmptyScheduleSheet();
+      body.onscroll = null;
+      body.scrollTop = 0;
+      body.classList.add("is-loading-products");
+      body.classList.remove("mobile-date-selected", "calendar-calendar-expanded", "desktop-date-selected", "desktop-calendar-expanded");
+      delete body.dataset.mobileSelectedDate;
+      delete body.dataset.mobileSelectedMonth;
+      delete body.dataset.desktopSelectedDate;
+      delete body.dataset.desktopSelectedMonth;
+      body.innerHTML = `
+        <div class="calendar-sheet-loading" aria-live="polite" aria-busy="true">
+          <div class="calendar-sheet-loading-title skeleton-glass-shimmer"></div>
+          <div class="calendar-sheet-loading-grid">
+            ${Array.from({ length: 35 }).map(() => `<div class="calendar-sheet-loading-cell skeleton-glass-shimmer"></div>`).join("")}
+          </div>
+          ${Array.from({ length: 3 }).map(() => `<div class="calendar-sheet-loading-card skeleton-glass-shimmer"></div>`).join("")}
+        </div>
+      `;
+    }
+
     function renderCalendarSheet() {
       const { startMonth, endMonth } = getCalendarMonthBounds();
       const endMonthKey = getMonthKey(endMonth);
@@ -25516,13 +25568,18 @@
     }
 
     function openCalendarSheet() {
-      renderCalendarSheet();
-      portalOverlayToBody("calendarSheet")?.classList.add("open");
+      renderCalendarSheetLoading();
+      const overlay = portalOverlayToBody("calendarSheet");
+      overlay?.classList.add("open");
       setWidgetModalOpen(true);
-      ensureExternalGolfJoinProductsLoaded().then(() => {
-        if (document.getElementById("calendarSheet")?.classList.contains("open")) {
-          renderCalendarSheet();
-        }
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          ensureExternalGolfJoinProductsLoaded().finally(() => {
+            if (document.getElementById("calendarSheet")?.classList.contains("open")) {
+              renderCalendarSheet();
+            }
+          });
+        });
       });
     }
 

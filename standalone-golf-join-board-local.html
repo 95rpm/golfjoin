@@ -31622,10 +31622,18 @@
       for (const candidate of sheetCandidates) {
         const sheet = candidate.element;
         if (!sheet || !candidate.isOpen(sheet)) continue;
-        const isHandleArea = clientY > 0 && clientY - sheet.getBoundingClientRect().top <= 42;
-        const isHeaderArea = target?.closest?.(candidate.headerSelector);
-        if (isHandleArea || isHeaderArea) {
-          return { sheet, close: candidate.close };
+        const sheetRect = sheet.getBoundingClientRect();
+        const header = sheet.querySelector(candidate.headerSelector);
+        const headerTop = header?.getBoundingClientRect().top ?? sheetRect.top;
+        const isInsideSheet = target?.closest?.(`#${sheet.id}`) === sheet || sheet.contains(target);
+        const startsFromHeaderDown = clientY >= headerTop && clientY <= sheetRect.bottom;
+        if (isInsideSheet && startsFromHeaderDown) {
+          return {
+            sheet,
+            close: candidate.close,
+            maxTranslateY: Math.max(0, window.innerHeight - sheetRect.top),
+            previousTransition: sheet.style.transition
+          };
         }
       }
       return null;
@@ -31644,6 +31652,7 @@
         lastY: touch.clientY,
         config
       };
+      config.sheet.style.transition = "none";
     }, { passive: true, capture: true });
 
     document.addEventListener("touchmove", (event) => {
@@ -31652,13 +31661,15 @@
       if (!touch) return;
       mobileSheetDragState.lastY = touch.clientY;
       const deltaY = Math.max(0, touch.clientY - mobileSheetDragState.startY);
-      mobileSheetDragState.config.sheet.style.transform = deltaY ? `translateY(${Math.min(deltaY, 120)}px)` : "";
+      const maxTranslateY = mobileSheetDragState.config.maxTranslateY || window.innerHeight;
+      mobileSheetDragState.config.sheet.style.transform = deltaY ? `translateY(${Math.min(deltaY, maxTranslateY)}px)` : "";
     }, { passive: true, capture: true });
 
     document.addEventListener("touchend", () => {
       if (!mobileSheetDragState) return;
       const { startY, lastY, config } = mobileSheetDragState;
       config.sheet.style.transform = "";
+      config.sheet.style.transition = config.previousTransition || "";
       mobileSheetDragState = null;
       if (lastY - startY > 64) {
         config.close();

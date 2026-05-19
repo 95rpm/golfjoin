@@ -23943,11 +23943,41 @@
 
     function renderDetailReviews(join) {
       const reviews = getDetailReviews(join);
+      if (!reviews.length) return "";
       if (reviews.length <= 1) return renderDetailReviewCard(reviews[0]);
       return `
         <div class="detail-review-carousel" data-review-carousel onscroll="handleDetailReviewScroll(this)">
           ${reviews.map(renderDetailReviewCard).join("")}
           ${renderDetailReviewCard(reviews[0])}
+        </div>
+      `;
+    }
+
+    function hasDetailReviews(join) {
+      return getDetailReviews(join).length > 0;
+    }
+
+    function renderDetailPlaceSection(join) {
+      return `
+        <div class="detail-section" data-detail-section="place">
+          <div class="detail-section-title">시설정보</div>
+          <div class="detail-place-card">
+            <div class="detail-place-title">${join.title}</div>
+            <div class="detail-place-copy">${join.region} 지역의 골프장과 숙박 정보를 확인할 수 있습니다. 골프장 코스, 이동 동선, 주요 편의시설은 상품 상세에 맞춰 정리되어 표시됩니다.</div>
+            <div class="detail-place-gallery" aria-label="골프장과 숙소 이미지">
+              ${getDetailSlides(join).map((slide, index) => `<img class="detail-place-photo" src="${slide}" alt="${join.title} 시설 이미지 ${index + 1}">`).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDetailReviewSection(join) {
+      if (!hasDetailReviews(join)) return "";
+      return `
+        <div class="detail-section" data-detail-section="review">
+          <div class="detail-section-title">여행후기</div>
+          ${renderDetailReviews(join)}
         </div>
       `;
     }
@@ -23977,26 +24007,12 @@
 
     function renderDetailScheduleTabs(join) {
       return `
-        <div class="detail-content-tabs" role="tablist" aria-label="상세 정보 탭">
-          <button type="button" class="detail-content-tab active" data-detail-tab="schedule" onclick="switchDetailContentTab(this, 'schedule')">일정</button>
-          <button type="button" class="detail-content-tab" data-detail-tab="place" onclick="switchDetailContentTab(this, 'place')">시설정보</button>
-          <button type="button" class="detail-content-tab" data-detail-tab="review" onclick="switchDetailContentTab(this, 'review')">여행후기</button>
-        </div>
-        <div class="detail-tab-panel active" data-detail-tab-panel="schedule">
+        <div class="detail-section" data-detail-section="schedule">
+          <div class="detail-section-title">일정</div>
           ${renderDetailSchedule(join)}
         </div>
-        <div class="detail-tab-panel" data-detail-tab-panel="place">
-          <div class="detail-place-card">
-            <div class="detail-place-title">${join.title}</div>
-            <div class="detail-place-copy">${join.region} 지역의 골프장과 숙박 정보를 확인할 수 있습니다. 골프장 코스, 이동 동선, 주요 편의시설은 상품 상세에 맞춰 정리되어 표시됩니다.</div>
-            <div class="detail-place-gallery" aria-label="골프장과 숙소 이미지">
-              ${getDetailSlides(join).map((slide, index) => `<img class="detail-place-photo" src="${slide}" alt="${join.title} 시설 이미지 ${index + 1}">`).join("")}
-            </div>
-          </div>
-        </div>
-        <div class="detail-tab-panel" data-detail-tab-panel="review">
-          ${renderDetailReviews(join)}
-        </div>
+        ${renderDetailPlaceSection(join)}
+        ${renderDetailReviewSection(join)}
       `;
     }
 
@@ -24061,7 +24077,7 @@
 
     function startDetailReviewAutoSlide() {
       stopDetailReviewAutoSlide();
-      const carousel = document.querySelector("#detailContent .detail-tab-panel.active [data-review-carousel]");
+      const carousel = document.querySelector("#detailContent [data-review-carousel]");
       if (!carousel || carousel.children.length < 2) return;
       detailReviewAutoTimer = setInterval(() => {
         const firstCard = carousel.children[0];
@@ -24142,15 +24158,19 @@
 
       const stickyOffset = (tabs.offsetHeight || 0) + 16;
       let activeSection = "includes";
-      ["includes", "schedule", "participants"].forEach((sectionName) => {
+      const sectionNames = Array.from(body.querySelectorAll(".detail-anchor-chip"))
+        .map((chip) => chip.dataset.anchorTarget)
+        .filter(Boolean);
+      sectionNames.forEach((sectionName) => {
         const section = body.querySelector(`[data-detail-section="${sectionName}"]`);
         if (section && body.scrollTop + stickyOffset >= section.offsetTop) {
           activeSection = sectionName;
         }
       });
-      if (body.scrollTop + body.clientHeight >= body.scrollHeight - 4 && body.querySelector('[data-detail-section="participants"]')) {
+      const lastSectionName = sectionNames[sectionNames.length - 1];
+      if (body.scrollTop + body.clientHeight >= body.scrollHeight - 4 && lastSectionName) {
         tabs.classList.add("is-visible");
-        activeSection = "participants";
+        activeSection = lastSectionName;
       }
       body.querySelectorAll(".detail-anchor-chip").forEach((chip) => {
         chip.classList.toggle("active", chip.dataset.anchorTarget === activeSection);
@@ -31039,6 +31059,7 @@
       const participantCapacity = getCardTeamCapacity(join);
       const slides = getDetailSlides(join);
       const slideIndex = Math.max(0, Math.min(currentDetailSlideIndex, slides.length - 1));
+      const hasReviews = hasDetailReviews(join);
       currentDetailSlideIndex = slideIndex;
 
       document.getElementById("detailContent").innerHTML = `
@@ -31065,6 +31086,8 @@
         <div class="detail-anchor-tabs" aria-label="상세정보 바로가기">
           <button type="button" class="detail-anchor-chip" data-anchor-target="includes" onclick="scrollDetailSection('includes')">포함사항</button>
           <button type="button" class="detail-anchor-chip" data-anchor-target="schedule" onclick="scrollDetailSection('schedule')">일정</button>
+          <button type="button" class="detail-anchor-chip" data-anchor-target="place" onclick="scrollDetailSection('place')">시설정보</button>
+          ${hasReviews ? `<button type="button" class="detail-anchor-chip" data-anchor-target="review" onclick="scrollDetailSection('review')">여행후기</button>` : ""}
           ${isBuilderMode ? "" : `<button type="button" class="detail-anchor-chip" data-anchor-target="participants" onclick="scrollDetailSection('participants')">참여자</button>`}
         </div>
         <div class="detail-section" data-detail-section="includes">
@@ -31087,9 +31110,7 @@
           <div class="detail-section-title">참고사항</div>
           ${renderDetailNotes(join.notes || [])}
         </div>
-        <div class="detail-section" data-detail-section="schedule">
-          ${renderDetailScheduleTabs(join)}
-        </div>
+        ${renderDetailScheduleTabs(join)}
         ${isBuilderMode ? "" : `
           <div class="detail-section-title with-people" data-detail-section="participants" style="margin-top:24px;">
             <div>현재 참여자 (${confirmedParticipants.length}/${participantCapacity}명)</div>
@@ -31116,6 +31137,7 @@
       prepareDetailScheduleHeights();
       updateDetailAnchorTabs();
       bindDetailSliderSwipe();
+      startDetailReviewAutoSlide();
     }
 
     function isDetailSliderWindowed(slideCount) {

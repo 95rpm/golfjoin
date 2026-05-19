@@ -30577,14 +30577,25 @@
         .join(" ");
     }
 
+    function getJoinCustomFieldText(join = {}, fields = []) {
+      return collectCustomThemeSources(join)
+        .map((source) => fields.map((field) => source[field]).flat().join(" "))
+        .join(" ");
+    }
+
+    function hasJoinMemberPreference(preferences, target) {
+      const normalizedTarget = normalizeRegionKeyword(target);
+      return preferences.some((preference) => normalizeRegionKeyword(preference) === normalizedTarget);
+    }
+
     function isSeniorCustomJoin(join = {}) {
-      const text = getJoinApplicantText(join);
-      return /시니어|50대|60대|70대|80대|195\d|196\d|197[0-6]/.test(text);
+      const text = getJoinCustomFieldText(join, ["age", "ageDisplay", "birthYear"]);
+      return /60\s*대|70\s*대\s*이상|70\s*대|80\s*대|90\s*대|19[0-5]\d|196[0-6]/.test(text);
     }
 
     function isBeginnerCustomJoin(join = {}) {
-      const text = getJoinApplicantText(join);
-      return /초보|입문|110대|120대|초보배려/.test(text);
+      const text = getJoinCustomFieldText(join, ["level", "handicap"]);
+      return /입문|초보|편안한\s*보기\s*플레이|90\s*대/.test(text);
     }
 
     function isWomenCustomJoin(join = {}) {
@@ -30597,14 +30608,9 @@
     function getJoinCustomTheme(join = {}) {
       if (["beginner", "women", "senior"].includes(join.customTheme)) return join.customTheme;
       const preferences = getJoinMemberPreferences(join);
-      if (preferences.includes("같은 성별끼리") && isWomenCustomJoin(join)) return "women";
-      if (preferences.includes("같은 연령대") && isSeniorCustomJoin(join)) return "senior";
-      if (preferences.includes("비슷한 실력끼리") && isBeginnerCustomJoin(join)) return "beginner";
-      if (join.isBuilderApplicationJoin) {
-        if (isBeginnerCustomJoin(join)) return "beginner";
-        if (isWomenCustomJoin(join)) return "women";
-        if (isSeniorCustomJoin(join)) return "senior";
-      }
+      if (hasJoinMemberPreference(preferences, "같은 성별끼리") && isWomenCustomJoin(join)) return "women";
+      if (hasJoinMemberPreference(preferences, "같은 연령대") && isSeniorCustomJoin(join)) return "senior";
+      if (hasJoinMemberPreference(preferences, "비슷한 실력끼리") && isBeginnerCustomJoin(join)) return "beginner";
       return "";
     }
 

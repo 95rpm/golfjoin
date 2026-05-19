@@ -8076,11 +8076,19 @@
       position: absolute;
       top: 14px;
       bottom: 25px;
-      left: calc(50% - 5px);
       width: 1px;
       border-radius: 999px;
       background: #e2e8f0;
       pointer-events: none;
+    }
+    .apply-participant-rail.existing-divider-1::after {
+      left: calc(25% - 2.5px);
+    }
+    .apply-participant-rail.existing-divider-2::after {
+      left: calc(50% - .5px);
+    }
+    .apply-participant-rail.existing-divider-3::after {
+      left: calc(75% + 2.5px);
     }
     .apply-participant-slot {
       position: relative;
@@ -26306,7 +26314,7 @@
         ...visibleParticipants,
         ...Array.from({ length: Math.max(0, JOIN_MAX_CAPACITY - visibleParticipants.length) }).map(() => null)
       ];
-      const hasExistingDivider = existing.length === 2;
+      const existingDividerIndex = existing.length > 0 && existing.length < JOIN_MAX_CAPACITY ? existing.length : 0;
       const canAdd = genders.length < Math.max(0, availablePeople - 1);
       const newParticipants = [applicant, ...companions];
       const statusDivider = `<svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg>`;
@@ -26318,7 +26326,7 @@
           ${existingStatusLine}
           <div class="apply-companion-status-line"><div class="apply-companion-status-label">신규</div>${statusDivider}<div class="apply-companion-status-count">총 ${newParticipants.length}명</div>${statusDivider}<div class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(newParticipants)}</div></div>
         </div>
-        <div class="apply-participant-rail${hasExistingDivider ? " has-existing-divider" : ""}">
+        <div class="apply-participant-rail${existingDividerIndex ? ` has-existing-divider existing-divider-${existingDividerIndex}` : ""}">
           ${slots.map((participant, index) => renderApplyParticipantSlot(participant, index, scope)).join("")}
         </div>
         ${genders.map((gender, index) => `

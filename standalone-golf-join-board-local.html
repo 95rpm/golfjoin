@@ -32642,10 +32642,13 @@
         if (!sheet || !candidate.isOpen(sheet)) continue;
         const sheetRect = sheet.getBoundingClientRect();
         const header = sheet.querySelector(candidate.headerSelector);
-        const headerTop = header?.getBoundingClientRect().top ?? sheetRect.top;
         const isInsideSheet = target?.closest?.(`#${sheet.id}`) === sheet || sheet.contains(target);
-        const startsFromHeaderDown = clientY >= headerTop && clientY <= sheetRect.bottom;
-        if (isInsideSheet && startsFromHeaderDown) {
+        const headerRect = header?.getBoundingClientRect();
+        const startsFromHeader = !!header
+          && header.contains(target)
+          && clientY >= headerRect.top
+          && clientY <= headerRect.bottom;
+        if (isInsideSheet && startsFromHeader) {
           return {
             sheet,
             close: candidate.close,

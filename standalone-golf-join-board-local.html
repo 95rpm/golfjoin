@@ -13719,9 +13719,19 @@
         top: 0px !important;
         box-sizing: border-box !important;
         width: 100% !important;
-        padding: 8px 0 8px 22px !important;
+        max-width: 100% !important;
+        padding: 8px 22px !important;
         margin: 0 0 8px !important;
-        overflow: visible !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        overscroll-behavior-x: contain !important;
+        scrollbar-width: none !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-x !important;
+      }
+      #detailModal.open .detail-anchor-tabs::-webkit-scrollbar,
+      body > #detailModal.sgj-portal-overlay.open .detail-anchor-tabs::-webkit-scrollbar {
+        display: none !important;
       }
       #detailModal.open .detail-section,
       body > #detailModal.sgj-portal-overlay.open .detail-section {

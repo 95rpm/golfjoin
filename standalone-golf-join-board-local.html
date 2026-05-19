@@ -2968,6 +2968,22 @@
     .builder-calendar-card.is-loading-dates .builder-date-reset {
       pointer-events: none;
     }
+    .skeleton-glass-shimmer {
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .skeleton-glass-shimmer::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      transform: translateX(-135%);
+      background: linear-gradient(108deg, rgba(255, 255, 255, 0) 0%, rgba(226, 232, 240, 0.16) 28%, rgba(255, 255, 255, 0.82) 45%, rgba(203, 213, 225, 0.46) 52%, rgba(255, 255, 255, 0.78) 60%, rgba(255, 255, 255, 0) 100%);
+      filter: blur(.25px);
+      animation: skeletonGlassSweep 1.65s cubic-bezier(.4, 0, .2, 1) infinite;
+    }
     .builder-calendar-loading {
       position: absolute;
       left: 50%;
@@ -2978,31 +2994,55 @@
       padding: 14px 16px;
       border: 1px solid #dbe4ee;
       border-radius: 14px;
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.88));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 14px 34px rgba(15, 23, 42, 0.14);
       color: var(--text);
       font-size: 14px;
       font-weight: 800;
       line-height: 1.35;
       text-align: center;
       transform: translate(-50%, -50%);
+      overflow: hidden;
+      isolation: isolate;
+      backdrop-filter: blur(10px);
     }
     .builder-calendar-loading::before {
       content: "";
       display: block;
-      width: 24px;
-      height: 24px;
-      margin: 0 auto 8px;
-      border: 3px solid #dbe4ee;
-      border-top-color: var(--blue);
+      width: 100%;
+      height: 8px;
+      margin: 0 0 10px;
+      border: 0;
       border-radius: 999px;
-      animation: builderCalendarSpin .8s linear infinite;
+      background: linear-gradient(90deg, #e2e8f0, #f8fafc 45%, #cbd5e1 70%, #eef2f7);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.82);
+    }
+    .builder-calendar-loading::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      transform: translateX(-135%);
+      background: linear-gradient(108deg, rgba(255, 255, 255, 0) 0%, rgba(226, 232, 240, 0.14) 28%, rgba(255, 255, 255, 0.86) 45%, rgba(203, 213, 225, 0.48) 52%, rgba(255, 255, 255, 0.78) 60%, rgba(255, 255, 255, 0) 100%);
+      filter: blur(.25px);
+      animation: skeletonGlassSweep 1.65s cubic-bezier(.4, 0, .2, 1) infinite;
     }
     .builder-calendar-card.is-loading-dates .builder-calendar-loading {
       display: block;
     }
-    @keyframes builderCalendarSpin {
-      to { transform: rotate(360deg); }
+    @keyframes skeletonGlassSweep {
+      0% { transform: translateX(-135%); opacity: .22; }
+      18% { opacity: .95; }
+      100% { transform: translateX(135%); opacity: .28; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .skeleton-glass-shimmer::after,
+      .builder-calendar-loading::after {
+        animation: none;
+        transform: translateX(0);
+        opacity: .34;
+      }
     }
     .builder-calendar-head {
       display: grid;
@@ -4066,6 +4106,19 @@
       line-height: 30px;
       white-space: nowrap;
     }
+    .builder-region-product-count.is-loading {
+      min-width: 116px;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid rgba(219, 228, 238, 0.92);
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.82));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+    .builder-region-product-count.is-loading > div {
+      position: relative;
+      z-index: 1;
+    }
     .builder-region-product-date-context {
       display: inline;
     }
@@ -4546,6 +4599,16 @@
       font-size: 14px;
       font-weight: 800;
       text-align: center;
+    }
+    .builder-region-product-empty.is-loading {
+      min-height: 58px;
+      border: 1px solid rgba(219, 228, 238, 0.92);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.78));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 28px rgba(15, 23, 42, 0.06);
+    }
+    .builder-region-product-empty.is-loading > div {
+      position: relative;
+      z-index: 1;
     }
     .builder-text-input,
     .builder-textarea {
@@ -28940,7 +29003,7 @@
         : String(query || "").trim();
       area.innerHTML = `
         <div class="builder-region-product-head">
-          <div class="builder-region-product-count">${isLoading ? "상품 불러오는 중" : `${products.length}개 상품`}${productDateLabel && !isCompactProductView ? `<span class="builder-region-product-date-context"> · ${productDateLabel}</span>` : ""}</div>
+          <div class="builder-region-product-count${isLoading ? " is-loading skeleton-glass-shimmer" : ""}"><div>${isLoading ? "상품 불러오는 중" : `${products.length}개 상품`}${productDateLabel && !isCompactProductView ? `<span class="builder-region-product-date-context"> · ${productDateLabel}</span>` : ""}</div></div>
           <div class="builder-region-product-sort${regionProductSortMenuOpen ? " open" : ""}" aria-label="상품 정렬">
             <select onchange="setBuilderProductSort(this.value)">
               <option value="recommended" ${regionProductSort === "recommended" ? "selected" : ""}>추천순</option>
@@ -28963,7 +29026,7 @@
           <div class="builder-region-product-list">
             ${products.map(renderBuilderRegionProductCard).join("")}
           </div>
-        ` : `<div class="builder-region-product-empty">${isLoading ? "Secret Tour product API에서 상품을 불러오고 있습니다." : `${targetLabel || "선택 조건"}${productDateLabel ? ` · ${productDateLabel}` : ""}에 맞는 상품이 없습니다.`}</div>`}
+        ` : `<div class="builder-region-product-empty${isLoading ? " is-loading skeleton-glass-shimmer" : ""}"><div>${isLoading ? "Secret Tour product API에서 상품을 불러오고 있습니다." : `${targetLabel || "선택 조건"}${productDateLabel ? ` · ${productDateLabel}` : ""}에 맞는 상품이 없습니다.`}</div></div>`}
       `;
     }
 

@@ -8957,6 +8957,9 @@
       font-weight: 600;
       line-height: 1.35;
     }
+    .participant-meta-count {
+      color: #687cd6;
+    }
     .participant-name {
       color: var(--text);
       font-size: 17px;
@@ -29959,7 +29962,7 @@
         if (b === primaryLabel) return 1;
         return a.localeCompare(b, "ko");
       });
-      return orderedLabels.map((label) => `${label}${counts[label]}`).join(", ");
+      return orderedLabels.map((label) => `${escapeHtml(label)} <span class="participant-meta-count">${counts[label]}</span>`).join(" / ");
     }
 
     function formatParticipantGroupAges(participants) {
@@ -31347,7 +31350,7 @@
             <div class="participant-hero-info">
               <div class="participant-name">${escapeHtml(displayName)}</div>
               <div class="participant-meta">
-                <div>${escapeHtml(displayGender)}</div>
+                <div>${isGroup ? displayGender : escapeHtml(displayGender)}</div>
                 <div>·</div>
                 <div>${escapeHtml(displayAge)}</div>
               </div>

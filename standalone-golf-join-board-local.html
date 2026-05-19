@@ -5665,6 +5665,12 @@
       background: var(--text);
       transform: translateX(-50%);
     }
+    #regionSearchModal .region-search-type {
+      grid-template-columns: 1fr;
+    }
+    #regionSearchModal .region-search-type button:nth-child(2) {
+      display: none;
+    }
     .region-search-quickbar {
       display: none;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -27219,12 +27225,55 @@
       return `<div>${parts[0] || ""}</div>`;
     }
 
+    function isDomesticRegionCategory(category) {
+      return !SHOW_DOMESTIC_JOIN_PRODUCTS && normalizeRegionKeyword(category?.category) === normalizeRegionKeyword("국내");
+    }
+
+    function getRegionDisplayCategories({ builderContext = false } = {}) {
+      return regionTree
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => !isDomesticRegionCategory(item))
+        .filter(({ item }) => !builderContext || isBuilderCategoryAvailable(item));
+    }
+
+    function getRegionScheduledLeafNames() {
+      const names = new Set();
+      regionTree.forEach((category) => {
+        if (isDomesticRegionCategory(category)) return;
+        (category.countries || []).forEach((country) => {
+          const cities = Array.isArray(country.cities) ? country.cities : [];
+          if (!cities.length) {
+            if (hasRegisteredRegionSchedule(country.name)) names.add(normalizeRegionKeyword(country.name));
+            return;
+          }
+          cities.forEach((city) => {
+            const label = regionLabel(city, country.name);
+            if (hasRegisteredRegionSchedule(label)) names.add(normalizeRegionKeyword(label));
+          });
+        });
+      });
+      return names;
+    }
+
+    function hasRegisteredRegionLeafSchedule(name) {
+      return getRegionScheduledLeafNames().has(normalizeRegionKeyword(name));
+    }
+
+    function hasRegisteredRegionSubregionSchedule(country) {
+      const cities = Array.isArray(country?.cities) ? country.cities : [];
+      return cities.some((city) => hasRegisteredRegionLeafSchedule(regionLabel(city, country.name)));
+    }
+
     function hasRegisteredRegionSchedule(name) {
       return getVisibleJoinProducts().some((join) => joinMatchesRegionSearch(join, name));
     }
 
-    function regionHotBadgeHtml(name) {
-      return hasRegisteredRegionSchedule(name) ? `<span class="region-desktop-hot-badge">HOT</span>` : "";
+    function regionCountryHotBadgeHtml(country) {
+      return hasRegisteredRegionSubregionSchedule(country) ? `<span class="region-desktop-hot-badge">HOT</span>` : "";
+    }
+
+    function regionLeafHotBadgeHtml(name) {
+      return hasRegisteredRegionLeafSchedule(name) ? `<span class="region-desktop-hot-badge">HOT</span>` : "";
     }
 
     function renderRegionDesktop() {
@@ -27233,17 +27282,15 @@
       const cities = document.getElementById("regionDesktopCities");
       if (!categories || !countries || !cities) return;
       const builderContext = regionSearchContext === "builder";
-      const displayCategories = builderContext
-        ? regionTree.map((item, index) => ({ item, index })).filter(({ item }) => isBuilderCategoryAvailable(item))
-        : regionTree.map((item, index) => ({ item, index }));
-      if (builderContext && !displayCategories.some(({ index }) => index === activeRegionCategoryIndex)) {
+      const displayCategories = getRegionDisplayCategories({ builderContext });
+      if (!displayCategories.some(({ index }) => index === activeRegionCategoryIndex)) {
         activeRegionCategoryIndex = displayCategories[0]?.index || 0;
-        activeRegionCountryIndex = getFirstBuilderAvailableCountryIndex(regionTree[activeRegionCategoryIndex]);
+        activeRegionCountryIndex = builderContext ? getFirstBuilderAvailableCountryIndex(regionTree[activeRegionCategoryIndex]) : 0;
       }
-      const activeCategory = regionTree[activeRegionCategoryIndex] || displayCategories[0]?.item || regionTree[0];
+      const activeCategory = displayCategories.find(({ index }) => index === activeRegionCategoryIndex)?.item || displayCategories[0]?.item;
       const activeCountries = builderContext
         ? getBuilderAvailableCountries(activeCategory)
-        : (activeCategory.countries || []).map((country, countryIndex) => ({ country, countryIndex }));
+        : (activeCategory?.countries || []).map((country, countryIndex) => ({ country, countryIndex }));
       if (builderContext && !activeCountries.some(({ countryIndex }) => countryIndex === activeRegionCountryIndex)) {
         activeRegionCountryIndex = getFirstBuilderAvailableCountryIndex(activeCategory);
       }
@@ -27260,7 +27307,7 @@
         const hasChildren = Array.isArray(item.cities) && item.cities.length > 0;
         return `
           <button type="button" class="region-desktop-button ${countryIndex === activeRegionCountryIndex ? "active" : ""} ${hasChildren ? "has-children" : ""}" onclick="selectRegionCountry(${countryIndex})">
-            <div class="region-desktop-label"><span>${item.name}</span>${regionHotBadgeHtml(item.name)}</div>
+            <div class="region-desktop-label"><span>${item.name}</span>${regionCountryHotBadgeHtml(item)}</div>
             ${hasChildren ? `
               <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -27276,13 +27323,13 @@
           const label = regionLabel(city, activeCountry.name);
           return `
           <button type="button" class="region-desktop-city" onclick="selectDesktopRegion('${label.replace(/'/g, "\\'")}')">
-            <div class="region-desktop-label"><span>${city}</span>${regionHotBadgeHtml(regionLabel(city, activeCountry.name))}</div>
+            <div class="region-desktop-label"><span>${city}</span>${regionLeafHotBadgeHtml(label)}</div>
           </button>
         `;
         }).join("")
         : (() => {
           if (!activeCountry) return `<div class="region-result-empty">선택 가능한 지역이 없습니다.</div>`;
-          return `<button type="button" class="region-desktop-city" onclick="selectDesktopRegion('${activeCountry.name.replace(/'/g, "\\'")}')"><div class="region-desktop-label"><span>${activeCountry.name}</span>${regionHotBadgeHtml(activeCountry.name)}</div></button>`;
+          return `<button type="button" class="region-desktop-city" onclick="selectDesktopRegion('${activeCountry.name.replace(/'/g, "\\'")}')"><div class="region-desktop-label"><span>${activeCountry.name}</span>${regionLeafHotBadgeHtml(activeCountry.name)}</div></button>`;
         })();
       cities.innerHTML = `<div class="region-desktop-city-list">${cityButtons}</div>`;
       renderRegionRecent();
@@ -27294,9 +27341,8 @@
       const body = document.querySelector("#regionSearchModal .region-search-body");
       if (!body) return;
       const builderContext = regionSearchContext === "builder";
-      const displayCategories = builderContext
-        ? regionTree.map((category, categoryIndex) => ({ category, categoryIndex })).filter(({ category }) => isBuilderCategoryAvailable(category))
-        : regionTree.map((category, categoryIndex) => ({ category, categoryIndex }));
+      const displayCategories = getRegionDisplayCategories({ builderContext })
+        .map(({ item, index }) => ({ category: item, categoryIndex: index }));
       body.innerHTML = displayCategories.map(({ category, categoryIndex }) => {
         const countries = builderContext
           ? getBuilderAvailableCountries(category)
@@ -27309,11 +27355,11 @@
             const key = `${categoryIndex}:${actualIndex}`;
             const isActive = activeMobileRegionCountryKey === key && cities.length > 0;
             if (!cities.length) {
-              return `<button type="button" class="region-option" data-region="${country.name}" onclick="selectRegionResult('${country.name.replace(/'/g, "\\'")}')"><span>${country.name}</span>${regionHotBadgeHtml(country.name)}</button>`;
+              return `<button type="button" class="region-option" data-region="${country.name}" onclick="selectRegionResult('${country.name.replace(/'/g, "\\'")}')"><span>${country.name}</span>${regionLeafHotBadgeHtml(country.name)}</button>`;
             }
             return `
               <button type="button" class="region-subgroup-toggle ${isActive ? "active" : ""}" onclick="toggleMobileRegionCountry(${categoryIndex}, ${actualIndex})">
-                <span>${country.name}</span>${regionHotBadgeHtml(country.name)}
+                <span>${country.name}</span>${regionCountryHotBadgeHtml(country)}
               </button>
             `;
           }).join("");
@@ -27328,10 +27374,10 @@
               ${rowCountryHtml}
               ${activeCountry ? `
                 <div class="region-subregion-list">
-                  <button type="button" class="region-subregion-heading" data-region="${activeCountry.name}" onclick="selectRegionResult('${activeCountry.name.replace(/'/g, "\\'")}')"><span>${activeCountry.name} 전체</span>${regionHotBadgeHtml(activeCountry.name)}</button>
+                  <button type="button" class="region-subregion-heading" data-region="${activeCountry.name}" onclick="selectRegionResult('${activeCountry.name.replace(/'/g, "\\'")}')"><span>${activeCountry.name} 전체</span>${regionCountryHotBadgeHtml(activeCountry)}</button>
                   ${activeCities.map((city) => {
                     const label = regionLabel(city, activeCountry.name);
-                    return `<button type="button" class="region-subregion" data-region="${label}" onclick="selectRegionResult('${label.replace(/'/g, "\\'")}')"><span>${city}</span>${regionHotBadgeHtml(label)}</button>`;
+                    return `<button type="button" class="region-subregion" data-region="${label}" onclick="selectRegionResult('${label.replace(/'/g, "\\'")}')"><span>${city}</span>${regionLeafHotBadgeHtml(label)}</button>`;
                   }).join("")}
                 </div>
               ` : ""}
@@ -28561,8 +28607,8 @@
           : `<div class="region-result-suggestions"><div class="region-result-empty">검색 결과가 없습니다.</div></div>`;
         return;
       }
-      const displayCategories = regionTree
-        .map((category, categoryIndex) => ({ category, categoryIndex }))
+      const displayCategories = getRegionDisplayCategories({ builderContext: true })
+        .map(({ item, index }) => ({ category: item, categoryIndex: index }))
         .filter(({ category }) => isBuilderCategoryAvailable(category));
       syncBuilderRegionAutoExpand(displayCategories);
       body.innerHTML = displayCategories.length ? displayCategories.map(({ category, categoryIndex }) => {
@@ -28575,11 +28621,11 @@
             const key = `${categoryIndex}:${actualIndex}`;
             const isActive = activeBuilderRegionCountryKey === key && cities.length > 0;
             if (!cities.length) {
-              return `<button type="button" class="region-option" onclick="selectBuilderEmbeddedRegion('${country.name.replace(/'/g, "\\'")}')"><span>${country.name}</span>${regionHotBadgeHtml(country.name)}</button>`;
+              return `<button type="button" class="region-option" onclick="selectBuilderEmbeddedRegion('${country.name.replace(/'/g, "\\'")}')"><span>${country.name}</span>${regionLeafHotBadgeHtml(country.name)}</button>`;
             }
             return `
               <button type="button" class="region-subgroup-toggle ${isActive ? "active" : ""}" onclick="toggleBuilderRegionCountry(${categoryIndex}, ${actualIndex})">
-                <span>${country.name}</span>${regionHotBadgeHtml(country.name)}
+                <span>${country.name}</span>${regionCountryHotBadgeHtml(country)}
               </button>
             `;
           }).join("");
@@ -28594,10 +28640,10 @@
               ${rowCountryHtml}
               ${activeCountry ? `
                 <div class="region-subregion-list">
-                  <button type="button" class="region-subregion-heading" onclick="selectBuilderEmbeddedRegion('${activeCountry.name.replace(/'/g, "\\'")}')"><span>${activeCountry.name} 전체</span>${regionHotBadgeHtml(activeCountry.name)}</button>
+                  <button type="button" class="region-subregion-heading" onclick="selectBuilderEmbeddedRegion('${activeCountry.name.replace(/'/g, "\\'")}')"><span>${activeCountry.name} 전체</span>${regionCountryHotBadgeHtml(activeCountry)}</button>
                   ${activeCities.map((city) => {
                     const label = regionLabel(city, activeCountry.name);
-                    return `<button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('${label.replace(/'/g, "\\'")}')"><span>${city}</span>${regionHotBadgeHtml(label)}</button>`;
+                    return `<button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('${label.replace(/'/g, "\\'")}')"><span>${city}</span>${regionLeafHotBadgeHtml(label)}</button>`;
                   }).join("")}
                 </div>
               ` : ""}

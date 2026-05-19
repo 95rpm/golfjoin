@@ -26302,9 +26302,12 @@
       const hasExistingDivider = existing.length === 2;
       const canAdd = genders.length < Math.max(0, availablePeople - 1);
       const newParticipants = [applicant, ...companions];
+      const existingStatusLine = scope === "global"
+        ? `<span class="apply-companion-status-line"><strong>기존 참여 ${existing.length}명</strong><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg><span>${formatApplyParticipantGenderCounts(existing)}</span></span>`
+        : "";
       list.innerHTML = `
         <div class="apply-companion-status">
-          <span class="apply-companion-status-line"><strong>기존 참여 ${existing.length}명</strong><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg><span>${formatApplyParticipantGenderCounts(existing)}</span></span>
+          ${existingStatusLine}
           <span class="apply-companion-status-line"><strong>신규 신청 ${newParticipants.length}명</strong><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg><span>${formatApplyParticipantGenderCounts(newParticipants)}</span></span>
         </div>
         <div class="apply-participant-rail${hasExistingDivider ? " has-existing-divider" : ""}">

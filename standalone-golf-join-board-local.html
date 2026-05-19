@@ -1457,6 +1457,9 @@
       bottom: 14px;
       left: 14px;
     }
+    .join-product-section.layout-custom .join-location-badge {
+      max-width: calc(100% - 28px);
+    }
     .join-product-section.layout-custom .join-card .join-card-feature-tag {
       display: inline-flex;
       width: fit-content;
@@ -1815,8 +1818,8 @@
       white-space: nowrap;
     }
     .join-flight-chip.included {
-      background: #fff7ed;
-      color: #c2410c;
+      background: #ecfeff;
+      color: #0e7490;
     }
     .join-flight-chip.excluded {
       background: #f1f5f9;
@@ -2033,20 +2036,23 @@
     }
     .team-avatar:hover {
       border-color: #3b82f6;
-      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
+      box-shadow: none;
     }
     .team-avatar.participant-flow-avatar:hover {
       border-color: transparent;
-      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
+      background:
+        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
+        linear-gradient(#3b82f6, #3b82f6) border-box;
+      box-shadow: none;
     }
     .detail-team .team-avatar:hover {
       border-color: #3b82f6;
-      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
-      transform: translateY(-1px);
+      box-shadow: none;
+      transform: none;
     }
     .detail-team .team-avatar.participant-flow-avatar:hover {
       border-color: transparent;
-      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
+      box-shadow: none;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -8975,7 +8981,7 @@
       top: 2px;
       z-index: var(--participant-stack-z, 1);
       opacity: var(--participant-stack-opacity, 1);
-      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+      box-shadow: none;
     }
     .participant-meta {
       font-size: 13px;
@@ -13294,7 +13300,10 @@
     .sgj-page .team-avatar.participant-flow-avatar:hover,
     .detail-team .team-avatar.participant-flow-avatar:hover {
       border-color: transparent;
-      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
+      background:
+        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
+        linear-gradient(#3b82f6, #3b82f6) border-box;
+      box-shadow: none;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -29310,7 +29319,7 @@
 
     function getApplyAgeDisplay() {
       const birthYear = document.getElementById("globalApplyBirthYear")?.value.trim();
-      if (!/^\d{4}$/.test(birthYear || "")) return "50대초반";
+      if (!/^\d{4}$/.test(birthYear || "")) return "50대 초반";
       const year = Number(birthYear);
       const currentYear = new Date().getFullYear();
       const age = currentYear - year;
@@ -29318,7 +29327,7 @@
       const decade = Math.min(Math.floor(age / 10) * 10, 70);
       const ones = age % 10;
       const phase = ones <= 3 ? "초반" : ones <= 6 ? "중반" : "후반";
-      return `${decade >= 70 ? "70대이상" : `${decade}대`}${phase}`;
+      return `${decade >= 70 ? "70대이상" : `${decade}대`} ${phase}`;
     }
 
     function formatApplyBirthYear(input) {
@@ -31359,7 +31368,7 @@
       const age = String(participant?.age || "").trim();
       const detail = String(participant?.ageDetail || participant?.agePhase || "").trim();
       if (!age) return "";
-      if (/초반|중반|후반/.test(age)) return age;
+      if (/초반|중반|후반/.test(age)) return age.replace(/(대(?:이상)?)(초반|중반|후반)/g, "$1 $2");
       if (detail) return `${age} ${detail}`;
 
       const phases = ["초반", "중반", "후반"];

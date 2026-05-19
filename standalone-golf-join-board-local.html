@@ -1457,9 +1457,6 @@
       bottom: 14px;
       left: 14px;
     }
-    .join-product-section.layout-custom .join-location-badge {
-      max-width: calc(100% - 28px);
-    }
     .join-product-section.layout-custom .join-card .join-card-feature-tag {
       display: inline-flex;
       width: fit-content;
@@ -1818,8 +1815,8 @@
       white-space: nowrap;
     }
     .join-flight-chip.included {
-      background: #f5f3ff;
-      color: #6d28d9;
+      background: #fff7ed;
+      color: #c2410c;
     }
     .join-flight-chip.excluded {
       background: #f1f5f9;
@@ -1961,14 +1958,6 @@
       animation: participant-border-spin 8s linear infinite;
       animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
-      transition: none;
-    }
-
-    .team-avatar:not(.participant-flow-avatar) {
-      --participant-border-angle: 0deg;
-      --participant-flow-color-1: #3b82f6;
-      --participant-flow-color-2: #60a5fa;
-      --participant-flow-glow: rgba(59, 130, 246, 0.28);
     }
 
     .team-avatar.participant-flow-avatar.participant-gender-male {
@@ -2042,13 +2031,22 @@
       height: 56px;
       flex-basis: 56px;
     }
-    .team-avatar.participant-flow-avatar:hover,
+    .team-avatar:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
+    }
+    .team-avatar.participant-flow-avatar:hover {
+      border-color: transparent;
+      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
+    }
+    .detail-team .team-avatar:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
+      transform: translateY(-1px);
+    }
     .detail-team .team-avatar.participant-flow-avatar:hover {
-      border: 2px solid transparent;
-      background:
-        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
-        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
-        linear-gradient(#d1d5db, #d1d5db) border-box;
+      border-color: transparent;
+      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -7065,31 +7063,29 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0 !important;
-      width: 100%;
       height: 52px;
       min-height: 52px;
       align-self: start;
       padding: 4px;
-      border: 0;
+      border: 1px solid #e2e8f0;
       border-radius: 999px;
       overflow: hidden;
-      background: #f1f5f9;
-      cursor: pointer;
-      user-select: none;
+      background: #fff;
+      box-shadow: none;
     }
     .traveler-gender-select::before {
       content: "";
       position: absolute;
       top: 4px;
-      bottom: 4px;
       left: 4px;
-      width: calc(50% - 4px);
+      width: calc((100% - 8px) / 2);
+      height: calc(100% - 8px);
       border-radius: 999px;
       background: #fff;
-      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.16), 0 1px 2px rgba(15, 23, 42, 0.08);
+      box-shadow: none;
       opacity: 0;
       transform: translateX(0);
-      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), opacity .16s ease;
+      transition: transform .24s cubic-bezier(.4, 0, .2, 1), opacity .16s ease;
       pointer-events: none;
     }
     .traveler-gender-select:has(.apply-chip.active)::before {
@@ -7101,14 +7097,10 @@
     .traveler-gender-select .apply-chip {
       position: relative;
       z-index: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
       width: 100%;
       min-width: 0;
-      height: 44px;
-      min-height: 44px;
+      height: 42px;
+      min-height: 42px;
       padding: 0 10px;
       border: 0;
       border-radius: 999px;
@@ -7117,7 +7109,7 @@
       color: #94a3b8;
       font-size: 15px !important;
       font-weight: 800;
-      transition: color .3s ease;
+      transition: color .18s ease;
     }
     .traveler-gender-select .apply-chip:hover {
       border-color: transparent;
@@ -7125,34 +7117,18 @@
       color: #64748b;
     }
     .traveler-gender-select .apply-chip:focus-visible {
-      outline: 2px solid rgba(59, 130, 246, 0.32);
+      outline: 2px solid rgba(107, 114, 128, 0.36);
       outline-offset: -2px;
     }
     .traveler-gender-select .apply-chip.active {
       z-index: 1;
       border-color: transparent;
       background: transparent;
+      color: var(--text);
       box-shadow: none;
-      font-weight: 900;
-    }
-    .traveler-gender-select .apply-chip:first-child.active {
-      color: #2563eb;
-    }
-    .traveler-gender-select .apply-chip:last-child.active {
-      color: #f43f5e;
-    }
-    .gender-toggle-icon {
-      width: 16px;
-      height: 16px;
-      flex: 0 0 16px;
-      stroke: currentColor;
-      stroke-width: 2.3;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      fill: none;
     }
     .detail-apply-panel .field.has-error .traveler-gender-select {
-      border: 1px solid #ef4444;
+      border-color: #ef4444;
       box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
     }
     .apply-error {
@@ -7890,33 +7866,31 @@
       position: relative;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      flex: 0 0 152px;
-      width: 152px;
-      height: 44px;
-      min-height: 44px;
+      flex: 0 0 112px;
+      width: 112px;
+      height: 40px;
+      min-height: 40px;
       gap: 0;
-      padding: 4px;
-      border: 0;
+      padding: 3px;
+      border: 1px solid #e2e8f0;
       border-radius: 999px;
       overflow: hidden;
-      background: #f1f5f9;
+      background: #fff;
       box-shadow: none;
-      cursor: pointer;
-      user-select: none;
     }
     .apply-companion-gender-options::before {
       content: "";
       position: absolute;
-      top: 4px;
-      bottom: 4px;
-      left: 4px;
-      width: calc(50% - 4px);
+      top: 3px;
+      left: 3px;
+      width: calc((100% - 6px) / 2);
+      height: calc(100% - 6px);
       border-radius: 999px;
       background: #fff;
-      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.16), 0 1px 2px rgba(15, 23, 42, 0.08);
+      box-shadow: none;
       opacity: 0;
       transform: translateX(0);
-      transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), opacity .16s ease;
+      transition: transform .24s cubic-bezier(.4, 0, .2, 1), opacity .16s ease;
       pointer-events: none;
     }
     .apply-companion-gender-options:has(.apply-companion-gender-button.active)::before {
@@ -7928,12 +7902,8 @@
     .apply-companion-gender-button {
       position: relative;
       z-index: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
       min-width: 0;
-      min-height: 36px;
+      min-height: 32px;
       border: 0;
       border-radius: 999px;
       background: transparent;
@@ -7941,32 +7911,21 @@
       font-size: 14px;
       font-weight: 800;
       line-height: 1.25;
-      transition: color .3s ease;
+      transition: color .18s ease;
     }
     .apply-companion-gender-button:hover {
       color: #64748b;
     }
     .apply-companion-gender-button:focus-visible {
-      outline: 2px solid rgba(59, 130, 246, 0.32);
+      outline: 2px solid rgba(107, 114, 128, 0.36);
       outline-offset: -2px;
     }
     .apply-companion-gender-button.active {
       z-index: 1;
       border-color: transparent;
       background: transparent;
+      color: var(--text);
       box-shadow: none;
-      font-weight: 900;
-    }
-    .apply-companion-gender-button:first-child.active {
-      color: #2563eb;
-    }
-    .apply-companion-gender-button:last-child.active {
-      color: #f43f5e;
-    }
-    .apply-companion-gender-button .gender-toggle-icon {
-      width: 14px;
-      height: 14px;
-      flex-basis: 14px;
     }
     .apply-companion-error {
       display: none;
@@ -9002,8 +8961,7 @@
     }
     .participant-thumb-stack {
       --participant-thumb-size: 48px;
-      --participant-thumb-step: 14px;
-      --participant-thumb-gap: 2px;
+      --participant-thumb-overlap: 6px;
       --participant-stack-width: var(--participant-thumb-size);
       --participant-stack-mobile-width: var(--participant-stack-width);
       position: relative;
@@ -9015,15 +8973,9 @@
       position: absolute;
       left: var(--participant-stack-left, 0);
       top: 2px;
-      transform: translateY(calc((var(--participant-thumb-size) - var(--participant-stack-size, var(--participant-thumb-size))) / 2));
       z-index: var(--participant-stack-z, 1);
-      width: var(--participant-stack-size, var(--participant-thumb-size));
-      height: var(--participant-stack-size, var(--participant-thumb-size));
-      flex-basis: var(--participant-stack-size, var(--participant-thumb-size));
-      border: var(--participant-thumb-gap) solid #fff;
-      outline: 1px solid #d1d5db;
-      opacity: 1;
-      box-shadow: none;
+      opacity: var(--participant-stack-opacity, 1);
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
     }
     .participant-meta {
       font-size: 13px;
@@ -12000,7 +11952,7 @@
       }
       .participant-thumb-stack {
         --participant-thumb-size: 58px;
-        --participant-thumb-step: 16px;
+        --participant-thumb-overlap: 7px;
         width: var(--participant-stack-mobile-width);
         height: 64px;
         flex-basis: var(--participant-stack-mobile-width);
@@ -12008,10 +11960,6 @@
       .participant-thumb-stack .participant-thumb {
         left: var(--participant-stack-mobile-left, var(--participant-stack-left, 0));
         top: 3px;
-        transform: translateY(calc((var(--participant-thumb-size) - var(--participant-stack-mobile-size, var(--participant-stack-size, var(--participant-thumb-size))) / 2));
-        width: var(--participant-stack-mobile-size, var(--participant-stack-size, var(--participant-thumb-size)));
-        height: var(--participant-stack-mobile-size, var(--participant-stack-size, var(--participant-thumb-size)));
-        flex-basis: var(--participant-stack-mobile-size, var(--participant-stack-size, var(--participant-thumb-size)));
       }
       .participant-name {
         font-size: 19px;
@@ -13327,19 +13275,12 @@
       }
     }
 
-    .team-avatar,
     .team-avatar.participant-flow-avatar,
-    .sgj-page .team-avatar,
     .sgj-page .team-avatar.participant-flow-avatar,
-    .sgj-page .join-soon-compact-team .team-avatar,
     .sgj-page .join-soon-compact-team .team-avatar.participant-flow-avatar,
-    .calendar-product-participants .team-avatar,
-    #regionSearchModal .region-product-team .team-avatar,
     #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
-    .calendar-accordion-list .region-product-team .team-avatar,
     .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
-      border-color: transparent;
-      border-style: solid;
+      border: 2px solid transparent;
       background:
         linear-gradient(#fbfcfe, #fbfcfe) padding-box,
         conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
@@ -13347,39 +13288,20 @@
       animation: participant-border-spin 8s linear infinite;
       animation-delay: var(--participant-flow-delay, 0s);
       box-shadow: none;
-      transform: none;
-      transition: none;
     }
 
-    .team-avatar:hover,
     .team-avatar.participant-flow-avatar:hover,
-    .sgj-page .team-avatar:hover,
     .sgj-page .team-avatar.participant-flow-avatar:hover,
-    .detail-team .team-avatar:hover,
-    .detail-team .team-avatar.participant-flow-avatar:hover,
-    .calendar-product-participants .team-avatar:hover,
-    #regionSearchModal .region-product-team .team-avatar:hover,
-    .calendar-accordion-list .region-product-team .team-avatar:hover {
+    .detail-team .team-avatar.participant-flow-avatar:hover {
       border-color: transparent;
-      background:
-        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
-        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
-        linear-gradient(#d1d5db, #d1d5db) border-box;
-      box-shadow: none;
-      transform: none;
+      box-shadow: 0 10px 24px rgba(26, 46, 70, 0.14);
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .team-avatar,
       .team-avatar.participant-flow-avatar,
-      .sgj-page .team-avatar,
       .sgj-page .team-avatar.participant-flow-avatar,
-      .sgj-page .join-soon-compact-team .team-avatar,
       .sgj-page .join-soon-compact-team .team-avatar.participant-flow-avatar,
-      .calendar-product-participants .team-avatar,
-      #regionSearchModal .region-product-team .team-avatar,
       #regionSearchModal .region-product-team .team-avatar.participant-flow-avatar,
-      .calendar-accordion-list .region-product-team .team-avatar,
       .calendar-accordion-list .region-product-team .team-avatar.participant-flow-avatar {
         animation: none;
       }
@@ -21915,8 +21837,8 @@
                 </div>
                 <div class="field" data-builder-apply-field="gender">
                   <div class="apply-chip-group traveler-gender-select" data-chip-group="builder-gender">
-                    <button type="button" class="apply-chip" data-value="남성"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="14" r="5"/><path d="M14 10l6-6"/><path d="M15 4h5v5"/></svg><span>남성</span></button>
-                    <button type="button" class="apply-chip" data-value="여성"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg><span>여성</span></button>
+                    <button type="button" class="apply-chip" data-value="남성">남</button>
+                    <button type="button" class="apply-chip" data-value="여성">여</button>
                   </div>
                   <div class="apply-error">성별을 선택해 주세요.</div>
                 </div>
@@ -22024,7 +21946,6 @@
                   <label>선호 멤버 구성</label>
                   <div class="apply-field-helper">맞춤형 조인 노출 조건에 반영돼요. 원하는 구성을 선택해 주세요.</div>
                   <div class="apply-chip-group" data-chip-group="builder-member-preference" data-multi="true" data-max="3">
-                    <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 &#x1F389;</button>
                     <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 &#x1F465;</button>
                     <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 &#x1F382;</button>
                     <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 &#x26F3;</button>
@@ -22214,8 +22135,8 @@
             </div>
             <div class="field" data-apply-field="gender">
               <div class="apply-chip-group traveler-gender-select" data-chip-group="global-gender">
-                <button type="button" class="apply-chip" data-value="남성"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="14" r="5"/><path d="M14 10l6-6"/><path d="M15 4h5v5"/></svg><span>남성</span></button>
-                <button type="button" class="apply-chip" data-value="여성"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg><span>여성</span></button>
+                <button type="button" class="apply-chip" data-value="남성">남</button>
+                <button type="button" class="apply-chip" data-value="여성">여</button>
               </div>
               <div class="apply-error">성별을 선택해 주세요.</div>
             </div>
@@ -22323,7 +22244,6 @@
               <label>선호 멤버 구성</label>
               <div class="apply-field-helper">맞춤형 조인 노출 조건에 반영돼요. 원하는 구성을 선택해 주세요.</div>
               <div class="apply-chip-group" data-chip-group="global-member-preference" data-multi="true" data-max="3">
-                <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 &#x1F389;</button>
                 <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 &#x1F465;</button>
                 <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 &#x1F382;</button>
                 <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 &#x26F3;</button>
@@ -25720,8 +25640,8 @@
           <div class="apply-companion-card" data-companion-index="${index}">
             <div class="apply-companion-name">동반자 ${index + 1}</div>
             <div class="apply-companion-gender-options" role="group" aria-label="동반자 ${index + 1} 성별">
-              <button type="button" class="apply-companion-gender-button${selected === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="14" r="5"/><path d="M14 10l6-6"/><path d="M15 4h5v5"/></svg><span>남성</span></button>
-              <button type="button" class="apply-companion-gender-button${selected === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')"><svg class="gender-toggle-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg><span>여성</span></button>
+              <button type="button" class="apply-companion-gender-button${selected === "남성" ? " active" : ""}" data-gender="남성" onclick="selectCompanionGender('${scope}', ${index}, '남성')">남</button>
+              <button type="button" class="apply-companion-gender-button${selected === "여성" ? " active" : ""}" data-gender="여성" onclick="selectCompanionGender('${scope}', ${index}, '여성')">여</button>
             </div>
           </div>
         `;
@@ -30006,15 +29926,12 @@
         return `<div class="participant-thumb"><img src="${first.gif}" alt="${escapeHtml(first.name || "참여자")}"></div>`;
       }
       const stackCount = orderedParticipants.length;
-      const desktopStep = 14;
-      const mobileStep = 16;
-      const desktopWidth = 48 + (stackCount - 1) * desktopStep;
-      const mobileWidth = 58 + (stackCount - 1) * mobileStep;
+      const desktopWidth = 48 + (stackCount - 1) * 6;
+      const mobileWidth = 58 + (stackCount - 1) * 7;
       const thumbs = orderedParticipants.map((participant, index) => {
         const zIndex = stackCount - index;
-        const desktopSize = Math.max(36, 48 - index * 4);
-        const mobileSize = Math.max(44, 58 - index * 5);
-        return `<div class="participant-thumb" style="--participant-stack-left:${index * desktopStep}px; --participant-stack-mobile-left:${index * mobileStep}px; --participant-stack-size:${desktopSize}px; --participant-stack-mobile-size:${mobileSize}px; --participant-stack-z:${zIndex};"><img src="${participant.gif}" alt="${escapeHtml(participant.name || "참여자")}"></div>`;
+        const opacity = index === 0 ? 1 : Math.max(0.52, 0.86 - (index - 1) * 0.18);
+        return `<div class="participant-thumb" style="--participant-stack-left:${index * 6}px; --participant-stack-mobile-left:${index * 7}px; --participant-stack-z:${zIndex}; --participant-stack-opacity:${opacity};"><img src="${participant.gif}" alt="${escapeHtml(participant.name || "참여자")}"></div>`;
       }).join("");
       return `<div class="participant-thumb-stack" style="--participant-stack-width:${desktopWidth}px; --participant-stack-mobile-width:${mobileWidth}px;" aria-hidden="true">${thumbs}</div>`;
     }

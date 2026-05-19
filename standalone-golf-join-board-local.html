@@ -23376,6 +23376,7 @@
     const JOIN_APPLICATIONS_STORAGE_KEY = "secretGolfJoinApplications";
     const BUILDER_APPLICATION_MAX_CAPACITY = 4;
     const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = BUILDER_APPLICATION_MAX_CAPACITY;
+    const JOIN_MAX_CAPACITY = 4;
     const joinApplicationPayloadMemory = new Map();
     const BUILDER_APPLICATION_GENDER_ICON_POOLS = {
       male: [
@@ -26340,7 +26341,7 @@
     function getBuilderApplicationPeopleCount(payload) {
       const rawCount = Number(String(getNestedValue(payload, "applicant.people") || "1").replace(/\D/g, ""));
       const count = Number.isFinite(rawCount) && rawCount > 0 ? rawCount : 1;
-      return Math.min(BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS, count);
+      return Math.min(JOIN_MAX_CAPACITY, BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS, count);
     }
 
     function getBuilderApplicationIconPoolKey(gender) {
@@ -27287,7 +27288,7 @@
         excludes: [],
         notes: [],
         schedule: [],
-        emptySlots: Number.isFinite(restCnt) ? restCnt : 4,
+        emptySlots: Math.min(JOIN_MAX_CAPACITY, Number.isFinite(restCnt) ? restCnt : JOIN_MAX_CAPACITY),
         source: "secret-tour-goods-event"
       };
     }
@@ -27701,12 +27702,12 @@
         price: Number(item.price) || Number(fallback.price) || 0,
         image: item.image || fallback.image || "",
         badgeImage: item.badgeImage || BADGE_IMAGES[badgeKind] || fallback.badgeImage || "",
-        participants: Array.isArray(item.participants) ? item.participants : [],
+        participants: Array.isArray(item.participants) ? item.participants.slice(0, JOIN_MAX_CAPACITY) : [],
         includes: Array.isArray(item.includes) ? item.includes : (fallback.includes || []),
         excludes: Array.isArray(item.excludes) ? item.excludes : (fallback.excludes || []),
         notes: Array.isArray(item.notes) ? item.notes : (fallback.notes || []),
         schedule: Array.isArray(item.schedule) && item.schedule.length ? item.schedule : (fallback.schedule || []),
-        emptySlots: Number.isFinite(Number(item.emptySlots)) ? Number(item.emptySlots) : 4
+        emptySlots: Math.min(JOIN_MAX_CAPACITY, Number.isFinite(Number(item.emptySlots)) ? Number(item.emptySlots) : JOIN_MAX_CAPACITY)
       };
     }
 
@@ -27758,7 +27759,7 @@
           join.eventSeq = product.eventSeq;
         }
         if (Number.isFinite(Number(product.emptySlots))) {
-          join.emptySlots = Number(product.emptySlots);
+          join.emptySlots = Math.min(JOIN_MAX_CAPACITY, Number(product.emptySlots));
         }
       });
       reapplyRememberedJoinApplications({ render: false });
@@ -30056,8 +30057,9 @@
     }
 
     function renderCardTeamSlots(join, compact = true, maxSlots = 4) {
-      const confirmedParticipants = getConfirmedParticipants(join).slice(0, maxSlots);
-      const emptyCount = Math.max(0, Math.min(Number(join.emptySlots) || 0, maxSlots - confirmedParticipants.length));
+      const slotLimit = Math.min(JOIN_MAX_CAPACITY, maxSlots);
+      const confirmedParticipants = getConfirmedParticipants(join).slice(0, slotLimit);
+      const emptyCount = Math.max(0, Math.min(Number(join.emptySlots) || 0, slotLimit - confirmedParticipants.length));
       return [
         renderGroupedParticipantsHtml(confirmedParticipants, join.id, compact),
         ...Array.from({ length: emptyCount }).map(() => emptySlotHtml(compact, join.id))
@@ -30065,9 +30067,10 @@
     }
 
     function getCardTeamCapacity(join, maxSlots = 4) {
-      const confirmedCount = getConfirmedParticipants(join).length;
+      const slotLimit = Math.min(JOIN_MAX_CAPACITY, maxSlots);
+      const confirmedCount = Math.min(slotLimit, getConfirmedParticipants(join).length);
       const rawCapacity = confirmedCount + (Number(join.emptySlots) || 0);
-      return Math.max(confirmedCount, Math.min(maxSlots, rawCapacity || maxSlots));
+      return Math.max(confirmedCount, Math.min(slotLimit, rawCapacity || slotLimit));
     }
 
     function renderJoinCard(join, options = {}) {
@@ -31619,10 +31622,18 @@
       for (const candidate of sheetCandidates) {
         const sheet = candidate.element;
         if (!sheet || !candidate.isOpen(sheet)) continue;
-        const isHandleArea = clientY > 0 && clientY - sheet.getBoundingClientRect().top <= 42;
-        const isHeaderArea = target?.closest?.(candidate.headerSelector);
-        if (isHandleArea || isHeaderArea) {
-          return { sheet, close: candidate.close };
+        const sheetRect = sheet.getBoundingClientRect();
+        const header = sheet.querySelector(candidate.headerSelector);
+        const headerTop = header?.getBoundingClientRect().top ?? sheetRect.top;
+        const isInsideSheet = target?.closest?.(`#${sheet.id}`) === sheet || sheet.contains(target);
+        const startsFromHeaderDown = clientY >= headerTop && clientY <= sheetRect.bottom;
+        if (isInsideSheet && startsFromHeaderDown) {
+          return {
+            sheet,
+            close: candidate.close,
+            maxTranslateY: Math.max(0, window.innerHeight - sheetRect.top),
+            previousTransition: sheet.style.transition
+          };
         }
       }
       return null;
@@ -31641,6 +31652,7 @@
         lastY: touch.clientY,
         config
       };
+      config.sheet.style.transition = "none";
     }, { passive: true, capture: true });
 
     document.addEventListener("touchmove", (event) => {
@@ -31649,13 +31661,15 @@
       if (!touch) return;
       mobileSheetDragState.lastY = touch.clientY;
       const deltaY = Math.max(0, touch.clientY - mobileSheetDragState.startY);
-      mobileSheetDragState.config.sheet.style.transform = deltaY ? `translateY(${Math.min(deltaY, 120)}px)` : "";
+      const maxTranslateY = mobileSheetDragState.config.maxTranslateY || window.innerHeight;
+      mobileSheetDragState.config.sheet.style.transform = deltaY ? `translateY(${Math.min(deltaY, maxTranslateY)}px)` : "";
     }, { passive: true, capture: true });
 
     document.addEventListener("touchend", () => {
       if (!mobileSheetDragState) return;
       const { startY, lastY, config } = mobileSheetDragState;
       config.sheet.style.transform = "";
+      config.sheet.style.transition = config.previousTransition || "";
       mobileSheetDragState = null;
       if (lastY - startY > 64) {
         config.close();

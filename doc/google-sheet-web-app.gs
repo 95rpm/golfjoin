@@ -404,8 +404,9 @@ function refreshScheduleParticipantSummary_() {
     const pendingJoins = relatedJoins.filter(function (join) { return join.status === "pending"; });
     const creatorPeople = parsePeople_(schedule.creatorPeople || "1명");
     const joinedPeople = confirmedJoins.reduce(function (sum, join) { return sum + parsePeople_(join.people); }, 0);
-    const confirmedPeople = creatorPeople + joinedPeople;
-    const capacity = Math.max(4, confirmedPeople);
+    const rawConfirmedPeople = creatorPeople + joinedPeople;
+    const capacity = 4;
+    const confirmedPeople = Math.min(capacity, rawConfirmedPeople);
     const participants = [
       {
         name: schedule.creatorName,
@@ -444,13 +445,13 @@ function refreshScheduleParticipantSummary_() {
       pendingPeople: pendingJoins.reduce(function (sum, join) { return sum + parsePeople_(join.people); }, 0),
       cancelledPeople: cancelledJoins.reduce(function (sum, join) { return sum + parsePeople_(join.people); }, 0),
       remainingSeats: Math.max(0, capacity - confirmedPeople),
-      participantNames: participants.map(function (item) { return item.name; }).filter(Boolean).join(", "),
-      participantPhones: participants.map(function (item) { return item.phone; }).filter(Boolean).join(", "),
-      genderSummary: summarize_(participants.map(function (item) { return item.gender; })),
-      ageSummary: summarize_(participants.map(function (item) { return item.age; })),
-      levelSummary: summarize_(participants.map(function (item) { return item.level; })),
-      styleSummary: summarize_(participants.flatMap(function (item) { return String(item.styles || "").split(",").map(function (style) { return style.trim(); }); })),
-      memberPreferenceSummary: summarize_(participants.flatMap(function (item) { return String(item.memberPreferences || "").split(",").map(function (preference) { return preference.trim(); }); })),
+      participantNames: participants.slice(0, capacity).map(function (item) { return item.name; }).filter(Boolean).join(", "),
+      participantPhones: participants.slice(0, capacity).map(function (item) { return item.phone; }).filter(Boolean).join(", "),
+      genderSummary: summarize_(participants.slice(0, capacity).map(function (item) { return item.gender; })),
+      ageSummary: summarize_(participants.slice(0, capacity).map(function (item) { return item.age; })),
+      levelSummary: summarize_(participants.slice(0, capacity).map(function (item) { return item.level; })),
+      styleSummary: summarize_(participants.slice(0, capacity).flatMap(function (item) { return String(item.styles || "").split(",").map(function (style) { return style.trim(); }); })),
+      memberPreferenceSummary: summarize_(participants.slice(0, capacity).flatMap(function (item) { return String(item.memberPreferences || "").split(",").map(function (preference) { return preference.trim(); }); })),
       status: schedule.status || "open",
       approvalStatus: schedule.approvalStatus || "pending",
       displayStatus: schedule.displayStatus || "visible",

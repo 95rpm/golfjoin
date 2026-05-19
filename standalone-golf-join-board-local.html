@@ -26327,6 +26327,7 @@
       if (input) input.value = String(Math.max(1, normalized.length + 1));
       renderCompanionGenderRows(scope, normalized);
       clearCompanionGenderError(scope);
+      if (scope === "global") updateGlobalApplyRemainingSeat();
       if (options.update !== false) config.summary?.();
     }
 
@@ -26349,6 +26350,7 @@
       if (input) input.value = String(count);
       renderCompanionGenderRows(scope, preserved);
       clearCompanionGenderError(scope);
+      if (scope === "global") updateGlobalApplyRemainingSeat();
       if (options.update !== false) config.summary?.();
     }
 
@@ -30448,16 +30450,25 @@
 
     function getGlobalApplyRemainingSeats() {
       const join = getCurrentApplyJoin();
+      if (join && Array.isArray(join.participants)) {
+        return Math.max(0, JOIN_MAX_CAPACITY - getConfirmedParticipants(join).length);
+      }
       return Math.max(0, Number(join?.emptySlots ?? 1));
     }
 
     function formatRemainingSeatText(count) {
-      return count > 0 ? `${count}자리 남았어요.` : "잔여좌석이 없어요.";
+      return count > 0 ? `${count}자리 남았어요.` : "남은 자리 없어요.";
+    }
+
+    function getGlobalApplySelectedSeatCount() {
+      const modeGroup = document.querySelector('[data-people-mode="global"]');
+      return modeGroup?.classList.contains("is-group") ? getCompanionPeople("global") : 0;
     }
 
     function updateGlobalApplyRemainingSeat() {
       const target = document.getElementById("globalApplyRemainingSeat");
-      if (target) target.textContent = formatRemainingSeatText(getGlobalApplyRemainingSeats());
+      const remaining = Math.max(0, getGlobalApplyRemainingSeats() - getGlobalApplySelectedSeatCount());
+      if (target) target.textContent = formatRemainingSeatText(remaining);
       syncApplyPeopleModeAvailability("global");
     }
 

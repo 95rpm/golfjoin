@@ -8031,10 +8031,8 @@
       background: transparent;
     }
     .apply-companion-status {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      display: grid;
+      gap: 5px;
       color: #475569;
       font-size: 13px;
       font-weight: 800;
@@ -26216,9 +26214,16 @@
     }
 
     function formatApplyParticipantGenderCounts(participants) {
-      const counts = getApplyParticipantGenderCounts(participants);
-      const labels = ["남성", "여성"].filter((label) => counts[label]);
-      return labels.length ? labels.map((label) => `${label} ${counts[label]}명`).join(" / ") : "성비 미정";
+      const counts = participants.reduce((acc, participant) => {
+        const label = getParticipantGenderLabel(participant.gender);
+        if (label.includes("여")) acc.female += 1;
+        else if (label.includes("남")) acc.male += 1;
+        return acc;
+      }, { male: 0, female: 0 });
+      const labels = [];
+      if (counts.male) labels.push(`남자 ${counts.male}`);
+      if (counts.female) labels.push(`여자 ${counts.female}`);
+      return labels.length ? labels.join(" · ") : "성비 미정";
     }
 
     function renderApplyParticipantSlot(participant, index, scope) {
@@ -26279,14 +26284,11 @@
       ];
       const hasExistingDivider = existing.length === 2;
       const canAdd = genders.length < Math.max(0, availablePeople - 1);
-      const statusParticipants = [...existing, applicant, ...companions];
-      const statusPrefix = scope === "global"
-        ? `현재 ${existing.length}명 · 신청 ${1 + genders.length}명`
-        : `신청 ${1 + genders.length}명`;
+      const newParticipants = [applicant, ...companions];
       list.innerHTML = `
         <div class="apply-companion-status">
-          <span><strong>${statusPrefix}</strong> · ${formatApplyParticipantGenderCounts(statusParticipants)}</span>
-          <span>${Math.min(JOIN_MAX_CAPACITY, statusParticipants.length)}/${JOIN_MAX_CAPACITY}명</span>
+          <span><strong>기존 참여 ${existing.length}명</strong> | ${formatApplyParticipantGenderCounts(existing)}</span>
+          <span><strong>신규 신청 ${newParticipants.length}명</strong> | ${formatApplyParticipantGenderCounts(newParticipants)}</span>
         </div>
         <div class="apply-participant-rail${hasExistingDivider ? " has-existing-divider" : ""}">
           ${slots.map((participant, index) => renderApplyParticipantSlot(participant, index, scope)).join("")}

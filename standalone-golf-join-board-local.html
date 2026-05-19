@@ -26426,17 +26426,22 @@
       return labels.length ? labels.join(" · ") : "성비 미정";
     }
 
+    function renderApplyParticipantLabel(participant) {
+      const label = escapeHtml(participant?.label || "");
+      if (participant?.type !== "applicant") return label;
+      return `<span aria-hidden="true">&#x1F451;</span><span>${label}</span>`;
+    }
+
     function renderApplyParticipantSlot(participant, index, scope) {
       if (!participant) {
         return `<div class="apply-participant-slot empty"><div class="apply-participant-avatar">+</div><div class="apply-participant-label">빈자리</div></div>`;
       }
       const removable = participant.type === "companion";
-      const label = participant.type === "applicant" ? `👑 ${participant.label}` : participant.label;
       return `
         <div class="apply-participant-slot filled ${participant.type === "existing" ? "is-existing" : ""}" data-apply-participant-index="${index}">
           ${removable ? `<button type="button" class="apply-participant-remove" onclick="removeCompanionGender('${scope}', ${participant.companionIndex})" aria-label="동반자 삭제"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 4.5l11 11M15.5 4.5l-11 11" stroke="currentColor" stroke-linecap="round"/></svg></button>` : ""}
           <div class="apply-participant-avatar"><img src="${participant.gif}" alt="${escapeHtml(participant.label)}"></div>
-          <div class="apply-participant-label">${escapeHtml(label)}</div>
+          <div class="apply-participant-label">${renderApplyParticipantLabel(participant)}</div>
         </div>
       `;
     }

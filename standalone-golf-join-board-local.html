@@ -7799,7 +7799,7 @@
       z-index: 1;
       min-height: 0;
       border: 0;
-      border-radius: 12px;
+      border-radius: 8px;
       background: transparent;
       color: #64748b;
       font-size: 15px;
@@ -7817,6 +7817,7 @@
       width: calc(50% - 9px);
     }
     .apply-people-mode.is-group .apply-people-button[data-mode="solo"] {
+      left: 4px;
       width: 25px;
       color: #9e9e9e;
     }
@@ -7879,7 +7880,7 @@
       justify-content: center;
       gap: 5px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 8px;
       background: #fff;
       color: #0f172a;
       font-size: 14px;
@@ -8017,7 +8018,7 @@
       border: 1px solid #e2e8f0;
       border-radius: 16px;
       background: #fff;
-      padding: 14px;
+      padding: 14px 14px 0;
     }
     .apply-companion-card {
       display: flex;
@@ -8044,9 +8045,21 @@
       font-weight: 900;
     }
     .apply-participant-rail {
+      position: relative;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
+    }
+    .apply-participant-rail.has-existing-divider::after {
+      content: "";
+      position: absolute;
+      top: 14px;
+      bottom: 25px;
+      left: calc(50% - 5px);
+      width: 1px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      pointer-events: none;
     }
     .apply-participant-slot {
       position: relative;
@@ -8120,9 +8133,9 @@
       color: #fff;
     }
     .apply-participant-remove svg {
-      width: 12px;
-      height: 12px;
-      stroke-width: 2.7;
+      width: 13px;
+      height: 13px;
+      stroke-width: 2.2;
     }
     .apply-companion-add-row {
       display: none;
@@ -26259,11 +26272,12 @@
         gender,
         gif: getBuilderApplicationGenderIcon(gender, null, `${scope}-companion-${index}-${gender}`)
       }));
-      const visibleParticipants = [applicant, ...existing, ...companions].slice(0, JOIN_MAX_CAPACITY);
+      const visibleParticipants = [...existing, applicant, ...companions].slice(0, JOIN_MAX_CAPACITY);
       const slots = [
         ...visibleParticipants,
         ...Array.from({ length: Math.max(0, JOIN_MAX_CAPACITY - visibleParticipants.length) }).map(() => null)
       ];
+      const hasExistingDivider = existing.length === 2;
       const canAdd = genders.length < Math.max(0, availablePeople - 1);
       const statusParticipants = [...existing, applicant, ...companions];
       const statusPrefix = scope === "global"
@@ -26274,7 +26288,7 @@
           <span><strong>${statusPrefix}</strong> · ${formatApplyParticipantGenderCounts(statusParticipants)}</span>
           <span>${Math.min(JOIN_MAX_CAPACITY, statusParticipants.length)}/${JOIN_MAX_CAPACITY}명</span>
         </div>
-        <div class="apply-participant-rail">
+        <div class="apply-participant-rail${hasExistingDivider ? " has-existing-divider" : ""}">
           ${slots.map((participant, index) => renderApplyParticipantSlot(participant, index, scope)).join("")}
         </div>
         ${genders.map((gender, index) => `
@@ -26310,14 +26324,6 @@
     function removeCompanionGender(scope, index) {
       const current = getCompanionGenders(scope);
       current.splice(index, 1);
-      if (!current.length) {
-        if (scope === "builder") {
-          setBuilderApplyPeopleMode("solo");
-        } else {
-          setGlobalApplyPeopleMode("solo");
-        }
-        return;
-      }
       setCompanionGenders(scope, current);
     }
 
@@ -26394,7 +26400,7 @@
       });
       accordion?.classList.toggle("open", isGroup);
       if (isGroup) {
-        setCompanionPeople("builder", Math.max(2, getCompanionPeople("builder")));
+        setCompanionPeople("builder", getCompanionPeople("builder") > 1 ? getCompanionPeople("builder") : 1);
       } else {
         setCompanionPeople("builder", 1);
       }
@@ -30419,7 +30425,7 @@
         setCompanionPeople("global", 1);
         return;
       }
-      setCompanionPeople("global", Math.max(2, getCompanionPeople("global")));
+      setCompanionPeople("global", getCompanionPeople("global") > 1 ? getCompanionPeople("global") : 1);
     }
 
     function setGlobalApplyPeopleCount(value) {

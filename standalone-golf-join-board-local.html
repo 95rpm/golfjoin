@@ -8042,6 +8042,18 @@
       color: var(--text);
       font-weight: 900;
     }
+    .apply-companion-status-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .apply-companion-status-divider {
+      width: 1px;
+      height: 12px;
+      flex: 0 0 auto;
+      color: #d8dee8;
+    }
     .apply-participant-rail {
       position: relative;
       display: grid;
@@ -26287,8 +26299,8 @@
       const newParticipants = [applicant, ...companions];
       list.innerHTML = `
         <div class="apply-companion-status">
-          <span><strong>기존 참여 ${existing.length}명</strong> | ${formatApplyParticipantGenderCounts(existing)}</span>
-          <span><strong>신규 신청 ${newParticipants.length}명</strong> | ${formatApplyParticipantGenderCounts(newParticipants)}</span>
+          <span class="apply-companion-status-line"><strong>기존 참여 ${existing.length}명</strong><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg><span>${formatApplyParticipantGenderCounts(existing)}</span></span>
+          <span class="apply-companion-status-line"><strong>신규 신청 ${newParticipants.length}명</strong><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg><span>${formatApplyParticipantGenderCounts(newParticipants)}</span></span>
         </div>
         <div class="apply-participant-rail${hasExistingDivider ? " has-existing-divider" : ""}">
           ${slots.map((participant, index) => renderApplyParticipantSlot(participant, index, scope)).join("")}

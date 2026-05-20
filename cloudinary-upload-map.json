@@ -28,5 +28,10 @@
     "./src/imports/banner_mbti.png":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777522283/golf-join/banner_mbti.png",
     "./src/imports/banner_phone.png":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777522285/golf-join/banner_phone.png",
     "./src/imports/hero_banner2.jpg":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777525860/golf-join/hero_banner2.jpg",
-    "./src/imports/information.svg":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777532506/golf-join/information.svg"
+    "./src/imports/information.svg":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777532506/golf-join/information.svg",
+    "./src/imports/nav1.png":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779266879/golf-join/nav1.png",
+    "./src/imports/nav2.png":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779267025/golf-join/nav2.png",
+    "./src/imports/nav3.png":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779267150/golf-join/nav3.png",
+    "./src/imports/nav4.png":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779267215/golf-join/nav4.png",
+    "./src/imports/nav5.png":  "https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779267253/golf-join/nav5.png"
 }

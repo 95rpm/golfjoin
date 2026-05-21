@@ -771,7 +771,7 @@
       display: grid;
       align-content: start;
       align-self: flex-start;
-      gap: 12px;
+      gap: 18px;
       width: 100%;
       min-width: 0;
     }
@@ -787,11 +787,11 @@
       align-items: center;
       gap: 3px;
       min-width: 0;
-      font-size: 20px;
+      font-size: 28px;
       line-height: 1.25;
       font-weight: 900;
       color: var(--text);
-      margin-top: 5px;
+      margin-top: 0;
     }
     .join-mdpick-country-trigger {
       display: inline-flex;
@@ -973,33 +973,35 @@
     }
     .join-mdpick-list {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       align-content: start;
-      gap: 12px;
+      gap: 18px;
     }
     .join-mdpick-card {
-      display: grid;
-      grid-template-columns: 112px minmax(0, 1fr);
-      gap: 14px;
-      align-items: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
       min-width: 0;
-      padding: 12px;
-      border: 0;
+      height: 100%;
+      padding: 0 0 12px;
+      border: 1px solid #edf2f7;
       border-radius: 12px;
       background: #fff;
-      box-shadow: none;
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
       text-align: left;
       transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
     }
     .join-mdpick-card:hover {
-      box-shadow: none;
+      border-color: #d8e1ea;
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.10);
       transform: translateY(-1px);
     }
     .join-mdpick-thumb {
-      width: 112px;
-      aspect-ratio: 1 / 1;
+      width: 100%;
+      aspect-ratio: 4 / 3;
       overflow: hidden;
-      border-radius: 8px;
+      border-radius: 12px 12px 0 0;
       background: #eef2f7;
     }
     .join-mdpick-thumb img {
@@ -1009,28 +1011,35 @@
     }
     .join-mdpick-info {
       display: grid;
-      gap: 6px;
+      gap: 7px;
       min-width: 0;
+      padding: 0 14px;
     }
     .join-mdpick-region {
       color: #8a909a;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       line-height: 1.2;
     }
     .join-mdpick-title {
+      display: -webkit-box;
       min-width: 0;
       overflow: hidden;
       color: var(--text);
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 800;
       line-height: 1.35;
       text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
     }
     .join-mdpick-price {
       color: #111827;
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 900;
       line-height: 1.2;
     }
@@ -1045,48 +1054,165 @@
     }
     .join-mdpick-theme-section {
       display: grid;
-      gap: 16px;
-      margin-top: 28px;
+      gap: 22px;
+      margin-top: 34px;
     }
     .join-mdpick-theme-title {
       color: var(--text);
-      font-size: 20px;
+      font-size: 28px;
       line-height: 1.25;
       font-weight: 900;
     }
     .join-mdpick-theme-groups {
       display: grid;
-      gap: 30px;
+      grid-template-columns: 1fr;
+      gap: 34px;
     }
     .join-mdpick-theme-group {
       display: grid;
-      gap: 12px;
+      grid-template-columns: minmax(250px, 32%) minmax(0, 1fr);
+      min-height: 292px;
+      border: 0;
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: none;
     }
     .join-mdpick-theme-head {
-      display: grid;
-      gap: 4px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      min-width: 0;
+      padding: 34px 30px;
+      overflow: hidden;
+      color: #fff;
+      background:
+        radial-gradient(circle at 20% 16%, rgba(255,255,255,.34) 0 8px, transparent 9px),
+        radial-gradient(circle at 88% 22%, rgba(255,255,255,.30) 0 5px, transparent 6px),
+        linear-gradient(145deg, #27dce9 0%, #1685f3 100%);
+    }
+    .join-mdpick-theme-group.theme-city .join-mdpick-theme-head {
+      background:
+        radial-gradient(circle at 78% 18%, rgba(255,255,255,.30) 0 7px, transparent 8px),
+        radial-gradient(circle at 18% 78%, rgba(255,255,255,.22) 0 38px, transparent 39px),
+        linear-gradient(145deg, #56d28a 0%, #2784df 100%);
+    }
+    .join-mdpick-theme-group.theme-passion .join-mdpick-theme-head {
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255,255,255,.35) 0 7px, transparent 8px),
+        radial-gradient(circle at 82% 76%, rgba(255,255,255,.22) 0 42px, transparent 43px),
+        linear-gradient(145deg, #49c7ff 0%, #6d63ff 100%);
+    }
+    .join-mdpick-theme-head::before,
+    .join-mdpick-theme-head::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+    .join-mdpick-theme-head::before {
+      right: -42px;
+      top: -34px;
+      width: 170px;
+      height: 90px;
+      border-radius: 50%;
+      border: 16px solid rgba(255, 255, 255, 0.34);
+      transform: rotate(-12deg);
+    }
+    .join-mdpick-theme-head::after {
+      left: -34px;
+      bottom: -38px;
+      width: 150px;
+      height: 150px;
+      border-radius: 46% 54% 50% 50%;
+      background: rgba(255, 255, 255, 0.22);
     }
     .join-mdpick-theme-name {
-      color: var(--text);
-      font-size: 20px;
+      position: relative;
+      z-index: 1;
+      max-width: 210px;
+      color: #fff;
+      font-size: 32px;
+      line-height: 1.25;
+      font-weight: 900;
+      word-break: keep-all;
+    }
+    .join-mdpick-theme-subcopy {
+      position: relative;
+      z-index: 1;
+      max-width: 260px;
+      margin-top: -6px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 16px;
+      line-height: 1.45;
+      font-weight: 700;
+      word-break: keep-all;
+    }
+    .join-mdpick-theme-desc {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      max-width: 100%;
+      min-height: 34px;
+      min-width: 142px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #1f3f66;
+      font-size: 14px;
       line-height: 1.25;
       font-weight: 800;
     }
-    .join-mdpick-theme-desc {
-      color: var(--text-soft);
-      font-size: 16px;
-      line-height: 1.4;
-      font-weight: 600;
+    .join-mdpick-theme-pills {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 12px;
+      width: fit-content;
+      max-width: 100%;
+    }
+    .join-mdpick-theme-tab {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      max-width: 100%;
+      min-height: 34px;
+      padding: 8px 16px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #1f3f66;
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    .join-mdpick-theme-tab.active,
+    .join-mdpick-theme-tab[aria-selected="true"] {
+      background: #1f2937;
+      border-color: #1f2937;
+      color: #fff;
     }
     .join-mdpick-theme-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      padding: 0 0 0 24px;
+      align-self: stretch;
     }
     .join-mdpick-theme-card {
-      display: grid;
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
       min-width: 0;
+      height: 100%;
       border: 0;
       border-radius: 0;
       background: #fff;
@@ -1096,7 +1222,7 @@
     }
     .join-mdpick-theme-thumb {
       width: 100%;
-      aspect-ratio: 1.18 / 1;
+      aspect-ratio: 1.34 / 1;
       overflow: hidden;
       border-radius: 8px;
       background: #eef2f7;
@@ -1109,21 +1235,22 @@
     }
     .join-mdpick-theme-meta {
       display: grid;
-      gap: 5px;
+      gap: 7px;
       min-width: 0;
+      padding: 12px 0 0;
     }
     .join-mdpick-theme-region {
       color: #8a909a;
-      font-size: 13px;
+      font-size: 14px;
       line-height: 1.25;
-      font-weight: 800;
+      font-weight: 700;
     }
     .join-mdpick-theme-product {
       display: -webkit-box;
       overflow: hidden;
       color: var(--text);
-      font-size: 15px;
-      line-height: 1.3;
+      font-size: 17px;
+      line-height: 1.35;
       font-weight: 800;
       text-overflow: ellipsis;
       word-break: break-all;
@@ -1133,10 +1260,106 @@
       line-clamp: 2;
     }
     .join-mdpick-theme-price {
-      color: var(--primary);
-      font-size: 16px;
+      color: #111827;
+      font-size: 19px;
       line-height: 1.2;
-      font-weight: 700;
+      font-weight: 900;
+    }
+    @media (min-width: 1170px) {
+      .join-mdpick-theme-group {
+        position: relative;
+        display: block;
+        min-height: 566px;
+        border: 0;
+        background: transparent;
+        overflow: visible;
+        box-shadow: none;
+      }
+      .join-mdpick-theme-head {
+        width: 434px;
+        height: 566px;
+        padding: 78px 60px 54px;
+        justify-content: flex-start;
+      }
+      .join-mdpick-theme-name {
+        max-width: 250px;
+        font-size: 34px;
+      }
+      .join-mdpick-theme-subcopy {
+        max-width: 270px;
+        font-size: 17px;
+      }
+      .join-mdpick-theme-grid {
+        position: absolute;
+        top: 78px;
+        right: 0;
+        left: 300px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        padding: 0;
+      }
+      .join-mdpick-theme-card {
+        min-height: 432px;
+      }
+      .join-mdpick-theme-thumb {
+        height: 210px;
+        aspect-ratio: auto;
+        border-radius: 8px 8px 0 0;
+      }
+      .join-mdpick-theme-meta {
+        min-height: 222px;
+        padding: 18px 20px 24px;
+        border-right: 1px solid #e5e7eb;
+        border-bottom: 1px solid #e5e7eb;
+        border-left: 1px solid #e5e7eb;
+        border-radius: 0 0 8px 8px;
+      }
+      .join-mdpick-theme-product {
+        min-height: 46px;
+        font-size: 17px;
+      }
+      .join-mdpick-theme-price {
+        margin-top: 2px;
+        font-size: 19px;
+      }
+    }
+    @media (min-width: 876px) and (max-width: 1169px) {
+      .join-mdpick-theme-group {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+      .join-mdpick-theme-head {
+        min-height: 250px;
+        padding: 38px 42px;
+      }
+      .join-mdpick-theme-name {
+        max-width: 100%;
+        font-size: 32px;
+      }
+      .join-mdpick-theme-subcopy {
+        max-width: 100%;
+      }
+      .join-mdpick-theme-pills {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .join-mdpick-theme-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        padding: 18px;
+      }
+      .join-mdpick-theme-card {
+        min-height: 360px;
+      }
+      .join-mdpick-theme-thumb {
+        aspect-ratio: 1.28 / 1;
+      }
+      .join-mdpick-theme-product {
+        font-size: 16px;
+      }
+      .join-mdpick-theme-price {
+        font-size: 20px;
+      }
     }
     .join-product-section.layout-soon .join-grid {
       display: none;
@@ -1873,7 +2096,68 @@
       margin-top: auto;
     }
     .join-section-nav {
-      display: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      margin: 4px 0 32px;
+      padding: 10px;
+      border: 1px solid #edf2f7;
+      border-radius: 18px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+    .join-section-nav .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 46px;
+      padding: 9px 10px;
+      border-color: transparent;
+      border-radius: 14px;
+      background: transparent;
+      color: #4b5563;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .join-section-nav .chip:hover {
+      background: #fff;
+      border-color: #e2e8f0;
+      color: var(--text);
+    }
+    .join-section-nav .chip.active,
+    .join-section-nav .chip[aria-current="true"] {
+      background: #fff;
+      border-color: #dbe4ee;
+      color: var(--text);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+    }
+    .join-section-nav .join-section-nav-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      flex: 0 0 26px;
+      overflow: hidden;
+    }
+    .join-section-nav .join-section-nav-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .join-section-nav .join-section-nav-label {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-align: center;
+      text-overflow: ellipsis;
     }
     .join-section-controls {
       display: none;
@@ -11190,6 +11474,41 @@
       }
     }
     @media (min-width: 641px) and (max-width: 875px) {
+      .sgj-page .join-section-nav {
+        gap: 6px;
+        padding: 8px;
+      }
+      .sgj-page .join-section-nav .chip {
+        gap: 5px;
+        min-height: 42px;
+        padding: 8px 6px;
+        font-size: 13px;
+      }
+      .sgj-page .join-section-nav .join-section-nav-icon {
+        width: 22px;
+        height: 22px;
+        flex-basis: 22px;
+      }
+      .sgj-page .join-mdpick-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .sgj-page .join-mdpick-theme-groups {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .sgj-page .join-mdpick-theme-group {
+        grid-template-columns: 1fr;
+      }
+      .sgj-page .join-mdpick-theme-head {
+        min-height: 210px;
+      }
+      .sgj-page .join-mdpick-theme-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 18px;
+      }
+      .sgj-page .join-mdpick-theme-meta {
+        padding: 6px 2px 0;
+      }
       .sgj-page .join-product-section.layout-quick .join-grid {
         grid-template-columns: 1fr;
       }
@@ -12093,10 +12412,12 @@
         align-items: flex-start;
         gap: 5px;
         box-sizing: border-box;
-        width: calc(100vw + 3px);
-        max-width: calc(100vw + 3px);
-        margin: 8px calc((100% - 100vw) / 2) 12px calc(((100% - 100vw) / 2) - 3px);
+        width: 100vw;
+        max-width: 100vw;
+        margin: 8px calc((100% - 100vw) / 2) 12px;
         padding: 15px var(--mobile-page-gutter);
+        border: 0;
+        border-radius: 0;
         overflow-x: auto;
         overscroll-behavior-x: contain;
         scrollbar-width: none;
@@ -12179,8 +12500,8 @@
       .sgj-page .join-section-nav.is-fixed {
         position: fixed !important;
         top: var(--mobile-home-header-height) !important;
-        left: -3px !important;
-        width: calc(100vw + 3px) !important;
+        left: 0 !important;
+        width: 100vw !important;
         z-index: 40;
         margin: 0;
         padding-top: 7px !important;
@@ -14373,15 +14694,28 @@
         grid-template-columns: 1fr;
       }
       .join-mdpick-card {
+        display: grid;
         grid-template-columns: 75px minmax(0, 1fr);
         gap: 12px;
+        height: auto;
         padding: 5px 0;
+        border: 0;
+        box-shadow: none;
       }
       .join-mdpick-thumb {
         width: 75px;
+        aspect-ratio: 1 / 1;
+        border-radius: 8px;
+      }
+      .join-mdpick-info {
+        padding: 0;
       }
       .join-mdpick-title {
         font-size: 17px;
+        display: block;
+        white-space: nowrap;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
       }
       .join-mdpick-price {
         font-size: 16px;
@@ -14391,16 +14725,51 @@
         margin-top: 24px;
       }
       .join-mdpick-theme-title {
-        font-size: 22px;
+        font-size: 24px;
+      }
+      .join-mdpick-theme-groups {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .join-mdpick-theme-group {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+      .join-mdpick-theme-head {
+        min-height: 220px;
+        padding: 28px 26px;
+      }
+      .join-mdpick-theme-name {
+        font-size: 28px;
+      }
+      .join-mdpick-theme-subcopy {
+        max-width: 100%;
+        font-size: 15px;
       }
       .join-mdpick-theme-grid {
-        gap: 20px 10px;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px;
+      }
+      .join-mdpick-theme-card {
+        display: grid;
+        grid-template-columns: 100px minmax(0, 1fr);
+        min-height: 112px;
+        gap: 12px;
+      }
+      .join-mdpick-theme-thumb {
+        height: 100%;
+        aspect-ratio: auto;
+      }
+      .join-mdpick-theme-meta {
+        padding: 4px 0 0 2px;
       }
       .join-mdpick-theme-product {
-        font-size: 15px;
+        font-size: 17px;
       }
       .join-mdpick-theme-price {
         font-size: 16px;
+        font-weight: 700;
       }
       #secret-golf-join .join-mdpick-pack-chip,
       .join-mdpick-pack-chip {
@@ -32584,6 +32953,7 @@
     const mdPickPackFilters = {};
     let mdPickActiveCountryKey = "thailand";
     let mdPickCountryMenuOpen = false;
+    let mdPickActiveThemeKey = "relax";
     const MD_PICK_COUNTRIES = [
       { key: "thailand", name: "태국", tokens: ["태국", "방콕", "파타야", "치앙마이", "후아힌"] },
       { key: "japan", name: "일본", tokens: ["일본", "후쿠오카", "기타큐슈", "나고야", "가고시마", "오사카", "삿포로", "구마모토", "나리타"] },
@@ -32718,12 +33088,52 @@
         selected.push(product);
       };
       [...matched, ...fallback].forEach((product) => appendProduct(product, false));
-      if (selected.length < 4) {
+      if (selected.length < 3) {
         [...matched, ...fallback].forEach((product) => appendProduct(product, true));
       }
-      selected.slice(0, 4).forEach((product) => usedKeys.add(getProductGroupKey(product)));
-      return selected.slice(0, 4);
+      selected.slice(0, 3).forEach((product) => usedKeys.add(getProductGroupKey(product)));
+      return selected.slice(0, 3);
     }
+
+    function getMdPickThemePills(theme) {
+      const fallback = theme.desc ? [theme.desc] : [];
+      const pillMap = {
+        relax: ["고래와 함께! 블루오션", "에메랄드빛 휴양지", "서핑 & 다이빙 성지"],
+        city: ["라운드 끝나고 맛집투어", "쇼핑과 관광까지", "편안한 시내 휴양"],
+        passion: ["하루 36홀 도전", "골프 집중 일정", "알찬 라운드 구성"]
+      };
+      return pillMap[theme.key] || fallback;
+    }
+
+    function getMdPickThemeSubcopy(theme) {
+      const subcopyMap = {
+        relax: "푸른 바다와 리조트에서 쉬어가는 여유로운 골프여행",
+        city: "라운드 후 맛집, 쇼핑, 관광까지 함께 즐기는 도심형 일정",
+        passion: "라운드에 집중하고 싶은 골퍼를 위한 알찬 골프 일정"
+      };
+      return subcopyMap[theme.key] || theme.desc || "";
+    }
+
+    function getMdPickThemeTabLabel(theme) {
+      const labelMap = {
+        relax: "쉼이 있는 바다 라운드",
+        city: "라운드 후 도심 산책",
+        passion: "하루 꽉 찬 집중 라운드"
+      };
+      return labelMap[theme.key] || theme.name || "";
+    }
+
+    function setMdPickTheme(themeKey) {
+      if (!MD_PICK_THEMES.some((theme) => theme.key === themeKey)) return;
+      mdPickActiveThemeKey = themeKey;
+      const mdPickSection = document.getElementById("joinMdPickSection");
+      if (mdPickSection) {
+        mdPickSection.innerHTML = renderMdPickSection();
+        updateJoinSectionNavVisibility(getHomeJoinSections(), Boolean(mdPickSection.innerHTML));
+        updateJoinSectionNavFixed();
+      }
+    }
+    window.setMdPickTheme = setMdPickTheme;
 
     function renderMdPickThemeCard(product, theme) {
       const groupKey = getProductGroupKey(product);
@@ -32742,26 +33152,36 @@
     }
 
     function renderMdPickThemeSection() {
-      const usedKeys = new Set();
       const themes = MD_PICK_THEMES
-        .map((theme) => ({ ...theme, items: getMdPickThemeProducts(theme, usedKeys) }))
+        .map((theme) => ({ ...theme, items: getMdPickThemeProducts(theme, new Set()) }))
         .filter((theme) => theme.items.length);
       if (!themes.length) return "";
+      const activeTheme = themes.find((theme) => theme.key === mdPickActiveThemeKey) || themes[0];
+      mdPickActiveThemeKey = activeTheme.key;
       return `
         <div class="join-mdpick-theme-section">
           <div class="join-mdpick-theme-title">취향맞춤 BEST</div>
           <div class="join-mdpick-theme-groups">
-            ${themes.map((theme) => `
-              <div class="join-mdpick-theme-group">
+              <div class="join-mdpick-theme-group theme-${escapeHtml(activeTheme.key)}">
                 <div class="join-mdpick-theme-head">
-                  <div class="join-mdpick-theme-name">${theme.name} ${theme.emoji}</div>
-                  <div class="join-mdpick-theme-desc">${theme.desc}</div>
+                  <div class="join-mdpick-theme-name">${activeTheme.name} ${activeTheme.emoji}</div>
+                  <div class="join-mdpick-theme-subcopy">${escapeHtml(getMdPickThemeSubcopy(activeTheme))}</div>
+                  <div class="join-mdpick-theme-pills" role="tablist" aria-label="취향맞춤 테마 선택">
+                    ${themes.map((theme) => `
+                      <button
+                        type="button"
+                        class="join-mdpick-theme-tab${theme.key === activeTheme.key ? " active" : ""}"
+                        onclick="setMdPickTheme('${escapeJsString(theme.key)}')"
+                        role="tab"
+                        aria-selected="${theme.key === activeTheme.key ? "true" : "false"}"
+                      >${escapeHtml(getMdPickThemeTabLabel(theme))}</button>
+                    `).join("")}
+                  </div>
                 </div>
                 <div class="join-mdpick-theme-grid">
-                  ${theme.items.map((product) => renderMdPickThemeCard(product, theme)).join("")}
+                  ${activeTheme.items.map((product) => renderMdPickThemeCard(product, activeTheme)).join("")}
                 </div>
               </div>
-            `).join("")}
           </div>
         </div>
       `;
@@ -33289,7 +33709,7 @@
     function updateJoinSectionNavActive() {
       const sections = Array.from(document.querySelectorAll("[data-join-section]"));
       updateJoinSectionNavFixed();
-      if (!sections.length || window.innerWidth > 640) return;
+      if (!sections.length) return;
       const nav = document.getElementById("joinSectionNav");
       const headerOffset = Number.parseFloat(getComputedStyle(document.getElementById("secret-golf-join") || document.documentElement).getPropertyValue("--mobile-home-header-height")) || 55;
       const offset = headerOffset + (nav?.offsetHeight || 0) + 24;

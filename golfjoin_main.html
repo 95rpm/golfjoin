@@ -70,6 +70,8 @@
       --font-quick-participant-copy-title: 15px;
       --font-weight-quick-participant-copy-title: 800;
       --color-quick-participant-copy-title: var(--text);
+      --font-mdpick-pack-chip: 13px;
+      --font-mdpick-pack-chip-mobile: 15px;
       --font-soon-date: 16px;
       --font-soon-weekday: 13px;
       --font-soon-count: 12px;
@@ -757,6 +759,607 @@
       font-size: var(--font-product-section-desc);
       line-height: 1.45;
       font-weight: 500;
+    }
+    .join-mdpick-countries {
+      display: block;
+      overflow: visible;
+    }
+    .join-mdpick-countries::-webkit-scrollbar {
+      display: none;
+    }
+    .join-mdpick-country {
+      display: grid;
+      align-content: start;
+      align-self: flex-start;
+      gap: 18px;
+      width: 100%;
+      min-width: 0;
+    }
+    .join-mdpick-country-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+    }
+    .join-mdpick-country-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      min-width: 0;
+      font-size: 28px;
+      line-height: 1.25;
+      font-weight: 900;
+      color: var(--text);
+      margin-top: 0;
+    }
+    .join-mdpick-country-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: inherit;
+      line-height: inherit;
+      padding: 0;
+      cursor: pointer;
+    }
+    .join-mdpick-country-trigger svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+      flex: 0 0 24px;
+      transition: transform .24s ease;
+    }
+    .join-mdpick-country-trigger.open svg {
+      transform: rotate(180deg);
+    }
+    .join-mdpick-country-options {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      max-width: 0;
+      opacity: 0;
+      overflow: hidden;
+      transform: translateX(-8px);
+      pointer-events: none;
+      transition: max-width .34s cubic-bezier(0.16, 1, 0.3, 1), opacity .22s ease, transform .34s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+    .join-mdpick-country-options.open {
+      max-width: 180px;
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .join-mdpick-country-option {
+      border: 0;
+      border-radius: 999px;
+      background: #f1f3f5;
+      color: #313437;
+      padding: 7px 12px;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: opacity .22s ease, transform .34s cubic-bezier(0.16, 1, 0.3, 1), background .18s ease, color .18s ease;
+    }
+    .join-mdpick-country-options.open .join-mdpick-country-option {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .join-mdpick-country-options.open .join-mdpick-country-option:nth-child(2) {
+      transition-delay: .04s;
+    }
+    .join-mdpick-destination-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: currentColor;
+      cursor: pointer;
+      padding: 0;
+    }
+    .join-mdpick-destination-button:hover {
+      background: #f1f3f5;
+    }
+    .join-mdpick-destination-button svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+    .join-mdpick-pack-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    #secret-golf-join .join-mdpick-pack-chip,
+    .join-mdpick-pack-chip {
+      position: relative;
+      min-height: 32px;
+      padding: 7px 12px;
+      border: 0;
+      border-radius: 999px;
+      background: #f1f3f5;
+      color: #313437;
+      font-size: var(--font-mdpick-pack-chip) !important;
+      line-height: 1;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    #secret-golf-join .join-mdpick-pack-chip.active,
+    .join-mdpick-pack-chip.active {
+      border-color: #313437 !important;
+      background: #313437 !important;
+      color: #fff !important;
+    }
+    .join-mdpick-pack-chip::after {
+      content: none;
+    }
+    .join-mdpick-pack-chip:hover::after,
+    .join-mdpick-pack-chip:focus-visible::after {
+      content: none;
+    }
+    .join-mdpick-pack-info-button {
+      width: 16px;
+      height: 16px;
+      border: 0;
+      border-radius: 999px;
+      background: url("https://res.cloudinary.com/dcoxhhdfi/image/upload/v1777532506/golf-join/information.svg") center / contain no-repeat;
+      padding: 0;
+      flex: 0 0 16px;
+    }
+    .join-mdpick-pack-tooltip {
+      position: fixed;
+      left: 50%;
+      top: var(--mdpick-pack-tooltip-top, 50%);
+      right: auto;
+      bottom: auto;
+      z-index: 2147483602;
+      width: min(280px, calc(100vw - 48px));
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
+      text-align: left;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translate(-50%, calc(-100% - 8px));
+      transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
+    }
+    .join-mdpick-pack-tooltip.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate(-50%, calc(-100% - 12px));
+    }
+    .join-mdpick-pack-tooltip.below {
+      transform: translate(-50%, 8px);
+    }
+    .join-mdpick-pack-tooltip.below.open {
+      transform: translate(-50%, 12px);
+    }
+    .join-mdpick-pack-info-list {
+      display: grid;
+      gap: 6px;
+    }
+    .join-mdpick-pack-info-list div {
+      display: grid;
+      gap: 2px;
+    }
+    .join-mdpick-pack-info-list strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .join-mdpick-pack-info-list span {
+      font-weight: 600;
+    }
+    .join-mdpick-list {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-content: start;
+      gap: 18px;
+    }
+    .join-mdpick-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: stretch;
+      min-width: 0;
+      height: 100%;
+      padding: 0 0 12px;
+      border: 1px solid #edf2f7;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
+      text-align: left;
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+    .join-mdpick-card:hover {
+      border-color: #d8e1ea;
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.10);
+      transform: translateY(-1px);
+    }
+    .join-mdpick-thumb {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      border-radius: 12px 12px 0 0;
+      background: #eef2f7;
+    }
+    .join-mdpick-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .join-mdpick-info {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+      padding: 0 14px;
+    }
+    .join-mdpick-region {
+      color: #8a909a;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .join-mdpick-title {
+      display: -webkit-box;
+      min-width: 0;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: normal;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+    .join-mdpick-price {
+      color: #111827;
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+    .join-mdpick-empty {
+      padding: 16px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      color: var(--text-soft);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .join-mdpick-theme-section {
+      display: grid;
+      gap: 22px;
+      margin-top: 34px;
+    }
+    .join-mdpick-theme-title {
+      color: var(--text);
+      font-size: 28px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+    .join-mdpick-theme-groups {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 34px;
+    }
+    .join-mdpick-theme-group {
+      display: grid;
+      grid-template-columns: minmax(250px, 32%) minmax(0, 1fr);
+      min-height: 292px;
+      border: 0;
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: none;
+    }
+    .join-mdpick-theme-head {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      min-width: 0;
+      padding: 34px 30px;
+      overflow: hidden;
+      color: #fff;
+      background:
+        radial-gradient(circle at 20% 16%, rgba(255,255,255,.34) 0 8px, transparent 9px),
+        radial-gradient(circle at 88% 22%, rgba(255,255,255,.30) 0 5px, transparent 6px),
+        linear-gradient(145deg, #27dce9 0%, #1685f3 100%);
+    }
+    .join-mdpick-theme-group.theme-city .join-mdpick-theme-head {
+      background:
+        radial-gradient(circle at 78% 18%, rgba(255,255,255,.30) 0 7px, transparent 8px),
+        radial-gradient(circle at 18% 78%, rgba(255,255,255,.22) 0 38px, transparent 39px),
+        linear-gradient(145deg, #56d28a 0%, #2784df 100%);
+    }
+    .join-mdpick-theme-group.theme-passion .join-mdpick-theme-head {
+      background:
+        radial-gradient(circle at 22% 18%, rgba(255,255,255,.35) 0 7px, transparent 8px),
+        radial-gradient(circle at 82% 76%, rgba(255,255,255,.22) 0 42px, transparent 43px),
+        linear-gradient(145deg, #49c7ff 0%, #6d63ff 100%);
+    }
+    .join-mdpick-theme-head::before,
+    .join-mdpick-theme-head::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+    .join-mdpick-theme-head::before {
+      right: -42px;
+      top: -34px;
+      width: 170px;
+      height: 90px;
+      border-radius: 50%;
+      border: 16px solid rgba(255, 255, 255, 0.34);
+      transform: rotate(-12deg);
+    }
+    .join-mdpick-theme-head::after {
+      left: -34px;
+      bottom: -38px;
+      width: 150px;
+      height: 150px;
+      border-radius: 46% 54% 50% 50%;
+      background: rgba(255, 255, 255, 0.22);
+    }
+    .join-mdpick-theme-name {
+      position: relative;
+      z-index: 1;
+      max-width: 210px;
+      color: #fff;
+      font-size: 32px;
+      line-height: 1.25;
+      font-weight: 900;
+      word-break: keep-all;
+    }
+    .join-mdpick-theme-subcopy {
+      position: relative;
+      z-index: 1;
+      max-width: 260px;
+      margin-top: -6px;
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 16px;
+      line-height: 1.45;
+      font-weight: 700;
+      word-break: keep-all;
+    }
+    .join-mdpick-theme-desc {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      max-width: 100%;
+      min-height: 34px;
+      min-width: 142px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #1f3f66;
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+    .join-mdpick-theme-pills {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 12px;
+      width: fit-content;
+      max-width: 100%;
+    }
+    .join-mdpick-theme-tab {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      max-width: 100%;
+      min-height: 34px;
+      padding: 8px 16px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      color: #1f3f66;
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 800;
+      white-space: nowrap;
+      transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    .join-mdpick-theme-tab.active,
+    .join-mdpick-theme-tab[aria-selected="true"] {
+      background: #1f2937;
+      border-color: #1f2937;
+      color: #fff;
+    }
+    .join-mdpick-theme-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      padding: 0 0 0 24px;
+      align-self: stretch;
+    }
+    .join-mdpick-theme-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-width: 0;
+      height: 100%;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
+    }
+    .join-mdpick-theme-thumb {
+      width: 100%;
+      aspect-ratio: 1.34 / 1;
+      overflow: hidden;
+      border-radius: 8px;
+      background: #eef2f7;
+    }
+    .join-mdpick-theme-thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .join-mdpick-theme-meta {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+      padding: 12px 0 0;
+    }
+    .join-mdpick-theme-region {
+      color: #8a909a;
+      font-size: 14px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+    .join-mdpick-theme-product {
+      display: -webkit-box;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 800;
+      text-overflow: ellipsis;
+      word-break: break-all;
+      overflow-wrap: anywhere;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+    .join-mdpick-theme-price {
+      color: #111827;
+      font-size: 19px;
+      line-height: 1.2;
+      font-weight: 900;
+    }
+    @media (min-width: 1170px) {
+      .join-mdpick-theme-group {
+        position: relative;
+        display: block;
+        min-height: 566px;
+        border: 0;
+        background: transparent;
+        overflow: visible;
+        box-shadow: none;
+      }
+      .join-mdpick-theme-head {
+        width: 434px;
+        height: 566px;
+        padding: 78px 60px 54px;
+        justify-content: flex-start;
+      }
+      .join-mdpick-theme-name {
+        max-width: 250px;
+        font-size: 34px;
+      }
+      .join-mdpick-theme-subcopy {
+        max-width: 270px;
+        font-size: 17px;
+      }
+      .join-mdpick-theme-grid {
+        position: absolute;
+        top: 78px;
+        right: 0;
+        left: 300px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+        padding: 0;
+      }
+      .join-mdpick-theme-card {
+        min-height: 432px;
+      }
+      .join-mdpick-theme-thumb {
+        height: 210px;
+        aspect-ratio: auto;
+        border-radius: 8px 8px 0 0;
+      }
+      .join-mdpick-theme-meta {
+        min-height: 222px;
+        padding: 18px 20px 24px;
+        border-right: 1px solid #e5e7eb;
+        border-bottom: 1px solid #e5e7eb;
+        border-left: 1px solid #e5e7eb;
+        border-radius: 0 0 8px 8px;
+      }
+      .join-mdpick-theme-product {
+        min-height: 46px;
+        font-size: 17px;
+      }
+      .join-mdpick-theme-price {
+        margin-top: 2px;
+        font-size: 19px;
+      }
+    }
+    @media (min-width: 876px) and (max-width: 1169px) {
+      .join-mdpick-theme-group {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+      .join-mdpick-theme-head {
+        min-height: 250px;
+        padding: 38px 42px;
+      }
+      .join-mdpick-theme-name {
+        max-width: 100%;
+        font-size: 32px;
+      }
+      .join-mdpick-theme-subcopy {
+        max-width: 100%;
+      }
+      .join-mdpick-theme-pills {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .join-mdpick-theme-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        padding: 18px;
+      }
+      .join-mdpick-theme-card {
+        min-height: 360px;
+      }
+      .join-mdpick-theme-thumb {
+        aspect-ratio: 1.28 / 1;
+      }
+      .join-mdpick-theme-product {
+        font-size: 16px;
+      }
+      .join-mdpick-theme-price {
+        font-size: 20px;
+      }
     }
     .join-product-section.layout-soon .join-grid {
       display: none;
@@ -1493,7 +2096,68 @@
       margin-top: auto;
     }
     .join-section-nav {
-      display: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      margin: 4px 0 32px;
+      padding: 10px;
+      border: 1px solid #edf2f7;
+      border-radius: 18px;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+    .join-section-nav .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 46px;
+      padding: 9px 10px;
+      border-color: transparent;
+      border-radius: 14px;
+      background: transparent;
+      color: #4b5563;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .join-section-nav .chip:hover {
+      background: #fff;
+      border-color: #e2e8f0;
+      color: var(--text);
+    }
+    .join-section-nav .chip.active,
+    .join-section-nav .chip[aria-current="true"] {
+      background: #fff;
+      border-color: #dbe4ee;
+      color: var(--text);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+    }
+    .join-section-nav .join-section-nav-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      flex: 0 0 26px;
+      overflow: hidden;
+    }
+    .join-section-nav .join-section-nav-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .join-section-nav .join-section-nav-label {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-align: center;
+      text-overflow: ellipsis;
     }
     .join-section-controls {
       display: none;
@@ -3026,6 +3690,12 @@
     .builder-progress-item.active::after,
     .builder-progress-item.done::after {
       background: var(--blue);
+    }
+    #builderModal.mdpick-builder-mode .builder-progress {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    #builderModal.mdpick-builder-mode .builder-progress-item[data-builder-progress="2"] {
+      display: none;
     }
     .builder-step {
       display: none;
@@ -9615,6 +10285,7 @@
         --font-section-desc: clamp(15px, 4.3vw, 16px);
         --font-product-section-title: 24px;
         --font-product-section-desc: 16px;
+        --font-mdpick-pack-chip-mobile: 15px;
         --font-card-title: clamp(18px, 5.5vw, 22px);
         --font-card-meta: clamp(14px, 4.2vw, 17px);
         --font-card-location: 13px;
@@ -10297,6 +10968,10 @@
     #secret-golf-join.sgj-page #active .section-head-row {
       justify-content: center;
       text-align: center;
+      margin: 45px 0 18px;
+    }
+    #secret-golf-join.sgj-page #active .join-section-list {
+      margin-top: 0;
     }
     @media (min-width: 641px) {
       #secret-golf-join.sgj-page #active.sgj-active-section {
@@ -10435,7 +11110,7 @@
       color: #fff;
     }
     .sgj-page .button.secondary.hero-calendar-button {
-      background: #4964be;
+      background: #40434f;
       border: 0;
       color: #ffffff;
     }
@@ -10799,6 +11474,41 @@
       }
     }
     @media (min-width: 641px) and (max-width: 875px) {
+      .sgj-page .join-section-nav {
+        gap: 6px;
+        padding: 8px;
+      }
+      .sgj-page .join-section-nav .chip {
+        gap: 5px;
+        min-height: 42px;
+        padding: 8px 6px;
+        font-size: 13px;
+      }
+      .sgj-page .join-section-nav .join-section-nav-icon {
+        width: 22px;
+        height: 22px;
+        flex-basis: 22px;
+      }
+      .sgj-page .join-mdpick-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .sgj-page .join-mdpick-theme-groups {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .sgj-page .join-mdpick-theme-group {
+        grid-template-columns: 1fr;
+      }
+      .sgj-page .join-mdpick-theme-head {
+        min-height: 210px;
+      }
+      .sgj-page .join-mdpick-theme-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        padding: 18px;
+      }
+      .sgj-page .join-mdpick-theme-meta {
+        padding: 6px 2px 0;
+      }
       .sgj-page .join-product-section.layout-quick .join-grid {
         grid-template-columns: 1fr;
       }
@@ -10961,6 +11671,7 @@
         width: 100%;
         max-width: none;
         overflow: visible;
+        padding-top: 0;
       }
       #secret-golf-join.sgj-page #active.sgj-active-section > .page-container {
         width: min(calc(100% - (var(--mobile-page-gutter) * 2)), var(--page-max-width));
@@ -10977,7 +11688,7 @@
       }
       .sgj-page .hero.sgj-section {
         width: min(calc(100% - (var(--mobile-page-gutter) * 2)), var(--page-max-width));
-        padding: 5px 0 20px;
+        padding: 5px 0 0px;
         border-radius: 20px;
       }
       .sgj-page .hero .hero-grid {
@@ -11012,18 +11723,18 @@
         font-weight: 600;
       }
       .sgj-page .hero .hero-visual {
-        width: 100vw;
-        max-width: 100vw;
+        width: 100%;
+        max-width: 100%;
         min-height: 170px;
-        margin-left: calc((100% - 100vw) / 2);
-        margin-right: calc((100% - 100vw) / 2);
-        border-radius: 0;
+        margin-left: 0;
+        margin-right: 0;
+        border-radius: 15px;
         justify-self: center;
       }
       .sgj-page .hero .hero-slider-viewport,
       .sgj-page .hero .hero-slide,
       .sgj-page .hero .hero-visual img {
-        border-radius: 0;
+        border-radius: 15px;
       }
       .sgj-page .hero-slick-dots {
         position: absolute;
@@ -11698,17 +12409,93 @@
         top: var(--mobile-home-header-height);
         z-index: 40;
         display: flex;
-        gap: 10px;
+        align-items: flex-start;
+        gap: 5px;
         box-sizing: border-box;
         width: 100vw;
         max-width: 100vw;
-        margin: 15px calc((100% - 100vw) / 2) 12px;
-        padding: 8px var(--mobile-page-gutter);
+        margin: 8px calc((100% - 100vw) / 2) 12px;
+        padding: 15px var(--mobile-page-gutter);
+        border: 0;
+        border-radius: 0;
         overflow-x: auto;
         overscroll-behavior-x: contain;
         scrollbar-width: none;
         background: rgba(255, 255, 255, 0.96);
         backdrop-filter: blur(8px);
+      }
+      .sgj-page .join-section-nav .chip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        flex: 0 0 75px;
+        width: 75px;
+        min-width: 75px;
+        max-width: 75px;
+        box-sizing: border-box;
+        overflow: hidden;
+        white-space: nowrap;
+        transform-origin: top center;
+        border-radius: 16px;
+        transition:
+          height .38s cubic-bezier(0.16, 1, 0.3, 1),
+          min-height .38s cubic-bezier(0.16, 1, 0.3, 1),
+          padding .32s cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow .2s ease-out;
+      }
+      .sgj-page .join-section-nav:not(.is-fixed) .chip {
+        flex-direction: column;
+        gap: 2px;
+        height: 75px;
+        min-height: 75px;
+        padding: 5px 4px;
+        border-radius: 16px;
+        background: rgb(245, 246, 247) !important;
+        border-color: #eef0f3 !important;
+        color: var(--text) !important;
+        box-shadow: none;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .sgj-page .join-section-nav .join-section-nav-icon,
+      .sgj-page .join-section-nav .join-section-nav-label {
+        transform-origin: top center;
+        transition:
+          opacity .2s ease-out,
+          transform .34s cubic-bezier(0.16, 1, 0.3, 1),
+          height .3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .sgj-page .join-section-nav .join-section-nav-label {
+        display: block;
+        font-size: 14px;
+      }
+      .sgj-page .join-section-nav .join-section-nav-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 30px;
+        opacity: 1;
+        transform: scale(1);
+        overflow: hidden;
+      }
+      .sgj-page .join-section-nav .join-section-nav-icon img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .sgj-page .join-section-nav:not(.is-fixed) .join-section-nav-icon {
+        transition-delay: .06s;
+      }
+      .sgj-page .join-section-nav:not(.is-fixed) .join-section-nav-label {
+        opacity: 1;
+        transform: scale(1);
+        transition-delay: .08s;
       }
       .sgj-page .join-section-nav.is-fixed {
         position: fixed !important;
@@ -11717,9 +12504,43 @@
         width: 100vw !important;
         z-index: 40;
         margin: 0;
+        padding-top: 7px !important;
+        padding-bottom: 7px !important;
         padding-left: var(--mobile-page-gutter) !important;
         padding-right: var(--mobile-page-gutter) !important;
         box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+      }
+      .sgj-page .join-section-nav.is-fixed .chip {
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        height: 32px;
+        min-height: 32px;
+        padding: 6px 10px;
+        border-radius: 16px;
+        background: #fff !important;
+        border-color: var(--border) !important;
+        color: var(--text) !important;
+        box-shadow: none;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .sgj-page .join-section-nav.is-fixed .join-section-nav-icon {
+        display: none;
+        height: 0;
+        flex-basis: 0;
+        opacity: 0;
+        transform: scale(0.72);
+        transition-delay: 0s;
+      }
+      .sgj-page .join-section-nav.is-fixed .join-section-nav-label {
+        width: 100%;
+        text-align: center;
+        opacity: 1;
+        transform: scale(0.92) translateX(0);
+        transition-delay: 0s;
       }
       .sgj-page .join-section-list.is-nav-fixed {
         padding-top: var(--sgj-nav-spacer, 0px);
@@ -11727,15 +12548,11 @@
       .sgj-page .join-section-nav::-webkit-scrollbar {
         display: none;
       }
-      .sgj-page .join-section-nav .chip {
-        flex: 0 0 auto;
-        white-space: nowrap;
-      }
       .sgj-page .join-section-nav .chip.active,
       .sgj-page .join-section-nav .chip[aria-current="true"] {
-        background: var(--blue) !important;
-        border-color: var(--blue) !important;
-        color: #fff !important;
+        background: #fff !important;
+        border-color: #dde3ea !important;
+        color: var(--text) !important;
       }
       .sgj-page .join-product-section.layout-soon .join-section-controls {
         display: none;
@@ -13862,6 +14679,107 @@
         animation: none;
       }
     }
+    @media (max-width: 640px) {
+      .join-mdpick-countries {
+        gap: 0;
+      }
+      .join-mdpick-country-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .join-mdpick-country-name {
+        font-size: 22px;
+      }
+      .join-mdpick-list {
+        grid-template-columns: 1fr;
+      }
+      .join-mdpick-card {
+        display: grid;
+        grid-template-columns: 75px minmax(0, 1fr);
+        gap: 12px;
+        height: auto;
+        padding: 5px 0;
+        border: 0;
+        box-shadow: none;
+      }
+      .join-mdpick-thumb {
+        width: 75px;
+        aspect-ratio: 1 / 1;
+        border-radius: 8px;
+      }
+      .join-mdpick-info {
+        padding: 0;
+      }
+      .join-mdpick-title {
+        font-size: 17px;
+        display: block;
+        white-space: nowrap;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+      }
+      .join-mdpick-price {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .join-mdpick-theme-section {
+        margin-top: 24px;
+      }
+      .join-mdpick-theme-title {
+        font-size: 24px;
+      }
+      .join-mdpick-theme-groups {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      .join-mdpick-theme-group {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+      .join-mdpick-theme-head {
+        min-height: 220px;
+        padding: 28px 26px;
+      }
+      .join-mdpick-theme-name {
+        font-size: 28px;
+      }
+      .join-mdpick-theme-subcopy {
+        max-width: 100%;
+        font-size: 15px;
+      }
+      .join-mdpick-theme-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px;
+      }
+      .join-mdpick-theme-card {
+        display: grid;
+        grid-template-columns: 100px minmax(0, 1fr);
+        min-height: 112px;
+        gap: 12px;
+      }
+      .join-mdpick-theme-thumb {
+        height: 100%;
+        aspect-ratio: auto;
+      }
+      .join-mdpick-theme-meta {
+        padding: 4px 0 0 2px;
+      }
+      .join-mdpick-theme-product {
+        font-size: 17px;
+      }
+      .join-mdpick-theme-price {
+        font-size: 16px;
+        font-weight: 700;
+      }
+      #secret-golf-join .join-mdpick-pack-chip,
+      .join-mdpick-pack-chip {
+        font-size: var(--font-mdpick-pack-chip-mobile) !important;
+      }
+      .join-mdpick-pack-chip::after {
+        right: auto;
+        left: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -13908,6 +14826,16 @@
 
   <section class="sgj-section sgj-active-section" id="active">
     <div class="page-container">
+      <div class="join-section-nav" id="joinSectionNav" aria-label="조인 상품 섹션 이동">
+        <button type="button" class="chip active" data-join-section-target="mdpick" onclick="scrollHomeJoinSection('mdpick')" aria-current="true"><div class="join-section-nav-icon"><img src="https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779266879/golf-join/nav1.png" alt=""></div><div class="join-section-nav-label">추천여행</div></button>
+        <button type="button" class="chip" data-join-section-target="quick" onclick="scrollHomeJoinSection('quick')" aria-current="false"><div class="join-section-nav-icon"><img src="https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779267025/golf-join/nav2.png" alt=""></div><div class="join-section-nav-label">마감임박</div></button>
+        <button type="button" class="chip" data-join-section-target="soon" onclick="scrollHomeJoinSection('soon')" aria-current="false"><div class="join-section-nav-icon"><img src="https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779267150/golf-join/nav3.png" alt=""></div><div class="join-section-nav-label">곧출발</div></button>
+        <button type="button" class="chip" data-join-section-target="custom" onclick="scrollHomeJoinSection('custom')" aria-current="false"><div class="join-section-nav-icon"><img src="https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779267215/golf-join/nav4.png" alt=""></div><div class="join-section-nav-label">맞춤조인</div></button>
+        <button type="button" class="chip" data-join-section-target="overseas" onclick="scrollHomeJoinSection('overseas')" aria-current="false"><div class="join-section-nav-icon"><img src="https://res.cloudinary.com/dcoxhhdfi/image/upload/v1779267253/golf-join/nav5.png" alt=""></div><div class="join-section-nav-label">해외BEST</div></button>
+      </div>
+
+      <div id="joinMdPickSection"></div>
+
       <div class="section-head-row">
         <div>
           <div class="section-title">지금, 함께 떠나는 조인여행 <div class="section-title-bolt" aria-hidden="true"></div></div>
@@ -13915,13 +14843,7 @@
         </div>
       </div>
 
-      <div class="join-section-nav is-fixed" id="joinSectionNav" aria-label="조인 상품 섹션 이동">
-        <button type="button" class="chip active" data-join-section-target="quick" onclick="scrollHomeJoinSection('quick')" aria-current="true">마감임박</button>
-        <button type="button" class="chip" data-join-section-target="soon" onclick="scrollHomeJoinSection('soon')" aria-current="false">곧출발</button>
-        <button type="button" class="chip" data-join-section-target="custom" onclick="scrollHomeJoinSection('custom')" aria-current="false">맞춤조인</button>
-        <button type="button" class="chip" data-join-section-target="overseas" onclick="scrollHomeJoinSection('overseas')" aria-current="false">해외BEST</button>
-      </div>
-      <div class="join-section-list is-nav-fixed" id="joinSectionList" style="--sgj-nav-spacer: 66px;">
+      <div class="join-section-list" id="joinSectionList">
         <section class="join-product-section layout-quick" id="join-section-quick" data-join-section="quick" aria-label="마감임박">
           <div class="join-product-section-head">
             <div class="join-product-section-copy">
@@ -22616,6 +23538,7 @@
                   <div class="apply-complete-action-label">밴드 가입하기</div>
                 </button>
               </div>
+              <button type="button" class="apply-complete-close" onclick="closeAllJoinModals()">확인</button>
             </div>
           </div>
         </section>
@@ -23015,7 +23938,7 @@
               <div class="apply-complete-action-label">밴드 가입하기</div>
             </button>
           </div>
-          <button type="button" class="apply-complete-close" onclick="closeGlobalApply()">확인</button>
+          <button type="button" class="apply-complete-close" onclick="closeAllJoinModals()">확인</button>
         </div>
       </div>
       <div class="detail-apply-actions">
@@ -23976,6 +24899,8 @@
     let currentDetailJoinId = null;
     let currentDetailMode = "normal";
     let currentDetailJoinData = null;
+    let currentMdPickProductGroupKey = "";
+    let currentMdPickCountryKey = "";
     let currentDetailSlideIndex = 0;
     let globalApplyWaitlistApproved = false;
     let currentAgreementDetailKey = null;
@@ -25233,8 +26158,7 @@
       builderState.endBefore = 0;
       builderState.endAfter = 0;
       builderState.durationFilter = "";
-      builderState.productId = "";
-      builderState.productName = "";
+      clearBuilderProductForDateChange();
       renderBuilderCalendar();
       updateBuilderSummary();
       updateBuilderNotice();
@@ -25601,6 +26525,17 @@
       });
     }
 
+    function getBuilderReturnDatePriceLabel(iso) {
+      if (!builderState.fixedProductGroupKey || !Number.isFinite(builderState.startDay)) return "";
+      const departureIso = builderDateToISO(builderState.startDay);
+      const matches = getBuilderFixedProductGroupProducts().filter((product) => {
+        return product.departureDate === departureIso && (product.returnDate || product.departureDate) === iso && Number(product.price) > 0;
+      });
+      if (!matches.length) return "";
+      const price = Math.min(...matches.map((product) => Number(product.price)));
+      return `${formatPrice(price)}원`;
+    }
+
     function renderBuilderCalendar() {
       const grid = document.getElementById("builderCalendar");
       if (!grid) return;
@@ -25650,7 +26585,9 @@
           if ((inStartFlex && stamp === startFlexMax) || (inEndFlex && stamp === endFlexMax)) flexClasses.push("flex-edge-right");
         }
         const cls = ["builder-day", muted ? "muted" : "", displayUnavailable ? "unavailable" : "", isToday ? "today" : "", weekday === 0 ? "sunday" : "", weekday === 6 ? "saturday" : "", ...new Set(flexClasses), isRange ? "range" : "", hasStart && hasEnd && !displayUnavailable && (isStart || isEnd) ? "linked" : "", !displayUnavailable && isStart ? "start" : "", !displayUnavailable && isEnd ? "end" : ""].filter(Boolean).join(" ");
-        const label = !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : isToday ? '<div class="builder-day-today-label">TODAY</div>' : "";
+        const iso = getISODateKey(date);
+        const returnPriceLabel = !displayUnavailable && !isStart && hasStart && !hasEnd ? getBuilderReturnDatePriceLabel(iso) : "";
+        const label = !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : "";
         const canClick = !isLoadingDates && (!unavailable || isStart || isEnd);
         const click = canClick ? (isStart ? "openBuilderDatePopover('start', this)" : isEnd ? "openBuilderDatePopover('end', this)" : `selectBuilderDate(${dayOffset}, this)`) : "";
         return `<button type="button" class="${cls}" data-builder-day-offset="${dayOffset}" ${click ? `onclick="${click}"` : "disabled"}><div class="builder-day-number">${day}</div>${label}</button>`;
@@ -25720,6 +26657,12 @@
       renderBuilderCalendar();
     }
 
+    function clearBuilderProductForDateChange() {
+      if (builderState.fixedProductGroupKey) return;
+      builderState.productId = "";
+      builderState.productName = "";
+    }
+
     function selectBuilderDate(day, trigger) {
       if (!isBuilderDateSelectable(new Date(builderState.viewYear, builderState.viewMonth, day))) return;
       closeBuilderDurationPopover();
@@ -25731,8 +26674,7 @@
         builderState.startBefore = 0;
         builderState.startAfter = 0;
         builderState.durationFilter = "";
-        builderState.productId = "";
-        builderState.productName = "";
+        clearBuilderProductForDateChange();
         renderBuilderCalendar();
         openBuilderDatePopover("start", getBuilderDateButton(builderState.startDay) || trigger);
       } else if (!Number.isFinite(builderState.endDay)) {
@@ -25745,8 +26687,7 @@
           builderState.endBefore = 0;
           builderState.endAfter = 0;
           builderState.durationFilter = "";
-          builderState.productId = "";
-          builderState.productName = "";
+          clearBuilderProductForDateChange();
           renderBuilderCalendar();
           openBuilderDatePopover("start", getBuilderDateButton(builderState.startDay) || trigger);
           return;
@@ -25757,8 +26698,7 @@
           builderState.startBefore = 0;
           builderState.startAfter = 0;
           builderState.durationFilter = "";
-          builderState.productId = "";
-          builderState.productName = "";
+          clearBuilderProductForDateChange();
           renderBuilderCalendar();
           openBuilderDatePopover("start", getBuilderDateButton(builderState.startDay) || trigger);
           return;
@@ -25767,6 +26707,7 @@
         builderState.endBefore = 0;
         builderState.endAfter = 0;
         builderState.durationFilter = "";
+        syncBuilderFixedProductFromSelectedDates();
         renderBuilderCalendar();
         openBuilderDatePopover("end", getBuilderDateButton(builderState.endDay) || trigger);
       } else if (day <= builderState.startDay) {
@@ -25775,8 +26716,7 @@
         builderState.startBefore = 0;
         builderState.startAfter = 0;
         builderState.durationFilter = "";
-        builderState.productId = "";
-        builderState.productName = "";
+        clearBuilderProductForDateChange();
         renderBuilderCalendar();
         openBuilderDatePopover("start", getBuilderDateButton(builderState.startDay) || trigger);
       } else if (day >= builderState.endDay) {
@@ -25784,6 +26724,7 @@
         builderState.endBefore = 0;
         builderState.endAfter = 0;
         builderState.durationFilter = "";
+        syncBuilderFixedProductFromSelectedDates();
         renderBuilderCalendar();
         openBuilderDatePopover("end", getBuilderDateButton(builderState.endDay) || trigger);
       } else {
@@ -25795,8 +26736,7 @@
           builderState.startBefore = 0;
           builderState.startAfter = 0;
           builderState.durationFilter = "";
-          builderState.productId = "";
-          builderState.productName = "";
+          clearBuilderProductForDateChange();
           renderBuilderCalendar();
           openBuilderDatePopover("start", getBuilderDateButton(builderState.startDay) || trigger);
         } else {
@@ -25804,6 +26744,7 @@
           builderState.endBefore = 0;
           builderState.endAfter = 0;
           builderState.durationFilter = "";
+          syncBuilderFixedProductFromSelectedDates();
           renderBuilderCalendar();
           openBuilderDatePopover("end", getBuilderDateButton(builderState.endDay) || trigger);
         }
@@ -26310,6 +27251,7 @@
       builderStep = step;
       closeBuilderDatePopover(true);
       closeBuilderFlexSheet();
+      document.getElementById("builderModal")?.classList.toggle("mdpick-builder-mode", Boolean(builderState.mdPickMode));
       document.querySelectorAll("[data-builder-step]").forEach((panel) => {
         panel.classList.toggle("active", Number(panel.dataset.builderStep) === step);
       });
@@ -27615,11 +28557,20 @@
         await submitBuilderApply();
         return;
       }
+      if (builderStep === 1 && builderState.mdPickMode && Number.isFinite(builderState.startDay) && Number.isFinite(builderState.endDay)) {
+        syncBuilderFixedProductFromSelectedDates();
+        setBuilderStep(3);
+        return;
+      }
       setBuilderStep(builderStep + 1);
     }
 
     function prevBuilderStep() {
       if (builderStep <= 1) return;
+      if (builderStep === 3 && builderState.mdPickMode) {
+        setBuilderStep(1);
+        return;
+      }
       setBuilderStep(builderStep - 1);
     }
 
@@ -27642,13 +28593,16 @@
         regions: [],
         dateConstraintRegions: [],
         productId: "",
-        productName: ""
+        productName: "",
+        fixedProductGroupKey: "",
+        mdPickMode: false
       });
       resetBuilderApplyForm();
       builderRegionSelectorMode = true;
       closeBuilderDatePopover(true);
       closeBuilderFlexSheet();
       closeBuilderProductDetail();
+      document.getElementById("builderModal")?.classList.remove("mdpick-builder-mode");
       renderBuilderCalendar();
       ensureExternalGolfJoinProductsLoaded();
       updateBuilderRegionDisplay();
@@ -27747,6 +28701,11 @@
       resumeQuickMobileCarouselIfIdle();
     }
 
+    function openMdPickRegionSearchModal(event) {
+      event?.stopPropagation?.();
+      openRegionSearchModal("mdpick");
+    }
+
     function openRegionSearchModal(context = "default") {
       regionSearchContext = context;
       selectedRegionSearchName = "";
@@ -27755,6 +28714,7 @@
       portalOverlayToBody("regionSearchModal")?.classList.add("open");
       const shell = document.querySelector("#regionSearchModal .region-search-shell");
       shell?.classList.toggle("builder-context", context === "builder");
+      shell?.classList.toggle("mdpick-context", context === "mdpick");
       shell?.classList.remove("searching", "has-product-results", "has-region-query", "has-region-selection");
       setRegionSearchPanelMode("");
       if (context === "builder") {
@@ -27769,11 +28729,19 @@
       updateRegionSearchSelectedText();
       renderRegionDesktop();
       renderRegionMobile();
+      if (context === "mdpick") {
+        ensureExternalGolfJoinProductsLoaded().then(() => {
+          if (regionSearchContext !== "mdpick" || !document.getElementById("regionSearchModal")?.classList.contains("open")) return;
+          renderRegionSearchResults(document.getElementById("regionSearchInput")?.value || "");
+          renderRegionDesktop();
+          renderRegionMobile();
+        });
+      }
     }
 
     function closeRegionSearchModal() {
       document.getElementById("regionSearchModal").classList.remove("open");
-      document.querySelector("#regionSearchModal .region-search-shell")?.classList.remove("builder-context");
+      document.querySelector("#regionSearchModal .region-search-shell")?.classList.remove("builder-context", "mdpick-context");
       if (!document.getElementById("travelDateModal")?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open")) {
         setWidgetModalOpen(false);
       }
@@ -27879,6 +28847,14 @@
     let regionProductSort = "recommended";
     let regionProductSortMenuOpen = false;
     let regionEmptyRecommendType = "overseas";
+    let mdPickRegionCache = {
+      sourceRef: null,
+      minDepartureIso: "",
+      products: [],
+      availability: new Map(),
+      searchItems: null,
+      themeCandidates: null
+    };
     let regionRecent = ["미야자키", "다낭", "클락", "방콕"];
 
     function getJoinRegionSearchNames(join) {
@@ -27925,6 +28901,7 @@
     }
 
     function getMainJoinRegionSearchItems() {
+      if (regionSearchContext === "mdpick") return getMdPickRegionSearchItems();
       const items = new Map();
       getVisibleJoinProducts().forEach((join) => {
         if (!join.region) return;
@@ -27935,6 +28912,66 @@
         });
       });
       return [...items.values()].sort((a, b) => a[0].localeCompare(b[0], "ko"));
+    }
+
+    function getMdPickRegionProductSource() {
+      const source = getBuilderProductSource();
+      const minDepartureIso = getBuilderMinDepartureISO();
+      if (mdPickRegionCache.sourceRef !== source || mdPickRegionCache.minDepartureIso !== minDepartureIso) {
+        mdPickRegionCache = {
+          sourceRef: source,
+          minDepartureIso,
+          products: source.filter((product) => product.departureDate && product.departureDate >= minDepartureIso),
+          availability: new Map(),
+          searchItems: null,
+          themeCandidates: null
+        };
+      }
+      return mdPickRegionCache.products;
+    }
+
+    function mdPickProductMatchesRegion(product, name, options = {}) {
+      const tokens = getBuilderRegionAvailabilityTokens(name, options);
+      if (!tokens.length) return false;
+      return builderProductMatchesTokens(product, tokens);
+    }
+
+    function hasMdPickRegionProducts(name, options = {}) {
+      const products = getMdPickRegionProductSource();
+      const cacheKey = `${options.country ? "country" : "region"}:${normalizeRegionKeyword(name)}`;
+      if (!mdPickRegionCache.availability.has(cacheKey)) {
+        const result = products.some((product) => mdPickProductMatchesRegion(product, name, options));
+        mdPickRegionCache.availability.set(cacheKey, result);
+      }
+      return mdPickRegionCache.availability.get(cacheKey);
+    }
+
+    function getMdPickRegionSearchItems() {
+      getMdPickRegionProductSource();
+      if (mdPickRegionCache.searchItems) return mdPickRegionCache.searchItems;
+      const items = new Map();
+      regionTree.forEach((category) => {
+        if (isDomesticRegionCategory(category)) return;
+        (category.countries || []).forEach((country) => {
+          if (hasMdPickRegionProducts(country.name, { country: true })) {
+            items.set(normalizeRegionKeyword(country.name), [country.name, category.category]);
+          }
+          (country.cities || []).forEach((city) => {
+            const label = regionLabel(city, country.name);
+            if (hasMdPickRegionProducts(label)) {
+              items.set(normalizeRegionKeyword(label), [label, country.name]);
+            }
+          });
+        });
+      });
+      getMdPickRegionProductSource().forEach((product) => {
+        if (!product.region) return;
+        const key = normalizeRegionKeyword(product.region);
+        if (!key || items.has(key)) return;
+        items.set(key, [product.region, product.category || "지역"]);
+      });
+      mdPickRegionCache.searchItems = [...items.values()].sort((a, b) => a[0].localeCompare(b[0], "ko"));
+      return mdPickRegionCache.searchItems;
     }
 
     function regionLabel(city, country) {
@@ -27960,10 +28997,12 @@
     }
 
     function getRegionDisplayCategories({ builderContext = false } = {}) {
+      const mdPickContext = regionSearchContext === "mdpick";
       return regionTree
         .map((item, index) => ({ item, index }))
         .filter(({ item }) => !isDomesticRegionCategory(item))
-        .filter(({ item }) => !builderContext || isBuilderCategoryAvailable(item));
+        .filter(({ item }) => !builderContext || isBuilderCategoryAvailable(item))
+        .filter(({ item }) => !mdPickContext || isMdPickCategoryAvailable(item));
     }
 
     function getRegionScheduledLeafNames() {
@@ -27995,6 +29034,9 @@
     }
 
     function hasRegisteredRegionSchedule(name) {
+      if (regionSearchContext === "mdpick") {
+        return hasMdPickRegionProducts(name, { country: !String(name || "").includes(",") });
+      }
       return getVisibleJoinProducts().some((join) => joinMatchesRegionSearch(join, name));
     }
 
@@ -28012,17 +29054,27 @@
       const cities = document.getElementById("regionDesktopCities");
       if (!categories || !countries || !cities) return;
       const builderContext = regionSearchContext === "builder";
+      const mdPickContext = regionSearchContext === "mdpick";
       const displayCategories = getRegionDisplayCategories({ builderContext });
       if (!displayCategories.some(({ index }) => index === activeRegionCategoryIndex)) {
         activeRegionCategoryIndex = displayCategories[0]?.index || 0;
-        activeRegionCountryIndex = builderContext ? getFirstBuilderAvailableCountryIndex(regionTree[activeRegionCategoryIndex]) : 0;
+        activeRegionCountryIndex = builderContext
+          ? getFirstBuilderAvailableCountryIndex(regionTree[activeRegionCategoryIndex])
+          : mdPickContext
+            ? getFirstMdPickAvailableCountryIndex(regionTree[activeRegionCategoryIndex])
+            : 0;
       }
       const activeCategory = displayCategories.find(({ index }) => index === activeRegionCategoryIndex)?.item || displayCategories[0]?.item;
       const activeCountries = builderContext
         ? getBuilderAvailableCountries(activeCategory)
+        : mdPickContext
+          ? getMdPickAvailableCountries(activeCategory)
         : (activeCategory?.countries || []).map((country, countryIndex) => ({ country, countryIndex }));
       if (builderContext && !activeCountries.some(({ countryIndex }) => countryIndex === activeRegionCountryIndex)) {
         activeRegionCountryIndex = getFirstBuilderAvailableCountryIndex(activeCategory);
+      }
+      if (mdPickContext && !activeCountries.some(({ countryIndex }) => countryIndex === activeRegionCountryIndex)) {
+        activeRegionCountryIndex = getFirstMdPickAvailableCountryIndex(activeCategory);
       }
       const activeCountryItem = activeCountries.find(({ countryIndex }) => countryIndex === activeRegionCountryIndex) || activeCountries[0];
       const activeCountry = activeCountryItem?.country;
@@ -28047,7 +29099,11 @@
         `;
       }).join("")}</div>`;
 
-      const activeCities = builderContext ? getBuilderAvailableCities(activeCountry) : (activeCountry?.cities || []);
+      const activeCities = builderContext
+        ? getBuilderAvailableCities(activeCountry)
+        : mdPickContext
+          ? getMdPickAvailableCities(activeCountry)
+          : (activeCountry?.cities || []);
       const cityButtons = activeCountry && activeCities.length
         ? activeCities.map((city) => {
           const label = regionLabel(city, activeCountry.name);
@@ -28071,11 +29127,14 @@
       const body = document.querySelector("#regionSearchModal .region-search-body");
       if (!body) return;
       const builderContext = regionSearchContext === "builder";
+      const mdPickContext = regionSearchContext === "mdpick";
       const displayCategories = getRegionDisplayCategories({ builderContext })
         .map(({ item, index }) => ({ category: item, categoryIndex: index }));
       body.innerHTML = displayCategories.map(({ category, categoryIndex }) => {
         const countries = builderContext
           ? getBuilderAvailableCountries(category)
+          : mdPickContext
+            ? getMdPickAvailableCountries(category)
           : (category.countries || []).map((country, countryIndex) => ({ country, countryIndex }));
         const rows = [];
         for (let countryIndex = 0; countryIndex < countries.length; countryIndex += 2) {
@@ -28098,7 +29157,11 @@
             return cities.length > 0 && activeMobileRegionCountryKey === `${categoryIndex}:${actualIndex}`;
           });
           const activeCountry = activeCountryItem?.country;
-          const activeCities = builderContext ? getBuilderAvailableCities(activeCountry) : (activeCountry && Array.isArray(activeCountry.cities) ? activeCountry.cities : []);
+          const activeCities = builderContext
+            ? getBuilderAvailableCities(activeCountry)
+            : mdPickContext
+              ? getMdPickAvailableCities(activeCountry)
+              : (activeCountry && Array.isArray(activeCountry.cities) ? activeCountry.cities : []);
           rows.push(`
             <div class="region-grid-row">
               ${rowCountryHtml}
@@ -28765,13 +29828,10 @@
         const items = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS.items) ? window.SECRET_GOLF_JOIN_PRODUCTS.items : [];
         externalGolfJoinProducts = items.map(normalizeExternalGolfJoinProduct);
         hydrateOverseasJoinsWithSecretProducts();
-        renderJoins();
         return Promise.resolve(externalGolfJoinProducts);
       }
       if (!externalGolfJoinProductsLoadPromise) {
         externalGolfJoinProductsLoading = true;
-        renderBuilderCalendar();
-        renderJoins();
         externalGolfJoinProductsLoadPromise = loadSecretTourGoodsProducts()
           .then((items) => {
             externalGolfJoinProducts = items.map(normalizeExternalGolfJoinProduct);
@@ -28795,6 +29855,8 @@
             }
             renderJoins();
           });
+        renderBuilderCalendar();
+        renderJoins();
       }
       return externalGolfJoinProductsLoadPromise;
     }
@@ -28802,6 +29864,32 @@
     function getBuilderProductSource() {
       ensureExternalGolfJoinProductsLoaded();
       return externalGolfJoinProducts || joins || [];
+    }
+
+    function getProductGroupKey(product = {}) {
+      const goodSeq = String(product.goodSeq || product.erpProductId || "").trim();
+      if (goodSeq) return `good-${goodSeq}`;
+      return `title-${normalizeRegionKeyword(product.title || "")}`;
+    }
+
+    function getBuilderFixedProductGroupProducts() {
+      const key = builderState.fixedProductGroupKey || "";
+      if (!key) return [];
+      return getBuilderProductSource().filter((product) => getProductGroupKey(product) === key);
+    }
+
+    function syncBuilderFixedProductFromSelectedDates() {
+      if (!builderState.fixedProductGroupKey) return;
+      const startIso = builderDateToISO(builderState.startDay);
+      const endIso = builderDateToISO(builderState.endDay);
+      const product = getBuilderFixedProductGroupProducts()
+        .filter((item) => item.departureDate === startIso && (item.returnDate || item.departureDate) === endIso)
+        .sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0))[0];
+      if (!product) return;
+      builderState.productId = product.id;
+      builderState.productName = product.title;
+      builderState.region = product.region || builderState.region || "";
+      builderState.regions = builderState.region ? [builderState.region] : builderState.regions;
     }
 
     function getBuilderSelectedDepartureDate() {
@@ -28913,6 +30001,8 @@
     }
 
     function getBuilderDateConstraintProducts() {
+      const fixedProducts = getBuilderFixedProductGroupProducts();
+      if (fixedProducts.length) return fixedProducts;
       if (!hasBuilderDateConstraint()) return [];
       const products = getBuilderProductSource();
       if (!products.length) return [];
@@ -28922,6 +30012,8 @@
     }
 
     function getBuilderRegisteredProductsForDateSelection() {
+      const fixedProducts = getBuilderFixedProductGroupProducts();
+      if (fixedProducts.length) return fixedProducts;
       const constrained = getBuilderDateConstraintProducts();
       if (constrained.length) return constrained;
       return getBuilderProductSource();
@@ -29069,6 +30161,30 @@
 
     function getFirstBuilderAvailableCountryIndex(category) {
       return getBuilderAvailableCountries(category)[0]?.countryIndex ?? 0;
+    }
+
+    function isMdPickCountryAvailable(country) {
+      if (!country) return false;
+      return hasMdPickRegionProducts(country.name, { country: true });
+    }
+
+    function getMdPickAvailableCities(country) {
+      const cities = Array.isArray(country?.cities) ? country.cities : [];
+      return cities.filter((city) => hasMdPickRegionProducts(regionLabel(city, country.name)));
+    }
+
+    function isMdPickCategoryAvailable(category) {
+      return (category?.countries || []).some((country) => isMdPickCountryAvailable(country));
+    }
+
+    function getMdPickAvailableCountries(category) {
+      return (category?.countries || [])
+        .map((country, countryIndex) => ({ country, countryIndex }))
+        .filter(({ country }) => isMdPickCountryAvailable(country));
+    }
+
+    function getFirstMdPickAvailableCountryIndex(category) {
+      return getMdPickAvailableCountries(category)[0]?.countryIndex ?? 0;
     }
 
     function getDefaultBuilderRegionCountryKey(categoryIndex) {
@@ -29594,6 +30710,8 @@
       activeRegionCategoryIndex = index;
       activeRegionCountryIndex = regionSearchContext === "builder"
         ? getFirstBuilderAvailableCountryIndex(regionTree[index])
+        : regionSearchContext === "mdpick"
+          ? getFirstMdPickAvailableCountryIndex(regionTree[index])
         : 0;
       renderRegionDesktop();
     }
@@ -29631,6 +30749,7 @@
 
     function selectRegionResult(name) {
       if (regionSearchContext === "builder" && !isBuilderRegionAvailableForDate(name, { country: !String(name || "").includes(",") })) return;
+      if (regionSearchContext === "mdpick" && !hasMdPickRegionProducts(name, { country: !String(name || "").includes(",") })) return;
       regionRecent = [name, ...regionRecent.filter((item) => item !== name)].slice(0, 4);
       if (regionSearchContext === "builder") {
         toggleRegionSelection(name);
@@ -29942,6 +31061,28 @@
       updateRegionSearchSelectedText();
       if (!query) {
         list.innerHTML = `<div class="region-result-empty">검색어를 입력하거나 국가 또는 지역을 선택해 주세요.</div>`;
+        return;
+      }
+      if (regionSearchContext === "mdpick") {
+        const results = getMdPickRegionProducts(query);
+        if (!results.length) {
+          const emptyRegionName = escapeHtml(formatRegionDisplayName(query) || query);
+          list.innerHTML = `<div class="region-result-empty">ERP에 등록된 ${emptyRegionName} 상품이 없습니다.</div>`;
+          return;
+        }
+        list.innerHTML = `
+          <div class="region-product-head">
+            <div class="region-product-count"><strong>${results.length}</strong>개 상품</div>
+            <div class="region-product-sort" aria-label="상품 정렬">
+              <button type="button" class="${regionProductSort === "recommended" ? "active" : ""}" onclick="setRegionProductSort('recommended')">추천순</button>
+              <button type="button" class="${regionProductSort === "price" ? "active" : ""}" onclick="setRegionProductSort('price')">낮은가격순</button>
+              <button type="button" class="${regionProductSort === "deadline" ? "active" : ""}" onclick="setRegionProductSort('deadline')">빠른출발순</button>
+            </div>
+          </div>
+          <div class="region-product-grid">
+            ${results.map(renderMdPickRegionProductCard).join("")}
+          </div>
+        `;
         return;
       }
       const results = sortRegionProductResults(getVisibleJoinProducts().filter((join) => joinMatchesRegionSearch(join, query))).slice(0, 12);
@@ -30409,6 +31550,32 @@
       const panel = document.getElementById("globalApplyPanel");
       panel.classList.remove("open");
       overlay.classList.remove("open");
+      setWidgetModalOpen(false);
+      resumeQuickMobileCarouselIfIdle();
+    }
+
+    function closeAllJoinModals() {
+      closeBuilderFlexSheet();
+      closeBuilderProductDetail();
+      closeDetailApply();
+      closeTravelDateModal();
+      closeRegionSearchModal();
+      closePrivacyApplyModal();
+      closeWaitlistApplyModal();
+
+      document.querySelectorAll(".overlay.open, .global-apply-overlay.open, .calendar-sheet-overlay.open, .participant-floating.open").forEach((overlay) => {
+        overlay.classList.remove("open");
+      });
+      document.querySelectorAll(".detail-apply-panel.open, #globalApplyPanel.is-complete, #detailModal.builder-select-mode").forEach((panel) => {
+        panel.classList.remove("open", "is-complete", "builder-select-mode");
+      });
+      currentDetailMode = "normal";
+      currentDetailJoinData = null;
+      const primary = document.getElementById("detailPrimaryButton");
+      if (primary) {
+        primary.textContent = "신청하기";
+        primary.setAttribute("onclick", "openGlobalApply()");
+      }
       setWidgetModalOpen(false);
       resumeQuickMobileCarouselIfIdle();
     }
@@ -30966,6 +32133,22 @@
       }
     }
 
+    function toggleMdPickPackTooltip(event, countryKey) {
+      event.stopPropagation();
+      const tooltip = document.getElementById(`mdPickPackTooltip-${countryKey}`);
+      if (!tooltip) return;
+      const wasOpen = tooltip.classList.contains("open");
+      document.querySelectorAll(".join-mdpick-pack-tooltip.open").forEach((item) => {
+        if (item !== tooltip) item.classList.remove("open");
+      });
+      const rect = event.currentTarget.getBoundingClientRect();
+      const tooltipHeight = tooltip.offsetHeight || 120;
+      const showBelow = rect.top < tooltipHeight + 24;
+      tooltip.classList.toggle("below", showBelow);
+      tooltip.style.setProperty("--mdpick-pack-tooltip-top", `${showBelow ? rect.bottom : rect.top}px`);
+      tooltip.classList.toggle("open", !wasOpen);
+    }
+
     function getConfirmedParticipants(join) {
       return join.participants.filter((participant) => participant.status === "confirmed");
     }
@@ -31277,7 +32460,11 @@
     }
 
     function isJoinProductCardsLoading() {
-      return Boolean(externalGolfJoinProductsLoading || googleSheetBuilderApplicationsLoading || googleSheetJoinApplicationsLoading);
+      return Boolean(googleSheetBuilderApplicationsLoading || googleSheetJoinApplicationsLoading);
+    }
+
+    function isMdPickProductsLoading() {
+      return Boolean(externalGolfJoinProductsLoading && !externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed);
     }
 
     function renderJoinCardSkeleton(index = 0) {
@@ -31699,6 +32886,498 @@
       `;
     }
 
+    function getMdPickRegionProducts(query = "") {
+      const products = getMdPickRegionProductSource();
+      const tokens = getBuilderRegionAvailabilityTokens(query, { country: !String(query || "").includes(",") });
+      if (!tokens.length) return [];
+      const groups = new Map();
+      products
+        .filter((product) => builderProductMatchesTokens(product, tokens))
+        .forEach((product) => {
+          const key = getProductGroupKey(product);
+          const current = groups.get(key);
+          if (!current || (Number(product.price) || 0) < (Number(current.price) || 0)) {
+            groups.set(key, product);
+          }
+        });
+      const results = [...groups.values()];
+      if (regionProductSort === "price") {
+        results.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+      } else if (regionProductSort === "deadline") {
+        results.sort((a, b) => parseJoinDate(a.departureDate) - parseJoinDate(b.departureDate));
+      }
+      return results.slice(0, 24);
+    }
+
+    function getMdPickProductCountryKey(product = {}) {
+      const text = normalizeRegionKeyword([product.region, product.category, product.title].filter(Boolean).join(" "));
+      const match = MD_PICK_COUNTRIES.find((country) => text.includes(normalizeRegionKeyword(country.name)));
+      return match?.key || "";
+    }
+
+    function renderMdPickRegionProductCard(product) {
+      const groupKey = getProductGroupKey(product);
+      const countryKey = getMdPickProductCountryKey(product);
+      return `
+        <article class="region-product-card" onclick="openMdPickProductDetailFromRegion('${escapeJsString(groupKey)}', '${escapeJsString(countryKey)}')">
+          <div class="region-product-thumb">
+            <img src="${escapeHtml(product.image || product.thumb || "")}" alt="${escapeHtml(product.title || "상품")}">
+          </div>
+          <div class="region-product-info">
+            <div class="region-product-meta">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
+              </svg>
+              <div class="region-product-location">${escapeHtml(product.region || product.category || "")}</div>
+            </div>
+            <div class="region-product-name">${escapeHtml(product.title || "상품명 없음")}</div>
+            <div class="region-product-date">${formatCardDateRange(product)}</div>
+          </div>
+          <div class="region-product-side">
+            <div class="region-product-price">
+              <span class="region-product-price-label">1인</span>
+              <strong>${formatPrice(product.price)}</strong>
+              <span class="region-product-price-unit">원~</span>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function openMdPickProductDetailFromRegion(groupKey, countryKey) {
+      closeRegionSearchModal();
+      openMdPickProductDetail(groupKey, countryKey);
+    }
+
+    const mdPickPackFilters = {};
+    let mdPickActiveCountryKey = "thailand";
+    let mdPickCountryMenuOpen = false;
+    let mdPickActiveThemeKey = "relax";
+    const MD_PICK_COUNTRIES = [
+      { key: "thailand", name: "태국", tokens: ["태국", "방콕", "파타야", "치앙마이", "후아힌"] },
+      { key: "japan", name: "일본", tokens: ["일본", "후쿠오카", "기타큐슈", "나고야", "가고시마", "오사카", "삿포로", "구마모토", "나리타"] },
+      { key: "china", name: "중국", tokens: ["중국", "청도", "연태", "위해", "장가계", "북경", "남경", "대련", "제남"] }
+    ];
+
+    function getMdPickPackType(product = {}) {
+      const source = [product.title, product.includes, product.notes].flat().filter(Boolean).join(" ");
+      if (/\[?\s*항공팩|항공권|항공\s*포함/i.test(source)) return "air";
+      return "golf";
+    }
+
+    function productMatchesMdPickCountry(product, country) {
+      const haystack = normalizeRegionKeyword([product.title, product.region, product.category, product.airport].filter(Boolean).join(" "));
+      return country.tokens.some((token) => haystack.includes(normalizeRegionKeyword(token)));
+    }
+
+    function getMdPickRepresentativeProducts(country) {
+      const minDepartureIso = getBuilderMinDepartureISO();
+      const groups = new Map();
+      getBuilderProductSource().forEach((product) => {
+        if (!productMatchesMdPickCountry(product, country)) return;
+        if (!product.departureDate || product.departureDate < minDepartureIso) return;
+        if (!product.returnDate) return;
+        if (!(Number(product.price) > 0)) return;
+        const packType = getMdPickPackType(product);
+        const activePack = mdPickPackFilters[country.key] || "golf";
+        if (activePack && packType !== activePack) return;
+        const key = getProductGroupKey(product);
+        if (!groups.has(key)) {
+          groups.set(key, {
+            key,
+            countryKey: country.key,
+            packType,
+            title: product.title,
+            region: product.region || country.name,
+            image: product.image || "src/imports/golf-placeholder-overseas.svg",
+            price: Number(product.price),
+            departureDate: product.departureDate,
+            products: [product]
+          });
+          return;
+        }
+        const group = groups.get(key);
+        group.products.push(product);
+        const price = Number(product.price);
+        if (price < group.price || (price === group.price && product.departureDate < group.departureDate)) {
+          Object.assign(group, {
+            title: product.title,
+            region: product.region || group.region,
+            image: product.image || group.image,
+            price,
+            departureDate: product.departureDate,
+            packType
+          });
+        }
+      });
+      return [...groups.values()]
+        .sort((a, b) => a.price - b.price || String(a.departureDate).localeCompare(String(b.departureDate)) || String(a.title).localeCompare(String(b.title), "ko"))
+        .slice(0, 4);
+    }
+
+    const MD_PICK_THEMES = [
+      {
+        key: "relax",
+        name: "휴양형",
+        emoji: "&#x1F334;",
+        desc: "무조건 힐링! 스파랑 리조트가 좋아",
+        keywords: ["힐링", "스파", "리조트", "휴양", "온천", "풀빌라", "비치", "해변", "바다", "오션", "휴식"]
+      },
+      {
+        key: "city",
+        name: "시내형",
+        emoji: "&#x1F6CD;&#xFE0F;",
+        desc: "라운드 끝나고 맛집이랑 쇼핑은 필수",
+        keywords: ["시내", "도심", "맛집", "쇼핑", "야시장", "관광", "자유", "번화가", "나이트", "몰", "상권"]
+      },
+      {
+        key: "passion",
+        name: "열정형",
+        emoji: "&#x26F3;",
+        desc: "하루 36홀 올인! 무제한 라운드",
+        keywords: ["36홀", "36", "무제한", "올인", "열정", "라운드", "라운딩", "골프텔", "1일36", "하루36"]
+      }
+    ];
+
+    function getMdPickThemeProductText(product = {}) {
+      return [
+        product.title,
+        product.region,
+        product.category,
+        product.airport,
+        product.badge,
+        product.includes,
+        product.excludes,
+        product.notes
+      ].flat().filter(Boolean).join(" ");
+    }
+
+    function productMatchesMdPickTheme(product, theme) {
+      const haystack = normalizeRegionKeyword(getMdPickThemeProductText(product));
+      return theme.keywords.some((keyword) => haystack.includes(normalizeRegionKeyword(keyword)));
+    }
+
+    function getMdPickThemeCandidates() {
+      getMdPickRegionProductSource();
+      if (mdPickRegionCache.themeCandidates) return mdPickRegionCache.themeCandidates;
+      const groups = new Map();
+      mdPickRegionCache.products
+        .filter((product) => product.returnDate && Number(product.price) > 0)
+        .forEach((product) => {
+          const key = getProductGroupKey(product);
+          const current = groups.get(key);
+          if (!current || (Number(product.price) || 0) < (Number(current.price) || 0) || (
+            Number(product.price) === Number(current.price) && String(product.departureDate).localeCompare(String(current.departureDate)) < 0
+          )) {
+            groups.set(key, product);
+          }
+        });
+      mdPickRegionCache.themeCandidates = [...groups.values()].sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0) || String(a.departureDate).localeCompare(String(b.departureDate)));
+      return mdPickRegionCache.themeCandidates;
+    }
+
+    function getMdPickThemeProducts(theme, usedKeys = new Set()) {
+      const candidates = getMdPickThemeCandidates();
+      const matched = candidates.filter((product) => productMatchesMdPickTheme(product, theme));
+      const fallback = candidates.filter((product) => !matched.includes(product));
+      const selected = [];
+      const appendProduct = (product, allowUsed = false) => {
+        const key = getProductGroupKey(product);
+        if ((!allowUsed && usedKeys.has(key)) || selected.some((item) => getProductGroupKey(item) === key)) return;
+        selected.push(product);
+      };
+      [...matched, ...fallback].forEach((product) => appendProduct(product, false));
+      if (selected.length < 3) {
+        [...matched, ...fallback].forEach((product) => appendProduct(product, true));
+      }
+      selected.slice(0, 3).forEach((product) => usedKeys.add(getProductGroupKey(product)));
+      return selected.slice(0, 3);
+    }
+
+    function getMdPickThemePills(theme) {
+      const fallback = theme.desc ? [theme.desc] : [];
+      const pillMap = {
+        relax: ["고래와 함께! 블루오션", "에메랄드빛 휴양지", "서핑 & 다이빙 성지"],
+        city: ["라운드 끝나고 맛집투어", "쇼핑과 관광까지", "편안한 시내 휴양"],
+        passion: ["하루 36홀 도전", "골프 집중 일정", "알찬 라운드 구성"]
+      };
+      return pillMap[theme.key] || fallback;
+    }
+
+    function getMdPickThemeSubcopy(theme) {
+      const subcopyMap = {
+        relax: "푸른 바다와 리조트에서 쉬어가는 여유로운 골프여행",
+        city: "라운드 후 맛집, 쇼핑, 관광까지 함께 즐기는 도심형 일정",
+        passion: "라운드에 집중하고 싶은 골퍼를 위한 알찬 골프 일정"
+      };
+      return subcopyMap[theme.key] || theme.desc || "";
+    }
+
+    function getMdPickThemeTabLabel(theme) {
+      const labelMap = {
+        relax: "쉼이 있는 바다 라운드",
+        city: "라운드 후 도심 산책",
+        passion: "하루 꽉 찬 집중 라운드"
+      };
+      return labelMap[theme.key] || theme.name || "";
+    }
+
+    function setMdPickTheme(themeKey) {
+      if (!MD_PICK_THEMES.some((theme) => theme.key === themeKey)) return;
+      mdPickActiveThemeKey = themeKey;
+      const mdPickSection = document.getElementById("joinMdPickSection");
+      if (mdPickSection) {
+        mdPickSection.innerHTML = renderMdPickSection();
+        updateJoinSectionNavVisibility(getHomeJoinSections(), Boolean(mdPickSection.innerHTML));
+        updateJoinSectionNavFixed();
+      }
+    }
+    window.setMdPickTheme = setMdPickTheme;
+
+    function renderMdPickThemeCard(product, theme) {
+      const groupKey = getProductGroupKey(product);
+      const countryKey = getMdPickProductCountryKey(product);
+      const image = product.image || product.thumb || "src/imports/golf-placeholder-overseas.svg";
+      return `
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('${escapeJsString(groupKey)}', '${escapeJsString(countryKey)}')">
+          <div class="join-mdpick-theme-thumb"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.title || "추천상품")}"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">${escapeHtml(product.region || product.category || "")}</div>
+            <div class="join-mdpick-theme-product">${escapeHtml(product.title || "상품명 없음")}</div>
+            <div class="join-mdpick-theme-price">${formatPrice(product.price)}원~</div>
+          </div>
+        </button>
+      `;
+    }
+
+    function renderMdPickThemeSection() {
+      const themes = MD_PICK_THEMES
+        .map((theme) => ({ ...theme, items: getMdPickThemeProducts(theme, new Set()) }))
+        .filter((theme) => theme.items.length);
+      if (!themes.length) return "";
+      const activeTheme = themes.find((theme) => theme.key === mdPickActiveThemeKey) || themes[0];
+      mdPickActiveThemeKey = activeTheme.key;
+      return `
+        <div class="join-mdpick-theme-section">
+          <div class="join-mdpick-theme-title">취향맞춤 BEST</div>
+          <div class="join-mdpick-theme-groups">
+              <div class="join-mdpick-theme-group theme-${escapeHtml(activeTheme.key)}">
+                <div class="join-mdpick-theme-head">
+                  <div class="join-mdpick-theme-name">${activeTheme.name} ${activeTheme.emoji}</div>
+                  <div class="join-mdpick-theme-subcopy">${escapeHtml(getMdPickThemeSubcopy(activeTheme))}</div>
+                  <div class="join-mdpick-theme-pills" role="tablist" aria-label="취향맞춤 테마 선택">
+                    ${themes.map((theme) => `
+                      <button
+                        type="button"
+                        class="join-mdpick-theme-tab${theme.key === activeTheme.key ? " active" : ""}"
+                        onclick="setMdPickTheme('${escapeJsString(theme.key)}')"
+                        role="tab"
+                        aria-selected="${theme.key === activeTheme.key ? "true" : "false"}"
+                      >${escapeHtml(getMdPickThemeTabLabel(theme))}</button>
+                    `).join("")}
+                  </div>
+                </div>
+                <div class="join-mdpick-theme-grid">
+                  ${activeTheme.items.map((product) => renderMdPickThemeCard(product, activeTheme)).join("")}
+                </div>
+              </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function setMdPickPackFilter(countryKey, packType) {
+      mdPickPackFilters[countryKey] = packType;
+      renderMdPickCountryInPlace(countryKey);
+    }
+
+    function openMdPickBuilder(productGroupKey, countryKey) {
+      const country = MD_PICK_COUNTRIES.find((item) => item.key === countryKey);
+      const products = getBuilderProductSource().filter((product) => getProductGroupKey(product) === productGroupKey);
+      const product = products.slice().sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0))[0];
+      openModal("builderModal");
+      Object.assign(builderState, {
+        fixedProductGroupKey: productGroupKey,
+        mdPickMode: true,
+        productId: "",
+        productName: product?.title || "",
+        region: product?.region || country?.name || "",
+        regions: product?.region ? [product.region] : (country ? [country.name] : []),
+        dateConstraintRegions: country ? [country.name] : []
+      });
+      builderRegionSelectorMode = false;
+      const minDate = products
+        .filter((item) => item.departureDate && item.departureDate >= getBuilderMinDepartureISO())
+        .sort((a, b) => String(a.departureDate).localeCompare(String(b.departureDate)))[0]?.departureDate;
+      if (minDate) {
+        const date = new Date(`${minDate}T00:00:00`);
+        builderState.viewYear = date.getFullYear();
+        builderState.viewMonth = date.getMonth();
+      }
+      renderBuilderCalendar();
+      updateBuilderRegionDisplay();
+      updateBuilderSummary();
+      setBuilderStep(1);
+    }
+
+    async function openMdPickProductDetail(productGroupKey, countryKey) {
+      const products = getBuilderProductSource().filter((product) => getProductGroupKey(product) === productGroupKey);
+      const product = products
+        .filter((item) => item.departureDate && item.departureDate >= getBuilderMinDepartureISO())
+        .sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0) || String(a.departureDate).localeCompare(String(b.departureDate)))[0]
+        || products.slice().sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0))[0];
+      if (!product) return;
+      currentDetailMode = "mdPickProduct";
+      currentDetailJoinId = product.id;
+      currentDetailJoinData = product;
+      currentMdPickProductGroupKey = productGroupKey;
+      currentMdPickCountryKey = countryKey;
+      currentDetailSlideIndex = 0;
+      stopDetailReviewAutoSlide();
+      closeDetailApply();
+      document.getElementById("detailModalTitle").textContent = product.title;
+      renderDetailContent(product, { hideParticipants: true });
+      const primary = document.getElementById("detailPrimaryButton");
+      const secondary = document.querySelector("#detailModal .detail-modal-actions .button.secondary");
+      if (primary) {
+        primary.textContent = "멤버 모집하기";
+        primary.setAttribute("onclick", "handleDetailPrimaryAction()");
+      }
+      if (secondary) {
+        secondary.textContent = "닫기";
+        secondary.setAttribute("onclick", "closeModal('detailModal')");
+      }
+      document.getElementById("detailModal")?.classList.remove("builder-select-mode");
+      openModal("detailModal");
+      requestAnimationFrame(() => {
+        prepareDetailScheduleHeights({ forceOpen: true });
+        resetDetailModalScroll();
+      });
+      try {
+        const detail = await loadSecretTourGoodsDetail(product);
+        const enrichedProduct = mergeSecretTourGoodsDetail(product, detail);
+        if (Array.isArray(externalGolfJoinProducts)) {
+          externalGolfJoinProducts = externalGolfJoinProducts.map((item) => item.id === enrichedProduct.id ? enrichedProduct : item);
+        }
+        if (currentDetailMode === "mdPickProduct" && currentDetailJoinId === product.id && document.getElementById("detailModal")?.classList.contains("open")) {
+          currentDetailJoinData = enrichedProduct;
+          currentDetailSlideIndex = 0;
+          document.getElementById("detailModalTitle").textContent = enrichedProduct.title;
+          renderDetailContent(enrichedProduct, { hideParticipants: true });
+          requestAnimationFrame(() => {
+            prepareDetailScheduleHeights({ forceOpen: true });
+            resetDetailModalScroll();
+          });
+        }
+      } catch (error) {
+        console.warn("Failed to enrich MD PICK detail from ERP.", error);
+      }
+    }
+
+    function renderMdPickCard(item) {
+      return `
+        <button type="button" class="join-mdpick-card" onclick="openMdPickProductDetail('${escapeJsString(item.key)}', '${escapeJsString(item.countryKey)}')">
+          <div class="join-mdpick-thumb"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}"></div>
+          <div class="join-mdpick-info">
+            <div class="join-mdpick-region">${escapeHtml(item.region)}</div>
+            <div class="join-mdpick-title">${escapeHtml(item.title)}</div>
+            <div class="join-mdpick-price">${formatPrice(item.price)}원~</div>
+          </div>
+        </button>
+      `;
+    }
+
+    function getMdPickActiveCountry() {
+      return MD_PICK_COUNTRIES.find((item) => item.key === mdPickActiveCountryKey) || MD_PICK_COUNTRIES[0];
+    }
+
+    function setMdPickCountryMenuOpen(open) {
+      mdPickCountryMenuOpen = Boolean(open);
+      document.querySelector(".join-mdpick-country-trigger")?.classList.toggle("open", mdPickCountryMenuOpen);
+      document.querySelector(".join-mdpick-country-trigger")?.setAttribute("aria-expanded", mdPickCountryMenuOpen ? "true" : "false");
+      document.querySelector(".join-mdpick-country-options")?.classList.toggle("open", mdPickCountryMenuOpen);
+    }
+
+    function toggleMdPickCountryMenu(event) {
+      event?.stopPropagation?.();
+      setMdPickCountryMenuOpen(!mdPickCountryMenuOpen);
+    }
+
+    function selectMdPickCountry(countryKey) {
+      if (!MD_PICK_COUNTRIES.some((item) => item.key === countryKey)) return;
+      mdPickActiveCountryKey = countryKey;
+      mdPickCountryMenuOpen = false;
+      renderMdPickCountryInPlace(countryKey);
+    }
+
+    function renderMdPickCountry(country) {
+      const items = getMdPickRepresentativeProducts(country);
+      const activePack = mdPickPackFilters[country.key] || "golf";
+      const otherCountries = MD_PICK_COUNTRIES.filter((item) => item.key !== country.key);
+      return `
+        <div class="join-mdpick-country" data-mdpick-country="${country.key}">
+          <div class="join-mdpick-country-head">
+            <div class="join-mdpick-country-name">
+              <button type="button" class="join-mdpick-country-trigger${mdPickCountryMenuOpen ? " open" : ""}" onclick="toggleMdPickCountryMenu(event)" aria-expanded="${mdPickCountryMenuOpen ? "true" : "false"}">
+                <span>${country.name}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M12 15.838a1.2 1.2 0 0 1-.8-.3l-4.625-4.626a1.03 1.03 0 0 1-.312-.788c.008-.308.12-.57.337-.787.217-.216.483-.325.8-.325.317 0 .583.109.8.325l3.8 3.8 3.825-3.825c.217-.216.48-.32.788-.311.308.008.57.12.787.337.217.216.325.483.325.8 0 .316-.108.583-.325.8l-4.6 4.6a1.2 1.2 0 0 1-.8.3Z"></path></svg>
+              </button>
+              <div class="join-mdpick-country-options${mdPickCountryMenuOpen ? " open" : ""}">
+                ${otherCountries.map((item) => `<button type="button" class="join-mdpick-country-option" onclick="selectMdPickCountry('${item.key}')">${item.name}</button>`).join("")}
+              </div>
+            </div>
+            <div class="join-mdpick-pack-chips" aria-label="${country.name} 상품 유형">
+              <button type="button" class="join-mdpick-pack-chip${activePack === "golf" ? " active" : ""}" onclick="setMdPickPackFilter('${country.key}', 'golf')">골프팩</button>
+              <button type="button" class="join-mdpick-pack-chip${activePack === "air" ? " active" : ""}" onclick="setMdPickPackFilter('${country.key}', 'air')">항공팩</button>
+              <button type="button" class="join-mdpick-pack-info-button" onclick="toggleMdPickPackTooltip(event, '${country.key}')" aria-label="상품 유형 안내"></button>
+              <div class="join-mdpick-pack-tooltip" id="mdPickPackTooltip-${country.key}" role="tooltip">
+                <div class="join-mdpick-pack-info-list">
+                  <div><strong>골프팩</strong><span>골프 + 숙박이 포함된 상품입니다.</span></div>
+                  <div><strong>항공팩</strong><span>항공 + 골프 + 숙박이 포함된 상품입니다.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          ${items.length ? `<div class="join-mdpick-list">${items.map(renderMdPickCard).join("")}</div>` : `<div class="join-mdpick-empty">추천 가능한 상품을 불러오는 중입니다.</div>`}
+        </div>
+      `;
+    }
+
+    function renderMdPickCountryInPlace(countryKey) {
+      const country = MD_PICK_COUNTRIES.find((item) => item.key === countryKey) || getMdPickActiveCountry();
+      if (!country) return;
+      const current = document.querySelector(".join-mdpick-country");
+      if (!current) {
+        renderJoins();
+        return;
+      }
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = renderMdPickCountry(country).trim();
+      const next = wrapper.firstElementChild;
+      if (next) current.replaceWith(next);
+    }
+
+    function renderMdPickSection() {
+      const themeSectionHtml = renderMdPickThemeSection();
+      const hasProducts = MD_PICK_COUNTRIES.some((country) => getMdPickRepresentativeProducts(country).length);
+      if (!hasProducts && !themeSectionHtml && !isMdPickProductsLoading()) return "";
+      return `
+        <section class="join-product-section layout-mdpick" id="join-section-mdpick" data-join-section="mdpick" aria-label="MD PICK! 추천여행">
+          <div class="join-product-section-head">
+            <div class="join-product-section-copy">
+              <div class="join-product-section-title">MD PICK! 추천여행<div class="join-product-section-icon popular" aria-hidden="true"></div></div>
+              <p class="join-product-section-desc">인기 상품으로 멤버를 모집해보세요.</p>
+            </div>
+          </div>
+          <div class="join-mdpick-countries">
+            ${renderMdPickCountry(getMdPickActiveCountry())}
+          </div>
+          ${themeSectionHtml}
+        </section>
+      `;
+    }
+
     function renderJoinProductSection(section) {
       if (!section.items.length) return "";
       if (section.key === "custom") {
@@ -31805,19 +33484,25 @@
         quickSectionFeaturedIndex = 0;
       }
       const sectionList = document.getElementById("joinSectionList");
+      const mdPickSection = document.getElementById("joinMdPickSection");
       const legacyGrid = document.getElementById("joinGrid");
+      const mdPickSectionHtml = renderMdPickSection();
+      if (mdPickSection) {
+        mdPickSection.innerHTML = mdPickSectionHtml;
+      }
       if (sectionList) {
         sectionList.classList.toggle("is-loading-products", isLoading);
         sectionList.innerHTML = sections.length
           ? sections.map(renderJoinProductSection).join("")
           : (isLoading ? renderJoinLoadingSection() : "");
+        document.getElementById("joinEmpty").hidden = sections.length > 0 || Boolean(mdPickSectionHtml) || isLoading;
       } else if (legacyGrid) {
         const filtered = sortJoins(getVisibleJoinProducts().filter(matchesPeriod));
         legacyGrid.classList.toggle("is-loading-products", isLoading);
         legacyGrid.innerHTML = filtered.map(renderJoinCard).join("");
+        document.getElementById("joinEmpty").hidden = filtered.length > 0 || isLoading;
       }
-      document.getElementById("joinEmpty").hidden = sections.length > 0 || isLoading;
-      updateJoinSectionNavVisibility(sections);
+      updateJoinSectionNavVisibility(sections, Boolean(mdPickSectionHtml));
       setupQuickMobileCarousel();
       updateJoinSectionNavFixed();
     }
@@ -31846,6 +33531,7 @@
     function appendQuickMobileCarouselCloneSet(grid, repeat = 1) {
       const cards = Array.from(grid.querySelectorAll(".join-card:not([data-quick-carousel-clone='true'])"));
       if (!cards.length) return;
+      if (cards.length > 1 && Math.abs(cards[1].offsetTop - cards[0].offsetTop) > 4) return;
       Array.from({ length: repeat }).forEach(() => {
         cards.forEach((card) => {
           const clone = card.cloneNode(true);
@@ -31895,6 +33581,8 @@
       stopQuickMobileCarousel();
       const grid = getQuickMobileCarouselGrid();
       if (!grid) return;
+      const realCards = Array.from(grid.querySelectorAll(".join-card:not([data-quick-carousel-clone='true'])"));
+      if (realCards.length > 1 && Math.abs(realCards[1].offsetTop - realCards[0].offsetTop) > 4) return;
       if (grid.dataset.quickCarouselCloned !== "true") {
         if (grid.querySelector(".join-card:not([data-quick-carousel-clone='true'])")) {
           appendQuickMobileCarouselCloneSet(grid, 8);
@@ -31939,8 +33627,9 @@
       setupQuickMobileCarousel();
     }
 
-    function updateJoinSectionNavVisibility(sections) {
+    function updateJoinSectionNavVisibility(sections, hasMdPickSection = false) {
       const visibleKeys = new Set(sections.map((section) => section.key));
+      if (hasMdPickSection) visibleKeys.add("mdpick");
       document.querySelectorAll("#joinSectionNav [data-join-section-target]").forEach((button) => {
         button.hidden = !visibleKeys.has(button.dataset.joinSectionTarget);
       });
@@ -32011,7 +33700,7 @@
       nav.classList.toggle("is-fixed", shouldFix);
       list.classList.toggle("is-nav-fixed", shouldFix);
       if (shouldFix) {
-        list.style.setProperty("--sgj-nav-spacer", `${navHeight + 12}px`);
+        list.style.setProperty("--sgj-nav-spacer", `${nav.offsetHeight + 12}px`);
       } else {
         list.style.removeProperty("--sgj-nav-spacer");
       }
@@ -32020,7 +33709,7 @@
     function updateJoinSectionNavActive() {
       const sections = Array.from(document.querySelectorAll("[data-join-section]"));
       updateJoinSectionNavFixed();
-      if (!sections.length || window.innerWidth > 640) return;
+      if (!sections.length) return;
       const nav = document.getElementById("joinSectionNav");
       const headerOffset = Number.parseFloat(getComputedStyle(document.getElementById("secret-golf-join") || document.documentElement).getPropertyValue("--mobile-home-header-height")) || 55;
       const offset = headerOffset + (nav?.offsetHeight || 0) + 24;
@@ -32036,6 +33725,7 @@
     function renderDetailContent(join, options = {}) {
       if (!join) return;
       const isBuilderMode = options.mode === "builder";
+      const hideParticipants = Boolean(options.hideParticipants);
       const confirmedParticipants = getConfirmedParticipants(join);
       const participantCapacity = getCardTeamCapacity(join);
       const slides = getDetailSlides(join);
@@ -32069,7 +33759,7 @@
           <button type="button" class="detail-anchor-chip" data-anchor-target="schedule" onclick="scrollDetailSection('schedule')">일정</button>
           <button type="button" class="detail-anchor-chip" data-anchor-target="place" onclick="scrollDetailSection('place')">시설정보</button>
           ${hasReviews ? `<button type="button" class="detail-anchor-chip" data-anchor-target="review" onclick="scrollDetailSection('review')">여행후기</button>` : ""}
-          ${isBuilderMode ? "" : `<button type="button" class="detail-anchor-chip" data-anchor-target="participants" onclick="scrollDetailSection('participants')">참여자</button>`}
+          ${(isBuilderMode || hideParticipants) ? "" : `<button type="button" class="detail-anchor-chip" data-anchor-target="participants" onclick="scrollDetailSection('participants')">참여자</button>`}
         </div>
         <div class="detail-section" data-detail-section="includes">
           <div class="detail-section-title">포함사항</div>
@@ -32092,7 +33782,7 @@
           ${renderDetailNotes(join.notes || [])}
         </div>
         ${renderDetailScheduleTabs(join)}
-        ${isBuilderMode ? "" : `
+        ${(isBuilderMode || hideParticipants) ? "" : `
           <div class="detail-section-title with-people" data-detail-section="participants" style="margin-top:24px;">
             <div>현재 참여자 (${confirmedParticipants.length}/${participantCapacity}명)</div>
             <div class="participant-info-wrap">
@@ -32250,6 +33940,13 @@
     }
 
     function handleDetailPrimaryAction() {
+      if (currentDetailMode === "mdPickProduct") {
+        const groupKey = currentMdPickProductGroupKey;
+        const countryKey = currentMdPickCountryKey;
+        closeModal("detailModal");
+        openMdPickBuilder(groupKey, countryKey);
+        return;
+      }
       if (currentDetailMode === "builderProduct") {
         selectBuilderProduct(currentDetailJoinId);
         closeModal("detailModal");
@@ -32573,6 +34270,16 @@
         document.querySelectorAll(".participant-info-wrap.open, .participant-info-wrap.suppress-hover").forEach((item) => {
           item.classList.remove("open", "suppress-hover");
         });
+      }
+
+      if (!event.target.closest(".join-mdpick-pack-info-button") && !event.target.closest(".join-mdpick-pack-tooltip")) {
+        document.querySelectorAll(".join-mdpick-pack-tooltip.open").forEach((item) => {
+          item.classList.remove("open");
+        });
+      }
+
+      if (mdPickCountryMenuOpen && !event.target.closest(".join-mdpick-country-name")) {
+        setMdPickCountryMenuOpen(false);
       }
 
       const trigger = event.target.closest("[data-participant]");

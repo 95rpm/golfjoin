@@ -807,20 +807,125 @@
       padding: 0;
       cursor: pointer;
     }
-    .join-mdpick-country-trigger svg {
+    .join-mdpick-country-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      cursor: pointer;
+    }
+    .join-mdpick-country-trigger svg,
+    .join-mdpick-country-toggle svg {
       width: 24px;
       height: 24px;
       display: block;
       flex: 0 0 24px;
+      transform: rotate(-90deg);
       transition: transform .24s ease;
     }
-    .join-mdpick-country-trigger.open svg {
-      transform: rotate(180deg);
+    .join-mdpick-country-trigger.open svg,
+    .join-mdpick-country-toggle.open svg {
+      transform: rotate(90deg);
+    }
+    #secret-golf-join .join-mdpick-country-toggle.open:not(.no-motion) svg {
+      animation: mdpickCountryToggleOpen .24s ease both;
+    }
+    #secret-golf-join .join-mdpick-country-toggle.closing svg {
+      animation: mdpickCountryToggleClose .2s ease both;
+    }
+    #secret-golf-join .join-mdpick-country-options.open:not(.no-motion) .join-mdpick-country-option {
+      animation: mdpickCountrySlideIn .28s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    #secret-golf-join .join-mdpick-country-options.open:not(.no-motion) .join-mdpick-country-option.active:first-child {
+      animation: none;
+    }
+    #secret-golf-join .join-mdpick-country-options.open .join-mdpick-country-option:nth-of-type(2) {
+      animation-delay: .03s;
+    }
+    #secret-golf-join .join-mdpick-country-options.open .join-mdpick-country-option:nth-of-type(3) {
+      animation-delay: .06s;
+    }
+    #secret-golf-join .join-mdpick-country-options.closing .join-mdpick-country-option {
+      animation: mdpickCountrySlideOut .2s ease both;
+    }
+    @keyframes mdpickCountrySlideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    @keyframes mdpickCountrySlideOut {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(-14px);
+      }
+    }
+    @keyframes mdpickCountryToggleOpen {
+      from {
+        transform: rotate(-90deg);
+      }
+      to {
+        transform: rotate(90deg);
+      }
+    }
+    @keyframes mdpickCountryToggleClose {
+      from {
+        transform: rotate(90deg);
+      }
+      to {
+        transform: rotate(-90deg);
+      }
+    }
+    #secret-golf-join .join-mdpick-country-current {
+      font-size: 25px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    #secret-golf-join .join-mdpick-country-flag {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      margin-left: 7px;
+      border-radius: 5px;
+      object-fit: cover;
+      vertical-align: -3px;
+    }
+    #secret-golf-join .join-mdpick-country-flag-japan {
+      border: 1px solid #d8dee5;
+    }
+    #secret-golf-join .join-mdpick-country-trigger.active {
+      position: relative;
+      border-bottom: 0;
+    }
+    #secret-golf-join .join-mdpick-country-trigger.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -3px;
+      height: 2px;
+      background: currentColor;
+    }
+    #secret-golf-join .join-mdpick-country-trigger.menu-open-hidden {
+      display: none;
     }
     .join-mdpick-country-options {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 20px;
       max-width: 0;
       opacity: 0;
       overflow: hidden;
@@ -830,27 +935,49 @@
       white-space: nowrap;
     }
     .join-mdpick-country-options.open {
-      max-width: 180px;
+      margin-left: 17px;
+      max-width: 320px;
       opacity: 1;
       transform: translateX(0);
       pointer-events: auto;
     }
-    .join-mdpick-country-option {
+    #secret-golf-join .join-mdpick-country-option {
       border: 0;
-      border-radius: 999px;
-      background: #f1f3f5;
-      color: #313437;
-      padding: 7px 12px;
-      font-size: 14px;
-      line-height: 1;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 0;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 25px;
       font-weight: 800;
+      line-height: 1.25;
       cursor: pointer;
       white-space: nowrap;
       opacity: 0;
       transform: translateX(-10px);
       transition: opacity .22s ease, transform .34s cubic-bezier(0.16, 1, 0.3, 1), background .18s ease, color .18s ease;
     }
-    .join-mdpick-country-options.open .join-mdpick-country-option {
+    #secret-golf-join .join-mdpick-country-option-alt {
+      padding: 0;
+      font-size: 25px;
+      font-weight: 800;
+    }
+    #secret-golf-join .join-mdpick-country-option-current {
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text);
+      font-size: 25px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    #secret-golf-join .join-mdpick-country-option.active {
+      color: var(--text);
+      background: transparent;
+      border-radius: 0;
+      border-bottom: 2px solid currentColor;
+    }
+    #secret-golf-join .join-mdpick-country-options.open .join-mdpick-country-option {
       opacity: 1;
       transform: translateX(0);
     }
@@ -990,12 +1117,6 @@
       background: #fff;
       box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
       text-align: left;
-      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
-    }
-    .join-mdpick-card:hover {
-      border-color: #d8e1ea;
-      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.10);
-      transform: translateY(-1px);
     }
     .join-mdpick-thumb {
       width: 100%;
@@ -1059,9 +1180,17 @@
     }
     .join-mdpick-theme-title {
       color: var(--text);
-      font-size: 28px;
+      font-size: var(--font-product-section-title);
       line-height: 1.25;
-      font-weight: 900;
+      font-weight: 800;
+    }
+    .join-mdpick-theme-copy {
+      margin-top: -14px;
+      color: var(--text-soft);
+      font-size: var(--font-product-section-desc);
+      line-height: 1.45;
+      font-weight: 500;
+      word-break: keep-all;
     }
     .join-mdpick-theme-groups {
       display: grid;
@@ -1078,6 +1207,12 @@
       overflow: hidden;
       box-shadow: none;
     }
+    .join-mdpick-theme-group:not(.active) {
+      display: none;
+    }
+    .join-mdpick-theme-group.legacy-active-hidden {
+      display: none !important;
+    }
     .join-mdpick-theme-head {
       position: relative;
       display: flex;
@@ -1086,47 +1221,33 @@
       gap: 18px;
       min-width: 0;
       padding: 34px 30px;
+      border-radius: 15px 15px 0 0;
       overflow: hidden;
       color: #fff;
-      background:
-        radial-gradient(circle at 20% 16%, rgba(255,255,255,.34) 0 8px, transparent 9px),
-        radial-gradient(circle at 88% 22%, rgba(255,255,255,.30) 0 5px, transparent 6px),
-        linear-gradient(145deg, #27dce9 0%, #1685f3 100%);
-    }
-    .join-mdpick-theme-group.theme-city .join-mdpick-theme-head {
-      background:
-        radial-gradient(circle at 78% 18%, rgba(255,255,255,.30) 0 7px, transparent 8px),
-        radial-gradient(circle at 18% 78%, rgba(255,255,255,.22) 0 38px, transparent 39px),
-        linear-gradient(145deg, #56d28a 0%, #2784df 100%);
-    }
-    .join-mdpick-theme-group.theme-passion .join-mdpick-theme-head {
-      background:
-        radial-gradient(circle at 22% 18%, rgba(255,255,255,.35) 0 7px, transparent 8px),
-        radial-gradient(circle at 82% 76%, rgba(255,255,255,.22) 0 42px, transparent 43px),
-        linear-gradient(145deg, #49c7ff 0%, #6d63ff 100%);
-    }
-    .join-mdpick-theme-head::before,
-    .join-mdpick-theme-head::after {
-      content: "";
-      position: absolute;
-      pointer-events: none;
+      background: var(--mdpick-theme-bg-image, linear-gradient(145deg, #27dce9 0%, #1685f3 100%)) center / cover no-repeat;
     }
     .join-mdpick-theme-head::before {
-      right: -42px;
-      top: -34px;
-      width: 170px;
-      height: 90px;
-      border-radius: 50%;
-      border: 16px solid rgba(255, 255, 255, 0.34);
-      transform: rotate(-12deg);
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, var(--mdpick-theme-shade, rgba(13, 55, 105, .7)) 0%, var(--mdpick-theme-shade-mid, rgba(13, 55, 105, .46)) 48%, rgba(13, 55, 105, 0) 76%);
     }
-    .join-mdpick-theme-head::after {
-      left: -34px;
-      bottom: -38px;
-      width: 150px;
-      height: 150px;
-      border-radius: 46% 54% 50% 50%;
-      background: rgba(255, 255, 255, 0.22);
+    .join-mdpick-theme-group.theme-relax .join-mdpick-theme-head {
+      --mdpick-theme-bg-image: url("src/imports/taste_bg1.png");
+      --mdpick-theme-shade: rgb(0 137 255 / 82%);
+      --mdpick-theme-shade-mid: rgb(18 128 191 / 64%);
+    }
+    .join-mdpick-theme-group.theme-city .join-mdpick-theme-head {
+      --mdpick-theme-bg-image: url("src/imports/taste_bg2.png");
+      --mdpick-theme-shade: rgb(255 127 4 / 76%);
+      --mdpick-theme-shade-mid: rgb(236 124 3 / 71%);
+    }
+    .join-mdpick-theme-group.theme-passion .join-mdpick-theme-head {
+      --mdpick-theme-bg-image: url("src/imports/taste_bg3.png");
+      --mdpick-theme-shade: rgb(12 223 28 / 65%);
+      --mdpick-theme-shade-mid: rgb(21 169 30 / 51%);
     }
     .join-mdpick-theme-name {
       position: relative;
@@ -1136,6 +1257,7 @@
       font-size: 32px;
       line-height: 1.25;
       font-weight: 900;
+      text-shadow: 0 1px 3px rgba(15, 23, 42, .22);
       word-break: keep-all;
     }
     .join-mdpick-theme-subcopy {
@@ -1147,6 +1269,7 @@
       font-size: 16px;
       line-height: 1.45;
       font-weight: 700;
+      text-shadow: 0 1px 3px rgba(15, 23, 42, .26);
       word-break: keep-all;
     }
     .join-mdpick-theme-desc {
@@ -1188,9 +1311,7 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.94);
       color: #1f3f66;
-      font-size: 14px;
-      line-height: 1.25;
-      font-weight: 800;
+      font: 800 14px/1.25 Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       white-space: nowrap;
       transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
     }
@@ -1574,7 +1695,7 @@
       width: 100%;
       max-width: 100%;
       min-width: 0;
-      padding: 10px;
+      padding: 10px 10px;
       border: 1px solid var(--border);
       border-radius: 18px;
       background: #fff;
@@ -12410,7 +12531,8 @@
         z-index: 40;
         display: flex;
         align-items: flex-start;
-        gap: 5px;
+        justify-content: flex-start;
+        gap: 7px;
         box-sizing: border-box;
         width: 100vw;
         max-width: 100vw;
@@ -14708,7 +14830,8 @@
         border-radius: 8px;
       }
       .join-mdpick-info {
-        padding: 0;
+        gap: 5px;
+        padding: 3px 0 4px;
       }
       .join-mdpick-title {
         font-size: 17px;
@@ -14725,47 +14848,95 @@
         margin-top: 24px;
       }
       .join-mdpick-theme-title {
-        font-size: 24px;
+        font-size: var(--font-product-section-title);
+      }
+      .join-mdpick-theme-copy {
+        margin-top: -17px;
+        font-size: var(--font-product-section-desc);
       }
       .join-mdpick-theme-groups {
-        grid-template-columns: 1fr;
-        gap: 30px;
+        --mdpick-theme-peek: 44px;
+        --mdpick-theme-gap: 16px;
+        display: flex;
+        grid-template-columns: none;
+        gap: var(--mdpick-theme-gap);
+        width: calc(100% + var(--mobile-page-gutter));
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 0;
+        scrollbar-width: none;
+      }
+      .join-mdpick-theme-groups::after {
+        content: "";
+        flex: 0 0 calc(var(--mobile-page-gutter) + var(--mdpick-theme-peek));
+      }
+      .join-mdpick-theme-groups::-webkit-scrollbar {
+        display: none;
       }
       .join-mdpick-theme-group {
+        display: grid !important;
+        flex: 0 0 calc(100% - var(--mdpick-theme-peek));
+        width: calc(100% - var(--mdpick-theme-peek));
         grid-template-columns: 1fr;
         min-height: 0;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+      }
+      .join-mdpick-theme-group.legacy-active-hidden {
+        display: none !important;
       }
       .join-mdpick-theme-head {
-        min-height: 220px;
-        padding: 28px 26px;
+        min-height: 170px;
+        gap: 10px;
+        padding: 20px 26px;
       }
       .join-mdpick-theme-name {
-        font-size: 28px;
+        font-size: 23px;
+        font-weight: 600;
       }
       .join-mdpick-theme-subcopy {
         max-width: 100%;
         font-size: 15px;
+        font-weight: 600;
+      }
+      .join-mdpick-theme-tab {
+        padding: 5px 16px;
+        font: 800 14px/1.25 Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
       .join-mdpick-theme-grid {
         grid-template-columns: 1fr;
         gap: 16px;
-        padding: 16px;
+        padding: 16px 0;
       }
       .join-mdpick-theme-card {
         display: grid;
-        grid-template-columns: 100px minmax(0, 1fr);
-        min-height: 112px;
+        grid-template-columns: 75px minmax(0, 1fr);
+        min-height: auto;
         gap: 12px;
+        padding: 5px 0;
       }
       .join-mdpick-theme-thumb {
-        height: 100%;
-        aspect-ratio: auto;
+        width: 75px;
+        height: auto;
+        aspect-ratio: 1 / 1;
+        border-radius: 8px;
       }
       .join-mdpick-theme-meta {
-        padding: 4px 0 0 2px;
+        gap: 5px;
+        padding: 3px 0 4px;
+      }
+      .join-mdpick-theme-region {
+        font-size: 14px;
+        line-height: 1.2;
       }
       .join-mdpick-theme-product {
         font-size: 17px;
+        display: block;
+        white-space: nowrap;
+        word-break: keep-all;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
       }
       .join-mdpick-theme-price {
         font-size: 16px;
@@ -32953,12 +33124,19 @@
     const mdPickPackFilters = {};
     let mdPickActiveCountryKey = "thailand";
     let mdPickCountryMenuOpen = false;
+    let mdPickCountryMenuNoMotion = false;
+    let mdPickCountryMenuOrder = [];
     let mdPickActiveThemeKey = "relax";
     const MD_PICK_COUNTRIES = [
       { key: "thailand", name: "태국", tokens: ["태국", "방콕", "파타야", "치앙마이", "후아힌"] },
       { key: "japan", name: "일본", tokens: ["일본", "후쿠오카", "기타큐슈", "나고야", "가고시마", "오사카", "삿포로", "구마모토", "나리타"] },
       { key: "china", name: "중국", tokens: ["중국", "청도", "연태", "위해", "장가계", "북경", "남경", "대련", "제남"] }
     ];
+    const MD_PICK_COUNTRY_FLAGS = {
+      thailand: "src/imports/flag_thai.png",
+      japan: "src/imports/flag_japan.png",
+      china: "src/imports/flag_china.png"
+    };
 
     function getMdPickPackType(product = {}) {
       const source = [product.title, product.includes, product.notes].flat().filter(Boolean).join(" ");
@@ -33114,6 +33292,12 @@
       return subcopyMap[theme.key] || theme.desc || "";
     }
 
+    function renderMdPickThemeSubcopy(theme) {
+      const subcopy = escapeHtml(getMdPickThemeSubcopy(theme));
+      if (theme.key !== "relax") return subcopy;
+      return subcopy.replace("푸른 바다와 리조트에서 ", "푸른 바다와 리조트에서<br>");
+    }
+
     function getMdPickThemeTabLabel(theme) {
       const labelMap = {
         relax: "쉼이 있는 바다 라운드",
@@ -33158,11 +33342,33 @@
       if (!themes.length) return "";
       const activeTheme = themes.find((theme) => theme.key === mdPickActiveThemeKey) || themes[0];
       mdPickActiveThemeKey = activeTheme.key;
+      const renderThemeGroup = (theme) => `
+              <div class="join-mdpick-theme-group theme-${escapeHtml(theme.key)}${theme.key === activeTheme.key ? " active" : ""}">
+                <div class="join-mdpick-theme-head">
+                  <div class="join-mdpick-theme-name">${theme.name} ${theme.emoji}</div>
+                  <div class="join-mdpick-theme-subcopy">${renderMdPickThemeSubcopy(theme)}</div>
+                  <div class="join-mdpick-theme-pills" role="tablist" aria-label="취향맞춤 테마 선택">
+                    <button
+                      type="button"
+                      class="join-mdpick-theme-tab active"
+                      onclick="setMdPickTheme('${escapeJsString(theme.key)}')"
+                      role="tab"
+                      aria-selected="true"
+                    >${theme.emoji} ${escapeHtml(getMdPickThemeTabLabel(theme))}</button>
+                  </div>
+                </div>
+                <div class="join-mdpick-theme-grid">
+                  ${theme.items.map((product) => renderMdPickThemeCard(product, theme)).join("")}
+                </div>
+              </div>
+      `;
       return `
         <div class="join-mdpick-theme-section">
-          <div class="join-mdpick-theme-title">취향맞춤 BEST</div>
+          <div class="join-mdpick-theme-title">취향맞춤 TOP3</div>
+          <div class="join-mdpick-theme-copy">라운드 스타일 따라 떠나는 여행</div>
           <div class="join-mdpick-theme-groups">
-              <div class="join-mdpick-theme-group theme-${escapeHtml(activeTheme.key)}">
+            ${themes.map(renderThemeGroup).join("")}
+              <div class="join-mdpick-theme-group legacy-active-hidden theme-${escapeHtml(activeTheme.key)}">
                 <div class="join-mdpick-theme-head">
                   <div class="join-mdpick-theme-name">${activeTheme.name} ${activeTheme.emoji}</div>
                   <div class="join-mdpick-theme-subcopy">${escapeHtml(getMdPickThemeSubcopy(activeTheme))}</div>
@@ -33189,7 +33395,9 @@
 
     function setMdPickPackFilter(countryKey, packType) {
       mdPickPackFilters[countryKey] = packType;
+      mdPickCountryMenuNoMotion = true;
       renderMdPickCountryInPlace(countryKey);
+      mdPickCountryMenuNoMotion = false;
     }
 
     function openMdPickBuilder(productGroupKey, countryKey) {
@@ -33292,40 +33500,98 @@
       return MD_PICK_COUNTRIES.find((item) => item.key === mdPickActiveCountryKey) || MD_PICK_COUNTRIES[0];
     }
 
+    function renderMdPickCountryName(country) {
+      const flag = MD_PICK_COUNTRY_FLAGS[country.key];
+      return `${escapeHtml(country.name)}${flag ? `<img class="join-mdpick-country-flag${country.key === "japan" ? " join-mdpick-country-flag-japan" : ""}" src="${escapeHtml(flag)}" alt="">` : ""}`;
+    }
+
     function setMdPickCountryMenuOpen(open) {
       mdPickCountryMenuOpen = Boolean(open);
-      document.querySelector(".join-mdpick-country-trigger")?.classList.toggle("open", mdPickCountryMenuOpen);
-      document.querySelector(".join-mdpick-country-trigger")?.setAttribute("aria-expanded", mdPickCountryMenuOpen ? "true" : "false");
-      document.querySelector(".join-mdpick-country-options")?.classList.toggle("open", mdPickCountryMenuOpen);
+      mdPickCountryMenuNoMotion = false;
+      if (mdPickCountryMenuOpen) {
+        mdPickCountryMenuOrder = MD_PICK_COUNTRIES.map((item) => item.key);
+      }
+      renderMdPickCountryInPlace(mdPickActiveCountryKey);
     }
 
     function toggleMdPickCountryMenu(event) {
       event?.stopPropagation?.();
+      if (mdPickCountryMenuOpen) {
+        const options = document.querySelector(".join-mdpick-country-options.open");
+        document.querySelector(".join-mdpick-country-toggle.open")?.classList.add("closing");
+        if (options) {
+          options.classList.add("closing");
+          window.setTimeout(() => {
+            mdPickCountryMenuOpen = false;
+            mdPickCountryMenuNoMotion = false;
+            renderMdPickCountryInPlace(mdPickActiveCountryKey);
+          }, 210);
+          return;
+        }
+      }
       setMdPickCountryMenuOpen(!mdPickCountryMenuOpen);
     }
 
-    function selectMdPickCountry(countryKey) {
+    function closeMdPickCountryMenu(event) {
+      toggleMdPickCountryMenu(event);
+    }
+
+    function selectMdPickCountry(countryKey, event) {
+      event?.stopPropagation?.();
       if (!MD_PICK_COUNTRIES.some((item) => item.key === countryKey)) return;
       mdPickActiveCountryKey = countryKey;
-      mdPickCountryMenuOpen = false;
+      mdPickCountryMenuNoMotion = true;
       renderMdPickCountryInPlace(countryKey);
+      mdPickCountryMenuNoMotion = false;
     }
 
     function renderMdPickCountry(country) {
       const items = getMdPickRepresentativeProducts(country);
       const activePack = mdPickPackFilters[country.key] || "golf";
-      const otherCountries = MD_PICK_COUNTRIES.filter((item) => item.key !== country.key);
+      let unusedCountrySwitcherHtml = mdPickCountryMenuOpen
+        ? `<div class="join-mdpick-country-options open" role="group" aria-label="MD PICK 국가 선택">
+            ${MD_PICK_COUNTRIES.map((item) => `<button type="button" class="join-mdpick-country-option ${item.key === country.key ? "join-mdpick-country-option-current active" : "join-mdpick-country-option-alt"}" onclick="selectMdPickCountry('${item.key}', event)" aria-current="${item.key === country.key ? "true" : "false"}">${item.name}</button>`).join("")}
+            <button type="button" class="join-mdpick-country-close" onclick="closeMdPickCountryMenu(event)" aria-label="국가 선택 닫기">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M10.8 12 15.4 7.4a1.12 1.12 0 0 0 0-1.6 1.12 1.12 0 0 0-1.6 0l-5.4 5.4a1.12 1.12 0 0 0 0 1.6l5.4 5.4a1.12 1.12 0 0 0 1.6 0 1.12 1.12 0 0 0 0-1.6L10.8 12Z"></path></svg>
+            </button>
+          </div>`
+        : `<button type="button" class="join-mdpick-country-trigger" onclick="toggleMdPickCountryMenu(event)" aria-expanded="false">
+            <span class="join-mdpick-country-current">${country.name}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M12 15.838a1.2 1.2 0 0 1-.8-.3l-4.625-4.626a1.03 1.03 0 0 1-.312-.788c.008-.308.12-.57.337-.787.217-.216.483-.325.8-.325.317 0 .583.109.8.325l3.8 3.8 3.825-3.825c.217-.216.48-.32.788-.311.308.008.57.12.787.337.217.216.325.483.325.8 0 .316-.108.583-.325.8l-4.6 4.6a1.2 1.2 0 0 1-.8.3Z"></path></svg>
+          </button>`;
+      const countryMenuItems = (mdPickCountryMenuOrder.length ? mdPickCountryMenuOrder : MD_PICK_COUNTRIES.map((item) => item.key))
+        .map((key) => MD_PICK_COUNTRIES.find((item) => item.key === key))
+        .filter(Boolean);
+      const primaryCountry = mdPickCountryMenuOpen ? (countryMenuItems[0] || country) : country;
+      const optionCountries = mdPickCountryMenuOpen ? countryMenuItems.slice(1) : [];
+      const countrySwitcherHtml = `
+        <button type="button" class="join-mdpick-country-trigger${mdPickCountryMenuOpen && primaryCountry.key === country.key ? " active" : ""}" onclick="${mdPickCountryMenuOpen ? `selectMdPickCountry('${primaryCountry.key}', event)` : "toggleMdPickCountryMenu(event)"}" aria-current="${primaryCountry.key === country.key ? "true" : "false"}" aria-expanded="${mdPickCountryMenuOpen ? "true" : "false"}">
+          <span class="join-mdpick-country-current">${renderMdPickCountryName(primaryCountry)}</span>
+        </button>
+        <div class="join-mdpick-country-options${mdPickCountryMenuOpen ? " open" : ""}${mdPickCountryMenuNoMotion ? " no-motion" : ""}" role="group" aria-label="MD PICK 국가 선택">
+          ${optionCountries.map((item) => `<button type="button" class="join-mdpick-country-option join-mdpick-country-option-alt${item.key === country.key ? " active" : ""}" onclick="selectMdPickCountry('${item.key}', event)" aria-current="${item.key === country.key ? "true" : "false"}">${renderMdPickCountryName(item)}</button>`).join("")}
+        </div>
+        <button type="button" class="join-mdpick-country-toggle${mdPickCountryMenuOpen ? " open" : ""}${mdPickCountryMenuNoMotion ? " no-motion" : ""}" onclick="toggleMdPickCountryMenu(event)" aria-expanded="${mdPickCountryMenuOpen ? "true" : "false"}" aria-label="국가 선택 ${mdPickCountryMenuOpen ? "닫기" : "열기"}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M12 15.838a1.2 1.2 0 0 1-.8-.3l-4.625-4.626a1.03 1.03 0 0 1-.312-.788c.008-.308.12-.57.337-.787.217-.216.483-.325.8-.325.317 0 .583.109.8.325l3.8 3.8 3.825-3.825c.217-.216.48-.32.788-.311.308.008.57.12.787.337.217.216.325.483.325.8 0 .316-.108.583-.325.8l-4.6 4.6a1.2 1.2 0 0 1-.8.3Z"></path></svg>
+        </button>`;
+      unusedCountrySwitcherHtml = mdPickCountryMenuOpen ? `
+        <div class="join-mdpick-country-options open${mdPickCountryMenuNoMotion ? " no-motion" : ""}" role="group" aria-label="MD PICK 국가 선택">
+          ${MD_PICK_COUNTRIES.map((item) => `<button type="button" class="join-mdpick-country-option join-mdpick-country-option-alt${item.key === country.key ? " active" : ""}" onclick="selectMdPickCountry('${item.key}', event)" aria-current="${item.key === country.key ? "true" : "false"}">${item.name}</button>`).join("")}
+        </div>
+        <button type="button" class="join-mdpick-country-toggle open${mdPickCountryMenuNoMotion ? " no-motion" : ""}" onclick="toggleMdPickCountryMenu(event)" aria-expanded="true" aria-label="국가 선택 닫기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M12 15.838a1.2 1.2 0 0 1-.8-.3l-4.625-4.626a1.03 1.03 0 0 1-.312-.788c.008-.308.12-.57.337-.787.217-.216.483-.325.8-.325.317 0 .583.109.8.325l3.8 3.8 3.825-3.825c.217-.216.48-.32.788-.311.308.008.57.12.787.337.217.216.325.483.325.8 0 .316-.108.583-.325.8l-4.6 4.6a1.2 1.2 0 0 1-.8.3Z"></path></svg>
+        </button>` : `
+        <button type="button" class="join-mdpick-country-trigger" onclick="toggleMdPickCountryMenu(event)" aria-current="true" aria-expanded="false">
+          <span class="join-mdpick-country-current">${country.name}</span>
+        </button>
+        <button type="button" class="join-mdpick-country-toggle" onclick="toggleMdPickCountryMenu(event)" aria-expanded="false" aria-label="국가 선택 열기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M12 15.838a1.2 1.2 0 0 1-.8-.3l-4.625-4.626a1.03 1.03 0 0 1-.312-.788c.008-.308.12-.57.337-.787.217-.216.483-.325.8-.325.317 0 .583.109.8.325l3.8 3.8 3.825-3.825c.217-.216.48-.32.788-.311.308.008.57.12.787.337.217.216.325.483.325.8 0 .316-.108.583-.325.8l-4.6 4.6a1.2 1.2 0 0 1-.8.3Z"></path></svg>
+        </button>`;
       return `
         <div class="join-mdpick-country" data-mdpick-country="${country.key}">
           <div class="join-mdpick-country-head">
             <div class="join-mdpick-country-name">
-              <button type="button" class="join-mdpick-country-trigger${mdPickCountryMenuOpen ? " open" : ""}" onclick="toggleMdPickCountryMenu(event)" aria-expanded="${mdPickCountryMenuOpen ? "true" : "false"}">
-                <span>${country.name}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M12 15.838a1.2 1.2 0 0 1-.8-.3l-4.625-4.626a1.03 1.03 0 0 1-.312-.788c.008-.308.12-.57.337-.787.217-.216.483-.325.8-.325.317 0 .583.109.8.325l3.8 3.8 3.825-3.825c.217-.216.48-.32.788-.311.308.008.57.12.787.337.217.216.325.483.325.8 0 .316-.108.583-.325.8l-4.6 4.6a1.2 1.2 0 0 1-.8.3Z"></path></svg>
-              </button>
-              <div class="join-mdpick-country-options${mdPickCountryMenuOpen ? " open" : ""}">
-                ${otherCountries.map((item) => `<button type="button" class="join-mdpick-country-option" onclick="selectMdPickCountry('${item.key}')">${item.name}</button>`).join("")}
-              </div>
+              ${countrySwitcherHtml}
             </div>
             <div class="join-mdpick-pack-chips" aria-label="${country.name} 상품 유형">
               <button type="button" class="join-mdpick-pack-chip${activePack === "golf" ? " active" : ""}" onclick="setMdPickPackFilter('${country.key}', 'golf')">골프팩</button>
@@ -33648,6 +33914,10 @@
       const nextButton = button.nextElementSibling?.matches("[data-join-section-target]:not([hidden])")
         ? button.nextElementSibling
         : null;
+      if (!prevButton) {
+        if (nav.scrollLeft > 0) nav.scrollTo({ left: 0, behavior: "auto" });
+        return;
+      }
       const targetStartButton = prevButton || button;
       const targetEndButton = nextButton || button;
       const buttonStart = targetStartButton.offsetLeft;
@@ -33666,6 +33936,12 @@
         button.setAttribute("aria-current", active ? "true" : "false");
         if (active) keepJoinSectionNavButtonInView(button);
       });
+    }
+
+    function resetJoinSectionNavToStart() {
+      const nav = document.getElementById("joinSectionNav");
+      if (!nav || window.innerWidth > 640) return;
+      nav.scrollTo({ left: 0, behavior: "auto" });
     }
 
     function scrollHomeJoinSection(key) {
@@ -33719,6 +33995,12 @@
           activeKey = section.dataset.joinSection;
         }
       });
+      const mdPickSection = document.getElementById("join-section-mdpick");
+      const firstContentSection = sections.find((section) => section.dataset.joinSection !== "mdpick");
+      if (mdPickSection && (!firstContentSection || firstContentSection.getBoundingClientRect().top > offset)) {
+        activeKey = "mdpick";
+        resetJoinSectionNavToStart();
+      }
       setJoinSectionNavActive(activeKey);
     }
 
@@ -34276,10 +34558,6 @@
         document.querySelectorAll(".join-mdpick-pack-tooltip.open").forEach((item) => {
           item.classList.remove("open");
         });
-      }
-
-      if (mdPickCountryMenuOpen && !event.target.closest(".join-mdpick-country-name")) {
-        setMdPickCountryMenuOpen(false);
       }
 
       const trigger = event.target.closest("[data-participant]");

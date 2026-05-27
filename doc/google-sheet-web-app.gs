@@ -12,6 +12,12 @@ const SHEET_HEADERS = {
     "submittedAt",
     "source",
     "pageUrl",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberChannel",
+    "memberMobile",
+    "memberEmail",
     "creatorName",
     "creatorGender",
     "creatorBirthYear",
@@ -53,6 +59,12 @@ const SHEET_HEADERS = {
     "applicationId",
     "submittedAt",
     "source",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberChannel",
+    "memberMobile",
+    "memberEmail",
     "targetType",
     "targetScheduleId",
     "targetApplicationId",
@@ -307,6 +319,12 @@ function getNewScheduleApplicationValue_(payload, header) {
     submittedAt: submittedAt,
     source: payload.source || "new_schedule_builder",
     pageUrl: payload.pageUrl || "",
+    memberSeq: value_(payload, "member.memberSeq"),
+    memberId: value_(payload, "member.memberId"),
+    memberName: value_(payload, "member.memberName"),
+    memberChannel: value_(payload, "member.memberChannel"),
+    memberMobile: value_(payload, "member.memberMobile"),
+    memberEmail: value_(payload, "member.memberEmail"),
     creatorName: value_(payload, "applicant.name"),
     creatorGender: value_(payload, "applicant.gender"),
     creatorBirthYear: value_(payload, "applicant.birthYear"),
@@ -354,6 +372,12 @@ function getJoinApplicationValue_(payload, header) {
     applicationId: applicationId,
     submittedAt: submittedAt,
     source: payload.source || "join_apply",
+    memberSeq: value_(payload, "member.memberSeq"),
+    memberId: value_(payload, "member.memberId"),
+    memberName: value_(payload, "member.memberName"),
+    memberChannel: value_(payload, "member.memberChannel"),
+    memberMobile: value_(payload, "member.memberMobile"),
+    memberEmail: value_(payload, "member.memberEmail"),
     targetType: payload.targetType || value_(payload, "target.type") || "erp_product",
     targetScheduleId: payload.targetScheduleId || value_(payload, "target.scheduleId"),
     targetApplicationId: payload.targetApplicationId || value_(payload, "target.applicationId"),
@@ -545,6 +569,10 @@ function filterRowsForRequest_(rows, params) {
   const status = String(params.status || "").trim();
   const displayStatus = String(params.displayStatus || "").trim();
   const approvalStatus = String(params.approvalStatus || "").trim();
+  const memberSeq = String(params.memberSeq || "").trim();
+  const memberId = String(params.memberId || "").trim();
+  const memberMobile = normalizePhone_(params.memberMobile || params.phone || "");
+  const scheduleId = String(params.scheduleId || params.targetScheduleId || "").trim();
   const since = params.since ? new Date(params.since).getTime() : 0;
 
   if (source) {
@@ -559,6 +587,20 @@ function filterRowsForRequest_(rows, params) {
   if (approvalStatus) {
     filtered = filtered.filter(function (row) { return String(row.approvalStatus || "") === approvalStatus; });
   }
+  if (memberSeq) {
+    filtered = filtered.filter(function (row) { return String(row.memberSeq || "") === memberSeq; });
+  } else if (memberId) {
+    filtered = filtered.filter(function (row) { return String(row.memberId || "") === memberId; });
+  } else if (memberMobile) {
+    filtered = filtered.filter(function (row) {
+      return normalizePhone_(row.memberMobile || row.creatorPhone || row.phone || "") === memberMobile;
+    });
+  }
+  if (scheduleId) {
+    filtered = filtered.filter(function (row) {
+      return String(row.scheduleId || row.targetScheduleId || "") === scheduleId;
+    });
+  }
   if (since) {
     filtered = filtered.filter(function (row) {
       const updatedAt = new Date(row.updatedAt || row.submittedAt || 0).getTime();
@@ -572,6 +614,10 @@ function filterRowsForRequest_(rows, params) {
 
   const limit = parsePositiveInteger_(params.limit);
   return limit ? filtered.slice(0, limit) : filtered;
+}
+
+function normalizePhone_(value) {
+  return String(value || "").replace(/\D/g, "");
 }
 
 function normalizeRowForJson_(row) {

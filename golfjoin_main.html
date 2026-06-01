@@ -1020,17 +1020,27 @@
       content: none;
     }
     .join-mdpick-pack-info-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       width: 16px;
       height: 16px;
       border: 0;
       border-radius: 999px;
-      background: url("https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/information.svg") center / contain no-repeat;
+      background: transparent;
+      color: #8b95a1;
       padding: 0;
       flex: 0 0 16px;
+      cursor: pointer;
+    }
+    .join-mdpick-pack-info-button svg {
+      display: block;
+      width: 16px;
+      height: 16px;
     }
     .join-mdpick-pack-tooltip {
       position: fixed;
-      left: 50%;
+      left: var(--mdpick-pack-tooltip-left, 50%);
       top: var(--mdpick-pack-tooltip-top, 50%);
       right: auto;
       bottom: auto;
@@ -1511,7 +1521,7 @@
       }
       .join-mdpick-theme-card {
         border: 0;
-        border-radius: 8px;
+        border-radius: 14px;
         background: #fff;
         overflow: hidden;
       }
@@ -2403,9 +2413,6 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
     }
-    .join-custom-panel {
-      border-radius: 20px;
-    }
     .join-product-section.layout-custom .join-section-controls {
       display: none;
     }
@@ -2612,6 +2619,60 @@
       background: var(--blue);
       color: #fff;
     }
+    .join-slide-dots {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      min-height: 12px;
+      margin: 14px auto 0;
+      pointer-events: none;
+    }
+    .join-slide-dots.is-visible {
+      display: flex;
+    }
+    .join-slide-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #d2d8e1;
+      opacity: .95;
+      transform: translateX(0) scale(1);
+      transition: width .18s ease, height .18s ease, background .18s ease, opacity .18s ease, transform .22s ease;
+    }
+    .join-slide-dot.active {
+      background: #313437;
+      opacity: 1;
+    }
+    .join-slide-dot.edge {
+      width: 3px;
+      height: 3px;
+      opacity: .72;
+    }
+    .join-slide-dots.is-moving-next .join-slide-dot {
+      animation: joinDotMoveNext .24s ease both;
+    }
+    .join-slide-dots.is-moving-prev .join-slide-dot {
+      animation: joinDotMovePrev .24s ease both;
+    }
+    .join-slide-dots.is-moving-next .join-slide-dot:first-child,
+    .join-slide-dots.is-moving-prev .join-slide-dot:last-child {
+      opacity: 0;
+      transform: translateX(var(--dot-exit-x, -13px)) scale(.5);
+    }
+    .join-slide-dots.is-moving-next .join-slide-dot:nth-last-child(2),
+    .join-slide-dots.is-moving-prev .join-slide-dot:nth-child(2) {
+      transform: scale(.5);
+    }
+    @keyframes joinDotMoveNext {
+      from { transform: translateX(13px) scale(var(--dot-start-scale, 1)); opacity: .72; }
+      to { transform: translateX(0) scale(1); opacity: .95; }
+    }
+    @keyframes joinDotMovePrev {
+      from { transform: translateX(-13px) scale(var(--dot-start-scale, 1)); opacity: .72; }
+      to { transform: translateX(0) scale(1); opacity: .95; }
+    }
     .join-product-section.layout-quick .join-section-controls {
       position: absolute;
       left: var(--quick-section-nav-left);
@@ -2689,6 +2750,16 @@
       z-index: 6;
       display: flex;
       transform: translateY(-50%);
+    }
+    .join-product-section.layout-overseas .join-section-controls.is-at-start .prev,
+    .join-product-section.layout-overseas .join-section-controls.is-at-end .next,
+    .join-product-section.layout-overseas .join-section-controls.is-not-scrollable,
+    .join-product-section.layout-domestic .join-section-controls.is-at-start .prev,
+    .join-product-section.layout-domestic .join-section-controls.is-at-end .next,
+    .join-product-section.layout-domestic .join-section-controls.is-not-scrollable {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
     .join-product-section.layout-soon .join-soon-mobile {
       display: flex;
@@ -2951,6 +3022,25 @@
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
       line-clamp: 2;
+    }
+    .join-reservation-countdown {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin: 0 0 5px;
+      color: #4585ff;
+      font-size: 13px;
+      line-height: 1.2;
+      font-weight: 800;
+    }
+    .join-reservation-countdown svg {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 15px;
+      stroke-width: 2.2;
+    }
+    .join-reservation-countdown + .join-title {
+      margin-top: 0;
     }
     .join-product-section.layout-soon .join-grid .join-card:nth-child(5) .join-title {
       margin-top: 4px;
@@ -10302,13 +10392,23 @@
       align-items: center;
     }
     .participant-info-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       width: 16px;
       height: 16px;
       border: 0;
       border-radius: 999px;
-      background: url("https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/information.svg") center / contain no-repeat;
+      background: transparent;
+      color: #8b95a1;
       padding: 0;
       flex: 0 0 22px;
+      cursor: pointer;
+    }
+    .participant-info-button svg {
+      display: block;
+      width: 16px;
+      height: 16px;
     }
     .participant-info-tooltip {
       position: absolute;
@@ -12528,8 +12628,9 @@
         display: flex;
         grid-template-columns: none;
         gap: 7px;
-        width: calc(100vw - var(--mobile-page-gutter));
+        width: 100vw;
         max-width: none;
+        margin-left: calc(50% - 50vw);
         margin-right: 0;
         padding: 0;
         border-radius: 0;
@@ -12539,10 +12640,13 @@
         overscroll-behavior-x: contain;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
+        padding: 0;
+        box-sizing: border-box;
       }
       .sgj-page .join-custom-themes::-webkit-scrollbar {
         display: none;
       }
+      .sgj-page .join-custom-themes::before,
       .sgj-page .join-custom-themes::after {
         content: "";
         flex: 0 0 calc(var(--mobile-page-gutter) + 1px);
@@ -12550,19 +12654,19 @@
       }
       .sgj-page .join-custom-theme-card {
         display: flex;
-        flex: 0 0 calc(100% - var(--mobile-page-gutter) - 11px);
-        min-width: calc(100% - var(--mobile-page-gutter) - 11px);
-        max-width: calc(100% - var(--mobile-page-gutter) - 11px);
+        flex: 0 0 calc(100% - (var(--mobile-page-gutter) * 2));
+        min-width: calc(100% - (var(--mobile-page-gutter) * 2));
+        max-width: calc(100% - (var(--mobile-page-gutter) * 2));
         min-height: 0;
         aspect-ratio: 2.6 / 1;
         padding: 12px 14px;
-        border: 0;
+        border: 1px solid #edf0f4;
         border-radius: 8px;
         background: #fff;
         color: var(--text);
         text-align: left;
         box-shadow: none;
-        scroll-snap-align: start;
+        scroll-snap-align: center;
       }
       .sgj-page .join-custom-theme-card[data-custom-theme="beginner"] {
         background:
@@ -12587,26 +12691,26 @@
         bottom: 0;
         height: 2px;
         border-radius: 999px 999px 0 0;
-        background: var(--theme-color, var(--blue));
-        opacity: 0;
+        background: #cacaca29;
+        opacity: 1;
       }
       .sgj-page .join-custom-theme-card.active::after {
         opacity: 1;
       }
       .sgj-page .join-custom-theme-card.active {
-        border-radius: 8px;
+        border-radius: 14px;
       }
       .sgj-page .join-custom-theme-card:first-child {
-        border-radius: 8px;
+        border-radius: 14px;
       }
       .sgj-page .join-custom-theme-card:last-child {
-        border-radius: 8px;
+        border-radius: 14px;
       }
       .sgj-page .join-custom-theme-card::before {
         content: none;
       }
       .sgj-page .join-custom-theme-card.active {
-        border-color: transparent;
+        border-color: #edf0f4;
         box-shadow: none;
         transform: none;
         outline: 0;
@@ -12615,28 +12719,28 @@
         width: 64%;
         place-items: start;
         align-content: center;
-        gap: 5px;
+        gap: clamp(8px, 2.2vw, 12px);
       }
       .sgj-page .join-custom-theme-label {
         display: inline-flex;
         align-items: center;
         width: fit-content;
-        padding: 5px 8px;
+        padding: clamp(5px, 1.45vw, 7px) clamp(9px, 2.4vw, 12px);
         border-radius: 999px;
         background: #3667d6;
         color: #ffffff;
-        font-size: 12px;
+        font-size: clamp(12px, 3.6vw, 15px);
         font-weight: 500;
         line-height: 1;
       }
       .sgj-page .join-custom-theme-title {
         padding-left: 0;
-        font-size: 17px;
+        font-size: clamp(17px, 4.95vw, 21px);
         font-weight: 800;
         color: var(--text);
         line-height: 1.2;
         min-height: 0;
-        white-space: normal;
+        white-space: nowrap;
         overflow: visible;
         word-break: keep-all;
       }
@@ -12645,8 +12749,9 @@
       }
       .sgj-page .join-custom-theme-desc {
         display: block;
+        margin-top: -3px;
         color: #7c7d7f;
-        font-size: 13px;
+        font-size: clamp(13px, 3.85vw, 16px);
         font-weight: 600;
         line-height: 1.35;
       }
@@ -12666,10 +12771,12 @@
       .sgj-page .join-custom-panel.active {
         display: flex;
         gap: 10px;
-        width: calc(100vw - var(--mobile-page-gutter));
+        width: 100vw;
         max-width: none;
+        margin-left: calc(50% - 50vw);
         margin-right: calc(50% - 50vw);
-        padding: 12px 0 4px;
+        margin-top: -6px;
+        padding: 10px 0 8px;
         overflow-x: auto;
         overscroll-behavior-x: contain;
         scroll-snap-type: x mandatory;
@@ -12679,18 +12786,19 @@
       .sgj-page .join-custom-panel.active::-webkit-scrollbar {
         display: none;
       }
+      .sgj-page .join-custom-panel.active::before,
       .sgj-page .join-custom-panel.active::after {
         content: "";
         flex: 0 0 calc(var(--mobile-page-gutter) + 1px);
         scroll-snap-align: none;
       }
       .sgj-page .join-product-section.layout-custom .join-card {
-        flex: 0 0 calc(100% - var(--mobile-page-gutter) - 11px);
-        max-width: calc(100% - var(--mobile-page-gutter) - 11px);
+        flex: 0 0 calc(100% - (var(--mobile-page-gutter) * 2));
+        max-width: calc(100% - (var(--mobile-page-gutter) * 2));
         display: flex;
         flex-direction: column;
         min-height: 0;
-        scroll-snap-align: start;
+        scroll-snap-align: center;
         scroll-snap-stop: always;
         background: #fff;
       }
@@ -12719,12 +12827,32 @@
         scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
         scrollbar-width: none;
-        width: calc(100vw - var(--mobile-page-gutter));
+        width: 100vw;
         max-width: none;
+        margin-left: calc(50% - 50vw);
         margin-right: calc(50% - 50vw);
         padding: 0 0 4px;
+        box-sizing: border-box;
       }
       .sgj-page .join-product-section.layout-quick .join-grid::-webkit-scrollbar {
+        display: none;
+      }
+      .sgj-page .join-product-section.layout-popular .join-grid {
+        display: flex;
+        grid-template-columns: none;
+        gap: 10px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        width: 100vw;
+        max-width: none;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
+        padding: 0 0 4px;
+        box-sizing: border-box;
+      }
+      .sgj-page .join-product-section.layout-popular .join-grid::-webkit-scrollbar {
         display: none;
       }
       .sgj-page .join-product-section.layout-overseas .join-grid,
@@ -12736,32 +12864,46 @@
         overscroll-behavior-x: contain;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;
-        width: calc(100vw - var(--mobile-page-gutter));
+        width: 100vw;
         max-width: none;
+        margin-left: calc(50% - 50vw);
         margin-right: calc(50% - 50vw);
         padding: 0 0 4px;
+        box-sizing: border-box;
       }
       .sgj-page .join-product-section.layout-overseas .join-grid::-webkit-scrollbar,
       .sgj-page .join-product-section.layout-domestic .join-grid::-webkit-scrollbar {
         display: none;
       }
+      .sgj-page .join-product-section.layout-quick .join-grid::before,
+      .sgj-page .join-product-section.layout-quick .join-grid::after,
+      .sgj-page .join-product-section.layout-popular .join-grid::before,
+      .sgj-page .join-product-section.layout-popular .join-grid::after,
+      .sgj-page .join-product-section.layout-overseas .join-grid::before,
       .sgj-page .join-product-section.layout-overseas .join-grid::after,
+      .sgj-page .join-product-section.layout-domestic .join-grid::before,
       .sgj-page .join-product-section.layout-domestic .join-grid::after {
         content: "";
         flex: 0 0 calc(var(--mobile-page-gutter) + 1px);
         scroll-snap-align: none;
       }
       .sgj-page .join-product-section.layout-quick .join-card {
-        flex: 0 0 calc(100% - var(--mobile-page-gutter) - 11px);
-        max-width: calc(100% - var(--mobile-page-gutter) - 11px);
-        scroll-snap-align: start;
+        flex: 0 0 calc(100% - (var(--mobile-page-gutter) * 2));
+        max-width: calc(100% - (var(--mobile-page-gutter) * 2));
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+      }
+      .sgj-page .join-product-section.layout-popular .join-card {
+        flex: 0 0 calc(100% - (var(--mobile-page-gutter) * 2));
+        max-width: calc(100% - (var(--mobile-page-gutter) * 2));
+        scroll-snap-align: center;
         scroll-snap-stop: always;
       }
       .sgj-page .join-product-section.layout-overseas .join-card,
       .sgj-page .join-product-section.layout-domestic .join-card {
-        flex: 0 0 calc(100% - var(--mobile-page-gutter) - 11px);
-        max-width: calc(100% - var(--mobile-page-gutter) - 11px);
-        scroll-snap-align: start;
+        flex: 0 0 calc(100% - (var(--mobile-page-gutter) * 2));
+        max-width: calc(100% - (var(--mobile-page-gutter) * 2));
+        scroll-snap-align: center;
         scroll-snap-stop: always;
       }
       .sgj-page .join-product-section.layout-overseas .join-title,
@@ -13014,8 +13156,8 @@
         display: grid;
         position: relative;
         grid-template-columns: minmax(0, 1fr);
-        flex: 0 0 calc(100% - var(--mobile-page-gutter) - 11px);
-        max-width: calc(100% - var(--mobile-page-gutter) - 11px);
+        flex: 0 0 calc(100% - (var(--mobile-page-gutter) * 2));
+        max-width: calc(100% - (var(--mobile-page-gutter) * 2));
         min-width: 0;
         gap: 0;
         align-items: stretch;
@@ -15524,32 +15666,35 @@
         font-size: var(--font-product-section-desc);
       }
       .join-mdpick-theme-groups {
-        --mdpick-theme-peek: 44px;
         --mdpick-theme-gap: 16px;
         display: flex;
         grid-template-columns: none;
         gap: var(--mdpick-theme-gap);
-        width: calc(100% + var(--mobile-page-gutter));
+        width: 100vw;
+        max-width: none;
+        margin-left: calc(50% - 50vw);
+        margin-right: calc(50% - 50vw);
         overflow-x: auto;
         overscroll-behavior-x: contain;
         scroll-snap-type: x mandatory;
-        scroll-padding-left: 0;
         scrollbar-width: none;
       }
+      .join-mdpick-theme-groups::before,
       .join-mdpick-theme-groups::after {
         content: "";
-        flex: 0 0 calc(var(--mobile-page-gutter) + var(--mdpick-theme-peek));
+        flex: 0 0 calc(var(--mobile-page-gutter) + 1px);
+        scroll-snap-align: none;
       }
       .join-mdpick-theme-groups::-webkit-scrollbar {
         display: none;
       }
       .join-mdpick-theme-group {
         display: grid !important;
-        flex: 0 0 calc(100% - var(--mdpick-theme-peek));
-        width: calc(100% - var(--mdpick-theme-peek));
+        flex: 0 0 calc(100% - (var(--mobile-page-gutter) * 2));
+        width: calc(100% - (var(--mobile-page-gutter) * 2));
         grid-template-columns: 1fr;
         min-height: 0;
-        scroll-snap-align: start;
+        scroll-snap-align: center;
         scroll-snap-stop: always;
       }
       .join-mdpick-theme-group.legacy-active-hidden {
@@ -15572,6 +15717,12 @@
       .join-mdpick-theme-tab {
         padding: 5px 16px;
         font: 800 14px/1.25 Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .join-mdpick-theme-tab.active,
+      .join-mdpick-theme-tab[aria-selected="true"] {
+        background: #f5f5f5;
+        border-color: transparent;
+        color: #585858;
       }
       .join-mdpick-theme-grid {
         grid-template-columns: 1fr;
@@ -15675,6 +15826,9 @@
         height: 415px;
         gap: 14px;
         padding: 52px 52px 42px;
+      }
+      #secret-golf-join.sgj-page .join-mdpick-theme-subcopy {
+        max-width: 210px;
       }
       #secret-golf-join.sgj-page .join-mdpick-theme-grid {
         top: 52px;
@@ -25990,15 +26144,18 @@
     const QUICK_SECTION_DISPLAY_LIMIT = 2;
     let quickSectionFeaturedIndex = 0;
     const SOON_RANGE_FILTERS = [
-      { key: "14", label: "2주 이내", days: 14 },
-      { key: "30", label: "1개월 이내", days: 30 },
-      { key: "60", label: "2개월 이내", days: 60 }
+      { key: "soon", label: "곧 떠나요", minDays: 7, maxDays: 14 },
+      { key: "month", label: "한달 이내", minDays: 14, maxDays: 30 },
+      { key: "relaxed", label: "여유있게 준비", minDays: 31, maxDays: null }
     ];
     const SOON_MOBILE_PAGE_SIZE = 4;
     const SOON_DESKTOP_PAGE_SIZE = 8;
-    let activeSoonRangeKey = "60";
+    const JOIN_COUNTDOWN_BASE_TIMESTAMP = new Date("2026-04-24T00:00:00").getTime();
+    const JOIN_COUNTDOWN_REAL_START_TIMESTAMP = Date.now();
+    let activeSoonRangeKey = "soon";
     let soonMobileVisibleCount = SOON_MOBILE_PAGE_SIZE;
     let soonDesktopVisibleCount = SOON_DESKTOP_PAGE_SIZE;
+    let joinReservationCountdownTimer = null;
     let quickMobileCarouselTimer = null;
     let quickMobileCarouselScrollTimer = null;
     let quickMobileCarouselSuppressAlign = false;
@@ -26836,8 +26993,8 @@
     }
 
     function daysUntil(dateString) {
-      const today = new Date("2026-04-24T00:00:00");
-      const target = new Date(dateString + "T00:00:00");
+      const today = getTodayDate();
+      const target = parseJoinDate(dateString);
       return Math.floor((target - today) / (1000 * 60 * 60 * 24));
     }
 
@@ -33266,12 +33423,34 @@
       document.querySelectorAll(".join-mdpick-pack-tooltip.open").forEach((item) => {
         if (item !== tooltip) item.classList.remove("open");
       });
+      if (wasOpen) {
+        tooltip.classList.remove("open");
+        return;
+      }
       const rect = event.currentTarget.getBoundingClientRect();
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      const margin = 12;
+      const tooltipWidth = Math.min(tooltip.offsetWidth || 280, Math.max(0, viewportWidth - (margin * 2)));
       const tooltipHeight = tooltip.offsetHeight || 120;
-      const showBelow = rect.top < tooltipHeight + 24;
+      const centerLeft = rect.left + (rect.width / 2);
+      const tooltipLeft = Math.min(
+        Math.max(centerLeft, margin + (tooltipWidth / 2)),
+        Math.max(margin + (tooltipWidth / 2), viewportWidth - margin - (tooltipWidth / 2))
+      );
+      const canShowAbove = rect.top >= tooltipHeight + margin + 12;
+      const canShowBelow = viewportHeight - rect.bottom >= tooltipHeight + margin + 12;
+      const showBelow = !canShowAbove && canShowBelow;
       tooltip.classList.toggle("below", showBelow);
+      tooltip.style.setProperty("--mdpick-pack-tooltip-left", `${tooltipLeft}px`);
       tooltip.style.setProperty("--mdpick-pack-tooltip-top", `${showBelow ? rect.bottom : rect.top}px`);
-      tooltip.classList.toggle("open", !wasOpen);
+      tooltip.classList.add("open");
+    }
+
+    function closeMdPickPackTooltips() {
+      document.querySelectorAll(".join-mdpick-pack-tooltip.open").forEach((item) => {
+        item.classList.remove("open");
+      });
     }
 
     function getConfirmedParticipants(join) {
@@ -33284,13 +33463,45 @@
       return "participant-gender-male";
     }
 
-    function getParticipantFlowDelayStyle(participant, joinId) {
-      const source = [joinId, participant?.id, participant?.gender, participant?.name].filter(Boolean).join("|");
+    function hashStringToNumber(value) {
+      const source = String(value || "");
       let hash = 0;
       for (let index = 0; index < source.length; index += 1) {
         hash = ((hash << 5) - hash + source.charCodeAt(index)) | 0;
       }
-      const delaySeconds = (Math.abs(hash) % 8000) / 1000;
+      return Math.abs(hash);
+    }
+
+    function getParticipantGenderKey(participant) {
+      const gender = String(participant?.gender || "").trim().toLowerCase();
+      const gif = String(participant?.gif || "").toLowerCase();
+      if (gender === "female" || gender.includes("woman") || gender.includes("여") || gif.includes("woman")) return "female";
+      return "male";
+    }
+
+    function getUniqueCardParticipants(participants, joinId) {
+      const usedByGender = { male: new Set(), female: new Set() };
+      return participants.map((participant, index) => {
+        const genderKey = getParticipantGenderKey(participant);
+        const pool = BUILDER_APPLICATION_GENDER_ICON_POOLS[genderKey] || BUILDER_APPLICATION_GENDER_ICON_POOLS.male;
+        const used = usedByGender[genderKey];
+        const startIndex = hashStringToNumber(`${joinId}|${participant.id}|${index}`) % pool.length;
+        let gif = participant.gif;
+        for (let offset = 0; offset < pool.length; offset += 1) {
+          const candidate = pool[(startIndex + offset) % pool.length];
+          if (!used.has(candidate)) {
+            gif = candidate;
+            break;
+          }
+        }
+        used.add(gif);
+        return { ...participant, gif };
+      });
+    }
+
+    function getParticipantFlowDelayStyle(participant, joinId) {
+      const source = [joinId, participant?.id, participant?.gender, participant?.name].filter(Boolean).join("|");
+      const delaySeconds = (hashStringToNumber(source) % 8000) / 1000;
       return `--participant-flow-delay:-${delaySeconds.toFixed(2)}s;`;
     }
 
@@ -33370,7 +33581,7 @@
 
     function renderCardTeamSlots(join, compact = true, maxSlots = 4) {
       const slotLimit = Math.min(JOIN_MAX_CAPACITY, maxSlots);
-      const confirmedParticipants = getConfirmedParticipants(join).slice(0, slotLimit);
+      const confirmedParticipants = getUniqueCardParticipants(getConfirmedParticipants(join).slice(0, slotLimit), join.id);
       const emptyCount = Math.max(0, Math.min(Number(join.emptySlots) || 0, slotLimit - confirmedParticipants.length));
       return [
         renderGroupedParticipantsHtml(confirmedParticipants, join.id, compact),
@@ -33383,6 +33594,54 @@
       const confirmedCount = Math.min(slotLimit, getConfirmedParticipants(join).length);
       const rawCapacity = confirmedCount + (Number(join.emptySlots) || 0);
       return Math.max(confirmedCount, Math.min(slotLimit, rawCapacity || slotLimit));
+    }
+
+    function getJoinCountdownNowTimestamp() {
+      return Date.now();
+    }
+
+    function getJoinReservationDeadlineTimestamp(join) {
+      const departure = parseJoinDate(join.departureDate);
+      departure.setDate(departure.getDate() - 7);
+      departure.setHours(16, 0, 0, 0);
+      return departure.getTime();
+    }
+
+    function formatReservationRemaining(deadlineTimestamp) {
+      const remaining = Math.max(0, Number(deadlineTimestamp) - getJoinCountdownNowTimestamp());
+      const totalSeconds = Math.floor(remaining / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return `예약가능 ${days}일 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} 남음`;
+    }
+
+    function renderJoinReservationCountdown(join) {
+      const deadlineTimestamp = getJoinReservationDeadlineTimestamp(join);
+      return `
+        <div class="join-reservation-countdown" data-reservation-deadline="${deadlineTimestamp}" aria-label="예약 가능 시간">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor"/>
+            <path d="M12 7v5l3 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="join-reservation-countdown-time">${formatReservationRemaining(deadlineTimestamp)}</span>
+        </div>
+      `;
+    }
+
+    function updateJoinReservationCountdowns() {
+      document.querySelectorAll(".join-reservation-countdown[data-reservation-deadline]").forEach((item) => {
+        const time = item.querySelector(".join-reservation-countdown-time");
+        if (!time) return;
+        time.textContent = formatReservationRemaining(item.dataset.reservationDeadline);
+      });
+    }
+
+    function ensureJoinReservationCountdownTimer() {
+      updateJoinReservationCountdowns();
+      if (joinReservationCountdownTimer) return;
+      joinReservationCountdownTimer = setInterval(updateJoinReservationCountdowns, 1000);
     }
 
     function renderJoinCard(join, options = {}) {
@@ -33419,6 +33678,7 @@
               </div>
             </div>
             ` : ""}
+            ${isSoonCard ? renderJoinReservationCountdown(join) : ""}
             <div class="join-title">${join.title}</div>
             <div class="card-meta card-meta-row" style="font-weight:700; color:var(--text);">
               <div class="card-meta-item">
@@ -33471,13 +33731,37 @@
       return departure >= today && departure <= limit;
     }
 
-    function getActiveSoonRangeFilter() {
-      return SOON_RANGE_FILTERS.find((item) => item.key === activeSoonRangeKey) || SOON_RANGE_FILTERS[SOON_RANGE_FILTERS.length - 1];
+    function getJoinDaysFromToday(join) {
+      const today = getTodayDate();
+      const departure = parseJoinDate(join.departureDate);
+      return Math.floor((departure - today) / (1000 * 60 * 60 * 24));
+    }
+
+    function isWithinSoonRange(join, filter) {
+      const diff = getJoinDaysFromToday(join);
+      if (diff < Number(filter.minDays || 0)) return false;
+      if (filter.maxDays == null) return true;
+      return diff <= Number(filter.maxDays);
+    }
+
+    function isSoonCandidate(join) {
+      return getJoinDaysFromToday(join) >= 7;
+    }
+
+    function getAvailableSoonRangeFilters(items = []) {
+      return SOON_RANGE_FILTERS.filter((filter) => items.some((join) => isWithinSoonRange(join, filter)));
+    }
+
+    function getActiveSoonRangeFilter(items = []) {
+      const availableFilters = getAvailableSoonRangeFilters(items);
+      return availableFilters.find((item) => item.key === activeSoonRangeKey)
+        || availableFilters[0]
+        || SOON_RANGE_FILTERS[0];
     }
 
     function getSoonFilteredItems(items) {
-      const filter = getActiveSoonRangeFilter();
-      return sortByDeparture(items.filter((join) => isWithinDays(join, filter.days)));
+      const filter = getActiveSoonRangeFilter(items);
+      return sortByDeparture(items.filter((join) => isWithinSoonRange(join, filter)));
     }
 
     function isSoonMobilePagedLayout() {
@@ -33633,6 +33917,94 @@
       return key === "overseas" || key === "domestic";
     }
 
+    function renderSlideDots(key) {
+      return `<div class="join-slide-dots" data-slide-dots="${key}" aria-hidden="true"></div>`;
+    }
+
+    function getScrollStepFromCards(container, visibleCardCount = 1) {
+      const card = container?.querySelector(".join-card");
+      if (!container || !card) return container?.clientWidth || 1;
+      const styles = window.getComputedStyle(container);
+      const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
+      return (card.getBoundingClientRect().width * visibleCardCount) + (gap * Math.max(0, visibleCardCount - 1));
+    }
+
+    function getSlideDotWindow(currentIndex, pageCount) {
+      const total = Math.max(0, Number(pageCount) || 0);
+      if (total <= 5) return Array.from({ length: total }, (_, index) => index);
+      const current = Math.min(Math.max(Number(currentIndex) || 0, 0), total - 1);
+      if (current <= 2) return [0, 1, 2, 3, 4];
+      if (current >= total - 3) return [total - 5, total - 4, total - 3, total - 2, total - 1];
+      return [current - 2, current - 1, current, current + 1, current + 2];
+    }
+
+    function updateSlideDots(key, currentIndex, pageCount, isScrollable = true) {
+      const dots = document.querySelector(`[data-slide-dots="${key}"]`);
+      if (!dots) return;
+      const total = Math.max(0, Number(pageCount) || 0);
+      dots.classList.toggle("is-visible", Boolean(isScrollable && total > 1));
+      if (!isScrollable || total <= 1) {
+        dots.innerHTML = "";
+        return;
+      }
+      const current = Math.min(Math.max(Number(currentIndex) || 0, 0), total - 1);
+      const previous = Number(dots.dataset.activeIndex || 0);
+      const directionClass = current > previous ? "is-moving-next" : current < previous ? "is-moving-prev" : "";
+      const visibleIndexes = getSlideDotWindow(current, total);
+      dots.classList.remove("is-moving-next", "is-moving-prev");
+      dots.innerHTML = visibleIndexes.map((index, position) => {
+        const edgeClass = visibleIndexes.length === 5 && (position === 0 || position === 4) ? " edge" : "";
+        const activeClass = index === current ? " active" : "";
+        return `<span class="join-slide-dot${edgeClass}${activeClass}"></span>`;
+      }).join("");
+      dots.dataset.activeIndex = String(current);
+      if (directionClass && visibleIndexes.length === 5) {
+        dots.classList.add(directionClass);
+        clearTimeout(updateSlideDots.timers?.[key]);
+        updateSlideDots.timers = updateSlideDots.timers || {};
+        updateSlideDots.timers[key] = setTimeout(() => {
+          dots.classList.remove("is-moving-next", "is-moving-prev");
+        }, 260);
+      }
+    }
+
+    function updateContainerSlideDots(key, container, stepCardCount = 1) {
+      if (!container) {
+        updateSlideDots(key, 0, 0, false);
+        return;
+      }
+      const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
+      const isScrollable = maxScroll > 4;
+      const cards = Array.from(container.querySelectorAll(".join-card:not([data-quick-carousel-clone='true'])"));
+      const cardCount = cards.length || 1;
+      const step = Math.max(1, getScrollStepFromCards(container, stepCardCount));
+      const isAtEnd = isScrollable && container.scrollLeft >= maxScroll - 4;
+      const stepIndex = Math.max(0, Math.round(container.scrollLeft / step));
+      const currentIndex = isAtEnd ? cardCount - 1 : Math.min(cardCount - 1, stepIndex * Math.max(1, stepCardCount));
+      updateSlideDots(key, currentIndex, cardCount, isScrollable && cardCount > 1);
+    }
+
+    function updateBestSectionControls(key) {
+      if (!isBestJoinSectionKey(key)) return;
+      const section = document.getElementById(`join-section-${key}`);
+      const grid = section?.querySelector(".join-grid");
+      const controls = section?.querySelector(".join-section-controls");
+      if (!grid || !controls) return;
+      const maxScroll = Math.max(0, grid.scrollWidth - grid.clientWidth);
+      const isScrollable = maxScroll > 4;
+      const isAtStart = grid.scrollLeft <= 4 || !isScrollable;
+      const isAtEnd = grid.scrollLeft >= maxScroll - 4 || !isScrollable;
+      controls.classList.toggle("is-not-scrollable", !isScrollable);
+      controls.classList.toggle("is-at-start", isAtStart);
+      controls.classList.toggle("is-at-end", isAtEnd);
+      updateContainerSlideDots(key, grid, 1);
+    }
+
+    function updateBestSectionControlsAll() {
+      updateBestSectionControls("overseas");
+      updateBestSectionControls("domestic");
+    }
+
     function getQuickSectionGrid() {
       return document.querySelector("#join-section-quick .join-grid");
     }
@@ -33649,6 +34021,7 @@
       controls.classList.toggle("is-not-scrollable", !isScrollable);
       controls.classList.toggle("is-at-start", isAtStart);
       controls.classList.toggle("is-at-end", isAtEnd);
+      updateContainerSlideDots("quick", grid, 1);
     }
 
     function getActiveCustomJoinPanel() {
@@ -33670,6 +34043,7 @@
       controls.classList.toggle("is-not-scrollable", !isScrollable);
       controls.classList.toggle("is-at-start", isAtStart);
       controls.classList.toggle("is-at-end", isAtEnd);
+      updateContainerSlideDots("custom", panel, 2);
     }
 
     function scrollCustomJoinSection(direction) {
@@ -33713,6 +34087,7 @@
       const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
       const step = card ? card.getBoundingClientRect().width + gap : grid.clientWidth;
       grid.scrollBy({ left: direction * step, behavior: "smooth" });
+      setTimeout(() => updateBestSectionControls(key), 260);
     }
 
     function renderBestJoinControls(section, itemCount) {
@@ -33721,7 +34096,7 @@
       const prevLabel = section.key === "overseas" ? "이전 해외조인 BEST 상품" : "이전 국내조인 BEST 상품";
       const nextLabel = section.key === "overseas" ? "다음 해외조인 BEST 상품" : "다음 국내조인 BEST 상품";
       return `
-        <div class="join-section-controls" aria-label="${label}">
+        <div class="join-section-controls is-at-start" aria-label="${label}">
           <button type="button" class="join-section-control prev" onclick="scrollBestJoinSection('${section.key}', -1)" aria-label="${prevLabel}"></button>
           <button type="button" class="join-section-control next" onclick="scrollBestJoinSection('${section.key}', 1)" aria-label="${nextLabel}"></button>
         </div>
@@ -34069,8 +34444,8 @@
       return "";
     }
 
-    function getCustomJoinThemes() {
-      const visibleJoins = getVisibleJoinProducts();
+    function getCustomJoinThemes(sourceItems = null) {
+      const visibleJoins = Array.isArray(sourceItems) ? sourceItems : getVisibleJoinProducts();
       return [
         {
           key: "beginner",
@@ -34184,6 +34559,7 @@
               </div>
             `).join("")}
           </div>
+          ${renderSlideDots("custom")}
           ${themes.some((theme) => theme.items.length > 2) ? `
             <div class="join-section-controls join-custom-section-controls is-at-start" aria-label="맞춤형 조인 상품 이동">
               <button type="button" class="join-section-control prev" onclick="scrollCustomJoinSection(-1)" aria-label="이전 맞춤형 조인 상품"></button>
@@ -34866,7 +35242,13 @@
             <div class="join-mdpick-pack-chips" aria-label="${country.name} 상품 유형">
               <button type="button" class="join-mdpick-pack-chip${activePack === "golf" ? " active" : ""}" data-mdpick-pack-filter="golf" onclick="setMdPickPackFilter('${country.key}', 'golf')">골프팩</button>
               <button type="button" class="join-mdpick-pack-chip${activePack === "air" ? " active" : ""}" data-mdpick-pack-filter="air" onclick="setMdPickPackFilter('${country.key}', 'air')">항공팩</button>
-              <button type="button" class="join-mdpick-pack-info-button" onclick="toggleMdPickPackTooltip(event, '${country.key}')" aria-label="상품 유형 안내"></button>
+              <button type="button" class="join-mdpick-pack-info-button" onclick="toggleMdPickPackTooltip(event, '${country.key}')" aria-label="상품 유형 안내">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.3"/>
+                  <path d="M8 7.1v4.1" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+                  <circle cx="8" cy="4.95" r=".85" fill="currentColor"/>
+                </svg>
+              </button>
               <div class="join-mdpick-pack-tooltip" id="mdPickPackTooltip-${country.key}" role="tooltip">
                 <div class="join-mdpick-pack-info-list">
                   <div><strong>골프팩</strong><span>골프 + 숙박이 포함된 상품입니다.</span></div>
@@ -34918,7 +35300,7 @@
       if (!SOON_RANGE_FILTERS.some((item) => item.key === key)) return;
       activeSoonRangeKey = key;
       resetSoonVisibleCount();
-      renderJoins();
+      renderJoins({ skipQuickMobileCarousel: true });
     }
 
     window.setSoonRangeFilter = setSoonRangeFilter;
@@ -34930,16 +35312,19 @@
 
     window.loadMoreSoonItems = loadMoreSoonItems;
 
-    function renderSoonRangeTabs() {
+    function renderSoonRangeTabs(items = []) {
+      const filters = getAvailableSoonRangeFilters(items);
+      if (filters.length <= 1) return "";
+      const activeFilter = getActiveSoonRangeFilter(items);
       return `
         <div class="join-soon-range-tabs" role="tablist" aria-label="곧출발 상품 기간 선택">
-          ${SOON_RANGE_FILTERS.map((item) => `
+          ${filters.map((item) => `
             <button
               type="button"
-              class="join-mdpick-pack-chip join-soon-range-tab${item.key === activeSoonRangeKey ? " active" : ""}"
+              class="join-mdpick-pack-chip join-soon-range-tab${item.key === activeFilter.key ? " active" : ""}"
               onclick="setSoonRangeFilter('${item.key}')"
               role="tab"
-              aria-selected="${item.key === activeSoonRangeKey ? "true" : "false"}"
+              aria-selected="${item.key === activeFilter.key ? "true" : "false"}"
             >${item.label}</button>
           `).join("")}
         </div>
@@ -34995,10 +35380,11 @@
             ` : ""}
             ${renderBestJoinControls(section, displayItems.length)}
           </div>
-          ${section.key === "soon" ? renderSoonRangeTabs() : ""}
-          <div class="join-grid"${section.key === "quick" ? ` onscroll="updateQuickSectionControls()"` : ""}>
+          ${section.key === "soon" ? renderSoonRangeTabs(section.items) : ""}
+          <div class="join-grid"${section.key === "quick" ? ` onscroll="updateQuickSectionControls()"` : isBestJoinSectionKey(section.key) ? ` onscroll="updateBestSectionControls('${section.key}')"` : ""}>
             ${displayItems.map((join, index) => renderJoinCard(join, getJoinCardOptions(section, join, index))).join("")}
           </div>
+          ${section.key === "quick" || isBestJoinSectionKey(section.key) ? renderSlideDots(section.key) : ""}
           ${section.key === "soon" ? renderSoonMoreButton(displayItems.length, soonTotalItems.length) : ""}
         </section>
       `;
@@ -35030,19 +35416,20 @@
 
     function getHomeJoinSections() {
       const departureAsc = sortByDeparture(getVisibleJoinProducts());
-      const customThemes = getCustomJoinThemes();
+      const homeSectionItems = departureAsc.filter(isSoonCandidate);
+      const customThemes = getCustomJoinThemes(homeSectionItems);
       return [
         {
           key: "quick",
           title: "마감임박",
           desc: "마지막 한 자리, 지금 합류하세요",
-          items: getQuickDeadlineItems(departureAsc)
+          items: getQuickDeadlineItems(homeSectionItems)
         },
         {
           key: "soon",
           title: "곧 출발해요!",
           desc: "출발임박! 서둘러 확인하세요",
-          items: departureAsc.filter((join) => isWithinDays(join, 60))
+          items: homeSectionItems
         },
         {
           key: "custom",
@@ -35055,12 +35442,12 @@
           key: "overseas",
           title: "해외조인 BEST",
           desc: "검증된 해외골프 추천여행",
-          items: getOverseasBestItems(departureAsc)
+          items: getOverseasBestItems(homeSectionItems)
         }
       ].filter((section) => section.items.length > 0);
     }
 
-    function renderJoins() {
+    function renderJoins(options = {}) {
       const sections = getHomeJoinSections();
       const isLoading = isJoinProductCardsLoading();
       const quickSection = sections.find((section) => section.key === "quick");
@@ -35087,10 +35474,14 @@
         document.getElementById("joinEmpty").hidden = filtered.length > 0 || isLoading;
       }
       updateJoinSectionNavVisibility(sections, Boolean(mdPickSectionHtml));
-      setupQuickMobileCarousel();
+      if (!options.skipQuickMobileCarousel) {
+        setupQuickMobileCarousel();
+      }
       setupCustomThemeRailScrollSync();
+      ensureJoinReservationCountdownTimer();
       requestAnimationFrame(updateQuickSectionControls);
       requestAnimationFrame(updateCustomSectionControls);
+      requestAnimationFrame(updateBestSectionControlsAll);
       scheduleMdPickImagePreload();
       updateJoinSectionNavFixed();
     }
@@ -35446,7 +35837,13 @@
           <div class="detail-section-title with-people" data-detail-section="participants" style="margin-top:24px;">
             <div>현재 참여자 (${confirmedParticipants.length}/${participantCapacity}명)</div>
             <div class="participant-info-wrap">
-              <button type="button" class="participant-info-button" onclick="toggleParticipantInfoHint(event)" aria-label="참여자 정보 안내"></button>
+              <button type="button" class="participant-info-button" onclick="toggleParticipantInfoHint(event)" aria-label="참여자 정보 안내">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.3"/>
+                  <path d="M8 7.1v4.1" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"/>
+                  <circle cx="8" cy="4.95" r=".85" fill="currentColor"/>
+                </svg>
+              </button>
               <div class="participant-info-tooltip" role="tooltip">아래 참여자 아이콘을 누르면 참여자 정보를 볼 수 있어요.</div>
             </div>
           </div>
@@ -35933,9 +36330,7 @@
       }
 
       if (!event.target.closest(".join-mdpick-pack-info-button") && !event.target.closest(".join-mdpick-pack-tooltip")) {
-        document.querySelectorAll(".join-mdpick-pack-tooltip.open").forEach((item) => {
-          item.classList.remove("open");
-        });
+        closeMdPickPackTooltips();
       }
 
       const trigger = event.target.closest("[data-participant]");
@@ -35951,6 +36346,11 @@
         closeParticipant();
       }
     });
+
+    document.addEventListener("pointerdown", (event) => {
+      if (event.target.closest(".join-mdpick-pack-info-button") || event.target.closest(".join-mdpick-pack-tooltip")) return;
+      closeMdPickPackTooltips();
+    }, true);
 
     document.getElementById("participantModal")?.addEventListener("click", (event) => {
       if (event.target.id === "participantModal") {

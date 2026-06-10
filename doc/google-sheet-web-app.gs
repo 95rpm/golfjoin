@@ -1,6 +1,7 @@
 const SHEET_NAMES = {
   NEW_SCHEDULE_APPLICATIONS: "new_schedule_applications",
   JOIN_APPLICATIONS: "join_applications",
+  JOIN_MEMBER_PROFILES: "join_member_profiles",
   SCHEDULE_PARTICIPANT_SUMMARY: "schedule_participant_summary",
   PRODUCT_DISPLAY_RULES: "product_display_rules"
 };
@@ -96,6 +97,29 @@ const SHEET_HEADERS = {
     "adminMemo",
     "updatedAt"
   ],
+  [SHEET_NAMES.JOIN_MEMBER_PROFILES]: [
+    "profileId",
+    "submittedAt",
+    "source",
+    "pageUrl",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberChannel",
+    "memberMobile",
+    "memberEmail",
+    "birthYear",
+    "gender",
+    "profession",
+    "travelStyles",
+    "requiredAgreed",
+    "marketingAgreed",
+    "termsAgreedAt",
+    "kakaoId",
+    "kakaoNickname",
+    "adminMemo",
+    "updatedAt"
+  ],
   [SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY]: [
     "scheduleId",
     "sourceApplicationId",
@@ -149,7 +173,9 @@ function doPost(e) {
   const source = payload.source || "new_schedule_builder";
   const sheetName = source === "join_apply"
     ? SHEET_NAMES.JOIN_APPLICATIONS
-    : SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS;
+    : source === "join_member_profile"
+      ? SHEET_NAMES.JOIN_MEMBER_PROFILES
+      : SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS;
   const headers = SHEET_HEADERS[sheetName];
   const row = headers.map(function (header) {
     return getPayloadColumnValue_(payload, header, sheetName);
@@ -306,6 +332,9 @@ function getPayloadColumnValue_(payload, header, sheetName) {
   if (sheetName === SHEET_NAMES.JOIN_APPLICATIONS) {
     return getJoinApplicationValue_(payload, header);
   }
+  if (sheetName === SHEET_NAMES.JOIN_MEMBER_PROFILES) {
+    return getJoinMemberProfileValue_(payload, header);
+  }
   return getNewScheduleApplicationValue_(payload, header);
 }
 
@@ -406,6 +435,36 @@ function getJoinApplicationValue_(payload, header) {
     requiredAgreed: value_(payload, "agreements.required"),
     marketingAgreed: value_(payload, "agreements.marketing"),
     pageUrl: payload.pageUrl || "",
+    adminMemo: payload.adminMemo || "",
+    updatedAt: new Date().toISOString()
+  };
+  return values[header] !== undefined ? values[header] : "";
+}
+
+function getJoinMemberProfileValue_(payload, header) {
+  const submittedAt = payload.submittedAt || new Date().toISOString();
+  const mobile = value_(payload, "member.memberMobile");
+  const profileId = payload.profileId || buildId_("jmp", submittedAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || mobile);
+  const values = {
+    profileId: profileId,
+    submittedAt: submittedAt,
+    source: payload.source || "join_member_profile",
+    pageUrl: payload.pageUrl || "",
+    memberSeq: value_(payload, "member.memberSeq"),
+    memberId: value_(payload, "member.memberId"),
+    memberName: value_(payload, "member.memberName"),
+    memberChannel: value_(payload, "member.memberChannel"),
+    memberMobile: mobile,
+    memberEmail: value_(payload, "member.memberEmail"),
+    birthYear: value_(payload, "profile.birthYear"),
+    gender: value_(payload, "profile.gender"),
+    profession: value_(payload, "profile.profession"),
+    travelStyles: join_(value_(payload, "profile.travelStyles")),
+    requiredAgreed: value_(payload, "profile.requiredAgreed"),
+    marketingAgreed: value_(payload, "profile.marketingAgreed"),
+    termsAgreedAt: value_(payload, "profile.termsAgreedAt") || submittedAt,
+    kakaoId: value_(payload, "kakao.kakaoId"),
+    kakaoNickname: value_(payload, "kakao.nickname"),
     adminMemo: payload.adminMemo || "",
     updatedAt: new Date().toISOString()
   };
@@ -555,6 +614,9 @@ function resolveReadSheetName_(value) {
     builder: SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS,
     join: SHEET_NAMES.JOIN_APPLICATIONS,
     join_applications: SHEET_NAMES.JOIN_APPLICATIONS,
+    join_member_profile: SHEET_NAMES.JOIN_MEMBER_PROFILES,
+    join_member_profiles: SHEET_NAMES.JOIN_MEMBER_PROFILES,
+    member_profiles: SHEET_NAMES.JOIN_MEMBER_PROFILES,
     schedule_participant_summary: SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY,
     summary: SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY,
     product_display_rules: SHEET_NAMES.PRODUCT_DISPLAY_RULES,

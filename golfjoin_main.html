@@ -4207,6 +4207,59 @@
     .sgj-create-section .cta-panel > .cta-title + .button {
       margin-top: 30px;
     }
+    .sgj-create-section .cta-create-button {
+      background: #eef0f2;
+      border-color: #eef0f2;
+    }
+    .sgj-page .sgj-create-section .button.primary.cta-create-button {
+      background: #eef0f2;
+      border-color: #eef0f2;
+      color: var(--text);
+    }
+    .sgj-create-section .cta-create-button-text {
+      font-size: 20px;
+      line-height: 1.2;
+    }
+    .sgj-create-section .cta-pc-space {
+      display: none;
+    }
+    .sgj-create-section .cta-title-pc-space {
+      display: none;
+    }
+    @media (min-width: 641px) {
+      .sgj-page .sgj-create-section .button.primary.cta-create-button {
+        padding: 15px 190px;
+      }
+      .sgj-create-section .cta-pc-space {
+        display: inline;
+      }
+      .sgj-create-section .cta-title-pc-space {
+        display: inline;
+      }
+      .sgj-create-section .cta-title-linebreak {
+        display: none;
+      }
+      .sgj-create-section .cta-subcopy-linebreak {
+        display: none;
+      }
+    }
+    @media (max-width: 640px) {
+      .sgj-create-section .cta-panel {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .sgj-page .sgj-create-section .button.primary.cta-create-button {
+        width: 100%;
+        height: 45px;
+        min-height: 45px;
+      }
+      .sgj-page .sgj-create-section .cta-subcopy-text {
+        font-size: 17px;
+      }
+      .sgj-create-section .cta-create-button-text {
+        font-size: 18px;
+      }
+    }
     .support-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -5400,6 +5453,11 @@
       background: transparent;
       box-shadow: none;
     }
+    #builderRegionSearchInput {
+      color: #495056;
+      font-size: 15px;
+      font-weight: 500;
+    }
     .builder-region-search-field input::-webkit-search-cancel-button,
     .builder-region-search-field input::-webkit-search-decoration {
       -webkit-appearance: none;
@@ -5481,8 +5539,8 @@
     }
     .builder-region-body .region-group summary {
       padding: 10px 18px;
-      font-size: 15px;
-      font-weight: 800;
+      font-size: 16px;
+      font-weight: 600;
     }
     .builder-region-body .region-grid-list {
       display: block;
@@ -5600,7 +5658,7 @@
       .builder-region-body .region-subgroup-toggle,
       .builder-region-body .region-subregion,
       .builder-region-body .region-subregion-heading {
-        font-size: 14px;
+        font-size: 15px;
       }
       .builder-region-product-list .region-product-card {
         max-width: 100%;
@@ -6075,6 +6133,9 @@
       body > #builderModal.sgj-portal-overlay .builder-region-search-field input,
       body > #builderModal.sgj-portal-overlay #builderRegionSearchInput {
         min-height: 0;
+        color: #495056 !important;
+        font-size: 15px !important;
+        font-weight: 500 !important;
         background: transparent !important;
       }
       .builder-body.builder-step-1 .builder-calendar-grid {
@@ -6501,6 +6562,53 @@
     }
     .builder-bottom .button {
       min-height: 48px;
+    }
+    .builder-alert-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483640;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, .34);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+    .builder-alert-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .builder-alert-modal {
+      width: min(320px, calc(100vw - 48px));
+      padding: 24px 18px 18px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 24px 54px rgba(15, 23, 42, .24);
+      text-align: center;
+      transform: translateY(8px) scale(.98);
+      transition: transform .18s ease;
+    }
+    .builder-alert-overlay.open .builder-alert-modal {
+      transform: translateY(0) scale(1);
+    }
+    .builder-alert-message {
+      color: #111827;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+    .builder-alert-button {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 18px;
+      border-radius: 10px;
+      background: #111827;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 900;
     }
     @media (min-width: 641px) {
       .builder-modal {
@@ -7127,8 +7235,9 @@
       box-shadow: none;
     }
     #builderRegionSearchInput {
-      color: var(--text);
-      font-size: 16px;
+      color: #495056;
+      font-size: 15px;
+      font-weight: 500;
       background: transparent;
     }
     .region-search-field input::placeholder {
@@ -8087,6 +8196,20 @@
       background-repeat: no-repeat;
       background-position: -89px 0;
     }
+    .modal-back-icon::before {
+      display: none;
+    }
+    .modal-back-icon svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+      stroke-width: 2;
+    }
+    .modal-header-spacer {
+      display: block;
+      width: var(--modal-close-size);
+      height: var(--modal-close-size);
+    }
     .modal-body { padding: 22px; }
     .detail-modal .modal-body {
       flex: 1 1 auto;
@@ -8094,6 +8217,15 @@
       overflow-y: auto;
       padding-right: 20px;
       scrollbar-gutter: stable;
+    }
+    .detail-modal .modal-header {
+      display: grid;
+      grid-template-columns: var(--modal-close-size) minmax(0, 1fr) var(--modal-close-size);
+      align-items: center;
+      gap: 8px;
+    }
+    .detail-modal .modal-title {
+      text-align: center;
     }
     .detail-modal-actions {
       flex: 0 0 auto;
@@ -13951,7 +14083,7 @@
       }
       .sgj-page .section-title {
         font-size: var(--font-section-title) !important;
-        line-height: 1.25;
+        line-height: 1.30;
         font-weight: 800;
         margin: 0 0 3px;
       }
@@ -17502,9 +17634,13 @@
       transform: translate(-50%, 0);
     }
 
+    .join-mobile-bottom-nav.is-my-layer-active {
+      z-index: 2147483650;
+    }
+
     .join-mobile-bottom-nav-list {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 2px;
       width: 100%;
       max-width: 540px;
@@ -17610,18 +17746,228 @@
       color: #fff;
     }
 
+    @media (max-width: 640px) {
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-header::before {
+        content: none;
+        display: none;
+      }
+
+      body > #regionSearchModal.sgj-portal-overlay .region-search-header::before,
+      #regionSearchModal .region-search-header::before {
+        content: none;
+        display: none;
+      }
+
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-header .modal-back-icon {
+        grid-column: 1;
+        justify-self: center;
+      }
+
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-header .modal-header-spacer {
+        grid-column: 3;
+        justify-self: center;
+      }
+
+      body > #regionSearchModal.sgj-portal-overlay .region-search-back,
+      #regionSearchModal .region-search-back {
+        display: inline-flex !important;
+        grid-column: 1;
+        justify-self: center;
+      }
+
+      body > #regionSearchModal.sgj-portal-overlay .region-search-pc-close,
+      #regionSearchModal .region-search-pc-close {
+        display: none !important;
+      }
+
+      body > #regionSearchModal.sgj-portal-overlay .region-search-header-spacer,
+      #regionSearchModal .region-search-header-spacer {
+        grid-column: 3;
+        justify-self: center;
+      }
+
+      #joinMyMenuModal .modal-header {
+        display: grid;
+        grid-template-columns: var(--modal-close-size) minmax(0, 1fr) var(--modal-close-size);
+        align-items: center;
+        gap: 8px;
+        min-height: 56px;
+        height: 56px;
+        padding: 0 18px;
+      }
+
+      #joinMyMenuModal .modal-back-icon {
+        grid-column: 1;
+        align-self: center;
+        justify-self: center;
+      }
+
+      #joinMyMenuModal .modal-title {
+        grid-column: 2;
+        align-self: center;
+        color: var(--text);
+        font-size: var(--modal-main-title-mobile);
+        font-weight: var(--modal-main-title-weight);
+        line-height: 1.25;
+        text-align: center;
+      }
+
+      #joinMyMenuModal .modal-header-spacer {
+        grid-column: 3;
+        align-self: center;
+        justify-self: center;
+      }
+    }
+
+    .join-my-drawer-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483610;
+      display: flex;
+      justify-content: flex-end;
+      background: rgba(15, 23, 42, .34);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .24s ease;
+    }
+
+    .join-my-drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .join-my-drawer {
+      width: 250px;
+      height: 100%;
+      padding: 22px 16px calc(22px + env(safe-area-inset-bottom, 0px));
+      background: #fff;
+      box-shadow: -18px 0 34px rgba(15, 23, 42, .18);
+      transform: translateX(100%);
+      transition: transform .28s cubic-bezier(.2, .8, .2, 1);
+      overflow-y: auto;
+    }
+
+    .join-my-drawer-overlay.open .join-my-drawer {
+      transform: translateX(0);
+    }
+
+    .join-my-drawer-profile {
+      display: grid;
+      gap: 7px;
+      padding: 4px 2px 18px;
+    }
+
+    .join-my-drawer-name {
+      color: #111827;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .join-my-drawer-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #393939;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .join-my-drawer-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: #94a3b8;
+    }
+
+    .join-my-drawer-divider {
+      height: 1px;
+      margin: 0 -2px;
+      background: #edf2f7;
+    }
+
+    .join-my-drawer-list {
+      display: grid;
+      gap: 2px;
+      padding: 10px 0;
+    }
+
+    .join-my-drawer-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 46px;
+      padding: 0 4px;
+      border-radius: 10px;
+      color: #111827;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    .join-my-drawer-item:active,
+    .join-my-drawer-item:focus-visible {
+      background: #f1f5f9;
+      outline: none;
+    }
+
+    .join-my-drawer-icon {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: #f8fafc;
+      color: #2563eb;
+    }
+
+    .join-my-drawer-icon svg {
+      width: 19px;
+      height: 19px;
+      stroke-width: 2.2;
+    }
+
+    .join-my-drawer-icon img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .join-my-drawer-section-title {
+      padding: 18px 2px 0px;
+      color: #111827;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .join-my-drawer-logout {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 2px;
+      color: #475569;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
     .join-my-modal {
-      width: min(760px, calc(100vw - 32px));
+      width: min(860px, calc(100vw - 32px));
       max-height: min(820px, calc(100vh - 48px));
       overflow: hidden;
       border-radius: 18px;
     }
 
     .join-my-body {
-      padding: 22px;
+      padding: 0;
       max-height: calc(min(820px, 100vh - 48px) - 62px);
       overflow-y: auto;
-      background: #fff;
+      background: #f8fafc;
     }
 
     .join-my-state {
@@ -17632,7 +17978,32 @@
 
     .join-my-profile {
       display: grid;
-      gap: 16px;
+      gap: 18px;
+      padding: 20px 22px 24px;
+    }
+
+    .join-my-reservation-nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px 22px;
+      background: rgba(255, 255, 255, .96);
+      border-bottom: 1px solid #edf2f7;
+      scrollbar-width: none;
+    }
+
+    .join-my-reservation-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .join-my-reservation-title {
+      color: #101418;
+      font-size: 21px;
+      font-weight: 900;
+      line-height: 1.25;
     }
 
     .join-my-profile-head {
@@ -17722,31 +18093,27 @@
     }
 
     .join-my-tabs {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 7px;
-      padding: 5px;
-      border-radius: 14px;
-      background: #f1f5f9;
+      display: contents;
     }
 
     .join-my-tab {
-      min-height: 42px;
-      padding: 0 10px;
+      flex: 0 0 auto;
+      min-height: 38px;
+      padding: 0 15px;
       border: 0;
-      border-radius: 10px;
-      background: transparent;
-      color: #64748b;
-      font-size: 14px;
+      border-radius: 999px;
+      background: #f1f3f5;
+      color: #6b737b;
+      font-size: 15px;
       font-weight: 800;
       line-height: 1.2;
       cursor: pointer;
     }
 
     .join-my-tab.active {
-      background: #fff;
-      color: #111827;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+      background: #495054;
+      color: #fff;
+      box-shadow: none;
     }
 
     .join-my-section {
@@ -17760,12 +18127,49 @@
 
     .join-my-card {
       display: grid;
-      gap: 12px;
-      padding: 16px;
+      grid-template-columns: 128px minmax(0, 1fr);
+      gap: 14px;
+      padding: 12px;
       border: 1px solid #e5e7eb;
       border-radius: 16px;
       background: #fff;
       box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
+    }
+
+    .join-my-card-thumb {
+      position: relative;
+      min-height: 136px;
+      border-radius: 13px;
+      overflow: hidden;
+      background: #e2e8f0;
+    }
+
+    .join-my-card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .join-my-card-thumb-badge {
+      position: absolute;
+      left: 9px;
+      top: 9px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: rgba(17, 24, 39, .78);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .join-my-card-content {
+      min-width: 0;
+      display: grid;
+      gap: 10px;
     }
 
     .join-my-card-head {
@@ -17921,7 +18325,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-top: 18px;
+      margin-top: 6px;
     }
 
     .join-my-actions button {
@@ -17944,6 +18348,7 @@
         align-items: stretch;
         justify-content: stretch;
         padding: 0;
+        z-index: 2147483620 !important;
       }
 
       .join-my-modal {
@@ -17954,9 +18359,13 @@
         border-radius: 0;
       }
 
+      .join-my-modal .modal-header {
+        min-height: 56px;
+        height: 56px;
+      }
+
       .join-my-body {
-        padding: 18px;
-        max-height: calc(100dvh - 62px);
+        max-height: calc(100dvh - 56px);
       }
 
       .join-my-profile-head,
@@ -17973,8 +18382,36 @@
         grid-template-columns: 1fr;
       }
 
-      .join-my-tabs {
-        grid-template-columns: 1fr;
+      .join-my-profile {
+        padding: 18px 16px 24px;
+      }
+
+      .join-my-reservation-nav {
+        padding: 10px 16px 11px;
+      }
+
+      .join-my-reservation-title {
+        font-size: 20px;
+      }
+
+      .join-my-card {
+        grid-template-columns: 104px minmax(0, 1fr);
+        gap: 11px;
+        padding: 10px;
+        border-radius: 14px;
+      }
+
+      .join-my-card-thumb {
+        min-height: 132px;
+        border-radius: 12px;
+      }
+
+      .join-my-card-title {
+        font-size: 15px;
+      }
+
+      .join-my-card-actions button {
+        flex: 1 1 auto;
       }
     }
 
@@ -28470,12 +28907,12 @@
     <div class="page-container">
       <div class="cta-panel">
         <div class="cta-copy">
-          <div class="section-title cta-title">원하는 일정을<br>직접 만들어보세요.</div>
+          <div class="section-title cta-title">원하는 일정으로<span class="cta-title-pc-space"> </span><br class="cta-title-linebreak">골프친구 찾기</div>
           <div class="cta-subcopy">
-            <p class="section-desc cta-subcopy-text">원하는 날짜와 지역으로, 멤버를 모집해보세요</p>
+            <p class="section-desc cta-subcopy-text">원하는 날짜와 지역의 상품으로<span class="cta-pc-space"> </span><br class="cta-subcopy-linebreak">직접 멤버를 모집해보세요.</p>
           </div>
         </div>
-        <button class="button primary large" onclick="openModal('builderModal')">새 일정 만들기</button>
+        <button class="button primary large cta-create-button" onclick="openModal('builderModal')"><div class="cta-create-button-text">새로운 모임 만들기</div></button>
       </div>
     </div>
   </section>
@@ -28530,19 +28967,13 @@
       <li>
         <button type="button" data-mobile-nav-key="my" onclick="handleJoinMyButtonClick()" aria-label="마이페이지" class="is-active">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
-          <div class="join-mobile-bottom-nav-label">내예약</div>
+          <div class="join-mobile-bottom-nav-label">마이메뉴</div>
         </button>
       </li>
       <li>
-        <button type="button" data-mobile-nav-key="interest" onclick="handleJoinMobileInterestClick()" aria-label="최근본/관심">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          <div class="join-mobile-bottom-nav-label">최근/관심</div>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="nav-kakao" data-mobile-nav-key="kakao" onclick="handleJoinMobileKakaoClick()" aria-label="카톡문의">
+        <button type="button" class="nav-kakao" data-mobile-nav-key="kakao" onclick="handleJoinMobileKakaoClick()" aria-label="채팅문의">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path class="kakao-dot" d="M8 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path class="kakao-dot" d="M12 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path class="kakao-dot" d="M16 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          <div class="join-mobile-bottom-nav-label">카톡문의</div>
+          <div class="join-mobile-bottom-nav-label">채팅문의</div>
         </button>
       </li>
       <li>
@@ -28554,15 +28985,57 @@
     </ul>
   </div>
 
+  <div class="join-my-drawer-overlay" id="joinMyDrawerOverlay" onclick="if(event.target.id === 'joinMyDrawerOverlay') closeJoinMyDrawer()" aria-hidden="true">
+    <aside class="join-my-drawer" role="dialog" aria-modal="true" aria-labelledby="joinMyDrawerName">
+      <div class="join-my-drawer-profile">
+        <div class="join-my-drawer-name" id="joinMyDrawerName">회원</div>
+        <div class="join-my-drawer-meta">
+          <span id="joinMyDrawerGender">성별</span>
+          <span class="join-my-drawer-dot" aria-hidden="true"></span>
+          <span id="joinMyDrawerAge">연령대</span>
+        </div>
+      </div>
+      <div class="join-my-drawer-divider"></div>
+      <div class="join-my-drawer-list">
+        <button type="button" class="join-my-drawer-item" onclick="handleJoinMyTripClick()">
+          <span class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 20h4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="16" cy="20" r="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle><circle cx="8" cy="20" r="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle></svg></span>
+          <span>내 예약</span>
+        </button>
+        <button type="button" class="join-my-drawer-item" onclick="handleJoinMyRecentClick()">
+          <span class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle></svg></span>
+          <span>최근 본 상품</span>
+        </button>
+        <button type="button" class="join-my-drawer-item" onclick="handleJoinMyWishClick()">
+          <span class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+          <span>찜한 상품</span>
+        </button>
+      </div>
+      <div class="join-my-drawer-divider"></div>
+      <div class="join-my-drawer-section-title">고객지원</div>
+      <div class="join-my-drawer-list">
+        <button type="button" class="join-my-drawer-item" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">
+          <span class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+          <span>채팅문의</span>
+        </button>
+        <button type="button" class="join-my-drawer-item" onclick="handlePhoneContact()">
+          <span class="join-my-drawer-icon" aria-hidden="true"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/callcenter.png" alt=""></span>
+          <span>전화문의</span>
+        </button>
+      </div>
+      <div class="join-my-drawer-divider"></div>
+      <button type="button" class="join-my-drawer-logout" onclick="handleJoinMyLogout()">로그아웃</button>
+    </aside>
+  </div>
+
 
 
   <div class="overlay join-member-login-overlay" id="joinMemberLoginModal">
     <div class="modal join-member-login-modal" role="dialog" aria-modal="true" aria-labelledby="joinMemberLoginTitle">
       <div class="join-member-login-header">
         <button type="button" class="join-member-login-back" onclick="handleJoinMemberLoginBack()" aria-label="뒤로 가기">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="m12 19-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
           </svg>
         </button>
         <div class="join-member-login-title" id="joinMemberLoginTitle">로그인</div>
@@ -28996,11 +29469,16 @@
   <div class="overlay" id="builderModal" onclick="if(event.target.id === 'builderModal') closeModal('builderModal')" style="--builder-bottom-offset: 118px;">
     <div class="modal builder-modal">
       <div class="builder-header">
-        <span aria-hidden="true"></span>
+        <button type="button" class="modal-close-icon modal-back-icon" onclick="closeModal('builderModal')" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
+          </svg>
+        </button>
         <div class="builder-header-copy">
           <div class="builder-title">새 일정 만들기</div>
         </div>
-        <button type="button" class="modal-close-icon" onclick="closeModal('builderModal')" aria-label="닫기"></button>
+        <span class="modal-header-spacer" aria-hidden="true"></span>
       </div>
       <div class="builder-progress">
         <button type="button" class="builder-progress-item" data-builder-progress="1" onclick="goBuilderProgressStep(1)"><div class="builder-progress-dot"></div><div>날짜선택</div></button>
@@ -29317,9 +29795,16 @@
         <div class="builder-stepper-row"><span>후</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('after', -1)">-</button><span id="builderAfterFlex">0일</span><button type="button" onclick="changeBuilderFlex('after', 1)">+</button></div></div>
       </div>
       <div class="builder-product-detail" id="builderProductDetail">
-        <div class="builder-header"><button type="button" class="modal-close-icon" onclick="closeBuilderProductDetail()" aria-label="닫기"></button><div class="builder-header-copy"><div class="builder-title">추천 상품 상세</div></div><span aria-hidden="true"></span></div>
+        <div class="builder-header"><button type="button" class="modal-close-icon modal-back-icon" onclick="closeBuilderProductDetail()" aria-label="뒤로가기"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg></button><div class="builder-header-copy"><div class="builder-title">추천 상품 상세</div></div><span class="modal-header-spacer" aria-hidden="true"></span></div>
         <div class="builder-detail-body"><img class="builder-detail-hero" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/20190227_085648.jpg" alt="추천 상품"><div class="builder-complete-title">조건에 맞는 조인 일정 상담</div><p class="builder-complete-subtitle">선택한 조건으로 담당자가 가능한 일정을 확인합니다.</p></div>
       </div>
+    </div>
+  </div>
+
+  <div class="builder-alert-overlay" id="builderAlertModal" onclick="if(event.target.id === 'builderAlertModal') closeBuilderAlert()" aria-hidden="true">
+    <div class="builder-alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="builderAlertMessage">
+      <div class="builder-alert-message" id="builderAlertMessage">도착일을 선택해주세요.</div>
+      <button type="button" class="builder-alert-button" onclick="closeBuilderAlert()">확인</button>
     </div>
   </div>
 
@@ -29328,8 +29813,14 @@
   <div class="calendar-sheet-overlay" id="calendarSheet" onclick="handleCalendarSheetBackdrop(event)" aria-modal="true" role="dialog" aria-labelledby="calendarSheetTitle">
     <div class="calendar-sheet">
       <div class="calendar-sheet-header">
+        <button type="button" class="modal-close-icon modal-back-icon" onclick="closeCalendarSheet()" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
+          </svg>
+        </button>
         <div class="calendar-sheet-title" id="calendarSheetTitle">참여 가능한 일정</div>
-        <button type="button" class="modal-close-icon" onclick="closeCalendarSheet()" aria-label="닫기"></button>
+        <span class="modal-header-spacer" aria-hidden="true"></span>
       </div>
       <div class="calendar-sheet-body" id="calendarSheetBody"></div>
     </div>
@@ -29346,8 +29837,9 @@
       <div class="travel-date-shell">
         <div class="region-search-header">
           <button type="button" class="region-search-back" onclick="closeTravelDateModal()" aria-label="뒤로가기">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+              <path d="m12 19-7-7 7-7"></path>
+              <path d="M19 12H5"></path>
             </svg>
           </button>
           <div class="region-search-title">여행 일정 선택</div>
@@ -29700,8 +30192,14 @@
   <div class="overlay" id="detailModal">
     <div class="modal detail-modal">
       <div class="modal-header">
+        <button type="button" class="modal-close-icon modal-back-icon" onclick="closeModal('detailModal')" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
+          </svg>
+        </button>
         <div class="modal-title" id="detailModalTitle">상품 상세</div>
-        <button type="button" class="modal-close-icon" onclick="closeModal('detailModal')" aria-label="닫기"></button>
+        <span class="modal-header-spacer" aria-hidden="true"></span>
       </div>
       <div class="modal-body" id="detailContent"></div>
       <div class="detail-modal-actions">
@@ -29721,13 +30219,14 @@
     <div class="modal region-search-modal">
       <div class="region-search-shell">
         <div class="region-search-header">
-          <button type="button" class="region-search-back" onclick="closeRegionSearchModal()" aria-label="닫기">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <button type="button" class="region-search-back" onclick="closeRegionSearchModal()" aria-label="뒤로가기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+              <path d="m12 19-7-7 7-7"></path>
+              <path d="M19 12H5"></path>
             </svg>
           </button>
           <div class="region-search-title">여행지 검색</div>
-          <button type="button" class="modal-close-icon region-search-pc-close" onclick="closeRegionSearchModal()" aria-label="닫기"></button>
+          <span class="modal-header-spacer region-search-header-spacer" aria-hidden="true"></span>
         </div>
         <div class="region-search-row">
           <div class="region-search-field">
@@ -31128,7 +31627,11 @@
     function getJoinTempAdminMember() {
       try {
         const saved = JSON.parse(sessionStorage.getItem(JOIN_TEMP_ADMIN_LOGIN_KEY) || "null");
-        return saved?.isTempAdmin ? saved : null;
+        return saved?.isTempAdmin ? {
+          ...saved,
+          gender: saved.gender || "남성",
+          birthday: saved.birthday || "1969"
+        } : null;
       } catch (error) {
         return null;
       }
@@ -31142,8 +31645,8 @@
         memberChannel: "TEMP",
         memberMobile: "01000000000",
         memberEmail: "admin@admin.com",
-        gender: "",
-        birthday: "",
+        gender: "남성",
+        birthday: "1969",
         isTempAdmin: true
       };
       try {
@@ -32844,6 +33347,106 @@
       return joinMyMenuState.memberPromise;
     }
 
+    function getJoinMemberBirthYear(member = {}) {
+      const direct = String(member.birthYear || "").trim();
+      if (/^\d{4}$/.test(direct)) return direct;
+      const birthday = String(member.birthday || "").trim();
+      const match = birthday.match(/\b(19\d{2}|20\d{2})\b/);
+      return match ? match[1] : "";
+    }
+
+    function getJoinMemberAgeBand(member = {}) {
+      const birthYear = getJoinMemberBirthYear(member);
+      if (!/^\d{4}$/.test(birthYear)) return "연령대";
+      const age = new Date().getFullYear() - Number(birthYear) + 1;
+      if (!Number.isFinite(age) || age < 1) return "연령대";
+      return `${Math.floor(age / 10) * 10}대`;
+    }
+
+    function updateJoinMyDrawerProfile(member = {}) {
+      const name = member.memberName || "회원";
+      const gender = member.gender || "성별";
+      const age = getJoinMemberAgeBand(member);
+      const nameTarget = document.getElementById("joinMyDrawerName");
+      const genderTarget = document.getElementById("joinMyDrawerGender");
+      const ageTarget = document.getElementById("joinMyDrawerAge");
+      if (nameTarget) nameTarget.textContent = name;
+      if (genderTarget) genderTarget.textContent = gender;
+      if (ageTarget) ageTarget.textContent = age;
+    }
+
+    async function openJoinMyDrawer() {
+      const overlay = document.getElementById("joinMyDrawerOverlay");
+      overlay?.classList.add("open");
+      overlay?.setAttribute("aria-hidden", "false");
+      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+      setJoinMobileBottomNavVisible(false);
+      setWidgetModalOpen(true);
+      document.documentElement.classList.add("modal-open");
+      document.body.classList.add("modal-open");
+      const member = await getJoinCurrentMember({ refresh: true });
+      if (member) updateJoinMyDrawerProfile(member);
+    }
+
+    function closeJoinMyDrawer() {
+      const overlay = document.getElementById("joinMyDrawerOverlay");
+      overlay?.classList.remove("open");
+      overlay?.setAttribute("aria-hidden", "true");
+      if (!document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+        document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+        setJoinMobileBottomNavVisible(true);
+      }
+      setWidgetModalOpen(hasOpenBlockingModal());
+      if (!hasOpenBlockingModal()) {
+        document.documentElement.classList.remove("modal-open");
+        document.body.classList.remove("modal-open");
+      }
+    }
+
+    function handleJoinMyRecentClick() {
+      alert("최근 본 상품은 준비 중입니다.");
+    }
+
+    function handleJoinMyWishClick() {
+      alert("찜한 상품은 준비 중입니다.");
+    }
+
+    function handleJoinMyTripClick() {
+      closeJoinMyDrawer();
+      openJoinMyMenu();
+    }
+
+    function getJoinLogoutUrl() {
+      return location.hostname.includes("secret-tour.com")
+        ? "/member/logout.json"
+        : "https://www.secret-tour.com/member/logout.json";
+    }
+
+    async function handleJoinMyLogout() {
+      try {
+        await fetch(getJoinLogoutUrl(), {
+          method: "GET",
+          credentials: "include",
+          cache: "no-cache",
+          headers: {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        });
+      } catch (error) {
+        console.warn("Secret Tour logout request failed.", error);
+      }
+      try {
+        sessionStorage.removeItem(JOIN_TEMP_ADMIN_LOGIN_KEY);
+        joinMyMenuState.memberPromise = null;
+      } catch (error) {
+        console.warn("Failed to clear join login state.", error);
+      }
+      closeJoinMyMenu();
+      closeJoinMyDrawer();
+      setJoinMobileNavActive("");
+    }
+
     function renderJoinMyInfoList(items) {
       return `<dl class="join-my-info-list">${items.map(([label, value]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value || "-")}</dd>`).join("")}</dl>`;
     }
@@ -32855,6 +33458,8 @@
           {
             title: "방콕 시암CC 4인 조인 모집",
             meta: "2026.07.18 출발 · 태국 방콕",
+            region: "방콕",
+            image: "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg",
             status: "모집중",
             statusClass: "green",
             progress: 2,
@@ -32866,6 +33471,8 @@
           {
             title: "다낭 바나힐 조인 골프",
             meta: `${memberName}님 참여 · 2026.06.24 출발`,
+            region: "다낭",
+            image: "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/main_sl_02.jpg",
             status: "예약 가능 확인",
             statusClass: "",
             progress: 3,
@@ -32877,6 +33484,8 @@
           {
             title: "후아힌 블랙마운틴 조인",
             meta: "2026.05.08 여행완료 · 태국 후아힌",
+            region: "후아힌",
+            image: "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg",
             status: "여행완료",
             statusClass: "gray",
             progress: 5,
@@ -32895,24 +33504,30 @@
       if (!items.length) return `<div class="join-my-empty">아직 표시할 일정이 없습니다.</div>`;
       return items.map((item) => `
         <article class="join-my-card">
-          <div class="join-my-card-head">
-            <div>
-              <div class="join-my-card-title">${escapeHtml(item.title)}</div>
-              <div class="join-my-card-meta">${escapeHtml(item.meta)}</div>
-            </div>
-            <div class="join-my-status-pill ${escapeHtml(item.statusClass || "")}">${escapeHtml(item.status)}</div>
+          <div class="join-my-card-thumb">
+            <img src="${escapeHtml(item.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg")}" alt="${escapeHtml(item.title)}">
+            <div class="join-my-card-thumb-badge">${escapeHtml(item.region || "골프여행")}</div>
           </div>
-          ${renderJoinMyProgress(item.progress)}
-          <div class="join-my-card-info">
-            ${(item.infos || []).map(([label, value]) => `
-              <div class="join-my-info-chip">
-                <div class="join-my-info-chip-label">${escapeHtml(label)}</div>
-                <div class="join-my-info-chip-value">${escapeHtml(value)}</div>
+          <div class="join-my-card-content">
+            <div class="join-my-card-head">
+              <div>
+                <div class="join-my-card-title">${escapeHtml(item.title)}</div>
+                <div class="join-my-card-meta">${escapeHtml(item.meta)}</div>
               </div>
-            `).join("")}
-          </div>
-          <div class="join-my-card-actions">
-            ${(item.actions || []).map(([label, variant]) => `<button type="button" class="${escapeHtml(variant || "")}" onclick="${label.includes("문의") ? "openExternalLink('http://pf.kakao.com/_lRbYxj/chat')" : "void 0"}">${escapeHtml(label)}</button>`).join("")}
+              <div class="join-my-status-pill ${escapeHtml(item.statusClass || "")}">${escapeHtml(item.status)}</div>
+            </div>
+            ${renderJoinMyProgress(item.progress)}
+            <div class="join-my-card-info">
+              ${(item.infos || []).map(([label, value]) => `
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">${escapeHtml(label)}</div>
+                  <div class="join-my-info-chip-value">${escapeHtml(value)}</div>
+                </div>
+              `).join("")}
+            </div>
+            <div class="join-my-card-actions">
+              ${(item.actions || []).map(([label, variant]) => `<button type="button" class="${escapeHtml(variant || "")}" onclick="${label.includes("문의") ? "openExternalLink('http://pf.kakao.com/_lRbYxj/chat')" : "void 0"}">${escapeHtml(label)}</button>`).join("")}
+            </div>
           </div>
         </article>
       `).join("");
@@ -32937,36 +33552,27 @@
         return;
       }
       const memberName = member.memberName || "회원";
-      const memberEmail = member.memberEmail || member.memberId || "";
       const groups = getJoinMyReservationGroups(member);
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "내 예약");
       target.innerHTML = `
+        <div class="join-my-reservation-nav" role="tablist" aria-label="내예약 분류">
+          <button type="button" class="join-my-tab active" data-join-my-tab="created" role="tab" aria-selected="true" onclick="switchJoinMyTab('created')">모집중</button>
+          <button type="button" class="join-my-tab" data-join-my-tab="joined" role="tab" aria-selected="false" onclick="switchJoinMyTab('joined')">참여중</button>
+          <button type="button" class="join-my-tab" data-join-my-tab="completed" role="tab" aria-selected="false" onclick="switchJoinMyTab('completed')">다녀온 일정</button>
+        </div>
         <div class="join-my-profile">
-          <div class="join-my-profile-head">
-            <div class="join-my-profile-fields">
-              <div class="join-my-profile-field">
-                <div class="join-my-profile-field-label">이름</div>
-                <div class="join-my-profile-name">${escapeHtml(memberName)}</div>
-              </div>
-              <div class="join-my-profile-field">
-                <div class="join-my-profile-field-label">이메일주소</div>
-                <div class="join-my-profile-sub">${escapeHtml(memberEmail || "이메일주소 없음")}</div>
-              </div>
-            </div>
-            <div class="join-my-profile-badge">예약 관리</div>
-          </div>
-          <div class="join-my-summary-grid">
-            <div class="join-my-summary-card"><div class="join-my-summary-label">모집중인 일정</div><div class="join-my-summary-value">${groups.created.length}</div></div>
-            <div class="join-my-summary-card"><div class="join-my-summary-label">참여중인 일정</div><div class="join-my-summary-value">${groups.joined.length}</div></div>
-            <div class="join-my-summary-card"><div class="join-my-summary-label">다녀온 일정</div><div class="join-my-summary-value">${groups.completed.length}</div></div>
-          </div>
-          <div class="join-my-tabs" role="tablist" aria-label="내예약 분류">
-            <button type="button" class="join-my-tab active" data-join-my-tab="created" role="tab" aria-selected="true" onclick="switchJoinMyTab('created')">모집중인 일정</button>
-            <button type="button" class="join-my-tab" data-join-my-tab="joined" role="tab" aria-selected="false" onclick="switchJoinMyTab('joined')">참여중인 일정</button>
-            <button type="button" class="join-my-tab" data-join-my-tab="completed" role="tab" aria-selected="false" onclick="switchJoinMyTab('completed')">다녀온 일정</button>
-          </div>
-          <section class="join-my-section" data-join-my-section="created">${renderJoinMyCards(groups.created)}</section>
-          <section class="join-my-section" data-join-my-section="joined" hidden>${renderJoinMyCards(groups.joined)}</section>
-          <section class="join-my-section" data-join-my-section="completed" hidden>${renderJoinMyCards(groups.completed)}</section>
+          <section class="join-my-section" data-join-my-section="created">
+            <div class="join-my-reservation-title">내가 모집중인 일정</div>
+            ${renderJoinMyCards(groups.created)}
+          </section>
+          <section class="join-my-section" data-join-my-section="joined" hidden>
+            <div class="join-my-reservation-title">내가 참여중인 일정</div>
+            ${renderJoinMyCards(groups.joined)}
+          </section>
+          <section class="join-my-section" data-join-my-section="completed" hidden>
+            <div class="join-my-reservation-title">내가 다녀온 일정</div>
+            ${renderJoinMyCards(groups.completed)}
+          </section>
           <div class="join-my-actions">
             <button type="button" onclick="closeJoinMyMenu(); openModal('builderModal')">새 일정 만들기</button>
             <button type="button" class="secondary" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">카톡 문의</button>
@@ -32978,8 +33584,11 @@
     async function openJoinMyMenu() {
       const overlay = portalOverlayToBody("joinMyMenuModal");
       const body = document.getElementById("joinMyMenuBody");
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "내 예약");
       if (body) body.innerHTML = `<div class="join-my-state">회원 정보를 확인 중입니다.</div>`;
       overlay?.classList.add("open");
+      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+      setJoinMobileBottomNavVisible(false);
       setWidgetModalOpen(true);
       const member = await getJoinCurrentMember({ refresh: true });
       if (!member) {
@@ -32991,25 +33600,23 @@
 
     function closeJoinMyMenu() {
       document.getElementById("joinMyMenuModal")?.classList.remove("open");
+      if (!document.getElementById("joinMyDrawerOverlay")?.classList.contains("open")) {
+        document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+        setJoinMobileBottomNavVisible(true);
+      }
       setWidgetModalOpen(hasOpenBlockingModal());
     }
 
     function handleJoinMyButtonClick() {
       setJoinMobileNavActive("my");
       if (!requireJoinLogin("my-menu")) return;
-      openJoinMyMenu();
+      openJoinMyDrawer();
     }
 
     function handleJoinMobileNavSearch() {
       setJoinMobileNavActive("search");
       setJoinMobileBottomNavVisible(false);
       openRegionSearchModal();
-    }
-
-    function handleJoinMobileInterestClick() {
-      setJoinMobileNavActive("interest");
-      if (!requireJoinLogin("interest")) return;
-      openJoinMyMenu();
     }
 
     function handleJoinMobileKakaoClick() {
@@ -33075,7 +33682,7 @@
     function resumeJoinMyMenuAfterLogin() {
       const params = new URLSearchParams(location.search);
       const afterLogin = params.get("afterLogin");
-      if (!["my-menu", "interest", "builder", "apply"].includes(afterLogin)) return;
+      if (!["my-menu", "builder", "apply"].includes(afterLogin)) return;
       params.delete("afterLogin");
       const cleanQuery = params.toString();
       const cleanUrl = `${location.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${location.hash || ""}`;
@@ -33087,10 +33694,6 @@
       }
       if (afterLogin === "apply") {
         openGlobalApply();
-        return;
-      }
-      if (afterLogin === "interest") {
-        handleJoinMobileInterestClick();
         return;
       }
       handleJoinMyButtonClick();
@@ -37646,6 +38249,22 @@
       syncBuilderApplyAgreementState();
     }
 
+    function openBuilderAlert(message = "도착일을 선택해주세요.") {
+      const overlay = document.getElementById("builderAlertModal");
+      const messageTarget = document.getElementById("builderAlertMessage");
+      if (messageTarget) messageTarget.textContent = message;
+      overlay?.classList.add("open");
+      overlay?.setAttribute("aria-hidden", "false");
+      setWidgetModalOpen(true);
+    }
+
+    function closeBuilderAlert() {
+      const overlay = document.getElementById("builderAlertModal");
+      overlay?.classList.remove("open");
+      overlay?.setAttribute("aria-hidden", "true");
+      setWidgetModalOpen(hasOpenBlockingModal());
+    }
+
     async function nextBuilderStep() {
       if (builderStep >= 4) {
         closeModal("builderModal");
@@ -37653,6 +38272,10 @@
       }
       if (builderStep === 3) {
         await submitBuilderApply();
+        return;
+      }
+      if (builderStep === 1 && !Number.isFinite(builderState.endDay)) {
+        openBuilderAlert("도착일을 선택해주세요.");
         return;
       }
       if (builderStep === 1 && builderState.mdPickMode && Number.isFinite(builderState.startDay) && Number.isFinite(builderState.endDay)) {
@@ -43901,8 +44524,8 @@
 
       document.getElementById("detailContent").innerHTML = `
         <div class="detail-mobile-sticky-header" aria-hidden="true">
-          <button type="button" class="detail-mobile-header-button" onclick="closeModal('detailModal')" aria-label="상세 모달 닫기">
-            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-arrow-left-icon lucide-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+          <button type="button" class="detail-mobile-header-button" onclick="closeModal('detailModal')" aria-label="뒤로가기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
           </button>
           <div class="detail-mobile-sticky-title">${escapeHtml(join.title)}</div>
           <button type="button" class="detail-mobile-header-button" aria-label="찜하기">
@@ -43913,8 +44536,8 @@
           </button>
         </div>
         <div class="detail-slider">
-          <button type="button" class="detail-slider-back" onclick="closeModal('detailModal')" aria-label="상세 모달 닫기">
-            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-arrow-left-icon lucide-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+          <button type="button" class="detail-slider-back" onclick="closeModal('detailModal')" aria-label="뒤로가기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
           </button>
           <button type="button" class="detail-slider-nav prev" onclick="changeDetailSlide(-1)" aria-label="이전 이미지">&lt;</button>
           <div class="detail-slider-viewport">
@@ -44806,8 +45429,14 @@
 <div class="overlay sgj-portal-overlay" id="joinMyMenuModal" onclick="if(event.target.id === 'joinMyMenuModal') closeJoinMyMenu()" style="z-index: 2147483620 !important;">
     <div class="modal join-my-modal" role="dialog" aria-modal="true" aria-labelledby="joinMyMenuTitle">
       <div class="modal-header">
-        <div class="modal-title" id="joinMyMenuTitle">마이메뉴</div>
-        <button type="button" class="modal-close-icon" onclick="closeJoinMyMenu()" aria-label="닫기"></button>
+        <button type="button" class="modal-close-icon modal-back-icon" onclick="closeJoinMyMenu()" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
+          </svg>
+        </button>
+        <div class="modal-title" id="joinMyMenuTitle">내 예약</div>
+        <span class="modal-header-spacer" aria-hidden="true"></span>
       </div>
       <div class="join-my-body" id="joinMyMenuBody">
         <div class="join-my-profile">

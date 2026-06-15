@@ -39,6 +39,11 @@
       --font-hero-search-input: 18px;
       --font-weight-hero-search-input: 400;
       --color-hero-search-input: #a3a3a3;
+      --modal-bottom-button-font-size-pc: 16px;
+      --modal-bottom-button-font-size-mo: 15px;
+      --modal-bottom-button-font-weight: 700;
+      --modal-bottom-primary-color: #0775f3;
+      --modal-bottom-prev-width: 96px;
       --font-mobile-search-input: var(--font-hero-search-input);
       --font-weight-mobile-search-input: var(--font-weight-hero-search-input);
       --font-mobile-search-placeholder: var(--font-mobile-search-input);
@@ -103,7 +108,10 @@
       --modal-header-padding-mobile: 10px 18px;
       --modal-sheet-header-padding-mobile: 10px 18px;
       --modal-close-size: 44px;
+      --modal-close-size-pc: 38px;
       --modal-close-icon-size: 20px;
+      --modal-close-icon-size-pc: 28px;
+      --join-pc-header-zone-offset: 0px;
       --font-modal-value: 18px;
       --font-modal-price: 34px;
       --font-detail-main-title: 23px;
@@ -3575,9 +3583,17 @@
       background: transparent;
     }
     .calendar-cell strong {
-      display: block;
+      position: relative;
+      z-index: 2;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       margin-bottom: 8px;
       margin-left: 0;
+      line-height: 1;
     }
     .calendar-cell small {
       display: block;
@@ -3855,12 +3871,43 @@
     .calendar-cell.today {
       box-shadow: none;
     }
+    .calendar-cell.unavailable {
+      color: #c7cbd1;
+      cursor: not-allowed;
+      opacity: .72;
+    }
+    .calendar-cell.unavailable .calendar-day-button strong {
+      color: #c7cbd1 !important;
+      background: #f8fafc;
+    }
+    .calendar-cell.today .calendar-day-button strong {
+      color: #0e60e8;
+      background: #eaf2ff;
+      box-shadow: inset 0 0 0 1px rgba(14, 96, 232, 0.22);
+    }
+    .calendar-today-label {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 18px);
+      z-index: 3;
+      transform: translateX(-50%);
+      color: #0e60e8;
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      pointer-events: none;
+    }
     .calendar-month.inactive-month .calendar-cell strong {
       color: #cbd5e1 !important;
     }
     .calendar-cell.holiday strong,
     .calendar-cell.sunday strong {
       color: var(--red);
+    }
+    .calendar-cell.unavailable.holiday strong,
+    .calendar-cell.unavailable.sunday strong {
+      color: #c7cbd1 !important;
     }
     .calendar-event {
       display: block;
@@ -3883,6 +3930,7 @@
       color: #7c3aed;
     }
     .calendar-day-button {
+      position: relative;
       width: 100%;
       padding: 0;
       display: flex;
@@ -4465,6 +4513,10 @@
     #builderModal.mdpick-builder-mode .builder-progress-item[data-builder-progress="2"] {
       display: none;
     }
+    #builderModal.mdpick-date-change-mode .builder-progress,
+    #builderModal.mdpick-recruit-direct-mode .builder-progress {
+      display: none;
+    }
     .builder-step {
       display: none;
     }
@@ -4669,10 +4721,10 @@
       gap: 0;
     }
     .builder-calendar-week + .builder-calendar-week {
-      margin-top: 10px;
+      margin-top: 20px;
     }
     .builder-calendar-card.has-six-weeks .builder-calendar-week + .builder-calendar-week {
-      margin-top: 10px;
+      margin-top: 20px;
     }
     .builder-day {
       min-height: 42px;
@@ -4826,11 +4878,11 @@
     .builder-day-label {
       position: absolute;
       left: 50%;
-      top: calc(50% + 18px);
+      top: calc(50% + 15px);
       transform: translateX(-50%);
-      font-size: 10px;
-      font-weight: 600;
-      color: #373A3C;
+      font-size: 14px;
+      font-weight: 500;
+      color: #8b91a0;
       white-space: nowrap;
     }
     .builder-day.range.flex .builder-day-number {
@@ -4845,7 +4897,7 @@
       #builderModal .builder-day-label,
       body > #builderModal.sgj-portal-overlay .builder-day-label,
       #secret-golf-join #builderModal .builder-day-label {
-        font-size: 13px;
+        font-size: 14px;
       }
       #builderModal .builder-calendar-week + .builder-calendar-week,
       body > #builderModal.sgj-portal-overlay .builder-calendar-week + .builder-calendar-week,
@@ -4853,7 +4905,7 @@
       #builderModal .builder-calendar-card.has-six-weeks .builder-calendar-week + .builder-calendar-week,
       body > #builderModal.sgj-portal-overlay .builder-calendar-card.has-six-weeks .builder-calendar-week + .builder-calendar-week,
       #secret-golf-join #builderModal .builder-calendar-card.has-six-weeks .builder-calendar-week + .builder-calendar-week {
-        margin-top: 6px !important;
+        margin-top: 20px !important;
       }
       #builderModal .builder-day,
       body > #builderModal.sgj-portal-overlay .builder-day,
@@ -5881,34 +5933,13 @@
     }
     .builder-region-product-list .region-product-side {
       display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
       justify-items: end;
       gap: 12px;
       grid-column: 1 / -1;
       padding-top: 12px;
       border-top: 1px solid var(--border);
-    }
-    .builder-product-more-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 30px;
-      padding: 0 10px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 800;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: border-color .18s ease, background .18s ease, color .18s ease;
-    }
-    .builder-product-more-button:hover {
-      border-color: rgba(104, 124, 214, 0.34);
-      background: #f7f8ff;
-      color: #4f63c6;
     }
     .builder-region-product-list .region-product-price {
       display: flex;
@@ -6154,7 +6185,7 @@
       }
       .builder-calendar-week + .builder-calendar-week,
       .builder-calendar-card.has-six-weeks .builder-calendar-week + .builder-calendar-week {
-        margin-top: 0 !important;
+        margin-top: 20px !important;
       }
       .builder-day {
         width: 100% !important;
@@ -6207,7 +6238,7 @@
       grid-template-columns: minmax(96px, .32fr) minmax(0, 1fr);
     }
     #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
-      grid-template-columns: 58px 58px minmax(0, 1fr);
+      grid-template-columns: minmax(96px, .32fr) minmax(0, 1fr);
     }
     #detailModal.mdpick-recruit-mode .detail-modal-actions {
       display: grid;
@@ -6215,6 +6246,10 @@
     }
     #detailModal.builder-select-mode .detail-modal-actions .button.secondary {
       display: inline-flex;
+    }
+    #detailModal.builder-select-mode.builder-product-detail-mode #detailKakaoButton,
+    #detailModal.builder-select-mode.builder-product-detail-mode #detailDateChangeButton {
+      display: none !important;
     }
     .builder-region-product-empty {
       padding: 18px 14px;
@@ -6614,6 +6649,247 @@
       .builder-modal {
         height: min(710px, calc(100vh - 40px));
         min-height: min(710px, calc(100vh - 40px));
+      }
+      .builder-body.builder-step-1 {
+        padding-bottom: 132px;
+      }
+      .builder-date-popover {
+        position: fixed !important;
+        left: 50% !important;
+        right: auto !important;
+        top: auto !important;
+        bottom: max(20px, calc((100vh - 710px) / 2)) !important;
+        z-index: 9;
+        width: min(720px, calc(100vw - 24px));
+        min-width: 0;
+        display: grid;
+        gap: 12px;
+        padding: 18px 22px 22px;
+        border-right: 0;
+        border-bottom: 0;
+        border-left: 0;
+        border-radius: 20px 20px 0 0;
+        background: #fff;
+        box-shadow: 0 -16px 40px rgba(15, 23, 42, 0.16);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translate(-50%, 110%);
+        transition: transform .24s ease, opacity .18s ease, visibility .18s ease;
+      }
+      .builder-date-popover.open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translate(-50%, 0);
+      }
+      .builder-date-popover-title {
+        display: grid;
+        gap: 10px;
+        white-space: normal;
+      }
+      .builder-date-popover-actions {
+        display: none;
+      }
+      .builder-date-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .builder-date-title-label {
+        color: var(--text);
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .builder-date-title-range {
+        min-width: 0;
+        color: #3e3e3e;
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.2;
+        text-align: right;
+      }
+      .builder-date-title-selected {
+        color: var(--text);
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.12;
+        text-align: center;
+        letter-spacing: 0;
+        margin-top: 18px;
+      }
+      .builder-date-title-selected .builder-date-weekday,
+      .builder-date-title-range .builder-date-weekday {
+        color: #8b97a8;
+        font-size: .72em;
+        font-weight: 800;
+        margin-left: 3px;
+      }
+      .builder-date-mode-toggle {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0;
+        padding: 4px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #f8fafc;
+        overflow: hidden;
+      }
+      .builder-date-mode-toggle::before {
+        content: "";
+        position: absolute;
+        top: 4px;
+        bottom: 4px;
+        left: 4px;
+        width: calc((100% - 8px) / 2);
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+        transform: translateX(0);
+        transition: transform .22s ease;
+      }
+      .builder-date-popover.flex-open .builder-date-mode-toggle::before {
+        transform: translateX(100%);
+      }
+      .builder-date-mode-button {
+        position: relative;
+        z-index: 1;
+        min-height: 38px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: #64748b;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+      .builder-date-mode-button.active {
+        color: var(--text);
+      }
+      .builder-date-stepper-stage {
+        display: none;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+      }
+      .builder-date-popover.flex-open .builder-date-stepper-stage {
+        display: grid;
+      }
+      .builder-date-side-stepper {
+        display: grid;
+        justify-items: center;
+        gap: 1px;
+        min-width: 0;
+      }
+      .builder-date-side-label {
+        color: var(--text-soft);
+        font-size: 14px;
+        font-weight: 800;
+        line-height: 1;
+      }
+      .builder-date-side-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+      .builder-date-side-controls button {
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #fff;
+        color: var(--text);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+      .builder-date-side-controls button svg {
+        width: 18px;
+        height: 18px;
+      }
+      .builder-date-side-controls button:disabled {
+        border-color: #e8edf3;
+        color: #c7d0dc;
+        background: #f8fafc;
+        cursor: default;
+      }
+      .builder-date-side-controls span {
+        min-width: 34px;
+        color: var(--text);
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+      }
+      .builder-date-flex-panel {
+        display: grid !important;
+        gap: 0;
+        margin-top: 2px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+      }
+      .builder-date-popover.flex-open .builder-date-flex-panel {
+        display: grid !important;
+        gap: 0;
+        margin-top: 2px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+      }
+      #builderDatePopover.builder-date-popover.flex-open .builder-date-flex-panel {
+        display: grid !important;
+      }
+      .builder-date-flex-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0;
+        margin-top: 0;
+        padding-top: 0;
+        border-top: 0;
+      }
+      .builder-date-flex-actions button:not(.primary-action) {
+        display: none;
+      }
+      .builder-date-flex-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        justify-items: center;
+        gap: 8px;
+        padding: 12px 10px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #f8fafc;
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .builder-date-flex-row .builder-stepper {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .builder-date-flex-row .builder-stepper span {
+        font-size: 16px;
+        font-weight: 900;
+      }
+      .builder-date-flex-row .builder-stepper button {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+      }
+      .builder-date-flex-panel > .builder-date-flex-row {
+        display: none !important;
+      }
+      .builder-date-flex-actions button {
+        min-height: 46px;
+        border-radius: 12px;
+        font-size: 15px;
       }
       .builder-modal.builder-complete-step {
         height: auto;
@@ -8192,9 +8468,9 @@
       content: "";
       width: var(--modal-close-icon-size);
       height: var(--modal-close-icon-size);
-      background-image: url("https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/spr_com.png");
-      background-repeat: no-repeat;
-      background-position: -89px 0;
+      background: currentColor;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E") center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E") center / contain no-repeat;
     }
     .modal-back-icon::before {
       display: none;
@@ -8209,6 +8485,230 @@
       display: block;
       width: var(--modal-close-size);
       height: var(--modal-close-size);
+    }
+    .detail-share-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483670;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.42);
+    }
+    .detail-share-overlay.open {
+      display: flex;
+    }
+    .detail-share-panel {
+      width: min(420px, 100%);
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.24);
+      overflow: hidden;
+    }
+    .detail-share-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-share-title {
+      min-width: 0;
+      color: #101418;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .detail-share-close {
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 12px;
+      background: #fff;
+      color: #373a3c;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .detail-share-close svg {
+      width: 24px;
+      height: 24px;
+    }
+    .detail-share-body {
+      display: grid;
+      gap: 16px;
+      padding: 18px 20px 20px;
+    }
+    .detail-share-list {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .detail-share-item {
+      min-width: 0;
+      min-height: 76px;
+      border: 1px solid #e6ebf0;
+      border-radius: 14px;
+      background: #fff;
+      color: #101418;
+      text-decoration: none;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 7px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      cursor: pointer;
+    }
+    .detail-share-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #f2f5f8;
+      color: #101418;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .detail-share-item.kakao .detail-share-icon {
+      background: #fee500;
+      color: #191919;
+    }
+    .detail-share-item.facebook .detail-share-icon {
+      background: #1877f2;
+      color: #fff;
+    }
+    .detail-share-item.sms .detail-share-icon {
+      background: #22c55e;
+      color: #fff;
+    }
+    .detail-share-url-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+    }
+    .detail-share-url-input {
+      min-width: 0;
+      height: 42px;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0 12px;
+      color: #495056;
+      font-size: 14px;
+      font-weight: 500;
+      background: #f8fafc;
+    }
+    .detail-share-copy-button {
+      height: 42px;
+      border: 0;
+      border-radius: 12px;
+      padding: 0 14px;
+      background: #0775f3;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    @media (max-width: 640px) {
+      .detail-share-overlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+      .detail-share-panel {
+        width: 100%;
+        border-radius: 22px 22px 0 0;
+      }
+    }
+    @media (min-width: 641px) {
+      .modal-header,
+      .calendar-sheet-header,
+      .builder-header,
+      .region-search-header,
+      .join-member-login-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) var(--modal-close-size-pc);
+        align-items: center;
+        gap: 12px;
+      }
+      .modal-header .modal-title,
+      .calendar-sheet-header .calendar-sheet-title,
+      .builder-header .builder-header-copy,
+      .region-search-header .region-search-title,
+      .join-member-login-header .join-member-login-title {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: start;
+        min-width: 0;
+        text-align: left;
+      }
+      .modal-header .modal-close-icon,
+      .calendar-sheet-header .modal-close-icon,
+      .builder-header .modal-close-icon,
+      .modal-header .region-search-pc-close {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+      }
+      .modal-header .modal-header-spacer,
+      .calendar-sheet-header .modal-header-spacer,
+      .builder-header .modal-header-spacer,
+      .region-search-header .region-search-header-spacer {
+        display: none;
+      }
+      .modal-close-icon,
+      .region-search-back,
+      .join-member-login-back {
+        width: var(--modal-close-size-pc);
+        height: var(--modal-close-size-pc);
+        flex: 0 0 var(--modal-close-size-pc);
+      }
+      .modal-close-icon::before {
+        width: var(--modal-close-icon-size-pc);
+        height: var(--modal-close-icon-size-pc);
+      }
+      .modal-back-icon::before {
+        display: block;
+      }
+      .modal-back-icon svg {
+        display: none;
+      }
+      .region-search-back,
+      .join-member-login-back {
+        color: #373A3C;
+      }
+      .region-search-back::before,
+      .join-member-login-back::before {
+        content: "";
+        width: var(--modal-close-icon-size-pc);
+        height: var(--modal-close-icon-size-pc);
+        background: currentColor;
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E") center / contain no-repeat;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 6 6 18'/%3E%3Cpath d='m6 6 12 12'/%3E%3C/svg%3E") center / contain no-repeat;
+      }
+      .region-search-back svg,
+      .join-member-login-back svg {
+        display: none;
+      }
+      .region-search-header .region-search-back {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+      }
+      .region-search-header .region-search-pc-close {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+      }
+      .join-member-login-back {
+        position: static;
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+      }
     }
     .modal-body { padding: 22px; }
     .detail-modal .modal-body {
@@ -8351,6 +8851,36 @@
         width: min(760px, calc(100vw - 40px));
         max-height: calc(100vh - 40px);
         border-radius: 24px;
+      }
+      .global-apply-overlay .detail-apply-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) var(--modal-close-size-pc);
+        align-items: center;
+        gap: 12px;
+      }
+      .global-apply-overlay .detail-apply-title {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+        text-align: left;
+      }
+      .global-apply-overlay .global-apply-back {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+        width: var(--modal-close-size-pc);
+        height: var(--modal-close-size-pc);
+        flex: 0 0 var(--modal-close-size-pc);
+        color: #373A3C;
+      }
+      .global-apply-overlay .global-apply-back::before {
+        display: block;
+        width: var(--modal-close-icon-size-pc);
+        height: var(--modal-close-icon-size-pc);
+      }
+      .global-apply-overlay .global-apply-back > svg,
+      .global-apply-overlay .global-apply-header-spacer {
+        display: none;
       }
     }
     .global-apply-overlay .detail-apply-head {
@@ -10412,6 +10942,60 @@
       min-height: 48px;
       font-weight: 800;
     }
+    .builder-bottom {
+      grid-template-columns: var(--modal-bottom-prev-width) minmax(0, 1fr);
+    }
+    .builder-bottom .button,
+    .detail-modal-actions .button,
+    #globalApplyOverlay .detail-apply-actions .button,
+    .privacy-modal-footer .button,
+    .waitlist-modal-actions .button,
+    .travel-date-view,
+    .calendar-empty-schedule-action,
+    .apply-complete-close,
+    .builder-alert-button {
+      font-size: var(--modal-bottom-button-font-size-pc);
+      font-weight: var(--modal-bottom-button-font-weight);
+    }
+    .builder-bottom .button.primary,
+    .detail-modal-actions .button.primary,
+    #globalApplyOverlay .detail-apply-actions .button.primary,
+    .privacy-modal-footer .button.primary,
+    .waitlist-modal-actions .button.primary,
+    .travel-date-view,
+    .calendar-empty-schedule-action,
+    .apply-complete-close,
+    .builder-alert-button {
+      background: var(--modal-bottom-primary-color);
+      border-color: var(--modal-bottom-primary-color);
+      color: #fff;
+    }
+    #builderPrevButton,
+    #detailModal.builder-select-mode .detail-modal-actions .button.secondary {
+      flex: 0 0 var(--modal-bottom-prev-width);
+      width: var(--modal-bottom-prev-width);
+      min-width: var(--modal-bottom-prev-width);
+      padding-right: 0;
+      padding-left: 0;
+    }
+    #detailModal.builder-select-mode .detail-modal-actions,
+    #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
+      grid-template-columns: var(--modal-bottom-prev-width) minmax(0, 1fr);
+    }
+    @media (max-width: 640px) {
+      .builder-bottom .button,
+      .detail-modal-actions .button,
+      #globalApplyOverlay .detail-apply-actions .button,
+      .privacy-modal-footer .button,
+      .waitlist-modal-actions .button,
+      .travel-date-view,
+      .calendar-empty-schedule-action,
+      .apply-complete-close,
+      .builder-alert-button {
+        font-size: var(--modal-bottom-button-font-size-mo);
+        font-weight: var(--modal-bottom-button-font-weight);
+      }
+    }
     @media (max-width: 520px) {
       .detail-apply-grid {
         grid-template-columns: 1fr;
@@ -10534,6 +11118,12 @@
       width: 24px;
       height: 24px;
       display: block;
+    }
+    .detail-mobile-header-button.is-wished {
+      color: #0775f3;
+    }
+    .detail-mobile-header-button.is-wished svg {
+      fill: rgba(7, 117, 243, 0.12);
     }
     .detail-mobile-sticky-title {
       min-width: 0;
@@ -10889,6 +11479,9 @@
     }
     .detail-anchor-tabs.is-visible {
       display: flex;
+    }
+    .detail-anchor-tabs.is-visible .detail-anchor-chip {
+      font-weight: 500;
     }
     .detail-anchor-tabs.is-suppressed {
       display: none !important;
@@ -11286,7 +11879,7 @@
       display: block;
       margin-top: 0;
       color: var(--text-soft);
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 700;
     }
     .detail-schedule-copy {
@@ -11834,7 +12427,7 @@
       }
       .detail-benefit-recommend-list {
         display: grid;
-        gap: 20px;
+        gap: 5px;
         margin: 0;
         padding: 0;
         list-style: none;
@@ -12023,12 +12616,11 @@
       width: 100%;
       padding: 14px 16px;
       border-radius: 14px;
-      background: #ffffff;
+      background: #f8f9fa;
       color: #69727a;
       font-size: 15px;
       font-weight: 500;
       line-height: 1.55;
-      box-shadow: inset 0 0 0 1px rgba(222, 226, 230, 0.65);
     }
     .detail-flight-separate-title {
       color: #101418;
@@ -12052,21 +12644,21 @@
       gap: 8px;
       color: #101418;
       font-size: 16px;
-      font-weight: 800;
+      font-weight: 700;
       line-height: 1.35;
     }
     .detail-flight-airline-image {
-      width: 30px;
-      height: 30px;
-      flex: 0 0 30px;
+      width: 25px;
+      height: 25px;
+      flex: 0 0 25px;
       border-radius: 8px;
       overflow: hidden;
       object-fit: cover;
     }
     .detail-flight-route-row {
       display: grid;
-      grid-template-columns: 21px minmax(0, max-content) minmax(42px, 1fr) minmax(0, max-content);
-      gap: 4px;
+      grid-template-columns: minmax(0, max-content) minmax(42px, 1fr) minmax(0, max-content);
+      gap: 6px;
       align-items: center;
       color: #101418;
       font-size: 16px;
@@ -12104,10 +12696,13 @@
       transform-origin: right center;
     }
     .detail-flight-route-city {
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 500;
     }
     .detail-flight-route-time {
-      font-weight: 600;
+      color: #101418;
+      font-size: 17px;
+      font-weight: 700;
     }
     .detail-inclusion-grid {
       display: grid;
@@ -12295,7 +12890,7 @@
         top: 52px;
       }
       .detail-flight-route-row {
-        grid-template-columns: 24px minmax(0, max-content) minmax(42px, 1fr) minmax(0, max-content);
+        grid-template-columns: minmax(0, max-content) minmax(42px, 1fr) minmax(0, max-content);
       }
       .detail-summary-grid {
         grid-template-columns: 78px minmax(0, 1fr);
@@ -13384,6 +13979,28 @@
       white-space: nowrap;
       cursor: pointer;
     }
+    .sgj-page .builder-bottom .button,
+    .sgj-page .detail-modal-actions .button,
+    .sgj-page .detail-apply-actions .button,
+    .sgj-page .privacy-modal-footer .button,
+    .sgj-page .waitlist-modal-actions .button,
+    .sgj-page .travel-date-view,
+    .sgj-page .calendar-empty-schedule-action,
+    .sgj-page .apply-complete-close,
+    .sgj-page .builder-alert-button,
+    body > #detailModal.sgj-portal-overlay .detail-modal-actions .button,
+    body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button,
+    body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-footer .button {
+      font-size: var(--modal-bottom-button-font-size-pc);
+      font-weight: var(--modal-bottom-button-font-weight);
+    }
+    #globalApplyOverlay .detail-apply-actions .button.primary,
+    #globalApplyOverlay .detail-apply-actions .button.secondary,
+    body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button.primary,
+    body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button.secondary {
+      font-size: var(--modal-bottom-button-font-size-pc);
+      font-weight: var(--modal-bottom-button-font-weight);
+    }
     .sgj-page .button.primary,
     .sgj-page .mobile-search-submit,
     .sgj-page .travel-date-view,
@@ -13392,6 +14009,46 @@
       background: var(--blue);
       border-color: var(--blue);
       color: #fff;
+    }
+    .sgj-page .builder-bottom .button.primary,
+    .sgj-page .detail-modal-actions .button.primary,
+    .sgj-page .detail-apply-actions .button.primary,
+    .sgj-page .privacy-modal-footer .button.primary,
+    .sgj-page .waitlist-modal-actions .button.primary,
+    .sgj-page .travel-date-view,
+    .sgj-page .calendar-empty-schedule-action,
+    .sgj-page .apply-complete-close,
+    .sgj-page .builder-alert-button,
+    body > #detailModal.sgj-portal-overlay .detail-modal-actions .button.primary,
+    body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button.primary,
+    body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-footer .button.primary {
+      background: var(--modal-bottom-primary-color);
+      border-color: var(--modal-bottom-primary-color);
+      color: #fff;
+    }
+    @media (max-width: 640px) {
+      .sgj-page .builder-bottom .button,
+      .sgj-page .detail-modal-actions .button,
+      .sgj-page .detail-apply-actions .button,
+      .sgj-page .privacy-modal-footer .button,
+      .sgj-page .waitlist-modal-actions .button,
+      .sgj-page .travel-date-view,
+      .sgj-page .calendar-empty-schedule-action,
+      .sgj-page .apply-complete-close,
+      .sgj-page .builder-alert-button,
+      body > #detailModal.sgj-portal-overlay .detail-modal-actions .button,
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button,
+      body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-footer .button {
+        font-size: var(--modal-bottom-button-font-size-mo);
+        font-weight: var(--modal-bottom-button-font-weight);
+      }
+      #globalApplyOverlay .detail-apply-actions .button.primary,
+      #globalApplyOverlay .detail-apply-actions .button.secondary,
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button.primary,
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button.secondary {
+        font-size: var(--modal-bottom-button-font-size-mo);
+        font-weight: var(--modal-bottom-button-font-weight);
+      }
     }
     .sgj-page .button.secondary,
     .sgj-page .chip,
@@ -15123,6 +15780,29 @@
       body > .sgj-portal-overlay.calendar-sheet-overlay .modal-close-icon {
         grid-column: 3;
       }
+      body > #builderModal.sgj-portal-overlay .builder-header .modal-back-icon {
+        display: inline-flex !important;
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
+        align-self: center;
+        width: var(--modal-close-size);
+        height: var(--modal-close-size);
+        color: #111827;
+      }
+      body > #builderModal.sgj-portal-overlay .builder-header .modal-back-icon::before {
+        display: none !important;
+      }
+      body > #builderModal.sgj-portal-overlay .builder-header .modal-back-icon > svg {
+        display: block !important;
+        width: 24px;
+        height: 24px;
+      }
+      body > #builderModal.sgj-portal-overlay .builder-header .modal-header-spacer {
+        display: block;
+        grid-column: 3;
+        grid-row: 1;
+      }
       body > #regionSearchModal.sgj-portal-overlay .region-search-back {
         display: none;
       }
@@ -15489,15 +16169,43 @@
       body > #detailModal.sgj-portal-overlay .detail-apply-head,
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-head {
         flex: 0 0 auto;
+        display: grid;
+        grid-template-columns: var(--modal-close-size) minmax(0, 1fr) var(--modal-close-size);
+        align-items: center;
+        gap: 8px;
         padding: var(--modal-sheet-header-padding-mobile);
         margin: 0;
         border-bottom: 1px solid var(--border);
       }
       body > #detailModal.sgj-portal-overlay .detail-apply-title,
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-title {
+        grid-column: 2;
+        grid-row: 1;
         font-size: var(--modal-sub-title-mobile);
         font-weight: var(--modal-sub-title-weight);
         line-height: 1.25;
+        text-align: center;
+      }
+      body > #globalApplyOverlay.sgj-portal-overlay .global-apply-back {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
+        align-self: center;
+        color: #111827;
+      }
+      body > #globalApplyOverlay.sgj-portal-overlay .global-apply-back::before {
+        display: none !important;
+      }
+      body > #globalApplyOverlay.sgj-portal-overlay .global-apply-back > svg {
+        display: block !important;
+        width: 24px;
+        height: 24px;
+      }
+      body > #globalApplyOverlay.sgj-portal-overlay .global-apply-header-spacer {
+        grid-column: 3;
+        grid-row: 1;
+        width: var(--modal-close-size);
+        height: var(--modal-close-size);
       }
       body > #detailModal.sgj-portal-overlay .detail-apply-scroll,
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-scroll {
@@ -15579,9 +16287,17 @@
         border-top: 1px solid var(--border);
       }
       body > #globalApplyOverlay.sgj-portal-overlay {
+        align-items: stretch;
+        justify-content: stretch;
+        padding: 0;
         z-index: 2147483650 !important;
       }
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel {
+        width: 100vw;
+        max-width: none;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
         z-index: 2147483651 !important;
       }
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel.is-complete {
@@ -15750,17 +16466,43 @@
         transform: translateY(0);
       }
       body > .participant-floating.sgj-portal-overlay .participant-sheet-header {
-        display: flex;
+        display: grid;
+        grid-template-columns: var(--modal-close-size) minmax(0, 1fr) var(--modal-close-size);
         align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+        gap: 8px;
         padding: var(--modal-sheet-header-padding-mobile);
         border-bottom: 1px solid var(--border);
       }
       .participant-sheet-title {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0;
         font-size: var(--modal-sub-title-mobile);
         font-weight: var(--modal-sub-title-weight);
         color: var(--text);
+        text-align: center;
+      }
+      body > .participant-floating.sgj-portal-overlay .participant-sheet-close {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
+        align-self: center;
+        color: #111827;
+      }
+      body > .participant-floating.sgj-portal-overlay .participant-sheet-close::before {
+        display: none !important;
+      }
+      body > .participant-floating.sgj-portal-overlay .participant-sheet-close > svg {
+        display: block !important;
+        width: 24px;
+        height: 24px;
+        stroke-width: 2;
+      }
+      .participant-sheet-spacer {
+        grid-column: 3;
+        grid-row: 1;
+        width: var(--modal-close-size);
+        height: var(--modal-close-size);
       }
       body > .participant-floating.sgj-portal-overlay .participant-profile {
         --participant-section-divider-gap: 12px;
@@ -16366,24 +17108,6 @@
       align-items: center;
       gap: 6px;
     }
-    .calendar-accordion-list .region-product-detail-button {
-      flex: 0 0 auto;
-      min-height: 34px;
-      padding: 0 13px;
-      border: 1px solid #dbe5f1;
-      border-radius: 999px;
-      background: #fff;
-      color: #334155;
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1;
-      white-space: nowrap;
-    }
-    .calendar-accordion-list .region-product-detail-button:hover {
-      border-color: rgba(104, 124, 214, 0.34);
-      color: #4f63c6;
-      background: #f7f8ff;
-    }
     .calendar-accordion-list .region-product-team .team-avatar,
     .calendar-accordion-list .region-product-team .team-empty {
       width: 38px;
@@ -16578,19 +17302,25 @@
       }
       #regionSearchModal .region-search-modal .region-search-header {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) var(--modal-close-size);
+        grid-template-columns: var(--modal-close-size) minmax(0, 1fr) var(--modal-close-size);
         align-items: center;
         gap: 8px;
       }
       #regionSearchModal .region-search-modal .region-search-back {
-        display: none;
+        display: inline-flex;
+        grid-column: 3;
+        justify-self: center;
       }
       #regionSearchModal .region-search-modal .region-search-title {
+        grid-column: 2;
+        justify-self: center;
         min-width: 0;
+        text-align: center;
       }
-      #regionSearchModal .region-search-modal .region-search-pc-close {
-        display: inline-flex;
-        justify-self: end;
+      #regionSearchModal .region-search-modal .region-search-header-spacer {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
       }
       #regionSearchModal .region-search-modal .region-desktop-panel {
         display: grid;
@@ -16773,11 +17503,11 @@
         grid-column: 3;
         justify-self: center;
       }
-      body > #regionSearchModal.sgj-portal-overlay .region-search-back {
-        display: none;
-      }
+      body > #regionSearchModal.sgj-portal-overlay .region-search-back,
       #regionSearchModal .region-search-back {
-        display: none !important;
+        display: inline-flex !important;
+        grid-column: 3;
+        justify-self: center;
       }
       body > #regionSearchModal.sgj-portal-overlay .region-search-title {
         grid-column: 2;
@@ -17171,6 +17901,16 @@
         margin: 0 !important;
         z-index: 2147483602 !important;
       }
+      #detailModal.open .detail-anchor-tabs-spacer,
+      body > #detailModal.sgj-portal-overlay.open .detail-anchor-tabs-spacer {
+        display: none;
+        height: 0;
+      }
+      #detailModal.open .detail-anchor-tabs-spacer.is-active,
+      body > #detailModal.sgj-portal-overlay.open .detail-anchor-tabs-spacer.is-active {
+        display: block;
+        flex: 0 0 auto;
+      }
       #detailModal.open .detail-anchor-tabs.is-suppressed,
       body > #detailModal.sgj-portal-overlay.open .detail-anchor-tabs.is-suppressed {
         display: none !important;
@@ -17178,8 +17918,8 @@
       #detailContent.detail-mobile-sticky-visible .detail-anchor-tabs.is-mobile-fixed {
         top: 56px !important;
       }
-      #detailContent.detail-anchor-tabs-fixed .detail-anchor-tabs + .detail-section {
-        margin-top: 68px !important;
+      #detailContent.detail-anchor-tabs-fixed .detail-anchor-tabs + .detail-anchor-tabs-spacer + .detail-section {
+        margin-top: 25px !important;
       }
       #detailModal.open .detail-anchor-tabs::-webkit-scrollbar,
       body > #detailModal.sgj-portal-overlay.open .detail-anchor-tabs::-webkit-scrollbar {
@@ -17291,7 +18031,8 @@
       }
       #detailModal.open .detail-slider-viewport,
       body > #detailModal.sgj-portal-overlay.open .detail-slider-viewport {
-        touch-action: pan-y;
+        touch-action: pan-x !important;
+        overscroll-behavior: contain;
       }
       #detailModal.open .detail-thumb,
       body > #detailModal.sgj-portal-overlay.open .detail-thumb {
@@ -17614,7 +18355,7 @@
       position: fixed;
       left: 50%;
       right: auto;
-      bottom: 0;
+      bottom: var(--join-mobile-visual-bottom, 0px);
       z-index: 2147482500;
       display: block;
       width: min(560px, calc(100vw - 40px));
@@ -17625,7 +18366,7 @@
       border-right: 1px solid rgba(37, 99, 235, .95);
       border-radius: 18px 18px 0 0;
       box-shadow: 0 -14px 30px rgba(37, 99, 235, .25);
-      transform: translate(-50%, 112%);
+      transform: translate(-50%, calc(100% + var(--join-mobile-visual-bottom, 0px) + 8px));
       transition: transform .26s ease;
       will-change: transform;
     }
@@ -17747,6 +18488,15 @@
     }
 
     @media (max-width: 640px) {
+      .region-search-back::before,
+      .join-member-login-back::before {
+        content: none !important;
+        display: none !important;
+      }
+      .region-search-back > svg,
+      .join-member-login-back > svg {
+        display: block !important;
+      }
       body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-header::before {
         content: none;
         display: none;
@@ -17759,8 +18509,21 @@
       }
 
       body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-header .modal-back-icon {
+        display: inline-flex !important;
         grid-column: 1;
         justify-self: center;
+        color: #373A3C;
+      }
+
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-header .modal-back-icon::before {
+        content: none !important;
+        display: none !important;
+      }
+
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-header .modal-back-icon > svg {
+        display: block !important;
+        width: 24px;
+        height: 24px;
       }
 
       body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-header .modal-header-spacer {
@@ -17849,6 +18612,19 @@
 
     .join-my-drawer-overlay.open .join-my-drawer {
       transform: translateX(0);
+    }
+    @media (min-width: 641px) {
+      .join-my-drawer-overlay {
+        justify-content: flex-start;
+        top: var(--join-pc-header-zone-offset, 0px);
+      }
+      .join-my-drawer {
+        box-shadow: 18px 0 34px rgba(15, 23, 42, .18);
+        transform: translateX(-100%);
+      }
+      .join-my-drawer-overlay.open .join-my-drawer {
+        transform: translateX(0);
+      }
     }
 
     .join-my-drawer-profile {
@@ -18501,11 +19277,15 @@
     .join-member-login-logo {
       display: flex;
       justify-content: center;
+      width: 180px;
+      max-width: 34vw;
+      margin: 0 auto;
     }
 
     .join-member-login-logo img {
       display: block;
-      width: min(180px, 34vw);
+      width: 100%;
+      max-width: 100%;
       height: auto;
       margin: 0 auto;
       object-fit: contain;
@@ -19860,7 +20640,76 @@
       }
 
       .join-mobile-bottom-nav.is-hidden {
-        transform: translateY(112%);
+        transform: translateY(calc(100% + 8px));
+      }
+    }
+
+    @media (min-width: 641px) {
+      .modal-header,
+      .calendar-sheet-header,
+      .builder-header,
+      .region-search-header,
+      .join-member-login-header {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) var(--modal-close-size-pc) !important;
+        align-items: center !important;
+      }
+      .modal-header .modal-title,
+      .calendar-sheet-header .calendar-sheet-title,
+      .builder-header .builder-header-copy,
+      .region-search-header .region-search-title,
+      .join-member-login-header .join-member-login-title {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        justify-self: start !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        text-align: left !important;
+      }
+      #detailModal .modal-header #detailModalTitle,
+      body > #detailModal.sgj-portal-overlay .modal-header #detailModalTitle {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        display: block !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+      .builder-header .modal-back-icon,
+      .calendar-sheet-header .modal-back-icon,
+      .modal-header .modal-back-icon,
+      .modal-header .modal-close-icon,
+      .calendar-sheet-header .modal-close-icon,
+      .builder-header .modal-close-icon,
+      .region-search-header .region-search-back,
+      .join-member-login-header .join-member-login-back {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        justify-self: end !important;
+        width: var(--modal-close-size-pc) !important;
+        height: var(--modal-close-size-pc) !important;
+        flex-basis: var(--modal-close-size-pc) !important;
+      }
+      .builder-header .modal-back-icon::before,
+      .calendar-sheet-header .modal-back-icon::before,
+      .modal-header .modal-back-icon::before,
+      .region-search-header .region-search-back::before,
+      .join-member-login-header .join-member-login-back::before {
+        display: block !important;
+      }
+      .builder-header .modal-back-icon > svg,
+      .calendar-sheet-header .modal-back-icon > svg,
+      .modal-header .modal-back-icon > svg,
+      .region-search-header .region-search-back > svg,
+      .join-member-login-header .join-member-login-back > svg {
+        display: none !important;
+      }
+      .builder-header .modal-header-spacer,
+      .calendar-sheet-header .modal-header-spacer,
+      .modal-header .modal-header-spacer,
+      .region-search-header .region-search-header-spacer {
+        display: none !important;
       }
     }
 
@@ -19921,12 +20770,45 @@
       #participantModal.participant-floating .participant-sheet-header,
       body > #participantModal.participant-floating .participant-sheet-header,
       body > .participant-floating.sgj-portal-overlay .participant-sheet-header {
-        display: flex;
+        display: grid;
+        grid-template-columns: var(--modal-close-size) minmax(0, 1fr) var(--modal-close-size);
         align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+        gap: 8px;
         padding: var(--modal-sheet-header-padding-mobile);
         border-bottom: 1px solid var(--border);
+      }
+
+      #participantModal.participant-floating .participant-sheet-title,
+      body > #participantModal.participant-floating .participant-sheet-title,
+      body > .participant-floating.sgj-portal-overlay .participant-sheet-title {
+        grid-column: 2;
+        grid-row: 1;
+        min-width: 0;
+        text-align: center;
+      }
+
+      #participantModal.participant-floating .participant-sheet-close,
+      body > #participantModal.participant-floating .participant-sheet-close,
+      body > .participant-floating.sgj-portal-overlay .participant-sheet-close {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
+        align-self: center;
+        color: #111827;
+      }
+
+      #participantModal.participant-floating .participant-sheet-close::before,
+      body > #participantModal.participant-floating .participant-sheet-close::before,
+      body > .participant-floating.sgj-portal-overlay .participant-sheet-close::before {
+        display: none !important;
+      }
+
+      #participantModal.participant-floating .participant-sheet-close > svg,
+      body > #participantModal.participant-floating .participant-sheet-close > svg,
+      body > .participant-floating.sgj-portal-overlay .participant-sheet-close > svg {
+        display: block !important;
+        width: 24px;
+        height: 24px;
       }
 
       #participantModal.participant-floating .participant-profile,
@@ -28907,9 +29789,9 @@
     <div class="page-container">
       <div class="cta-panel">
         <div class="cta-copy">
-          <div class="section-title cta-title">원하는 일정으로<span class="cta-title-pc-space"> </span><br class="cta-title-linebreak">골프친구 찾기</div>
+          <div class="section-title cta-title">원하는 일정으로<div class="cta-title-pc-space"> </div><br class="cta-title-linebreak">골프친구 찾기</div>
           <div class="cta-subcopy">
-            <p class="section-desc cta-subcopy-text">원하는 날짜와 지역의 상품으로<span class="cta-pc-space"> </span><br class="cta-subcopy-linebreak">직접 멤버를 모집해보세요.</p>
+            <div class="section-desc cta-subcopy-text">원하는 날짜와 지역의 상품으로<div class="cta-pc-space"> </div><br class="cta-subcopy-linebreak">직접 멤버를 모집해보세요.</div>
           </div>
         </div>
         <button class="button primary large cta-create-button" onclick="openModal('builderModal')"><div class="cta-create-button-text">새로운 모임 만들기</div></button>
@@ -28990,36 +29872,36 @@
       <div class="join-my-drawer-profile">
         <div class="join-my-drawer-name" id="joinMyDrawerName">회원</div>
         <div class="join-my-drawer-meta">
-          <span id="joinMyDrawerGender">성별</span>
-          <span class="join-my-drawer-dot" aria-hidden="true"></span>
-          <span id="joinMyDrawerAge">연령대</span>
+          <div id="joinMyDrawerGender">성별</div>
+          <div class="join-my-drawer-dot" aria-hidden="true"></div>
+          <div id="joinMyDrawerAge">연령대</div>
         </div>
       </div>
       <div class="join-my-drawer-divider"></div>
       <div class="join-my-drawer-list">
         <button type="button" class="join-my-drawer-item" onclick="handleJoinMyTripClick()">
-          <span class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 20h4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="16" cy="20" r="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle><circle cx="8" cy="20" r="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle></svg></span>
-          <span>내 예약</span>
+          <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 20h4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="16" cy="20" r="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle><circle cx="8" cy="20" r="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle></svg></div>
+          <div>내 예약</div>
         </button>
         <button type="button" class="join-my-drawer-item" onclick="handleJoinMyRecentClick()">
-          <span class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle></svg></span>
-          <span>최근 본 상품</span>
+          <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle></svg></div>
+          <div>최근 본 상품</div>
         </button>
         <button type="button" class="join-my-drawer-item" onclick="handleJoinMyWishClick()">
-          <span class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
-          <span>찜한 상품</span>
+          <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          <div>찜한 상품</div>
         </button>
       </div>
       <div class="join-my-drawer-divider"></div>
       <div class="join-my-drawer-section-title">고객지원</div>
       <div class="join-my-drawer-list">
         <button type="button" class="join-my-drawer-item" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">
-          <span class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
-          <span>채팅문의</span>
+          <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          <div>채팅문의</div>
         </button>
         <button type="button" class="join-my-drawer-item" onclick="handlePhoneContact()">
-          <span class="join-my-drawer-icon" aria-hidden="true"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/callcenter.png" alt=""></span>
-          <span>전화문의</span>
+          <div class="join-my-drawer-icon" aria-hidden="true"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/callcenter.png" alt=""></div>
+          <div>전화문의</div>
         </button>
       </div>
       <div class="join-my-drawer-divider"></div>
@@ -29294,7 +30176,7 @@
                 <div class="join-member-email-label">아이디*</div>
                 <div class="join-member-signup-password-desc">영문, 숫자를 조합하여 6자리 이상 입력해주세요.</div>
                 <div class="join-member-email-input-wrap">
-                  <input type="text" id="joinMemberSignupEmail" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberSignupEmailField', 'joinMemberSignupEmailHelper', ''); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState()" onblur="validateJoinMemberSignupEmailField(false); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState()">
+                  <input type="text" id="joinMemberSignupEmail" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" oninput="normalizeJoinMemberSignupIdInput(this); setJoinMemberFieldInvalid('joinMemberSignupEmailField', 'joinMemberSignupEmailHelper', ''); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState()" onblur="normalizeJoinMemberSignupIdInput(this); validateJoinMemberSignupEmailField(false); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState()">
                 </div>
                 <div class="join-member-email-helper" id="joinMemberSignupEmailHelper" aria-live="polite"></div>
               </label>
@@ -29476,7 +30358,7 @@
           </svg>
         </button>
         <div class="builder-header-copy">
-          <div class="builder-title">새 일정 만들기</div>
+          <div class="builder-title">새 모임 만들기</div>
         </div>
         <span class="modal-header-spacer" aria-hidden="true"></span>
       </div>
@@ -29859,10 +30741,13 @@
   <div class="global-apply-overlay" id="globalApplyOverlay" onclick="handleGlobalApplyBackdrop(event)">
     <div class="detail-apply-panel" id="globalApplyPanel">
       <div class="detail-apply-head">
+        <button type="button" class="modal-close-icon modal-back-icon global-apply-back" onclick="closeGlobalApply()" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+        </button>
         <div>
           <div class="detail-apply-title">참여 신청</div>
         </div>
-        <button type="button" class="modal-close-icon" onclick="closeGlobalApply()" aria-label="닫기"></button>
+        <div class="global-apply-header-spacer" aria-hidden="true"></div>
       </div>
       <div class="detail-apply-scroll">
         <div class="apply-section-heading apply-product-info-title">상품 정보</div>
@@ -30086,8 +30971,7 @@
         </div>
       </div>
       <div class="detail-apply-actions">
-        <button type="button" class="button secondary" onclick="closeGlobalApply()">취소</button>
-        <button type="button" class="button primary" id="globalApplySubmitButton" onclick="submitGlobalApply()">신청완료</button>
+        <button type="button" class="button primary" id="globalApplySubmitButton" onclick="submitGlobalApply()">모임 참여 신청하기</button>
       </div>
     </div>
   </div>
@@ -30210,7 +31094,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-message-circle-more-icon lucide-message-circle-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path><path d="M8 12h.01"></path><path d="M12 12h.01"></path><path d="M16 12h.01"></path></svg>
         </button>
         <button type="button" class="button secondary detail-date-change-button" id="detailDateChangeButton" onclick="handleDetailDateChangeAction()" hidden>날짜변경</button>
-        <button type="button" class="button primary" id="detailPrimaryButton" onclick="openGlobalApply()">신청하기</button>
+        <button type="button" class="button primary" id="detailPrimaryButton" onclick="openGlobalApply()">참여하기</button>
       </div>
     </div>
   </div>
@@ -31493,6 +32377,7 @@
     const BUILDER_APPLICATION_JOIN_PREFIX = "sheet-builder-application-";
     const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
     const JOIN_APPLICATIONS_STORAGE_KEY = "secretGolfJoinApplications";
+    const JOIN_WISH_STORAGE_KEY = "secretGolfJoinWishProducts";
     const BUILDER_APPLICATION_MAX_CAPACITY = 4;
     const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = BUILDER_APPLICATION_MAX_CAPACITY;
     const JOIN_MAX_CAPACITY = 4;
@@ -31539,7 +32424,9 @@
       dateConstraintRegions: [],
       durationFilter: "",
       productId: "",
-      productName: ""
+      productName: "",
+      mdPickDateChangeMode: false,
+      mdPickRecruitDirectMode: false
     };
 
     function setWidgetModalOpen(isOpen) {
@@ -31574,7 +32461,9 @@
                   ? "2147483940"
                   : id === "privacyApplyModal" || id === "waitlistApplyModal"
                     ? "2147483950"
-                    : "2147483000";
+                    : id === "builderAlertModal"
+                      ? "2147484000"
+                      : "2147483000";
       overlay?.style.setProperty("z-index", zIndex, "important");
       if (id === "phoneModal") {
         overlay?.querySelector(".modal")?.style.setProperty("z-index", "2147483801", "important");
@@ -31595,6 +32484,8 @@
       resetPasswordToken: null
     };
     const JOIN_TEMP_ADMIN_LOGIN_KEY = "joinTempAdminLogin";
+    const JOIN_SESSION_MEMBER_KEY = "joinSessionMember";
+    const JOIN_LOGOUT_MARKER_KEY = "joinMemberLoggedOutCookieData";
 
     function getRenderedCookieDataString() {
       const html = document.documentElement?.innerHTML || "";
@@ -31638,6 +32529,7 @@
     }
 
     function setJoinTempAdminMember() {
+      clearJoinLogoutMarker();
       const member = {
         memberSeq: "TEMP_ADMIN",
         memberId: "admin@admin.com",
@@ -31657,15 +32549,79 @@
       return member;
     }
 
+    function getJoinSessionMember() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(JOIN_SESSION_MEMBER_KEY) || "null");
+        return saved?.isSessionMember ? saved : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function setJoinSessionMember(member = {}) {
+      clearJoinLogoutMarker();
+      const sessionMember = {
+        memberSeq: member.memberSeq || "",
+        memberId: member.memberId || "",
+        memberName: member.memberName || "",
+        memberChannel: member.memberChannel || "HOME",
+        memberMobile: member.memberMobile || "",
+        memberEmail: member.memberEmail || "",
+        gender: member.gender || "",
+        birthday: member.birthday || "",
+        birthYear: member.birthYear || "",
+        profession: member.profession || "",
+        level: member.level || "",
+        isSessionMember: true
+      };
+      try {
+        sessionStorage.setItem(JOIN_SESSION_MEMBER_KEY, JSON.stringify(sessionMember));
+      } catch (error) {
+        console.warn("Failed to store join session member.", error);
+      }
+      joinMyMenuState.memberPromise = Promise.resolve(sessionMember);
+      return sessionMember;
+    }
+
     function getJoinLoginState() {
       const raw = getRenderedCookieDataString();
+      if (isJoinLoggedOutFromRenderedCookie(raw)) {
+        return { isLogin: false, member: {} };
+      }
       const member = parseJoinCookieData(raw);
       const isLogin = Boolean(raw && (member.memberSeq || member.memberId));
       if (!isLogin) {
+        const sessionMember = getJoinSessionMember();
+        if (sessionMember) return { isLogin: true, member: sessionMember };
         const tempAdmin = getJoinTempAdminMember();
         if (tempAdmin) return { isLogin: true, member: tempAdmin };
       }
       return { isLogin, member };
+    }
+
+    function setJoinLogoutMarker() {
+      try {
+        sessionStorage.setItem(JOIN_LOGOUT_MARKER_KEY, getRenderedCookieDataString() || "logged-out");
+      } catch (error) {
+        console.warn("Failed to store join logout marker.", error);
+      }
+    }
+
+    function clearJoinLogoutMarker() {
+      try {
+        sessionStorage.removeItem(JOIN_LOGOUT_MARKER_KEY);
+      } catch (error) {
+        console.warn("Failed to clear join logout marker.", error);
+      }
+    }
+
+    function isJoinLoggedOutFromRenderedCookie(raw = getRenderedCookieDataString()) {
+      try {
+        const marker = sessionStorage.getItem(JOIN_LOGOUT_MARKER_KEY) || "";
+        return Boolean(marker && marker === (raw || "logged-out"));
+      } catch (error) {
+        return false;
+      }
     }
 
     function buildJoinAfterLoginPageUrl(afterLogin = "my-menu", extraParams = {}) {
@@ -31716,9 +32672,34 @@
       continueAfterJoinMemberLogin(joinMyMenuState.pendingAfterLogin || "my-menu");
     }
 
+    function finishJoinMemberSignupAndContinue(member = {}, profile = {}) {
+      const sessionMember = setJoinSessionMember({
+        ...member,
+        gender: profile.gender || member.gender || "",
+        birthYear: profile.birthYear || member.birthYear || "",
+        birthday: profile.birthYear || member.birthday || "",
+        profession: profile.profession || member.profession || "",
+        level: profile.level || member.level || ""
+      });
+      rememberJoinMemberProfileLocally(sessionMember, profile);
+      setJoinMemberLoginStatus("");
+      continueAfterJoinMemberLogin(joinMyMenuState.pendingAfterLogin || "my-menu");
+    }
+
     function setJoinMemberLoginStatus(message = "") {
       const status = document.getElementById("joinMemberLoginStatus");
       if (status) status.textContent = message;
+    }
+
+    function createJoinMemberApiError(message, details = {}) {
+      const error = new Error(message);
+      Object.assign(error, details);
+      return error;
+    }
+
+    function summarizeJoinMemberApiResponse(data) {
+      if (!data || typeof data !== "object") return "";
+      return data.message || data.resultMessage || data.msg || data.error || data.result || "";
     }
 
     function postJoinMemberLoginForm(url, data) {
@@ -31734,10 +32715,21 @@
         body: body.toString()
       }).then(async (response) => {
         const text = await response.text();
+        if (!response.ok) {
+          throw createJoinMemberApiError(`요청 처리에 실패했습니다. (${response.status})`, {
+            endpoint: url,
+            status: response.status,
+            responseText: text.slice(0, 300)
+          });
+        }
         try {
           return JSON.parse(text);
         } catch (error) {
-          throw new Error(`Invalid login response: ${response.status}`);
+          throw createJoinMemberApiError(`응답을 확인하지 못했습니다. (${response.status})`, {
+            endpoint: url,
+            status: response.status,
+            responseText: text.slice(0, 300)
+          });
         }
       });
     }
@@ -31817,6 +32809,7 @@
                 }).then((aspData) => {
                   joinMyMenuState.loginRedirecting = false;
                   if ((aspData?.message || "") === "SUCCESS") {
+                    clearJoinLogoutMarker();
                     location.href = getJoinLoginRedirectTarget();
                     return;
                   }
@@ -32136,13 +33129,21 @@
       input.value = normalizeJoinMemberPhone(input.value).slice(0, 11);
     }
 
+    function normalizeJoinMemberSignupIdInput(input) {
+      if (!input) return "";
+      const normalized = String(input.value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (input.value !== normalized) input.value = normalized;
+      return normalized;
+    }
+
     function isValidJoinMemberSignupId(value = "") {
       const normalized = String(value || "").trim();
-      return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]{6,50}$/.test(normalized);
+      return /^(?=.*[a-z])(?=.*\d)[a-z0-9]{6,50}$/.test(normalized);
     }
 
     function validateJoinMemberSignupEmailField(force = false) {
-      const value = document.getElementById("joinMemberSignupEmail")?.value.trim() || "";
+      const input = document.getElementById("joinMemberSignupEmail");
+      const value = normalizeJoinMemberSignupIdInput(input).trim();
       const message = value || force
         ? (isValidJoinMemberSignupId(value) ? "" : "아이디는 영문, 숫자 조합 6자리 이상 입력해 주세요.")
         : "";
@@ -32413,17 +33414,29 @@
       setJoinMemberSignupStep(current + Number(direction || 0));
     }
 
+    const JOIN_MEMBER_SIGNUP_PROFESSION_LIMIT = 3;
+
+    function syncJoinMemberSignupProfessionChips(values = getJoinMemberSignupProfessionValues()) {
+      document.querySelectorAll("[data-signup-profession-chip]").forEach((chip) => {
+        chip.classList.toggle("active", values.includes(chip.dataset.signupProfessionChip));
+      });
+    }
+
     function toggleJoinMemberSignupProfession(value) {
       const input = document.getElementById("joinMemberSignupProfession");
       if (!input) return;
-      const current = input.value.split(",").map((item) => item.trim()).filter(Boolean);
-      const next = current.includes(value)
+      const current = getJoinMemberSignupProfessionValues();
+      const isSelected = current.includes(value);
+      if (!isSelected && current.length >= JOIN_MEMBER_SIGNUP_PROFESSION_LIMIT) {
+        setJoinMemberLoginStatus(`직업/관심분야는 최대 ${JOIN_MEMBER_SIGNUP_PROFESSION_LIMIT}개까지 선택할 수 있어요.`);
+        return;
+      }
+      const nextValues = isSelected
         ? current.filter((item) => item !== value)
         : [...current, value];
-      input.value = next.join(", ");
-      document.querySelectorAll("[data-signup-profession-chip]").forEach((chip) => {
-        chip.classList.toggle("active", next.includes(chip.dataset.signupProfessionChip));
-      });
+      const next = setJoinMemberSignupProfessionValues(nextValues);
+      syncJoinMemberSignupProfessionChips(next);
+      setJoinMemberLoginStatus("");
       updateJoinMemberSignupNavState();
     }
 
@@ -32437,7 +33450,10 @@
 
     function setJoinMemberSignupProfessionValues(values = []) {
       const input = document.getElementById("joinMemberSignupProfession");
-      if (input) input.value = values.map((item) => String(item || "").trim()).filter(Boolean).join(", ");
+      const normalized = [...new Set(values.map((item) => String(item || "").trim()).filter(Boolean))]
+        .slice(0, JOIN_MEMBER_SIGNUP_PROFESSION_LIMIT);
+      if (input) input.value = normalized.join(", ");
+      return normalized;
     }
 
     function getJoinMemberSignupProfessionValues() {
@@ -32466,11 +33482,17 @@
       const normalized = String(value || "").trim().slice(0, 20);
       if (!normalized) return false;
       const current = getJoinMemberSignupProfessionValues().filter((item) => item !== previousValue && item !== normalized);
-      setJoinMemberSignupProfessionValues([...current, normalized]);
+      if (current.length >= JOIN_MEMBER_SIGNUP_PROFESSION_LIMIT) {
+        setJoinMemberLoginStatus(`직업/관심분야는 최대 ${JOIN_MEMBER_SIGNUP_PROFESSION_LIMIT}개까지 선택할 수 있어요.`);
+        renderJoinMemberSignupCustomProfession(previousValue);
+        syncJoinMemberSignupProfessionChips();
+        updateJoinMemberSignupNavState();
+        return false;
+      }
+      const next = setJoinMemberSignupProfessionValues([...current, normalized]);
       renderJoinMemberSignupCustomProfession(normalized);
-      document.querySelectorAll("[data-signup-profession-chip]").forEach((chip) => {
-        chip.classList.toggle("active", getJoinMemberSignupProfessionValues().includes(chip.dataset.signupProfessionChip));
-      });
+      syncJoinMemberSignupProfessionChips(next);
+      setJoinMemberLoginStatus("");
       updateJoinMemberSignupNavState();
       return true;
     }
@@ -32640,6 +33662,88 @@
       return {};
     }
 
+    function normalizeJoinMemberProfileRow(row = {}) {
+      const mobile = normalizeJoinMemberPhone(row.memberMobile || row.mobile || row.phone || "");
+      return {
+        profileId: row.profileId || "",
+        submittedAt: row.submittedAt || "",
+        memberSeq: row.memberSeq || "",
+        memberId: row.memberId || "",
+        memberName: row.memberName || row.name || "",
+        memberChannel: row.memberChannel || "",
+        memberMobile: mobile,
+        memberEmail: row.memberEmail || row.email || "",
+        name: row.memberName || row.name || "",
+        gender: normalizeJoinMemberGender(row.gender || ""),
+        birthYear: row.birthYear || "",
+        birthday: row.birthYear || "",
+        profession: row.profession || "",
+        level: row.level || "",
+        travelStyles: row.travelStyles || row.styles || "",
+        updatedAt: row.updatedAt || row.submittedAt || ""
+      };
+    }
+
+    async function fetchJoinMemberProfileFromGoogleSheet(member = {}) {
+      if (!GOOGLE_SHEET_WEB_APP_URL) return {};
+      const memberSeq = String(member.memberSeq || "").trim();
+      const memberId = String(member.memberId || "").trim();
+      const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
+      if (!memberSeq && !memberId && !memberMobile) return {};
+      try {
+        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
+        url.searchParams.set("sheet", "join_member_profiles");
+        url.searchParams.set("source", "join_member_profile");
+        url.searchParams.set("limit", "1");
+        if (memberSeq) {
+          url.searchParams.set("memberSeq", memberSeq);
+        } else if (memberId) {
+          url.searchParams.set("memberId", memberId);
+        } else {
+          url.searchParams.set("memberMobile", memberMobile);
+        }
+        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
+        if (!response.ok) throw new Error(`Member profile load failed: ${response.status}`);
+        const data = await response.json();
+        const rows = Array.isArray(data) ? data : (data.items || data.rows || []);
+        const profile = normalizeJoinMemberProfileRow(rows[0] || {});
+        if (profile.gender || profile.birthYear || profile.profession || profile.level) {
+          rememberJoinMemberProfileLocally(member, profile);
+          return profile;
+        }
+      } catch (error) {
+        console.warn("Failed to load join member profile from Google Sheet.", error);
+      }
+      return {};
+    }
+
+    function mergeJoinMemberWithProfile(member = {}, profile = {}) {
+      return {
+        ...member,
+        memberName: member.memberName || profile.memberName || profile.name || "",
+        memberMobile: member.memberMobile || profile.memberMobile || profile.mobile || "",
+        memberEmail: member.memberEmail || profile.memberEmail || profile.email || "",
+        gender: profile.gender || member.gender || "",
+        birthYear: profile.birthYear || member.birthYear || "",
+        birthday: profile.birthYear || member.birthday || "",
+        profession: profile.profession || member.profession || "",
+        level: profile.level || member.level || "",
+        travelStyles: profile.travelStyles || member.travelStyles || ""
+      };
+    }
+
+    async function hydrateJoinMemberProfile(member = {}, options = {}) {
+      const cached = getRememberedJoinMemberProfile(member);
+      if (!options.refresh && (cached.gender || cached.birthYear || cached.profession || cached.level)) {
+        return mergeJoinMemberWithProfile(member, cached);
+      }
+      const sheetProfile = await fetchJoinMemberProfileFromGoogleSheet(member);
+      return mergeJoinMemberWithProfile(member, {
+        ...cached,
+        ...sheetProfile
+      });
+    }
+
     function getJoinSignupProfileSnapshot(member = {}) {
       const name = document.getElementById("joinMemberSignupName")?.value.trim() || member.memberName || "";
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinMemberSignupMobile")?.value || member.memberMobile || "");
@@ -32716,6 +33820,32 @@
 
     function postJoinMemberForm(url, data) {
       return postJoinMemberLoginForm(url, data);
+    }
+
+    function buildJoinMemberSavePayload(data = {}) {
+      const allowedKeys = [
+        "mobile1",
+        "mobile2",
+        "mobile3",
+        "custPw",
+        "smsYn",
+        "emailYn",
+        "extnChnlLinkCd",
+        "extnChnlLinkToken",
+        "externalId",
+        "externalNickname",
+        "externalName",
+        "externalEmail",
+        "validTermCd",
+        "custId",
+        "custNm",
+        "mobile",
+        "email"
+      ];
+      return allowedKeys.reduce((payload, key) => {
+        if (data[key] != null && data[key] !== "") payload[key] = data[key];
+        return payload;
+      }, {});
     }
 
     function splitJoinMemberMobile(value = "") {
@@ -33072,16 +34202,18 @@
         try {
           joinMyMenuState.loginRedirecting = true;
           setJoinMemberLoginStatus("카카오 회원가입을 처리 중입니다.");
-          await postJoinMemberForm("/member/setJoinPayFg.json", { joinPayFg: "010" });
           const duplicateMessage = await checkJoinMemberKakaoSignupDuplicates(data);
           if (duplicateMessage) {
             joinMyMenuState.loginRedirecting = false;
             setJoinMemberLoginStatus(duplicateMessage);
             return;
           }
-          const result = await postJoinMemberForm("/member/saveMember.json", data);
+          const result = await postJoinMemberForm("/member/saveMember.json", buildJoinMemberSavePayload(data));
           if ((result?.message || "") !== "SUCCESS") {
-            throw new Error(result?.message || "kakao signup failed");
+            throw createJoinMemberApiError(summarizeJoinMemberApiResponse(result) || "카카오 회원가입 저장에 실패했습니다.", {
+              endpoint: "/member/saveMember.json",
+              responseData: result
+            });
           }
           const loginResult = await postJoinMemberForm("/member/getMemberExternalLoginCheck.json", {
             externalId: data.externalId,
@@ -33092,10 +34224,15 @@
             extnChnlLinkToken: data.extnChnlLinkToken
           });
           const memberForSheet = getJoinMemberFromKakaoSignupData(data);
-          rememberJoinMemberProfileLocally(memberForSheet, getJoinSignupProfileSnapshot(memberForSheet));
+          const profileSnapshot = getJoinSignupProfileSnapshot(memberForSheet);
+          rememberJoinMemberProfileLocally(memberForSheet, profileSnapshot);
           await saveJoinMemberProfileToGoogleSheet(buildJoinMemberProfilePayload(memberForSheet));
           clearJoinPendingKakaoProfile();
-          showJoinMemberSignupComplete((loginResult?.message || "") === "SUCCESS" ? "continue" : "login");
+          if ((loginResult?.message || "") === "SUCCESS") {
+            finishJoinMemberSignupAndContinue(memberForSheet, profileSnapshot);
+          } else {
+            showJoinMemberSignupComplete("login");
+          }
           return;
         } catch (error) {
           joinMyMenuState.loginRedirecting = false;
@@ -33116,7 +34253,7 @@
         const payload = buildJoinMemberProfilePayload(member);
         await saveJoinMemberProfileToGoogleSheet(payload);
         clearJoinPendingKakaoProfile();
-        showJoinMemberSignupComplete("continue");
+        finishJoinMemberSignupAndContinue(member, payload.profile || {});
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
         console.warn("Kakao profile save failed.", error);
@@ -33130,7 +34267,7 @@
         await submitJoinMemberProfileOnly();
         return;
       }
-      const custId = document.getElementById("joinMemberSignupEmail")?.value.trim() || "";
+      const custId = normalizeJoinMemberSignupIdInput(document.getElementById("joinMemberSignupEmail")).trim();
       const email = document.getElementById("joinMemberSignupContactEmail")?.value.trim() || "";
       const password = document.getElementById("joinMemberSignupPassword")?.value || "";
       const passwordConfirm = document.getElementById("joinMemberSignupPasswordConfirm")?.value || "";
@@ -33201,7 +34338,6 @@
       try {
         joinMyMenuState.loginRedirecting = true;
         setJoinMemberLoginStatus("회원가입 정보를 확인 중입니다.");
-        await postJoinMemberForm("/member/setJoinPayFg.json", { joinPayFg: "010" });
         const duplicateMessage = await checkJoinMemberSignupDuplicates(data);
         if (duplicateMessage) {
           joinMyMenuState.loginRedirecting = false;
@@ -33209,41 +34345,52 @@
           return;
         }
         setJoinMemberLoginStatus("회원가입을 처리 중입니다.");
-        const result = await postJoinMemberForm("/member/saveMember.json", data);
+        const result = await postJoinMemberForm("/member/saveMember.json", buildJoinMemberSavePayload(data));
         if ((result?.message || "") !== "SUCCESS") {
-          throw new Error(result?.message || "signup failed");
+          throw createJoinMemberApiError(summarizeJoinMemberApiResponse(result) || "회원가입 저장에 실패했습니다.", {
+            endpoint: "/member/saveMember.json",
+            responseData: result
+          });
         }
+        const signupMember = {
+          memberId: custId,
+          memberName: name,
+          memberMobile: mobile,
+          memberEmail: email,
+          memberChannel: "HOME"
+        };
+        const signupProfile = getJoinSignupProfileSnapshot(signupMember);
+        rememberJoinMemberProfileLocally(signupMember, signupProfile);
+        await saveJoinMemberProfileToGoogleSheet(buildJoinMemberProfilePayload(signupMember));
         setJoinMemberLoginStatus("가입이 완료되었습니다. 로그인 처리 중입니다.");
-        const loginResult = await postJoinMemberForm("/member/getMemberLoginCheck.json", {
-          custId,
-          custPw: data.custPw
-        });
         joinMyMenuState.loginRedirecting = false;
-        if ((loginResult?.message || "") === "SUCCESS") {
-          rememberJoinMemberProfileLocally({
-            memberId: custId,
-            memberName: name,
-            memberMobile: mobile,
-            memberEmail: email,
-            memberChannel: "HOME"
-          }, getJoinSignupProfileSnapshot({
-            memberId: custId,
-            memberName: name,
-            memberMobile: mobile,
-            memberEmail: email,
-            memberChannel: "HOME"
-          }));
-          showJoinMemberSignupComplete("continue");
+        try {
+          const loginResult = await postJoinMemberForm("/member/getMemberLoginCheck.json", {
+            custId,
+            custPw: data.custPw
+          });
+          if ((loginResult?.message || "") !== "SUCCESS") {
+            throw new Error(loginResult?.message || "login failed after signup");
+          }
+          finishJoinMemberSignupAndContinue(signupMember, signupProfile);
           return;
+        } catch (loginError) {
+          console.warn("Auto login after signup failed.", loginError);
         }
         openJoinMemberEmailForm();
-        document.getElementById("joinMemberLoginId").value = custId;
+        const loginIdInput = document.getElementById("joinMemberLoginId");
+        if (loginIdInput) loginIdInput.value = custId;
         syncAllJoinMemberFloatingFields();
         setJoinMemberLoginStatus("가입이 완료되었습니다. 아이디로 로그인해 주세요.");
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
         console.warn("Email signup failed.", error);
-        setJoinMemberLoginStatus("회원가입 처리 중 오류가 발생했습니다.");
+        const detail = [
+          String(error?.message || "").trim(),
+          error?.endpoint ? `위치: ${error.endpoint}` : "",
+          error?.responseText ? `응답: ${error.responseText}` : ""
+        ].filter(Boolean).join(" / ");
+        setJoinMemberLoginStatus(detail ? `회원가입 처리 중 오류가 발생했습니다. ${detail}` : "회원가입 처리 중 오류가 발생했습니다.");
       }
     }
 
@@ -33282,6 +34429,7 @@
       }).then((aspData) => {
         joinMyMenuState.loginRedirecting = false;
         if ((aspData?.message || "") === "SUCCESS") {
+          clearJoinLogoutMarker();
           location.href = getJoinLoginRedirectTarget();
           return;
         }
@@ -33333,16 +34481,18 @@
       const loginState = getJoinLoginState();
       if (!loginState.isLogin) return null;
       if (loginState.member?.isTempAdmin) return loginState.member;
+      if (loginState.member?.isSessionMember) return hydrateJoinMemberProfile(loginState.member, options);
       if (!options.refresh && joinMyMenuState.memberPromise) return joinMyMenuState.memberPromise;
       joinMyMenuState.memberPromise = (async () => {
         const detail = await fetchJoinMemberDetail();
         if (detail.sessionExpired) return null;
-        return {
+        const member = {
           ...loginState.member,
           ...detail,
           memberMobile: detail.memberMobile || loginState.member.memberMobile || "",
           memberEmail: detail.memberEmail || loginState.member.memberEmail || ""
         };
+        return hydrateJoinMemberProfile(member, options);
       })();
       return joinMyMenuState.memberPromise;
     }
@@ -33375,8 +34525,25 @@
       if (ageTarget) ageTarget.textContent = age;
     }
 
+    function updateJoinMyDrawerHeaderOffset() {
+      const overlay = document.getElementById("joinMyDrawerOverlay");
+      if (!overlay) return;
+      const isDesktop = window.matchMedia?.("(min-width: 641px)")?.matches;
+      const header = document.querySelector("#header_zone, .header_zone");
+      let offset = 0;
+      if (isDesktop && header) {
+        const style = getComputedStyle(header);
+        const rect = header.getBoundingClientRect();
+        if (style.display !== "none" && style.visibility !== "hidden" && rect.height > 0) {
+          offset = Math.max(0, Math.round(rect.bottom));
+        }
+      }
+      overlay.style.setProperty("--join-pc-header-zone-offset", `${offset}px`);
+    }
+
     async function openJoinMyDrawer() {
       const overlay = document.getElementById("joinMyDrawerOverlay");
+      updateJoinMyDrawerHeaderOffset();
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
       document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
@@ -33407,8 +34574,169 @@
       alert("최근 본 상품은 준비 중입니다.");
     }
 
-    function handleJoinMyWishClick() {
-      alert("찜한 상품은 준비 중입니다.");
+    function getJoinWishProducts() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(JOIN_WISH_STORAGE_KEY) || "[]");
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveJoinWishProducts(items = []) {
+      try {
+        localStorage.setItem(JOIN_WISH_STORAGE_KEY, JSON.stringify(items));
+      } catch (error) {
+        console.warn("Failed to save wish products.", error);
+      }
+    }
+
+    function getJoinProductGoodSeq(join = {}) {
+      const parsedReference = parseSecretTourProductReference(join.id || join.erpProductId || "", join.eventSeq || join.erpEventSeq || "");
+      return String(join.goodSeq || parsedReference.goodSeq || join.erpProductId || "").trim();
+    }
+
+    function isJoinProductWished(join = {}) {
+      const goodSeq = getJoinProductGoodSeq(join);
+      if (!goodSeq) return false;
+      return getJoinWishProducts().some((item) => String(item.goodSeq || "") === goodSeq);
+    }
+
+    function createJoinWishProductSnapshot(join = {}) {
+      const goodSeq = getJoinProductGoodSeq(join);
+      const parsedReference = parseSecretTourProductReference(join.id || join.erpProductId || "", join.eventSeq || join.erpEventSeq || "");
+      const eventSeq = String(join.eventSeq || parsedReference.eventSeq || join.erpEventSeq || "").trim();
+      return {
+        id: join.id || (goodSeq && eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : goodSeq),
+        goodSeq,
+        eventSeq,
+        title: join.title || "골프여행 상품",
+        region: join.region || join.category || "골프여행",
+        image: join.image || getDetailSlides(join)[0] || "",
+        price: Number(join.price || 0),
+        departureDate: join.departureDate || "",
+        returnDate: join.returnDate || "",
+        savedAt: new Date().toISOString()
+      };
+    }
+
+    function addJoinWishProduct(join = {}) {
+      const snapshot = createJoinWishProductSnapshot(join);
+      if (!snapshot.goodSeq) return false;
+      const current = getJoinWishProducts().filter((item) => String(item.goodSeq || "") !== snapshot.goodSeq);
+      saveJoinWishProducts([snapshot, ...current].slice(0, 50));
+      return true;
+    }
+
+    function removeJoinWishProduct(goodSeq) {
+      const key = String(goodSeq || "").trim();
+      if (!key) return;
+      saveJoinWishProducts(getJoinWishProducts().filter((item) => String(item.goodSeq || "") !== key));
+      refreshDetailWishButtons();
+      if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+        renderJoinMyWishMenu();
+      }
+    }
+
+    async function deleteSecretTourWishProduct(goodSeq) {
+      if (!/^(m\.|www\.)?secret-tour\.com$/i.test(window.location.hostname)) return { skipped: true };
+      const body = new URLSearchParams({ goodSeq: String(goodSeq || "") });
+      const response = await fetch("/mypage/deleteWish.json", {
+        method: "POST",
+        credentials: "include",
+        cache: "no-cache",
+        headers: {
+          "Accept": "application/json, text/javascript, */*; q=0.01",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body
+      });
+      if (!response.ok) throw new Error(`Delete wish failed: ${response.status}`);
+      return response.json().catch(() => ({}));
+    }
+
+    function renderJoinMyWishCards(items = []) {
+      if (!items.length) return `<div class="join-my-empty">아직 찜한 상품이 없습니다.</div>`;
+      return items.map((item) => `
+        <article class="join-my-card">
+          <div class="join-my-card-thumb">
+            <img src="${escapeHtml(item.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg")}" alt="${escapeHtml(item.title)}">
+            <div class="join-my-card-thumb-badge">${escapeHtml(item.region || "골프여행")}</div>
+          </div>
+          <div class="join-my-card-content">
+            <div class="join-my-card-head">
+              <div>
+                <div class="join-my-card-title">${escapeHtml(item.title)}</div>
+                <div class="join-my-card-meta">${escapeHtml(formatCardDateRange(item) || "출발일 확인")}</div>
+              </div>
+              <div class="join-my-status-pill green">찜한 상품</div>
+            </div>
+            <div class="join-my-card-info">
+              <div class="join-my-info-chip">
+                <div class="join-my-info-chip-label">상품번호</div>
+                <div class="join-my-info-chip-value">${escapeHtml(item.goodSeq || "-")}</div>
+              </div>
+              <div class="join-my-info-chip">
+                <div class="join-my-info-chip-label">1인</div>
+                <div class="join-my-info-chip-value">${item.price ? formatPrice(item.price) : "확인"}</div>
+              </div>
+            </div>
+            <div class="join-my-card-actions">
+              <button type="button" class="primary" onclick="openJoinWishProduct('${escapeJsString(item.goodSeq)}')">상품보기</button>
+              <button type="button" onclick="handleJoinWishRemove('${escapeJsString(item.goodSeq)}')">삭제</button>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderJoinMyWishMenu() {
+      const target = document.getElementById("joinMyMenuBody");
+      if (!target) return;
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜한 상품");
+      target.innerHTML = `
+        <div class="join-my-profile">
+          <section class="join-my-section">
+            <div class="join-my-reservation-title">찜한 상품</div>
+            ${renderJoinMyWishCards(getJoinWishProducts())}
+          </section>
+        </div>
+      `;
+    }
+
+    async function handleJoinMyWishClick() {
+      closeJoinMyDrawer();
+      const overlay = portalOverlayToBody("joinMyMenuModal");
+      const body = document.getElementById("joinMyMenuBody");
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜한 상품");
+      if (body) body.innerHTML = `<div class="join-my-state">찜한 상품을 확인 중입니다.</div>`;
+      overlay?.classList.add("open");
+      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+      setJoinMobileBottomNavVisible(false);
+      setWidgetModalOpen(true);
+      renderJoinMyWishMenu();
+    }
+
+    function openJoinWishProduct(goodSeq) {
+      const key = String(goodSeq || "").trim();
+      const join = joins.find((item) => getJoinProductGoodSeq(item) === key || String(item.goodSeq || "") === key);
+      if (join) {
+        closeJoinMyMenu();
+        openDetail(join.id);
+        return;
+      }
+      location.href = `/goods/goods_view?goodSeq=${encodeURIComponent(key)}`;
+    }
+
+    async function handleJoinWishRemove(goodSeq) {
+      if (!confirm("찜한 상품을 삭제하시겠습니까?")) return;
+      try {
+        await deleteSecretTourWishProduct(goodSeq);
+      } catch (error) {
+        console.warn("Secret Tour delete wish request failed.", error);
+      }
+      removeJoinWishProduct(goodSeq);
     }
 
     function handleJoinMyTripClick() {
@@ -33437,7 +34765,9 @@
         console.warn("Secret Tour logout request failed.", error);
       }
       try {
+        setJoinLogoutMarker();
         sessionStorage.removeItem(JOIN_TEMP_ADMIN_LOGIN_KEY);
+        sessionStorage.removeItem(JOIN_SESSION_MEMBER_KEY);
         joinMyMenuState.memberPromise = null;
       } catch (error) {
         console.warn("Failed to clear join login state.", error);
@@ -33613,6 +34943,12 @@
       openJoinMyDrawer();
     }
 
+    window.addEventListener("resize", () => {
+      if (document.getElementById("joinMyDrawerOverlay")?.classList.contains("open")) {
+        updateJoinMyDrawerHeaderOffset();
+      }
+    }, { passive: true });
+
     function handleJoinMobileNavSearch() {
       setJoinMobileNavActive("search");
       setJoinMobileBottomNavVisible(false);
@@ -33631,6 +34967,7 @@
 
     function setJoinMobileBottomNavVisible(visible) {
       const nav = document.getElementById("joinMobileBottomNav");
+      updateJoinMobileVisualViewportVars();
       nav?.classList.toggle("is-visible", Boolean(visible));
       nav?.classList.toggle("is-hidden", !visible);
     }
@@ -33641,12 +34978,26 @@
       });
     }
 
+    function updateJoinMobileVisualViewportVars() {
+      const root = document.documentElement;
+      const viewport = window.visualViewport;
+      let bottomGap = 0;
+      if (viewport) {
+        bottomGap = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      }
+      root.style.setProperty("--join-mobile-visual-bottom", `${Math.round(bottomGap)}px`);
+    }
+
     function initializeJoinMobileBottomNav() {
       const nav = document.getElementById("joinMobileBottomNav");
       if (!nav) return;
       let lastScrollY = window.scrollY || 0;
       let lastTouchY = 0;
       let ticking = false;
+      updateJoinMobileVisualViewportVars();
+      window.visualViewport?.addEventListener("resize", updateJoinMobileVisualViewportVars, { passive: true });
+      window.visualViewport?.addEventListener("scroll", updateJoinMobileVisualViewportVars, { passive: true });
+      window.addEventListener("resize", updateJoinMobileVisualViewportVars, { passive: true });
       if (window.matchMedia("(max-width: 640px)").matches) {
         setJoinMobileBottomNavVisible(true);
       }
@@ -33683,7 +35034,9 @@
       const params = new URLSearchParams(location.search);
       const afterLogin = params.get("afterLogin");
       if (!["my-menu", "builder", "apply"].includes(afterLogin)) return;
+      const applyJoinId = params.get("applyJoinId") || "";
       params.delete("afterLogin");
+      params.delete("applyJoinId");
       const cleanQuery = params.toString();
       const cleanUrl = `${location.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${location.hash || ""}`;
       history.replaceState(null, "", cleanUrl);
@@ -33693,6 +35046,7 @@
         return;
       }
       if (afterLogin === "apply") {
+        if (applyJoinId) currentDetailJoinId = applyJoinId;
         openGlobalApply();
         return;
       }
@@ -34085,12 +35439,84 @@
       return (String(text || "").match(/\d{1,2}[.:]\d{2}/g) || []).map((value) => value.replace(".", ":"));
     }
 
+    const DETAIL_AIRLINE_BY_CODE = {
+      "3u": "사천항공",
+      "ke": "대한항공",
+      "oz": "아시아나항공",
+      "7c": "제주항공",
+      "lj": "진에어",
+      "tw": "티웨이항공",
+      "rs": "에어서울",
+      "bx": "에어부산",
+      "ze": "이스타항공",
+      "yp": "에어프레미아",
+      "vn": "베트남항공",
+      "vj": "비엣젯항공",
+      "tg": "타이항공",
+      "sq": "싱가포르항공",
+      "cx": "캐세이퍼시픽",
+      "ci": "중화항공",
+      "br": "에바항공",
+      "mu": "중국동방항공",
+      "cz": "중국남방항공",
+      "ca": "중국국제항공",
+      "fm": "상하이항공",
+      "mh": "말레이시아항공",
+      "pr": "필리핀항공",
+      "5j": "세부퍼시픽",
+      "tr": "스쿠트항공"
+    };
+
+    const DETAIL_AIRLINE_CODE_BY_NAME = Object.fromEntries(
+      Object.entries(DETAIL_AIRLINE_BY_CODE).map(([code, name]) => [name.replace(/\s+/g, ""), code])
+    );
+
+    function normalizeDetailAirlineCode(code = "") {
+      return String(code || "").trim().slice(0, 2).toLowerCase();
+    }
+
+    function normalizeDetailAirlineName(name = "") {
+      const value = cleanSecretTourDetailText(name).replace(/^항공\s*[:：]\s*/, "").trim();
+      return value.replace(/\s+/g, "");
+    }
+
+    function getDetailAirlineNameFromCode(code = "") {
+      return DETAIL_AIRLINE_BY_CODE[normalizeDetailAirlineCode(code)] || "";
+    }
+
+    function getDetailAirlineCodeFromName(name = "") {
+      const normalized = normalizeDetailAirlineName(name);
+      return DETAIL_AIRLINE_CODE_BY_NAME[normalized] || "";
+    }
+
+    function getDetailAirlineCodeFromProductTitle(title = "") {
+      const source = cleanSecretTourDetailText(title);
+      const packMatch = source.match(/\[\s*항공팩\s*[-–—]\s*([^\]]+)\]/i);
+      const packText = cleanSecretTourDetailText(packMatch?.[1] || "");
+      const codeMatch = packText.match(/([A-Za-z0-9]{2})\s*$/);
+      return normalizeDetailAirlineCode(codeMatch?.[1] || "");
+    }
+
+    function extractDetailAirlineName(text = "") {
+      const source = cleanSecretTourDetailText(text);
+      const labeled = source.match(/항공\s*[:：]\s*([^\n\[]+)/)?.[1] || "";
+      const matched = labeled || source.match(/(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|[가-힣A-Za-z]+항공)/)?.[1] || "";
+      const name = cleanSecretTourDetailText(matched).replace(/\s*\[.*$/, "").trim();
+      if (!name) return "";
+      if (name === "아시아나") return "아시아나항공";
+      if (name === "티웨이") return "티웨이항공";
+      return name;
+    }
+
     function parseFlightScheduleItem(item = {}, fallbackLabel = "") {
       if (item && typeof item === "object" && !Array.isArray(item)) {
         const rawText = cleanSecretTourDetailText([
           item.text,
           item.raw,
           item.rawText,
+          item.airline,
+          item.airlineName,
+          item.airlineNm,
           item.route,
           item.departureAirport,
           item.departureCity,
@@ -34102,10 +35528,11 @@
         const rawTimes = extractFlightTimeParts(rawText);
         const departureTime = item.fromTime || item.departureClock || item.depTime || rawTimes[0] || "";
         const arrivalTime = item.toTime || item.arrivalClock || item.arrTime || rawTimes[1] || "";
+        const labelText = item.label || item.type || fallbackLabel;
         return {
-          label: item.label || item.type || fallbackLabel,
+          label: labelText,
           time: item.time || item.dateTime || item.datetime || item.departureTime || item.arrivalTime || "",
-          airline: item.airline || item.airlineName || item.airlineNm || "",
+          airline: item.airline || item.airlineName || item.airlineNm || extractDetailAirlineName(rawText) || getDetailAirlineNameFromCode(item.code || item.flightCode || item.flightNo || item.flightNumber || ""),
           code: item.code || item.flightCode || item.flightNo || item.flightNumber || "",
           fromCity: item.fromCity || item.departureCity || item.departureAirport || routePlaces[0] || "",
           toCity: item.toCity || item.arrivalCity || item.arrivalAirport || routePlaces[1] || "",
@@ -34117,14 +35544,14 @@
       }
       const text = cleanSecretTourDetailText(item);
       const codeMatch = text.match(/\b[A-Z0-9]{2}\s?\d{3,4}\b/);
-      const airlineMatch = text.match(/([가-힣A-Za-z]+항공|아시아나|진에어|티웨이|에어서울|에어부산|제주항공|대한항공)/);
+      const airlineName = extractDetailAirlineName(text) || getDetailAirlineNameFromCode(codeMatch?.[0] || "");
       const timeParts = extractFlightTimeParts(text);
       const dateParts = extractFlightDateParts(text);
       const routePlaces = extractFlightRoutePlaces(text);
       return {
-        label: /도착|귀국|복항|인천\s*도착/.test(text) ? "도착" : fallbackLabel,
+        label: /도착|귀국|복항|인천\s*도착/.test(text) ? "도착" : /출발|출국|왕항/.test(text) ? "출발" : fallbackLabel,
         time: [dateParts[0], timeParts[0]].filter(Boolean).join(" "),
-        airline: airlineMatch?.[1] || "",
+        airline: airlineName,
         code: codeMatch?.[0]?.replace(/\s+/g, "") || "",
         fromCity: routePlaces[0] || "",
         toCity: routePlaces[1] || "",
@@ -34267,7 +35694,7 @@
       const date = new Date(join.departureDate + "T00:00:00");
       date.setDate(date.getDate() + index);
       const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
-      return `${date.getMonth() + 1}/${String(date.getDate()).padStart(2, "0")} (${dayNames[date.getDay()]})`;
+      return `${date.getMonth() + 1}/${String(date.getDate()).padStart(2, "0")}(${dayNames[date.getDay()]})`;
     }
 
     function splitScheduleItems(content) {
@@ -34649,6 +36076,48 @@
       toggleDetailSchedule(row);
     }
 
+    function getDetailAnchorScrollOffset(body, tabs) {
+      if (!body || !tabs) return 0;
+      const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const tabHeight = tabs.offsetHeight || 0;
+      if (!isMobile) return tabHeight;
+      const bodyRect = body.getBoundingClientRect();
+      const tabsRect = tabs.getBoundingClientRect();
+      const isFixed = tabs.classList.contains("is-mobile-fixed") || getComputedStyle(tabs).position === "fixed";
+      if (isFixed && tabsRect.height) {
+        return Math.max(0, tabsRect.bottom - bodyRect.top);
+      }
+      return 56 + tabHeight;
+    }
+
+    function getDetailSectionMarginStart(section) {
+      if (!section) return 0;
+      const marginTop = Number.parseFloat(getComputedStyle(section).marginTop) || 0;
+      return section.offsetTop - marginTop;
+    }
+
+    function getDetailSectionMarginRectTop(section) {
+      if (!section) return Number.POSITIVE_INFINITY;
+      const marginTop = Number.parseFloat(getComputedStyle(section).marginTop) || 0;
+      return section.getBoundingClientRect().top - marginTop;
+    }
+
+    function getDetailAnchorActivationLine(body, tabs) {
+      if (!body) return 0;
+      if (!tabs || !tabs.classList.contains("is-visible") || tabs.classList.contains("is-suppressed")) {
+        return body.getBoundingClientRect().top;
+      }
+      return tabs.getBoundingClientRect().bottom;
+    }
+
+    function syncDetailAnchorTabsSpacer(body, tabs) {
+      const spacer = body?.querySelector(".detail-anchor-tabs-spacer");
+      if (!body || !tabs || !spacer) return;
+      const isActive = window.matchMedia("(max-width: 640px)").matches && tabs.classList.contains("is-mobile-fixed");
+      spacer.classList.toggle("is-active", isActive);
+      spacer.style.height = isActive ? `${Math.max(0, (tabs.offsetHeight || 0) + 15)}px` : "0px";
+    }
+
     function scrollDetailSection(sectionName) {
       const body = document.getElementById("detailContent");
       const target = body?.querySelector(`[data-detail-section="${sectionName}"]`);
@@ -34659,21 +36128,26 @@
         tabs.dataset.pinnedVisible = "true";
         tabs.dataset.forcedActive = sectionName;
         tabs.classList.remove("is-suppressed");
+        if (window.matchMedia("(max-width: 640px)").matches) {
+          tabs.classList.add("is-visible", "is-mobile-fixed");
+          body.classList.add("detail-anchor-tabs-fixed");
+          syncDetailAnchorTabsSpacer(body, tabs);
+        }
       }
       body.querySelectorAll(".detail-anchor-chip").forEach((chip) => {
         chip.classList.toggle("active", chip.dataset.anchorTarget === sectionName);
       });
 
       tabs?.classList.add("is-visible");
-      const bodyTop = body.getBoundingClientRect().top;
-      const targetTop = target.getBoundingClientRect().top;
-      const isMobile = window.matchMedia("(max-width: 640px)").matches;
-      const tabHeight = tabs?.offsetHeight || 0;
-      const stickyOffset = isMobile ? 56 + tabHeight + 10 : tabHeight + 6;
+      const stickyOffset = getDetailAnchorScrollOffset(body, tabs);
       body.scrollTo({
-        top: body.scrollTop + targetTop - bodyTop - stickyOffset,
+        top: getDetailSectionMarginStart(target) - stickyOffset,
         behavior: "smooth"
       });
+      window.setTimeout(() => {
+        if (tabs?.dataset.forcedActive === sectionName) delete tabs.dataset.forcedActive;
+        updateDetailAnchorTabs();
+      }, 360);
     }
 
     function updateDetailAnchorTabs() {
@@ -34697,23 +36171,24 @@
         const shouldFix = headerVisible && fixedAt > mobileHeaderHeight && body.scrollTop >= fixedAt - mobileHeaderHeight;
         tabs.classList.toggle("is-mobile-fixed", shouldFix);
         body.classList.toggle("detail-anchor-tabs-fixed", shouldFix);
+        syncDetailAnchorTabsSpacer(body, tabs);
       } else {
         tabs.classList.remove("is-mobile-fixed");
         body.classList.remove("detail-anchor-tabs-fixed");
+        syncDetailAnchorTabsSpacer(body, tabs);
         const threshold = Number(tabs.dataset.showAt || summary.offsetTop);
         tabs.classList.toggle("is-visible", tabs.dataset.pinnedVisible === "true" || body.scrollTop >= threshold);
       }
 
-      const isMobileForActive = window.matchMedia("(max-width: 640px)").matches;
-      const stickyOffset = isMobileForActive ? 56 + (tabs.offsetHeight || 0) + 10 : (tabs.offsetHeight || 0) + 16;
       let activeSection = tabs.dataset.forcedActive || "summary";
       const sectionNames = Array.from(body.querySelectorAll(".detail-anchor-chip"))
         .map((chip) => chip.dataset.anchorTarget)
         .filter(Boolean);
       if (!tabs.dataset.forcedActive) {
+        const activationLine = getDetailAnchorActivationLine(body, tabs);
         sectionNames.forEach((sectionName) => {
           const section = body.querySelector(`[data-detail-section="${sectionName}"]`);
-          if (section && body.scrollTop + stickyOffset >= section.offsetTop) {
+          if (section && getDetailSectionMarginRectTop(section) <= activationLine + 1) {
             activeSection = sectionName;
           }
         });
@@ -35068,18 +36543,28 @@
       const rawItems = Array.isArray(join.flightScheduleItems) ? join.flightScheduleItems : [];
       const departure = parseFlightScheduleItem(rawItems[0], "출발");
       const arrival = parseFlightScheduleItem(rawItems[1], "도착");
-      const airport = getDetailDepartureRegion(join);
+      const flightCode = departure.code || arrival.code || "";
+      const rawFlightText = rawItems.map((item) => typeof item === "string" ? item : Object.values(item || {}).join(" ")).join(" ");
+      const titleAirlineCode = getDetailAirlineCodeFromProductTitle(join.title || join.productName || "");
+      const airlineCode = normalizeDetailAirlineCode(flightCode)
+        || getDetailAirlineCodeFromName(departure.airline || arrival.airline)
+        || getDetailAirlineCodeFromName(extractDetailAirlineName(rawFlightText))
+        || titleAirlineCode;
+      const airline = departure.airline || arrival.airline || getDetailAirlineNameFromCode(airlineCode) || extractDetailAirlineName(rawFlightText) || "항공사 확인 중";
+      const scheduleAirports = getDetailAirportsFromSchedule(join);
+      const airport = scheduleAirports.departureAirport || getDetailDepartureRegion(join);
       const visit = getDetailArrivalRegions(join).split(",").map((part) => part.trim()).filter(Boolean);
-      const outboundCity = visit[0] || formatDetailRegionValue(join);
-      const inboundCity = visit[visit.length - 1] || outboundCity;
+      const outboundCity = scheduleAirports.arrivalAirport || visit[0] || formatDetailRegionValue(join);
+      const inboundCity = scheduleAirports.returnDepartureAirport || scheduleAirports.arrivalAirport || visit[visit.length - 1] || outboundCity;
+      const returnAirport = departure.fromCity || airport || scheduleAirports.returnArrivalAirport;
       const getClock = (segment, dateString) => {
         const value = getFlightTimeWithDateFallback(segment, dateString);
         const match = String(value || "").match(/(\d{1,2}[:.]\d{2})/);
         return match ? match[1].replace(".", ":") : "";
       };
       return {
-        airline: departure.airline || arrival.airline || "항공사 확인 중",
-        airlineCode: (departure.code || arrival.code || "").slice(0, 2).toLowerCase(),
+        airline,
+        airlineCode,
         duration: formatDetailDurationCompact(join),
         outbound: {
           type: "takeoff",
@@ -35097,8 +36582,47 @@
           fromCity: arrival.fromCity || inboundCity,
           toDate: arrival.toDate || arrival.fromDate || join.returnDate || join.departureDate,
           toTime: arrival.toTime || "",
-          toCity: arrival.toCity || airport
+          toCity: arrival.toCity || returnAirport
         }
+      };
+    }
+
+    function getDetailScheduleSearchText(item = {}) {
+      return cleanSecretTourDetailText([
+        item.rawText,
+        item.content,
+        item.extra?.hotel,
+        ...(Array.isArray(item.extra?.meals) ? item.extra.meals.map((meal) => `${meal.label || ""} ${meal.menu || ""}`) : [])
+      ].filter(Boolean).join(" "));
+    }
+
+    function extractAirportNamesFromScheduleText(text = "") {
+      const source = cleanSecretTourDetailText(text);
+      if (!source) return [];
+      const airportPattern = /([가-힣A-Za-z]+?)\s*(?:국제)?공항/g;
+      const direct = [...source.matchAll(airportPattern)]
+        .map((match) => cleanSecretTourDetailText(match[1]))
+        .filter((name) => name && name !== "국제")
+        .filter(Boolean);
+      const placeNames = extractFlightRoutePlaces(source);
+      return [...new Set([...direct, ...placeNames])];
+    }
+
+    function getDetailAirportsFromSchedule(join = {}) {
+      const schedule = Array.isArray(join.schedule) ? join.schedule : [];
+      if (!schedule.length) return {};
+      const firstText = getDetailScheduleSearchText(schedule[0]);
+      const lastText = getDetailScheduleSearchText(schedule[schedule.length - 1]);
+      const prevLastText = schedule.length > 1 ? getDetailScheduleSearchText(schedule[schedule.length - 2]) : "";
+      const firstAirports = extractAirportNamesFromScheduleText(firstText);
+      const lastAirports = extractAirportNamesFromScheduleText(lastText);
+      const prevLastAirports = extractAirportNamesFromScheduleText(prevLastText);
+      const returnAirports = lastAirports.length ? lastAirports : prevLastAirports;
+      return {
+        departureAirport: firstAirports[0] || "",
+        arrivalAirport: firstAirports[1] || "",
+        returnDepartureAirport: returnAirports.length > 1 ? returnAirports[0] : "",
+        returnArrivalAirport: returnAirports.length > 1 ? returnAirports[returnAirports.length - 1] : (returnAirports[0] || "")
       };
     }
 
@@ -35120,8 +36644,9 @@
       return match ? `${String(match[1]).padStart(2, "0")}:${match[2]}` : "";
     }
 
-    function formatDetailFlightPointTime(dateText, timeText, fallbackDate) {
-      return normalizeDetailFlightTimeText(timeText);
+    function formatDetailFlightPointTime(timeText) {
+      const time = normalizeDetailFlightTimeText(timeText);
+      return time || "00:00";
     }
 
     function renderDetailFlightAirlineImage(code = "") {
@@ -35149,11 +36674,10 @@
     }
 
     function renderDetailFlightRouteRow(route) {
-      const fromTime = formatDetailFlightPointTime(route.fromDate, route.fromTime, route.fromDate);
-      const toTime = formatDetailFlightPointTime(route.toDate, route.toTime, route.toDate);
+      const fromTime = formatDetailFlightPointTime(route.fromTime);
+      const toTime = formatDetailFlightPointTime(route.toTime);
       return `
         <div class="detail-flight-route-row">
-          ${renderDetailFlightRouteIcon(route.type)}
           ${renderDetailFlightRoutePoint(route.fromCity, fromTime)}
           <div class="detail-flight-arrow" aria-hidden="true"></div>
           ${renderDetailFlightRoutePoint(route.toCity, toTime, true)}
@@ -35351,7 +36875,9 @@
     function getCalendarMonthBounds() {
       const today = getTodayDate();
       const todayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const visibleJoins = getVisibleJoinProducts();
+      const minDeparture = new Date(`${getBuilderMinDepartureISO()}T00:00:00`);
+      const minDepartureMonth = new Date(minDeparture.getFullYear(), minDeparture.getMonth(), 1);
+      const visibleJoins = getVisibleCalendarJoinProducts();
       const fallbackDate = visibleJoins[0]?.departureDate || getBuilderMinDepartureISO();
       const builderBounds = getBuilderProductDateBounds();
       const minDate = visibleJoins.reduce((earliest, join) => {
@@ -35362,15 +36888,17 @@
         const candidate = new Date((join.returnDate || join.departureDate) + "T00:00:00");
         return candidate > latest ? candidate : latest;
       }, new Date((builderBounds.endDate || fallbackDate) + "T00:00:00"));
-      const minDeparture = new Date(`${getBuilderMinDepartureISO()}T00:00:00`);
       const fallbackMaxDate = new Date(minDeparture);
       fallbackMaxDate.setMonth(fallbackMaxDate.getMonth() + 6);
       const boundedMaxDate = maxDate > today ? maxDate : fallbackMaxDate;
       const dataStartMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
       const dataEndMonth = new Date(boundedMaxDate.getFullYear(), boundedMaxDate.getMonth(), 1);
+      const startMonth = dataStartMonth > minDepartureMonth ? dataStartMonth : minDepartureMonth;
+      const visibleStartMonth = todayMonth < startMonth ? todayMonth : startMonth;
+      const endMonth = dataEndMonth > startMonth ? dataEndMonth : startMonth;
       return {
-        startMonth: dataStartMonth < todayMonth ? dataStartMonth : todayMonth,
-        endMonth: dataEndMonth > todayMonth ? dataEndMonth : todayMonth
+        startMonth: visibleStartMonth,
+        endMonth
       };
     }
 
@@ -35401,7 +36929,7 @@
     }
 
     function getJoinEventsByDate() {
-      return getVisibleJoinProducts().reduce((map, join) => {
+      return getVisibleCalendarJoinProducts().reduce((map, join) => {
         const key = join.departureDate;
         if (!map[key]) map[key] = [];
         map[key].push(join);
@@ -35411,7 +36939,7 @@
 
     function hasJoinEventsInMonth(monthDate) {
       const monthKey = getMonthKey(monthDate);
-      return getVisibleJoinProducts().some((join) => String(join.departureDate || "").startsWith(monthKey));
+      return getVisibleCalendarJoinProducts().some((join) => String(join.departureDate || "").startsWith(monthKey));
     }
 
     function isCalendarBuilderDepartureSelectable(date) {
@@ -35474,6 +37002,11 @@
 
     function getVisibleJoinProducts(items = joins) {
       return (items || []).filter(shouldDisplayJoinProduct);
+    }
+
+    function getVisibleCalendarJoinProducts(items = joins) {
+      const minDepartureISO = getBuilderMinDepartureISO();
+      return getVisibleJoinProducts(items).filter((join) => String(join.departureDate || "") >= minDepartureISO);
     }
 
     function renderJoinCategoryChip(join) {
@@ -35875,7 +37408,7 @@
       const startOffset = first.getDay();
       const totalCellsBase = Math.ceil((startOffset + last.getDate()) / 7) * 7;
       const totalCells = options.forceSixWeeks ? Math.max(42, totalCellsBase) : totalCellsBase;
-      const todayKey = "2026-04-24";
+      const todayKey = getISODateKey(getTodayDate());
       const holidaySet = getKoreanHolidaySet(year);
       const labels = [];
       const weeks = [];
@@ -35913,18 +37446,20 @@
           }
 
           const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
-          const events = eventsByDate[dateKey] || [];
-          const summary = getCalendarEventSummary(events);
           const date = new Date(`${dateKey}T00:00:00`);
           const canCreateSchedule = isCalendarBuilderDepartureSelectable(date);
+          const events = canCreateSchedule ? (eventsByDate[dateKey] || []) : [];
+          const summary = getCalendarEventSummary(events);
           const canClickDate = events.length > 0 || canCreateSchedule;
           const isSunday = date.getDay() === 0;
           const isHoliday = holidaySet.has(dateKey);
+          const isUnavailable = dateKey < getBuilderMinDepartureISO();
           const weekKey = `${getMonthKey(monthDate)}-${weekStart / 7}`;
           weekCells.push(`
-            <div class="calendar-cell${events.length ? " has-data" : ""}${!events.length && canCreateSchedule ? " can-create" : ""}${dateKey === todayKey ? " today" : ""}${isSunday ? " sunday" : ""}${isHoliday ? " holiday" : ""}">
+            <div class="calendar-cell${events.length ? " has-data" : ""}${!events.length && canCreateSchedule ? " can-create" : ""}${dateKey === todayKey ? " today" : ""}${isUnavailable ? " unavailable" : ""}${isSunday ? " sunday" : ""}${isHoliday ? " holiday" : ""}">
               <button type="button" class="calendar-day-button" ${canClickDate ? `onclick="toggleCalendarDay('${weekKey}', '${dateKey}')"` : "disabled"}>
                 <strong>${dayNumber}</strong>
+                ${dateKey === todayKey ? `<div class="calendar-today-label">TODAY</div>` : ""}
                 ${summary.domestic ? `<div class="calendar-event domestic">국내 ${summary.domestic}</div>` : ""}
                 ${summary.overseas ? `<div class="calendar-event overseas">해외 ${summary.overseas}</div>` : ""}
               </button>
@@ -36152,7 +37687,86 @@
       });
       if (!matches.length) return "";
       const price = Math.min(...matches.map((product) => Number(product.price)));
-      return `${formatPrice(price)}원`;
+      return formatBuilderCalendarPriceLabel(price);
+    }
+
+    function formatBuilderCalendarPriceLabel(price) {
+      const value = Number(price || 0);
+      if (!(value > 0)) return "";
+      const manwon = value / 10000;
+      const display = Number.isInteger(manwon)
+        ? String(manwon)
+        : String(Math.round(manwon * 10) / 10);
+      return `${display}만`;
+    }
+
+    function getBuilderDepartureDatePriceLabel(iso) {
+      if (!builderState.mdPickDateChangeMode || !builderState.fixedProductGroupKey || !iso) return "";
+      const matches = getBuilderFixedProductGroupProducts().filter((product) => product.departureDate === iso && Number(product.price) > 0);
+      if (!matches.length) return "";
+      const price = Math.min(...matches.map((product) => Number(product.price)));
+      return formatBuilderCalendarPriceLabel(price);
+    }
+
+    function getMdPickProductByDepartureDate(iso) {
+      if (!iso) return null;
+      return getBuilderFixedProductGroupProducts()
+        .filter((product) => product.departureDate === iso)
+        .sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0) || String(a.returnDate || "").localeCompare(String(b.returnDate || "")))[0] || null;
+    }
+
+    async function showMdPickDetailProduct(product, productGroupKey = currentMdPickProductGroupKey, countryKey = currentMdPickCountryKey) {
+      if (!product) return;
+      currentDetailMode = "mdPickProduct";
+      currentDetailJoinId = product.id;
+      currentDetailJoinData = product;
+      currentMdPickProductGroupKey = productGroupKey;
+      currentMdPickCountryKey = countryKey;
+      currentDetailSlideIndex = 0;
+      stopDetailReviewAutoSlide();
+      closeDetailApply();
+      document.getElementById("detailModalTitle").textContent = product.title;
+      renderDetailContent(product, { hideParticipants: true });
+      const primary = document.getElementById("detailPrimaryButton");
+      if (primary) {
+        primary.innerHTML = `<span>멤버 모집하기</span>${renderDetailChevronRightIcon()}`;
+        primary.setAttribute("onclick", "handleDetailPrimaryAction()");
+      }
+      setDetailMdPickRecruitActions();
+      document.getElementById("detailModal")?.classList.add("mdpick-recruit-mode");
+      document.getElementById("detailModal")?.classList.remove("builder-select-mode", "builder-product-detail-mode");
+      openModal("detailModal");
+      requestAnimationFrame(() => {
+        prepareDetailScheduleHeights({ forceOpen: true });
+        resetDetailModalScroll();
+      });
+      try {
+        const detail = await loadSecretTourGoodsDetail(product);
+        const enrichedProduct = mergeSecretTourGoodsDetail(product, detail);
+        if (Array.isArray(externalGolfJoinProducts)) {
+          externalGolfJoinProducts = externalGolfJoinProducts.map((item) => item.id === enrichedProduct.id ? enrichedProduct : item);
+        }
+        if (currentDetailMode === "mdPickProduct" && currentDetailJoinId === product.id && document.getElementById("detailModal")?.classList.contains("open")) {
+          currentDetailJoinData = enrichedProduct;
+          currentDetailSlideIndex = 0;
+          document.getElementById("detailModalTitle").textContent = enrichedProduct.title;
+          renderDetailContent(enrichedProduct, { hideParticipants: true });
+          requestAnimationFrame(() => {
+            prepareDetailScheduleHeights({ forceOpen: true });
+            resetDetailModalScroll();
+          });
+        }
+      } catch (error) {
+        console.warn("Failed to enrich MD PICK detail from ERP.", error);
+      }
+    }
+
+    function selectMdPickDateChangeDeparture(day) {
+      const iso = builderDateToISO(day);
+      const product = getMdPickProductByDepartureDate(iso);
+      if (!product) return;
+      closeModal("builderModal");
+      showMdPickDetailProduct(product);
     }
 
     function renderBuilderCalendar() {
@@ -36205,8 +37819,9 @@
         }
         const cls = ["builder-day", muted ? "muted" : "", displayUnavailable ? "unavailable" : "", isToday ? "today" : "", weekday === 0 ? "sunday" : "", weekday === 6 ? "saturday" : "", ...new Set(flexClasses), isRange ? "range" : "", hasStart && hasEnd && !displayUnavailable && (isStart || isEnd) ? "linked" : "", !displayUnavailable && isStart ? "start" : "", !displayUnavailable && isEnd ? "end" : ""].filter(Boolean).join(" ");
         const iso = getISODateKey(date);
+        const departurePriceLabel = !displayUnavailable && !hasStart ? getBuilderDepartureDatePriceLabel(iso) : "";
         const returnPriceLabel = !displayUnavailable && !isStart && hasStart && !hasEnd ? getBuilderReturnDatePriceLabel(iso) : "";
-        const label = !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : "";
+        const label = !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : departurePriceLabel ? `<div class="builder-day-label">${departurePriceLabel}</div>` : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : "";
         const canClick = !isLoadingDates && (!unavailable || isStart || isEnd);
         const click = canClick ? (isStart ? "openBuilderDatePopover('start', this)" : isEnd ? "openBuilderDatePopover('end', this)" : `selectBuilderDate(${dayOffset}, this)`) : "";
         return `<button type="button" class="${cls}" data-builder-day-offset="${dayOffset}" ${click ? `onclick="${click}"` : "disabled"}><div class="builder-day-number">${day}</div>${label}</button>`;
@@ -36284,6 +37899,10 @@
 
     function selectBuilderDate(day, trigger) {
       if (!isBuilderDateSelectable(new Date(builderState.viewYear, builderState.viewMonth, day))) return;
+      if (builderState.mdPickDateChangeMode) {
+        selectMdPickDateChangeDeparture(day);
+        return;
+      }
       closeBuilderDurationPopover();
       const clickedIso = builderDateToISO(day);
       const canUseAsDeparture = clickedIso >= getBuilderMinDepartureISO();
@@ -36403,6 +38022,17 @@
       return true;
     }
 
+    function isBuilderDateBottomPanelMode() {
+      return true;
+    }
+
+    function completeBuilderDateSelectionIfReady() {
+      if (activeBuilderPopoverTarget !== "end") return false;
+      if (!Number.isFinite(builderState.startDay) || !Number.isFinite(builderState.endDay)) return false;
+      setBuilderStep(2);
+      return true;
+    }
+
     function renderBuilderDatePopoverTitle(target, day, before, after) {
       const selectedDate = new Date(builderState.viewYear, builderState.viewMonth, day);
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
@@ -36420,7 +38050,7 @@
         : `${formatShort(startDate)} ~ ${formatShort(endDate)}`;
       const title = document.getElementById("builderDatePopoverTitle");
       if (!title) return;
-      if (!window.matchMedia("(max-width: 640px)").matches) {
+      if (!isBuilderDateBottomPanelMode()) {
         title.textContent = `${label} ${formatPlain(selectedDate)} 전 ${before}일 / 후 ${after}일`;
         return;
       }
@@ -36465,7 +38095,7 @@
 
     function positionBuilderDatePopover(popover, trigger, card) {
       if (!popover || !trigger || !card) return;
-      if (window.matchMedia("(max-width: 640px)").matches) {
+      if (isBuilderDateBottomPanelMode()) {
         const bottom = document.getElementById("builderBottom");
         const bottomStyle = bottom ? window.getComputedStyle(bottom) : null;
         const bottomRect = bottom?.getBoundingClientRect();
@@ -36523,7 +38153,7 @@
       activeBuilderPopoverDay = day;
       activeBuilderPopoverFlexOpen = false;
       builderPopoverFlexSnapshot = null;
-      if (window.matchMedia("(max-width: 640px)").matches) {
+      if (isBuilderDateBottomPanelMode()) {
         const prefix = isStart ? "start" : "end";
         activeBuilderPopoverFlexOpen = builderState[`${prefix}Before`] > 0 || builderState[`${prefix}After`] > 0;
         if (activeBuilderPopoverFlexOpen) {
@@ -36547,7 +38177,7 @@
       if (window.matchMedia("(hover: hover) and (pointer: fine)").matches && trigger.dataset.hoverBound !== "true") {
         trigger.dataset.hoverBound = "true";
         trigger.addEventListener("mouseleave", (event) => {
-          if (window.matchMedia("(max-width: 640px)").matches) return;
+          if (isBuilderDateBottomPanelMode()) return;
           const next = event.relatedTarget;
           if (next && popover.contains(next)) return;
           window.setTimeout(() => {
@@ -36559,7 +38189,7 @@
     }
 
     function closeBuilderDatePopover(force = false) {
-      if (!force && window.matchMedia("(max-width: 640px)").matches) return;
+      if (!force && isBuilderDateBottomPanelMode()) return;
       document.getElementById("builderDatePopover")?.classList.remove("open");
       builderPopoverFlexSnapshot = null;
       activeBuilderPopoverTrigger = null;
@@ -36641,7 +38271,7 @@
     }
 
     function bindBuilderPopoverHoverClose() {
-      if (window.matchMedia("(max-width: 640px)").matches) return;
+      if (isBuilderDateBottomPanelMode()) return;
       if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
       const popover = document.getElementById("builderDatePopover");
       if (!popover || popover.dataset.hoverBound === "true") return;
@@ -36669,6 +38299,7 @@
       builderState[`${prefix}After`] = 0;
       renderBuilderCalendar();
       closeBuilderDatePopover(true);
+      completeBuilderDateSelectionIfReady();
     }
 
     function openBuilderFlexFromPopover() {
@@ -36688,7 +38319,7 @@
         };
       }
       popover.classList.toggle("flex-open", activeBuilderPopoverFlexOpen);
-      if (window.matchMedia("(max-width: 640px)").matches) {
+      if (isBuilderDateBottomPanelMode()) {
         const prefix = activeBuilderPopoverTarget === "start" ? "start" : "end";
         renderBuilderDatePopoverTitle(activeBuilderPopoverTarget, activeBuilderPopoverDay, builderState[`${prefix}Before`], builderState[`${prefix}After`]);
       }
@@ -36744,13 +38375,10 @@
     }
 
     function confirmBuilderPopoverFlex() {
-      const shouldMoveToRegion = activeBuilderPopoverTarget === "end" && Number.isFinite(builderState.startDay) && Number.isFinite(builderState.endDay);
       activeBuilderPopoverFlexOpen = false;
       builderPopoverFlexSnapshot = null;
       closeBuilderDatePopover(true);
-      if (shouldMoveToRegion) {
-        setBuilderStep(2);
-      }
+      completeBuilderDateSelectionIfReady();
     }
 
     function clampBuilderFlexWindow(changedKey) {
@@ -36880,6 +38508,8 @@
       closeBuilderDatePopover(true);
       closeBuilderFlexSheet();
       document.getElementById("builderModal")?.classList.toggle("mdpick-builder-mode", Boolean(builderState.mdPickMode));
+      document.getElementById("builderModal")?.classList.toggle("mdpick-date-change-mode", Boolean(builderState.mdPickDateChangeMode));
+      document.getElementById("builderModal")?.classList.toggle("mdpick-recruit-direct-mode", Boolean(builderState.mdPickRecruitDirectMode));
       document.querySelectorAll("[data-builder-step]").forEach((panel) => {
         panel.classList.toggle("active", Number(panel.dataset.builderStep) === step);
       });
@@ -36894,18 +38524,18 @@
       const next = document.getElementById("builderNextButton");
       const bottom = document.getElementById("builderBottom");
       if (prev) {
-        prev.style.display = step === 1 ? "none" : "";
+        prev.style.display = step === 1 || builderState.mdPickRecruitDirectMode ? "none" : "";
         prev.textContent = step === 4 ? "전화 상담" : "이전";
         prev.setAttribute("onclick", step === 4 ? "handleBuilderPhoneInquiry()" : "prevBuilderStep()");
       }
       if (next) {
         next.textContent = step === 1 ? "다음" : step === 2 ? "다음" : step === 3 ? "신청하기" : "카톡 공유";
         next.disabled = false;
-        next.style.gridColumn = step === 1 ? "1 / -1" : "";
+        next.style.gridColumn = step === 1 || builderState.mdPickRecruitDirectMode ? "1 / -1" : "";
         next.setAttribute("onclick", step === 4 ? "handleBuilderKakaoInquiry()" : "nextBuilderStep()");
       }
       if (bottom) {
-        bottom.style.display = step === 4 ? "none" : "grid";
+        bottom.style.display = builderState.mdPickDateChangeMode || step === 2 || step === 4 ? "none" : "grid";
         bottom.classList.toggle("complete-mode", step === 4);
         bottom.classList.toggle("step-3", step === 3);
       }
@@ -38250,7 +39880,7 @@
     }
 
     function openBuilderAlert(message = "도착일을 선택해주세요.") {
-      const overlay = document.getElementById("builderAlertModal");
+      const overlay = portalOverlayToBody("builderAlertModal");
       const messageTarget = document.getElementById("builderAlertMessage");
       if (messageTarget) messageTarget.textContent = message;
       overlay?.classList.add("open");
@@ -38315,14 +39945,16 @@
         productId: "",
         productName: "",
         fixedProductGroupKey: "",
-        mdPickMode: false
+        mdPickMode: false,
+        mdPickDateChangeMode: false,
+        mdPickRecruitDirectMode: false
       });
       resetBuilderApplyForm();
       builderRegionSelectorMode = true;
       closeBuilderDatePopover(true);
       closeBuilderFlexSheet();
       closeBuilderProductDetail();
-      document.getElementById("builderModal")?.classList.remove("mdpick-builder-mode");
+      document.getElementById("builderModal")?.classList.remove("mdpick-builder-mode", "mdpick-date-change-mode", "mdpick-recruit-direct-mode");
       renderBuilderCalendar();
       ensureExternalGolfJoinProductsLoaded();
       updateBuilderRegionDisplay();
@@ -38380,6 +40012,10 @@
         overlay.style.setProperty("z-index", "2147483600", "important");
         overlay.querySelector(".detail-modal")?.style.setProperty("z-index", "2147483601", "important");
       }
+      if (id === "builderModal" && overlay) {
+        overlay.style.setProperty("z-index", "2147483660", "important");
+        overlay.querySelector(".builder-modal")?.style.setProperty("z-index", "2147483661", "important");
+      }
       overlay?.classList.add("open");
       if (id === "builderModal") {
         resetBuilderModal();
@@ -38411,7 +40047,7 @@
         document.getElementById("detailModal")?.classList.remove("builder-select-mode", "builder-product-detail-mode", "mdpick-recruit-mode");
         const primary = document.getElementById("detailPrimaryButton");
         if (primary) {
-          primary.textContent = "신청하기";
+          primary.textContent = "참여하기";
           primary.setAttribute("onclick", "openGlobalApply()");
         }
         setDetailDefaultContactActions();
@@ -38496,6 +40132,9 @@
       const { startDate, endDate } = getBuilderProductDateBounds();
       const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
       if (!Number.isFinite(builderState.startDay) && iso < getBuilderMinDepartureISO()) return false;
+      if (builderState.mdPickDateChangeMode) {
+        return getBuilderFixedProductGroupProducts().some((product) => product.departureDate === iso);
+      }
       if (startDate && iso < startDate) return false;
       if (endDate && iso > endDate) return false;
       if (!isBuilderDateAllowedByConstraint(iso)) return false;
@@ -38633,6 +40272,42 @@
           items.set(key, [name, getRegionSearchItemType(name, join.category || "")]);
         });
       });
+      return [...items.values()].sort((a, b) => a[0].localeCompare(b[0], "ko"));
+    }
+
+    function getRegionBodySearchItems() {
+      const builderContext = regionSearchContext === "builder";
+      const mdPickContext = regionSearchContext === "mdpick";
+      const items = new Map();
+      const addItem = (name, type, searchText = "") => {
+        const key = normalizeRegionKeyword(name);
+        if (!key || items.has(key)) return;
+        items.set(key, [name, type || getRegionSearchItemType(name), searchText || name]);
+      };
+
+      getRegionDisplayCategories({ builderContext }).forEach(({ item: category }) => {
+        if (mdPickContext && !isMdPickCategoryAvailable(category)) return;
+        const countries = builderContext
+          ? getBuilderAvailableCountries(category)
+          : mdPickContext
+            ? getMdPickAvailableCountries(category)
+            : (category.countries || []).map((country, countryIndex) => ({ country, countryIndex }));
+
+        countries.forEach(({ country }) => {
+          const countrySearchText = [category.category, country.name].join(" ");
+          addItem(country.name, category.category, countrySearchText);
+          const cities = builderContext
+            ? getBuilderAvailableCities(country)
+            : mdPickContext
+              ? getMdPickAvailableCities(country)
+              : (country.cities || []);
+          cities.forEach((city) => {
+            const label = regionLabel(city, country.name);
+            addItem(label, country.name, [category.category, country.name, city, label].join(" "));
+          });
+        });
+      });
+
       return [...items.values()].sort((a, b) => a[0].localeCompare(b[0], "ko"));
     }
 
@@ -39022,6 +40697,7 @@
       return {
         id: item.goodSeq ? `secret-tour-${item.goodSeq}` : `secret-tour-product-${index}`,
         goodSeq: item.goodSeq,
+        goodTransportSeq: item.goodTransportSeq || item.transportSeq || item.goodAirSeq || item.airSeq || item.flightSeq || "",
         goodCd: item.goodCd || "",
         productType,
         goodsType: item.goodsType || item.goodType || "",
@@ -39060,6 +40736,7 @@
         id: event.eventSeq ? `secret-tour-${product.goodSeq}-${event.eventSeq}` : `secret-tour-${product.goodSeq}-event-${index}`,
         goodSeq: product.goodSeq,
         eventSeq: event.eventSeq,
+        goodTransportSeq: event.goodTransportSeq || event.transportSeq || event.goodAirSeq || event.airSeq || event.flightSeq || product.goodTransportSeq || product.transportSeq || product.goodAirSeq || product.airSeq || product.flightSeq || "",
         goodCd: product.goodCd || "",
         productType,
         goodsType: event.goodsType || event.goodType || product.goodsType || product.goodType || "",
@@ -39233,7 +40910,7 @@
       const text = cleanSecretTourDetailText(value);
       const match = /(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})\s*\(([^)]+)\)/.exec(text);
       if (!match) return text;
-      return `${Number(match[2])}/${String(Number(match[3])).padStart(2, "0")} (${match[4].trim()})`;
+      return `${Number(match[2])}/${String(Number(match[3])).padStart(2, "0")}(${match[4].trim()})`;
     }
 
     function isSecretTourExcludedDetailImage(image) {
@@ -39252,13 +40929,15 @@
           .map((node) => cleanSecretTourDetailText(node.textContent))
           .filter(Boolean);
         const extra = parseSecretTourScheduleExtra(item);
+        const rawText = cleanSecretTourDetailText(item.textContent);
         return {
           day,
           dateText,
           content: points.join(", "),
+          rawText,
           extra
         };
-      }).filter((item) => item.content || item.extra?.hotel || item.extra?.meals?.length);
+      }).filter((item) => item.content || item.rawText || item.extra?.hotel || item.extra?.meals?.length);
     }
 
     function decodeSecretTourJsString(value) {
@@ -39279,6 +40958,13 @@
         const match = new RegExp(`${key}\\s*:\\s*(['"])([\\s\\S]*?)\\1`).exec(scriptText);
         return match ? decodeSecretTourJsString(match[2]) : "";
       };
+      const readFirstString = (...keys) => {
+        for (const key of keys) {
+          const value = readString(key);
+          if (value) return value;
+        }
+        return "";
+      };
       const readNumber = (key) => {
         const numberCall = new RegExp(`${key}\\s*:\\s*Number\\(\\s*['"]?([0-9]+)`).exec(scriptText);
         if (numberCall) return Number(numberCall[1]);
@@ -39290,7 +40976,7 @@
       const goodsImage = readString("goodsImage");
       return {
         eventNm: readString("eventNm"),
-        goodTransportSeq: readString("goodTransportSeq"),
+        goodTransportSeq: readFirstString("goodTransportSeq", "transportSeq", "goodAirSeq", "airSeq", "flightSeq"),
         startDay: readString("startDay"),
         endDay: readString("endDay"),
         adultPrice,
@@ -40085,7 +41771,7 @@
     function renderBuilderRegionProductCard(product) {
       const selectedClass = builderState.productId === product.id ? " selected" : "";
       return `
-        <article class="region-product-card${selectedClass}" onclick="selectBuilderProduct('${product.id}')">
+        <article class="region-product-card${selectedClass}" onclick="openBuilderProductDetailModal('${product.id}')">
           <div class="region-product-thumb">
             <img src="${product.image}" alt="${product.title}">
           </div>
@@ -40102,7 +41788,6 @@
             <div class="region-product-date">${formatCardDateRange(product)}</div>
           </div>
           <div class="region-product-side">
-            <button type="button" class="builder-product-more-button" onclick="event.stopPropagation(); openBuilderProductDetailModal('${product.id}')">자세히 보기</button>
             <div class="region-product-price">
               <span class="region-product-price-label">1인</span>
               <strong>${formatPrice(product.price)}</strong>
@@ -40663,7 +42348,9 @@
         return;
       }
       const normalizedQuery = normalizeRegionKeyword(query);
-      const results = getMainJoinRegionSearchItems().filter(([name]) => normalizeRegionKeyword(name).includes(normalizedQuery)).slice(0, 12);
+      const results = getRegionBodySearchItems()
+        .filter(([name, type, searchText]) => normalizeRegionKeyword(searchText || `${name} ${type}`).includes(normalizedQuery))
+        .map(([name, type]) => [name, type]);
       if (!results.length) {
         list.innerHTML = `<div class="region-result-suggestions"><div class="region-result-empty">검색 결과가 없습니다.</div></div>`;
         return;
@@ -40734,7 +42421,6 @@
     }
 
     function renderRegionProductCard(join, options = {}) {
-      const showDetailButton = Boolean(options.showDetailButton);
       return `
         <article class="region-product-card" onclick="openDetail('${join.id}')">
           <div class="region-product-thumb">
@@ -40758,8 +42444,8 @@
               <strong>${formatPrice(join.price)}</strong>
               <span class="region-product-price-unit">원</span>
             </div>
-            <div class="region-product-team${showDetailButton ? " has-detail-button" : ""}" onclick="event.stopPropagation()">
-              ${showDetailButton ? `<div class="region-product-team-slots">${renderCardTeamSlots(join)}</div><button type="button" class="region-product-detail-button" onclick="openDetail('${join.id}')">자세히보기</button>` : renderCardTeamSlots(join)}
+            <div class="region-product-team">
+              ${renderCardTeamSlots(join)}
             </div>
           </div>
         </article>
@@ -41378,7 +43064,8 @@
     }
 
     async function openGlobalApply() {
-      if (!requireJoinLogin("apply")) return;
+      const applyJoinId = currentDetailJoinId || "";
+      if (!requireJoinLogin("apply", applyJoinId ? { applyJoinId } : {})) return;
       stopQuickMobileCarousel();
       const overlay = document.getElementById("globalApplyOverlay");
       portalOverlayToBody("globalApplyOverlay");
@@ -41462,7 +43149,7 @@
       currentDetailJoinData = null;
       const primary = document.getElementById("detailPrimaryButton");
       if (primary) {
-        primary.textContent = "신청하기";
+        primary.textContent = "참여하기";
         primary.setAttribute("onclick", "openGlobalApply()");
       }
       setWidgetModalOpen(false);
@@ -41654,13 +43341,23 @@
 
     async function submitGlobalApply() {
       clearApplyErrors();
-      const memberProfile = await getJoinApplyMemberProfile();
-      const name = memberProfile.name || "";
-      const birthYear = memberProfile.birthYear || "";
-      const gender = memberProfile.gender || "";
-      const ageDisplay = memberProfile.ageDisplay || getApplyAgeDisplayFromBirthYear(birthYear);
-      const phone = memberProfile.phone || "";
-      const profession = memberProfile.profession || document.getElementById("globalApplyProfession")?.value.trim();
+      const loginState = getJoinLoginState();
+      const cachedProfile = getRememberedJoinMemberProfile(loginState.member || {});
+      const memberProfile = {
+        member: loginState.member || {},
+        name: cachedProfile.name || cachedProfile.memberName || loginState.member?.memberName || "",
+        gender: cachedProfile.gender || loginState.member?.gender || "",
+        birthYear: getBirthYearFromJoinMember(loginState.member || {}, cachedProfile),
+        phone: normalizeJoinMemberPhone(cachedProfile.mobile || cachedProfile.phone || cachedProfile.memberMobile || loginState.member?.memberMobile || ""),
+        profession: cachedProfile.profession || loginState.member?.profession || "",
+        level: cachedProfile.level || loginState.member?.level || ""
+      };
+      const name = document.getElementById("globalApplyName")?.value.trim() || memberProfile.name || "";
+      const birthYear = document.getElementById("globalApplyBirthYear")?.value.trim() || memberProfile.birthYear || "";
+      const gender = getApplyChipValue("global-gender") || memberProfile.gender || "";
+      const ageDisplay = getApplyAgeDisplayFromBirthYear(birthYear) || "";
+      const phone = normalizeJoinMemberPhone(document.getElementById("globalApplyPhone")?.value.trim() || memberProfile.phone || "");
+      const profession = document.getElementById("globalApplyProfession")?.value.trim() || memberProfile.profession || "";
       const people = getCompanionPeople("global");
       const companions = getCompanionPayload("global");
       const level = memberProfile.level || "";
@@ -41669,20 +43366,20 @@
       const greeting = document.getElementById("globalApplyGreeting")?.value.trim();
 
       if (!name) {
-        alert("회원정보의 이름이 필요합니다. 회원가입 정보를 확인해 주세요.");
+        markApplyFieldError("name");
         return;
       }
       if (!gender) {
-        alert("회원정보의 성별이 필요합니다. 회원가입 정보를 확인해 주세요.");
+        markApplyFieldError("gender");
         return;
       }
       updateApplyProgressive();
       if (!/^\d{4}$/.test(birthYear || "") || !ageDisplay) {
-        alert("회원정보의 생년월일이 필요합니다. 회원가입 정보를 확인해 주세요.");
+        markApplyFieldError("birthYear");
         return;
       }
       if (!/^010\d{8}$/.test(phone || "")) {
-        alert("회원정보의 휴대폰번호가 필요합니다. 회원가입 정보를 확인해 주세요.");
+        markApplyFieldError("phone");
         return;
       }
       if (!validateCompanionGenders("global")) {
@@ -41717,7 +43414,7 @@
       };
       const submitButton = document.getElementById("globalApplySubmitButton");
       if (submitButton?.disabled) return;
-      const previousText = submitButton?.textContent || "신청완료";
+      const previousText = submitButton?.textContent || "모임 참여 신청하기";
       if (submitButton) {
         submitButton.disabled = true;
         submitButton.textContent = "저장 중";
@@ -43630,6 +45327,8 @@
       Object.assign(builderState, {
         fixedProductGroupKey: productGroupKey,
         mdPickMode: true,
+        mdPickDateChangeMode: Boolean(options.dateChangeMode),
+        mdPickRecruitDirectMode: Boolean(options.recruitDirectMode),
         productId: options.selectProduct ? (product?.id || "") : "",
         productName: product?.title || "",
         region: product?.region || country?.name || "",
@@ -43668,9 +45367,9 @@
       return { product, products };
     }
 
-    function openMdPickBuilder(productGroupKey, countryKey) {
+    function openMdPickBuilder(productGroupKey, countryKey, options = {}) {
       openModal("builderModal");
-      setupMdPickBuilderState(productGroupKey, countryKey);
+      setupMdPickBuilderState(productGroupKey, countryKey, options);
       setBuilderStep(1);
     }
 
@@ -43679,7 +45378,8 @@
       setupMdPickBuilderState(productGroupKey, countryKey, {
         product: product || currentDetailJoinData,
         useProductDates: true,
-        selectProduct: true
+        selectProduct: true,
+        recruitDirectMode: true
       });
       setBuilderStep(3);
     }
@@ -44528,10 +46228,10 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
           </button>
           <div class="detail-mobile-sticky-title">${escapeHtml(join.title)}</div>
-          <button type="button" class="detail-mobile-header-button" aria-label="찜하기">
+          <button type="button" class="detail-mobile-header-button" data-detail-wish-button aria-label="찜하기" aria-pressed="false">
             <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-bookmark-check-icon lucide-bookmark-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path><path d="m9 10 2 2 4-4"></path></svg>
           </button>
-          <button type="button" class="detail-mobile-header-button" onclick="handleDetailShare()" aria-label="공유하기">
+          <button type="button" class="detail-mobile-header-button" aria-label="공유하기">
             <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
           </button>
         </div>
@@ -44571,6 +46271,7 @@
           <button type="button" class="detail-anchor-chip" data-anchor-target="place" onclick="scrollDetailSection('place')">시설소개</button>
           ${hasReviews ? `<button type="button" class="detail-anchor-chip" data-anchor-target="review" onclick="scrollDetailSection('review')">여행후기</button>` : ""}
         </div>
+        <div class="detail-anchor-tabs-spacer" aria-hidden="true"></div>
         ${renderDetailSummaryInfo(join)}
         ${renderDetailFlightSection(join)}
         ${renderDetailInclusionSection(join)}
@@ -44579,6 +46280,22 @@
         </div>
       `;
       const detailBody = document.getElementById("detailContent");
+      detailBody.querySelectorAll(".detail-mobile-header-button[data-detail-wish-button]").forEach((button) => {
+        button.dataset.wishBound = "true";
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          handleDetailWish();
+        });
+      });
+      detailBody.querySelectorAll(".detail-mobile-header-button[aria-label='공유하기']").forEach((button) => {
+        button.dataset.shareBound = "true";
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          button.dataset.shareClicked = String(Number(button.dataset.shareClicked || 0) + 1);
+          handleDetailShare();
+        });
+      });
+      refreshDetailWishButtons();
       detailBody.onscroll = handleDetailContentScroll;
       detailBody.onwheel = () => {
         const tabs = detailBody.querySelector(".detail-anchor-tabs");
@@ -44607,6 +46324,7 @@
         anchorTabs.classList.remove("is-mobile-fixed");
         detailBody.classList.remove("detail-anchor-tabs-fixed");
         anchorTabs.classList.remove("is-visible");
+        syncDetailAnchorTabsSpacer(detailBody, anchorTabs);
       }
       prepareDetailScheduleHeights();
       updateDetailMobileStickyHeader();
@@ -44700,23 +46418,224 @@
       return `<svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-chevron-right-icon lucide-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>`;
     }
 
-    async function handleDetailShare() {
-      const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId);
-      const title = join?.title || document.title;
-      const url = window.location.href;
+    function getDetailShareHost() {
+      const host = window.location.hostname;
+      if (/^m\./i.test(host)) return "m.secret-tour.com";
+      if (/^(www\.)?secret-tour\.com$/i.test(host)) return "www.secret-tour.com";
+      return window.matchMedia("(max-width: 640px)").matches ? "m.secret-tour.com" : "www.secret-tour.com";
+    }
+
+    function buildDetailGoodsSourceUrl(join = {}) {
+      const parsedReference = parseSecretTourProductReference(join.id || join.erpProductId || "", join.eventSeq || join.erpEventSeq || "");
+      const goodSeq = String(join.goodSeq || parsedReference.goodSeq || join.erpProductId || "").trim();
+      const eventSeq = String(join.eventSeq || parsedReference.eventSeq || join.erpEventSeq || "").trim();
+      if (!goodSeq || !eventSeq) return window.location.href;
+      const params = new URLSearchParams({ goodSeq, eventSeq });
+      return `https://${getDetailShareHost()}/goods/goods_view?${params.toString()}`;
+    }
+
+    function getDetailWishEndpoint() {
+      if (/^(m\.|www\.)?secret-tour\.com$/i.test(window.location.hostname)) return "/goods/updateGoodsWish.json";
+      const host = window.matchMedia("(max-width: 640px)").matches ? "m.secret-tour.com" : "www.secret-tour.com";
+      return `https://${host}/goods/updateGoodsWish.json`;
+    }
+
+    async function postDetailGoodsWish(goodSeq) {
+      if (!/^(m\.|www\.)?secret-tour\.com$/i.test(window.location.hostname)) return { skipped: true };
+      const body = new URLSearchParams({ goodSeq: String(goodSeq || "") });
+      const response = await fetch(getDetailWishEndpoint(), {
+        method: "POST",
+        credentials: "include",
+        cache: "no-cache",
+        headers: {
+          "Accept": "application/json, text/javascript, */*; q=0.01",
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body
+      });
+      if (!response.ok) throw new Error(`Wish request failed: ${response.status}`);
+      return response.json().catch(() => ({}));
+    }
+
+    function refreshDetailWishButtons() {
+      const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
+      const wished = isJoinProductWished(join);
+      document.querySelectorAll(".detail-mobile-header-button[data-detail-wish-button]").forEach((button) => {
+        button.classList.toggle("is-wished", wished);
+        button.setAttribute("aria-pressed", wished ? "true" : "false");
+      });
+    }
+
+    async function handleDetailWish() {
+      const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
+      const goodSeq = getJoinProductGoodSeq(join);
+      if (!goodSeq) {
+        alert("찜하기에 필요한 상품번호를 확인할 수 없습니다.");
+        return;
+      }
+      const alreadyWished = isJoinProductWished(join);
+      if (alreadyWished) {
+        alert("이미 찜한 상품입니다.");
+        return;
+      }
+      addJoinWishProduct(join);
+      refreshDetailWishButtons();
       try {
-        if (navigator.share) {
-          await navigator.share({ title, url });
-          return;
-        }
-        if (navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(url);
-          alert("링크가 복사되었습니다.");
-        }
+        await postDetailGoodsWish(goodSeq);
       } catch (error) {
-        if (error?.name !== "AbortError") console.warn("share failed", error);
+        console.warn("Secret Tour wish request failed.", error);
+      }
+      alert("찜한 상품에 추가되었습니다.");
+    }
+
+    function getDetailShortUrlEndpoint(sourceUrl) {
+      const params = new URLSearchParams({ sourceUrl });
+      const targetHost = getDetailShareHost();
+      const currentHost = window.location.hostname;
+      const path = `/goods/getGoodsShortUrl.json?${params.toString()}`;
+      if (/^(m\.|www\.)?secret-tour\.com$/i.test(currentHost)) return path;
+      return `https://${targetHost}${path}`;
+    }
+
+    async function fetchDetailShareUrl(sourceUrl) {
+      if (!/^(m\.|www\.)?secret-tour\.com$/i.test(window.location.hostname)) return sourceUrl;
+      try {
+        const response = await fetch(getDetailShortUrlEndpoint(sourceUrl), {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        });
+        if (!response.ok) return sourceUrl;
+        const data = await response.json();
+        return data?.data?.shortUrl || sourceUrl;
+      } catch (error) {
+        console.warn("short url failed", error);
+        return sourceUrl;
       }
     }
+
+    function getDetailFacebookShareUrl(shareUrl, title) {
+      return `https://www.facebook.com/sharer.php?u=${encodeURIComponent(shareUrl)}&t=${encodeURIComponent(title || "")}`;
+    }
+
+    function getDetailSmsShareUrl(shareUrl) {
+      const smsSeparator = /iphone|ipad|ipod/i.test(navigator.userAgent) ? "&" : "?";
+      return `sms://${smsSeparator}body=${encodeURIComponent(shareUrl)}`;
+    }
+
+    function ensureDetailShareModal() {
+      let overlay = document.getElementById("detailShareModal");
+      if (overlay) return overlay;
+      overlay = document.createElement("div");
+      overlay.id = "detailShareModal";
+      overlay.className = "detail-share-overlay";
+      overlay.setAttribute("onclick", "handleDetailShareBackdrop(event)");
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function handleDetailShareBackdrop(event) {
+      if (event.target?.id === "detailShareModal") closeDetailShareModal();
+    }
+
+    function closeDetailShareModal() {
+      document.getElementById("detailShareModal")?.classList.remove("open");
+    }
+
+    async function copyDetailShareUrl() {
+      const input = document.getElementById("detailShareUrlInput");
+      const url = input?.value || "";
+      if (!url) return;
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(url);
+        } else {
+          input.focus();
+          input.select();
+          document.execCommand("copy");
+        }
+        alert("링크가 복사되었습니다.");
+      } catch (error) {
+        input?.focus();
+        input?.select();
+        console.warn("copy failed", error);
+      }
+    }
+
+    function shareDetailToKakao() {
+      const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
+      const url = document.getElementById("detailShareUrlInput")?.value || buildDetailGoodsSourceUrl(join);
+      if (window.Kakao?.Link?.sendDefault) {
+        window.Kakao.Link.sendDefault({
+          objectType: "feed",
+          content: {
+            title: join.title || document.title,
+            description: join.goodDescription || join.description || "시크릿투어 골프여행",
+            imageUrl: getDetailSlides(join)[0] || join.image || "",
+            link: {
+              mobileWebUrl: url,
+              webUrl: url
+            }
+          }
+        });
+        return;
+      }
+      copyDetailShareUrl();
+    }
+
+    function openDetailShareModal(join, shareUrl) {
+      const overlay = ensureDetailShareModal();
+      const title = join?.title || document.title;
+      overlay.innerHTML = `
+        <div class="detail-share-panel" role="dialog" aria-modal="true" aria-labelledby="detailShareTitle">
+          <div class="detail-share-head">
+            <div class="detail-share-title" id="detailShareTitle">공유하기</div>
+            <button type="button" class="detail-share-close" onclick="closeDetailShareModal()" aria-label="닫기">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+          <div class="detail-share-body">
+            <div class="detail-share-list" aria-label="공유 채널">
+              <button type="button" class="detail-share-item kakao" onclick="shareDetailToKakao()"><div class="detail-share-icon">톡</div><div>카카오톡</div></button>
+              <a class="detail-share-item facebook" data-detail-share-facebook href="${escapeHtml(getDetailFacebookShareUrl(shareUrl, title))}" target="_blank" rel="noopener"><div class="detail-share-icon">f</div><div>페이스북</div></a>
+              <button type="button" class="detail-share-item url" onclick="copyDetailShareUrl()"><div class="detail-share-icon">URL</div><div>URL</div></button>
+              <a class="detail-share-item sms" data-detail-share-sms href="${escapeHtml(getDetailSmsShareUrl(shareUrl))}"><div class="detail-share-icon">SMS</div><div>SMS</div></a>
+            </div>
+            <div class="detail-share-url-row">
+              <input type="text" class="detail-share-url-input" id="detailShareUrlInput" value="${escapeHtml(shareUrl)}" readonly>
+              <button type="button" class="detail-share-copy-button" onclick="copyDetailShareUrl()">복사</button>
+            </div>
+          </div>
+        </div>
+      `;
+      overlay.classList.add("open");
+    }
+
+    function updateDetailShareModalUrl(shareUrl, title = document.title) {
+      const input = document.getElementById("detailShareUrlInput");
+      const facebook = document.querySelector("[data-detail-share-facebook]");
+      const sms = document.querySelector("[data-detail-share-sms]");
+      if (input) input.value = shareUrl;
+      if (facebook) facebook.setAttribute("href", getDetailFacebookShareUrl(shareUrl, title));
+      if (sms) sms.setAttribute("href", getDetailSmsShareUrl(shareUrl));
+    }
+
+    async function handleDetailShare() {
+      const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
+      const sourceUrl = buildDetailGoodsSourceUrl(join);
+      openDetailShareModal(join, sourceUrl);
+      const shareUrl = await fetchDetailShareUrl(sourceUrl);
+      if (shareUrl !== sourceUrl) updateDetailShareModalUrl(shareUrl, join.title || document.title);
+    }
+    window.handleDetailShare = handleDetailShare;
+    window.closeDetailShareModal = closeDetailShareModal;
+    window.handleDetailShareBackdrop = handleDetailShareBackdrop;
+    window.copyDetailShareUrl = copyDetailShareUrl;
+    window.shareDetailToKakao = shareDetailToKakao;
 
     function setDetailDefaultContactActions() {
       const phone = document.getElementById("detailPhoneButton");
@@ -44768,10 +46687,14 @@
     }
 
     function setDetailBuilderProductActions() {
-      setDetailDefaultContactActions();
+      setDetailSingleSecondaryAction("이전", "closeModal('detailModal')");
+      const kakao = document.getElementById("detailKakaoButton");
+      const dateChange = document.getElementById("detailDateChangeButton");
       const primary = document.getElementById("detailPrimaryButton");
+      if (kakao) kakao.hidden = true;
+      if (dateChange) dateChange.hidden = true;
       if (primary) {
-        primary.textContent = "선택하기";
+        primary.textContent = "새 모임 만들기";
         primary.setAttribute("onclick", "handleDetailPrimaryAction()");
         primary.style.removeProperty("grid-column");
       }
@@ -44801,7 +46724,7 @@
       const primary = document.getElementById("detailPrimaryButton");
       const secondary = document.querySelector("#detailModal .detail-modal-actions .button.secondary");
       if (primary) {
-        primary.textContent = "신청하기";
+        primary.textContent = "참여하기";
         primary.setAttribute("onclick", "openGlobalApply()");
       }
       if (secondary) {
@@ -44851,7 +46774,6 @@
         const groupKey = currentMdPickProductGroupKey;
         const countryKey = currentMdPickCountryKey;
         const product = currentDetailJoinData;
-        closeModal("detailModal");
         openMdPickBuilderWithCurrentDate(groupKey, countryKey, product);
         return;
       }
@@ -44876,8 +46798,7 @@
       }
       const groupKey = currentMdPickProductGroupKey;
       const countryKey = currentMdPickCountryKey;
-      closeModal("detailModal");
-      openMdPickBuilder(groupKey, countryKey);
+      openMdPickBuilder(groupKey, countryKey, { dateChangeMode: true });
     }
 
     function setDetailSlide(index) {
@@ -44939,6 +46860,11 @@
         startX = touch.clientX;
         startY = touch.clientY;
       }, { passive: true });
+      viewport.addEventListener("touchmove", (event) => {
+        if (!window.matchMedia("(max-width: 640px)").matches) return;
+        if (event.touches?.length !== 1) return;
+        event.preventDefault();
+      }, { passive: false });
       viewport.addEventListener("touchend", (event) => {
         const touch = event.changedTouches?.[0];
         if (!touch) return;
@@ -44970,8 +46896,11 @@
       }
       document.getElementById("participantContent").innerHTML = `
         <div class="participant-sheet-header">
+          <button type="button" class="modal-close-icon modal-back-icon participant-sheet-close" onclick="closeParticipant()" aria-label="뒤로가기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+          </button>
           <div class="participant-sheet-title">참여자 정보</div>
-          <button type="button" class="modal-close-icon" onclick="closeParticipant()" aria-label="닫기"></button>
+          <div class="participant-sheet-spacer" aria-hidden="true"></div>
         </div>
         <div class="participant-profile">
           <div class="participant-hero">

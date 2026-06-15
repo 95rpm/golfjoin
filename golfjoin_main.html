@@ -30282,6 +30282,16 @@
                   <button type="button" class="apply-chip" data-value="골프 프로입니다">&#x1F393; 골프 프로입니다</button>
                 </div>
               </div>
+              <div class="field full" data-signup-step="5">
+                <div class="apply-chip-group" data-chip-group="join-member-travel-style" data-multi="true" data-max="3" aria-label="라운딩 스타일">
+                  <button type="button" class="apply-chip" data-value="여유로운 라운드">여유로운 라운드</button>
+                  <button type="button" class="apply-chip" data-value="친목 중심">친목 중심</button>
+                  <button type="button" class="apply-chip" data-value="실력 향상">실력 향상</button>
+                  <button type="button" class="apply-chip" data-value="맛집·관광">맛집·관광</button>
+                  <button type="button" class="apply-chip" data-value="명랑 골프">명랑 골프</button>
+                  <button type="button" class="apply-chip" data-value="집중 라운드">집중 라운드</button>
+                </div>
+              </div>
               <div class="apply-agree-box join-member-signup-agree" data-signup-step="1">
                 <div class="apply-agree-all">
                   <label class="apply-check-line">
@@ -32477,6 +32487,9 @@
       pendingAfterLogin: "my-menu",
       pendingLoginParams: {},
       pendingKakaoSignup: null,
+      pendingProfileAfterLogin: "my-menu",
+      pendingProfileParams: {},
+      pendingProfileMember: null,
       signupCompleteAction: "continue",
       foundMemberId: "",
       findMemberName: "",
@@ -32995,7 +33008,8 @@
       const form = document.getElementById("joinMemberSignupForm");
       if (form) {
         form.dataset.profileOnly = "false";
-        form.classList.remove("is-profile-only", "is-kakao-signup");
+        form.dataset.profileRequired = "false";
+        form.classList.remove("is-profile-only", "is-profile-required", "is-kakao-signup");
         form.classList.add("is-open");
       }
       document.getElementById("joinMemberEmailForm")?.classList.remove("is-open");
@@ -33013,8 +33027,9 @@
       modal?.classList.remove("is-signup-mode");
       const form = document.getElementById("joinMemberSignupForm");
       if (form) {
-        form.classList.remove("is-open", "is-profile-only", "is-kakao-signup");
+        form.classList.remove("is-open", "is-profile-only", "is-profile-required", "is-kakao-signup");
         form.dataset.profileOnly = "false";
+        form.dataset.profileRequired = "false";
       }
       resetJoinMemberSignupValidation();
     }
@@ -33220,7 +33235,7 @@
       2: ["1분이면 충분해요", "로그인에 사용할 아이디를 입력해주세요."],
       3: ["회원정보를 입력해주세요.", "맞춤 견적과 여행 안내를 받으실 필수 정보입니다."],
       4: ["직업", "비슷한 관심사의\n골퍼를 만나보세요."],
-      5: ["실력이 비슷한 골퍼와 함께해요.", "현재 핸디를 선택해주세요."],
+      5: ["나와 맞는 골퍼와 함께해요.", "핸디와 라운딩 스타일을 선택해주세요."],
       6: ["가입이 완료됐어요", "이제 나에게 맞는 조인여행을 시작해볼까요?"]
     };
 
@@ -33249,7 +33264,7 @@
         2: ["1분이면 충분해요", "로그인에 사용할 아이디를 입력해주세요."],
         3: ["회원정보를 입력해주세요.", "맞춤 견적과 여행 안내를 받으실 필수 정보입니다."],
         4: ["직업", "비슷한 관심사의\n골퍼를 만나보세요."],
-        5: ["실력이 비슷한 골퍼와 함께해요.", "현재 핸디를 선택해주세요."],
+        5: ["나와 맞는 골퍼와 함께해요.", "핸디와 라운딩 스타일을 선택해주세요."],
         6: ["가입이 완료되었어요", "이제 나에게 맞는 조인여행을 시작해볼까요?"]
       };
       const [title, desc] = stepCopy[nextStep] || stepCopy[1];
@@ -33272,10 +33287,11 @@
       const next = form.querySelector("[data-signup-next]");
       const submit = form.querySelector("[data-signup-submit]");
       const nav = form.querySelector("[data-signup-nav]");
-      if (prev) prev.hidden = nextStep <= minStep || nextStep >= 6;
+      const profileRequired = form.dataset.profileRequired === "true";
+      if (prev) prev.hidden = profileRequired ? nextStep <= 3 || nextStep >= 6 : nextStep <= minStep || nextStep >= 6;
       if (next) next.hidden = nextStep >= 5;
       if (submit) submit.hidden = nextStep !== 5;
-      nav?.classList.toggle("has-prev", nextStep > minStep && nextStep < 6);
+      nav?.classList.toggle("has-prev", profileRequired ? nextStep > 3 && nextStep < 6 : nextStep > minStep && nextStep < 6);
       nav?.toggleAttribute("hidden", nextStep === 6);
       updateJoinMemberSignupNavState();
     }
@@ -33304,6 +33320,28 @@
       return Array.from(document.querySelectorAll('[data-chip-group="join-member-travel-style"] .apply-chip.active'))
         .map((chip) => chip.dataset.value || chip.textContent.trim())
         .filter(Boolean);
+    }
+
+    function hasJoinMemberSignupSelectedTravelStyle() {
+      return getJoinMemberSignupSelectedTravelStyles().length > 0;
+    }
+
+    function splitJoinMemberProfileStyles(value = []) {
+      if (Array.isArray(value)) return value.map((item) => String(item || "").trim()).filter(Boolean);
+      return String(value || "").split(",").map((item) => item.trim()).filter(Boolean);
+    }
+
+    function getJoinMemberMissingProfileFields(member = {}) {
+      const missing = [];
+      if (!getJoinMemberBirthYear(member)) missing.push("birthYear");
+      if (!member.gender) missing.push("gender");
+      if (!member.level) missing.push("level");
+      if (splitJoinMemberProfileStyles(member.travelStyles || member.styles).length === 0) missing.push("travelStyles");
+      return missing;
+    }
+
+    function isJoinMemberProfileComplete(member = {}) {
+      return getJoinMemberMissingProfileFields(member).length === 0;
     }
 
     function validateJoinMemberSignupProfileStep() {
@@ -33336,7 +33374,7 @@
         return Boolean(document.getElementById("joinMemberSignupProfession")?.value.trim());
       }
       if (step === 5) {
-        return Boolean(getJoinMemberSignupSelectedLevel());
+        return Boolean(getJoinMemberSignupSelectedLevel()) && hasJoinMemberSignupSelectedTravelStyle();
       }
       return true;
     }
@@ -33387,11 +33425,16 @@
         return true;
       }
       if (step === 4 && !document.getElementById("joinMemberSignupProfession")?.value.trim()) {
+        if (document.getElementById("joinMemberSignupForm")?.dataset.profileRequired === "true") return true;
         setJoinMemberLoginStatus("직업/관심분야를 선택하거나 직접 입력해 주세요.");
         return false;
       }
       if (step === 5 && !getJoinMemberSignupSelectedLevel()) {
         setJoinMemberLoginStatus("현재 핸디를 선택해 주세요.");
+        return false;
+      }
+      if (step === 5 && !hasJoinMemberSignupSelectedTravelStyle()) {
+        setJoinMemberLoginStatus("라운딩 스타일을 하나 이상 선택해 주세요.");
         return false;
       }
       return true;
@@ -33404,6 +33447,14 @@
       const form = document.getElementById("joinMemberSignupForm");
       const profileOnly = form?.dataset.profileOnly === "true";
       if (profileOnly && direction > 0 && current === 1) {
+        setJoinMemberSignupStep(3);
+        return;
+      }
+      if (form?.dataset.profileRequired === "true" && direction > 0 && current === 3) {
+        setJoinMemberSignupStep(5);
+        return;
+      }
+      if (form?.dataset.profileRequired === "true" && direction < 0 && current === 5) {
         setJoinMemberSignupStep(3);
         return;
       }
@@ -33707,7 +33758,7 @@
         const data = await response.json();
         const rows = Array.isArray(data) ? data : (data.items || data.rows || []);
         const profile = normalizeJoinMemberProfileRow(rows[0] || {});
-        if (profile.gender || profile.birthYear || profile.profession || profile.level) {
+        if (profile.gender || profile.birthYear || profile.profession || profile.level || profile.travelStyles) {
           rememberJoinMemberProfileLocally(member, profile);
           return profile;
         }
@@ -33734,7 +33785,7 @@
 
     async function hydrateJoinMemberProfile(member = {}, options = {}) {
       const cached = getRememberedJoinMemberProfile(member);
-      if (!options.refresh && (cached.gender || cached.birthYear || cached.profession || cached.level)) {
+      if (!options.refresh && isJoinMemberProfileComplete(cached)) {
         return mergeJoinMemberWithProfile(member, cached);
       }
       const sheetProfile = await fetchJoinMemberProfileFromGoogleSheet(member);
@@ -33756,6 +33807,7 @@
         phone: mobile,
         profession: document.getElementById("joinMemberSignupProfession")?.value || "",
         level: getJoinMemberSignupSelectedLevel(),
+        travelStyles: getJoinMemberSignupSelectedTravelStyles(),
         email
       };
     }
@@ -33793,6 +33845,87 @@
       setWidgetModalOpen(true);
     }
 
+    function setJoinMemberSignupChipValue(groupName, value) {
+      document.querySelectorAll(`[data-chip-group="${groupName}"] .apply-chip`).forEach((chip) => {
+        chip.classList.toggle("active", Boolean(value) && chip.dataset.value === value);
+      });
+    }
+
+    function setJoinMemberSignupChipValues(groupName, values = []) {
+      const selected = new Set(splitJoinMemberProfileStyles(values));
+      document.querySelectorAll(`[data-chip-group="${groupName}"] .apply-chip`).forEach((chip) => {
+        chip.classList.toggle("active", selected.has(chip.dataset.value || chip.textContent.trim()));
+      });
+    }
+
+    function openJoinMemberRequiredProfileForm(member = {}, afterLogin = "my-menu", extraParams = {}) {
+      const overlay = portalOverlayToBody("joinMemberLoginModal");
+      const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
+      const form = document.getElementById("joinMemberSignupForm");
+      if (!form) return;
+      joinMyMenuState.pendingProfileAfterLogin = afterLogin || "my-menu";
+      joinMyMenuState.pendingProfileParams = { ...extraParams };
+      joinMyMenuState.pendingProfileMember = member || {};
+      modal?.classList.add("is-signup-mode");
+      modal?.classList.remove("is-email-mode", "is-signup-intro-mode", "is-find-id-mode", "is-find-pw-mode");
+      const title = document.getElementById("joinMemberLoginTitle");
+      if (title) title.textContent = "추가정보 입력";
+      populateJoinMemberSignupYears();
+      resetJoinMemberEmailValidation();
+      resetJoinMemberSignupValidation();
+      form.dataset.profileOnly = "true";
+      form.dataset.profileRequired = "true";
+      form.classList.add("is-open", "is-profile-only", "is-profile-required");
+      form.classList.remove("is-kakao-signup");
+      document.getElementById("joinMemberSignupIntro")?.classList.remove("is-open");
+      document.getElementById("joinMemberEmailForm")?.classList.remove("is-open");
+      document.getElementById("joinMemberFindIdForm")?.classList.remove("is-open");
+      document.getElementById("joinMemberFindPwForm")?.classList.remove("is-open");
+      const nameInput = document.getElementById("joinMemberSignupName");
+      const mobileInput = document.getElementById("joinMemberSignupMobile");
+      const emailInput = document.getElementById("joinMemberSignupContactEmail");
+      const birthYearInput = document.getElementById("joinMemberSignupBirthYear");
+      if (nameInput) nameInput.value = member.memberName || member.name || "";
+      if (mobileInput) mobileInput.value = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
+      if (emailInput) emailInput.value = member.memberEmail || member.email || "";
+      if (birthYearInput) birthYearInput.value = getJoinMemberBirthYear(member);
+      setJoinMemberSignupChipValue("join-member-gender", member.gender || "");
+      setJoinMemberSignupChipValue("join-member-level", member.level || "");
+      setJoinMemberSignupChipValues("join-member-travel-style", member.travelStyles || member.styles || []);
+      const professionInput = document.getElementById("joinMemberSignupProfession");
+      if (professionInput) professionInput.value = member.profession || "";
+      syncAllJoinMemberFloatingFields();
+      setJoinMemberSignupStep(3);
+      setJoinMemberLoginStatus("조인 서비스 이용을 위해 부족한 추가정보를 입력해 주세요.");
+      overlay?.classList.add("open");
+      setWidgetModalOpen(true);
+    }
+
+    function continueAfterJoinMemberProfileSave(member = {}) {
+      const afterLogin = joinMyMenuState.pendingProfileAfterLogin || joinMyMenuState.pendingAfterLogin || "my-menu";
+      const params = joinMyMenuState.pendingProfileParams || {};
+      joinMyMenuState.pendingProfileAfterLogin = "my-menu";
+      joinMyMenuState.pendingProfileParams = {};
+      joinMyMenuState.pendingProfileMember = null;
+      closeJoinMemberLoginModal();
+      if (afterLogin === "builder") {
+        openModal("builderModal", { skipProfileCheck: true });
+        return;
+      }
+      if (afterLogin === "apply") {
+        if (params.applyJoinId) currentDetailJoinId = params.applyJoinId;
+        openGlobalApply({ skipProfileCheck: true });
+        return;
+      }
+      if (afterLogin === "interest") {
+        setJoinMobileNavActive("interest");
+        openJoinMyMenu({ skipProfileCheck: true, member });
+        return;
+      }
+      setJoinMobileNavActive("my");
+      openJoinMyMenu({ skipProfileCheck: true, member });
+    }
+
     function resetJoinMemberSignupValidation() {
       document.getElementById("joinMemberSignupForm")?.classList.remove("is-email-valid");
       [
@@ -33807,6 +33940,9 @@
       ].forEach(([fieldId, helperId]) => setJoinMemberFieldInvalid(fieldId, helperId, ""));
       document.querySelectorAll('[data-chip-group="join-member-gender"] .apply-chip').forEach((chip) => {
         chip.classList.toggle("active", chip.dataset.value === "남성");
+      });
+      document.querySelectorAll('[data-chip-group="join-member-level"] .apply-chip, [data-chip-group="join-member-travel-style"] .apply-chip').forEach((chip) => {
+        chip.classList.remove("active");
       });
       const professionInput = document.getElementById("joinMemberSignupProfession");
       if (professionInput) professionInput.value = "";
@@ -34140,7 +34276,7 @@
           memberSeq: member.memberSeq || "",
           memberId: member.memberId || pendingKakao.kakaoId || "",
           memberName: name,
-          memberChannel: member.memberChannel || "KAKAO",
+          memberChannel: member.memberChannel || (pendingKakao.kakaoId ? "KAKAO" : "HOME"),
           memberMobile: mobile,
           memberEmail: email
         },
@@ -34163,6 +34299,7 @@
 
     async function submitJoinMemberProfileOnly() {
       const pendingKakao = getJoinPendingKakaoProfile();
+      const profileRequired = document.getElementById("joinMemberSignupForm")?.dataset.profileRequired === "true";
       const validations = [
         validateJoinMemberSignupNameField(true),
         validateJoinMemberSignupMobileField(true),
@@ -34182,7 +34319,7 @@
         setJoinMemberSignupStep(5);
         return;
       }
-      if (!validateJoinMemberSignupAgreements()) {
+      if (!profileRequired && !validateJoinMemberSignupAgreements()) {
         setJoinMemberLoginStatus("필수 약관에 모두 동의해 주세요.");
         setJoinMemberSignupStep(1);
         document.getElementById("joinMemberSignupAgreeAll")?.focus();
@@ -34244,7 +34381,7 @@
       try {
         joinMyMenuState.loginRedirecting = true;
         setJoinMemberLoginStatus("추가정보를 저장하고 있습니다.");
-        const member = await getJoinCurrentMember({ refresh: true });
+        const member = joinMyMenuState.pendingProfileMember || await getJoinCurrentMember({ refresh: true });
         if (!member) {
           joinMyMenuState.loginRedirecting = false;
           setJoinMemberLoginStatus("로그인 정보가 만료되었습니다. 다시 로그인해 주세요.");
@@ -34252,7 +34389,19 @@
         }
         const payload = buildJoinMemberProfilePayload(member);
         await saveJoinMemberProfileToGoogleSheet(payload);
+        rememberJoinMemberProfileLocally(member, {
+          ...payload.profile,
+          name: payload.member?.memberName || member.memberName || "",
+          mobile: payload.member?.memberMobile || member.memberMobile || "",
+          phone: payload.member?.memberMobile || member.memberMobile || "",
+          email: payload.member?.memberEmail || member.memberEmail || ""
+        });
         clearJoinPendingKakaoProfile();
+        joinMyMenuState.loginRedirecting = false;
+        if (profileRequired) {
+          continueAfterJoinMemberProfileSave(mergeJoinMemberWithProfile(member, payload.profile || {}));
+          return;
+        }
         finishJoinMemberSignupAndContinue(member, payload.profile || {});
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
@@ -34497,6 +34646,17 @@
       return joinMyMenuState.memberPromise;
     }
 
+    async function ensureJoinMemberProfileReady(afterLogin = "my-menu", extraParams = {}, options = {}) {
+      const member = options.member || await getJoinCurrentMember({ refresh: true });
+      if (!member) {
+        redirectToJoinLogin(afterLogin, extraParams);
+        return null;
+      }
+      if (options.skipProfileCheck || isJoinMemberProfileComplete(member)) return member;
+      openJoinMemberRequiredProfileForm(member, afterLogin, extraParams);
+      return null;
+    }
+
     function getJoinMemberBirthYear(member = {}) {
       const direct = String(member.birthYear || "").trim();
       if (/^\d{4}$/.test(direct)) return direct;
@@ -34552,6 +34712,11 @@
       document.documentElement.classList.add("modal-open");
       document.body.classList.add("modal-open");
       const member = await getJoinCurrentMember({ refresh: true });
+      if (member && !isJoinMemberProfileComplete(member)) {
+        closeJoinMyDrawer();
+        openJoinMemberRequiredProfileForm(member, "my-menu");
+        return;
+      }
       if (member) updateJoinMyDrawerProfile(member);
     }
 
@@ -34911,7 +35076,7 @@
       `;
     }
 
-    async function openJoinMyMenu() {
+    async function openJoinMyMenu(options = {}) {
       const overlay = portalOverlayToBody("joinMyMenuModal");
       const body = document.getElementById("joinMyMenuBody");
       document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "내 예약");
@@ -34920,9 +35085,15 @@
       document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
       setJoinMobileBottomNavVisible(false);
       setWidgetModalOpen(true);
-      const member = await getJoinCurrentMember({ refresh: true });
+      const member = options.member || await getJoinCurrentMember({ refresh: true });
       if (!member) {
         redirectToJoinLogin("my-menu");
+        return;
+      }
+      if (!options.skipProfileCheck && !isJoinMemberProfileComplete(member)) {
+        overlay?.classList.remove("open");
+        setWidgetModalOpen(hasOpenBlockingModal());
+        openJoinMemberRequiredProfileForm(member, "my-menu");
         return;
       }
       renderJoinMyMenu(member);
@@ -39879,6 +40050,17 @@
       syncBuilderApplyAgreementState();
     }
 
+    async function applyJoinMemberProfileToBuilderForm() {
+      const memberProfile = await getJoinApplyMemberProfile();
+      if (memberProfile.travelStyles) {
+        const styles = new Set(splitJoinMemberProfileStyles(memberProfile.travelStyles));
+        document.querySelectorAll('[data-chip-group="builder-style"] .apply-chip').forEach((chip) => {
+          chip.classList.toggle("active", styles.has(chip.dataset.value || chip.textContent.trim()));
+        });
+      }
+      updateBuilderApplySummary();
+    }
+
     function openBuilderAlert(message = "도착일을 선택해주세요.") {
       const overlay = portalOverlayToBody("builderAlertModal");
       const messageTarget = document.getElementById("builderAlertMessage");
@@ -39950,6 +40132,7 @@
         mdPickRecruitDirectMode: false
       });
       resetBuilderApplyForm();
+      applyJoinMemberProfileToBuilderForm();
       builderRegionSelectorMode = true;
       closeBuilderDatePopover(true);
       closeBuilderFlexSheet();
@@ -40004,8 +40187,12 @@
       document.getElementById("builderProductDetail")?.classList.remove("open");
     }
 
-    function openModal(id) {
+    async function openModal(id, options = {}) {
       if (id === "builderModal" && !requireJoinLogin("builder")) return;
+      if (id === "builderModal" && !options.skipProfileCheck) {
+        const member = await ensureJoinMemberProfileReady("builder");
+        if (!member) return;
+      }
       stopQuickMobileCarousel();
       const overlay = portalOverlayToBody(id);
       if (id === "detailModal" && overlay) {
@@ -43032,7 +43219,8 @@
         ageDisplay: getApplyAgeDisplayFromBirthYear(birthYear),
         phone: mobile,
         profession: cached.profession || member?.profession || "",
-        level: cached.level || member?.level || ""
+        level: cached.level || member?.level || "",
+        travelStyles: cached.travelStyles || member?.travelStyles || ""
       };
     }
 
@@ -43063,9 +43251,13 @@
       if (greetingNode) greetingNode.textContent = `“${greeting}”`;
     }
 
-    async function openGlobalApply() {
+    async function openGlobalApply(options = {}) {
       const applyJoinId = currentDetailJoinId || "";
       if (!requireJoinLogin("apply", applyJoinId ? { applyJoinId } : {})) return;
+      if (!options.skipProfileCheck) {
+        const member = await ensureJoinMemberProfileReady("apply", applyJoinId ? { applyJoinId } : {});
+        if (!member) return;
+      }
       stopQuickMobileCarousel();
       const overlay = document.getElementById("globalApplyOverlay");
       portalOverlayToBody("globalApplyOverlay");
@@ -43106,6 +43298,12 @@
       if (professionInput && memberProfile.profession && !professionInput.value.trim()) {
         professionInput.value = memberProfile.profession;
         syncApplyProfessionChips(professionInput.value);
+      }
+      if (memberProfile.travelStyles) {
+        const styles = new Set(splitJoinMemberProfileStyles(memberProfile.travelStyles));
+        document.querySelectorAll('[data-chip-group="global-style"] .apply-chip').forEach((chip) => {
+          chip.classList.toggle("active", styles.has(chip.dataset.value || chip.textContent.trim()));
+        });
       }
       overlay.classList.add("open");
       requestAnimationFrame(() => panel.classList.add("open"));

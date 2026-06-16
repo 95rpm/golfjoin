@@ -6645,6 +6645,47 @@
       font-size: 15px;
       font-weight: 900;
     }
+    .join-action-loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483990;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .12s ease;
+    }
+    .join-action-loading-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .join-action-loading-box {
+      width: 70px;
+      height: 70px;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, .85);
+      box-shadow: 0 18px 44px rgba(15, 23, 42, .18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111827;
+    }
+    .join-action-loading-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .join-action-loading-icon svg {
+      width: 28px;
+      height: 28px;
+      display: block;
+    }
+    button[data-join-loading-locked="true"] {
+      pointer-events: none;
+    }
     @media (min-width: 641px) {
       .builder-modal {
         height: min(710px, calc(100vh - 40px));
@@ -19571,7 +19612,8 @@
     .join-member-signup-form[data-step="3"] [data-signup-step]:not([data-signup-step="3"]),
     .join-member-signup-form[data-step="4"] [data-signup-step]:not([data-signup-step="4"]),
     .join-member-signup-form[data-step="5"] [data-signup-step]:not([data-signup-step="5"]),
-    .join-member-signup-form[data-step="6"] [data-signup-step]:not([data-signup-step="6"]) {
+    .join-member-signup-form[data-step="6"] [data-signup-step]:not([data-signup-step="6"]),
+    .join-member-signup-form[data-step="7"] [data-signup-step]:not([data-signup-step="7"]) {
       display: none !important;
     }
 
@@ -30167,6 +30209,7 @@
                 <div class="join-member-signup-progress-bar" data-progress-step="3"></div>
                 <div class="join-member-signup-progress-bar" data-progress-step="4"></div>
                 <div class="join-member-signup-progress-bar" data-progress-step="5"></div>
+                <div class="join-member-signup-progress-bar" data-progress-step="6"></div>
               </div>
               <div class="join-member-signup-step-copy" data-signup-copy="">
                 <div class="join-member-signup-step-title" id="joinMemberSignupStepTitle">약관 내용을 확인하고</div>
@@ -30282,7 +30325,7 @@
                   <button type="button" class="apply-chip" data-value="골프 프로입니다">&#x1F393; 골프 프로입니다</button>
                 </div>
               </div>
-              <div class="field full" data-signup-step="5">
+              <div class="field full" data-signup-step="6">
                 <div class="apply-chip-group" data-chip-group="join-member-travel-style" data-multi="true" data-max="3" aria-label="라운딩 스타일">
                   <button type="button" class="apply-chip" data-value="여유로운 라운드">여유로운 라운드</button>
                   <button type="button" class="apply-chip" data-value="친목 중심">친목 중심</button>
@@ -30331,7 +30374,7 @@
                   </div>
                 </div>
               </div>
-              <div class="join-member-signup-complete" data-signup-step="6">
+              <div class="join-member-signup-complete" data-signup-step="7">
                 <div class="join-member-confetti" aria-hidden="true" id="joinMemberSignupConfetti"></div>
                 <div class="join-member-signup-complete-icon">
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4 4 10-10" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -30697,6 +30740,12 @@
     <div class="builder-alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="builderAlertMessage">
       <div class="builder-alert-message" id="builderAlertMessage">도착일을 선택해주세요.</div>
       <button type="button" class="builder-alert-button" onclick="closeBuilderAlert()">확인</button>
+    </div>
+  </div>
+
+  <div class="join-action-loading-overlay" id="joinActionLoadingOverlay" aria-hidden="true">
+    <div class="join-action-loading-box" role="status" aria-live="polite" aria-label="처리 중">
+      <div class="join-action-loading-icon" id="joinActionLoadingIcon"></div>
     </div>
   </div>
 
@@ -32408,6 +32457,18 @@
       ]
     };
     let builderStep = 1;
+    let suppressBuilderNextUntil = 0;
+    let joinActionLoadingCount = 0;
+    let joinActionLoadingIconIndex = 0;
+    let joinActionLoadingTimer = null;
+    let lastJoinAsyncClickButton = null;
+    const joinActionLoadingIcons = [
+      `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-binoculars-icon lucide-binoculars"><path d="M10 10h4"/><path d="M19 7V4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3"/><path d="M20 21a2 2 0 0 0 2-2v-3.851c0-1.39-2-2.962-2-4.829V8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2z"/><path d="M 22 16 L 2 16"/><path d="M4 21a2 2 0 0 1-2-2v-3.851c0-1.39 2-2.962 2-4.829V8a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2z"/><path d="M9 7V4a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v3"/></svg>`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tickets-plane-icon lucide-tickets-plane"><path d="M10.5 17h1.227a2 2 0 0 0 1.345-.52L18 12"/><path d="m12 13.5 3.794.506"/><path d="m3.173 8.18 11-5a2 2 0 0 1 2.647.993L18.56 8"/><path d="M6 10V8"/><path d="M6 14v1"/><path d="M6 19v2"/><rect x="2" y="8" width="20" height="13" rx="2"/></svg>`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-luggage-icon lucide-luggage"><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"/><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14"/><path d="M10 20h4"/><circle cx="16" cy="20" r="2"/><circle cx="8" cy="20" r="2"/></svg>`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sailboat-icon lucide-sailboat"><path d="M10 2v15"/><path d="M7 22a4 4 0 0 1-4-4 1 1 0 0 1 1-1h16a1 1 0 0 1 1 1 4 4 0 0 1-4 4z"/><path d="M9.159 2.46a1 1 0 0 1 1.521-.193l9.977 8.98A1 1 0 0 1 20 13H4a1 1 0 0 1-.824-1.567z"/></svg>`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plane-icon lucide-plane"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>`
+    ];
     let activeBuilderFlexTarget = "start";
     let activeBuilderPopoverTarget = "start";
     let activeBuilderPopoverDay = null;
@@ -32473,13 +32534,98 @@
                     ? "2147483950"
                     : id === "builderAlertModal"
                       ? "2147484000"
-                      : "2147483000";
+                      : id === "joinActionLoadingOverlay"
+                        ? "2147483990"
+                        : "2147483000";
       overlay?.style.setProperty("z-index", zIndex, "important");
       if (id === "phoneModal") {
         overlay?.querySelector(".modal")?.style.setProperty("z-index", "2147483801", "important");
       }
       return overlay;
     }
+
+    function renderJoinActionLoadingIcon() {
+      const target = document.getElementById("joinActionLoadingIcon");
+      if (!target) return;
+      target.innerHTML = joinActionLoadingIcons[joinActionLoadingIconIndex % joinActionLoadingIcons.length] || "";
+      joinActionLoadingIconIndex += 1;
+    }
+
+    function openJoinActionLoading() {
+      joinActionLoadingCount += 1;
+      const overlay = portalOverlayToBody("joinActionLoadingOverlay");
+      if (!overlay) return;
+      renderJoinActionLoadingIcon();
+      overlay.classList.add("open");
+      overlay.setAttribute("aria-hidden", "false");
+      if (!joinActionLoadingTimer) {
+        joinActionLoadingTimer = setInterval(renderJoinActionLoadingIcon, 500);
+      }
+    }
+
+    function closeJoinActionLoading() {
+      joinActionLoadingCount = Math.max(0, joinActionLoadingCount - 1);
+      if (joinActionLoadingCount > 0) return;
+      const overlay = document.getElementById("joinActionLoadingOverlay");
+      overlay?.classList.remove("open");
+      overlay?.setAttribute("aria-hidden", "true");
+      if (joinActionLoadingTimer) {
+        clearInterval(joinActionLoadingTimer);
+        joinActionLoadingTimer = null;
+      }
+    }
+
+    function getLastJoinAsyncClickButton() {
+      const button = lastJoinAsyncClickButton;
+      if (!button || !document.documentElement.contains(button)) return null;
+      return button;
+    }
+
+    async function runJoinActionLoading(action, options = {}) {
+      const button = options.button === undefined ? getLastJoinAsyncClickButton() : options.button;
+      if (button?.dataset?.joinLoadingLocked === "true") return undefined;
+      if (button) {
+        button.dataset.joinLoadingLocked = "true";
+        button.setAttribute("aria-disabled", "true");
+      }
+      openJoinActionLoading();
+      try {
+        return await action();
+      } finally {
+        closeJoinActionLoading();
+        if (button) {
+          button.removeAttribute("aria-disabled");
+          delete button.dataset.joinLoadingLocked;
+        }
+      }
+    }
+
+    function wrapJoinAsyncFunction(original) {
+      if (typeof original !== "function" || original.__joinLoadingWrapped) return original;
+      const wrapped = function(...args) {
+        if (wrapped.__joinActionRunning) return undefined;
+        wrapped.__joinActionRunning = true;
+        return runJoinActionLoading(() => original.apply(this, args)).finally(() => {
+          wrapped.__joinActionRunning = false;
+        });
+      };
+      wrapped.__joinLoadingWrapped = true;
+      return wrapped;
+    }
+
+    document.addEventListener("click", (event) => {
+      const button = event.target?.closest?.("button");
+      if (!button) return;
+      if (button.dataset.joinLoadingLocked === "true") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+      lastJoinAsyncClickButton = button;
+      window.setTimeout(() => {
+        if (lastJoinAsyncClickButton === button) lastJoinAsyncClickButton = null;
+      }, 1000);
+    }, true);
 
     const joinMyMenuState = {
       memberPromise: null,
@@ -32668,7 +32814,7 @@
       joinMyMenuState.loginRedirecting = false;
       joinMyMenuState.signupCompleteAction = action;
       setJoinMemberLoginStatus("");
-      setJoinMemberSignupStep(6);
+      setJoinMemberSignupStep(7);
       renderJoinMemberSignupConfetti();
     }
 
@@ -32890,6 +33036,7 @@
     }
 
     function closeJoinMemberLoginModal() {
+      resetModalRuntimeState(document.getElementById("joinMemberLoginModal"));
       resetJoinMemberLoginModalMode();
       document.getElementById("joinMemberLoginModal")?.classList.remove("open");
       setWidgetModalOpen(hasOpenBlockingModal());
@@ -33235,8 +33382,9 @@
       2: ["1분이면 충분해요", "로그인에 사용할 아이디를 입력해주세요."],
       3: ["회원정보를 입력해주세요.", "맞춤 견적과 여행 안내를 받으실 필수 정보입니다."],
       4: ["직업", "비슷한 관심사의\n골퍼를 만나보세요."],
-      5: ["나와 맞는 골퍼와 함께해요.", "핸디와 라운딩 스타일을 선택해주세요."],
-      6: ["가입이 완료됐어요", "이제 나에게 맞는 조인여행을 시작해볼까요?"]
+      5: ["실력이 비슷한 골퍼와 함께해요.", "현재 핸디를 선택해주세요."],
+      6: ["라운딩 스타일을 알려주세요.", "나와 맞는 골퍼를 더 쉽게 만날 수 있어요."],
+      7: ["가입이 완료됐어요", "이제 나에게 맞는 조인여행을 시작해볼까요?"]
     };
 
     function populateJoinMemberSignupYears() {
@@ -33257,15 +33405,16 @@
       if (!form) return;
       const profileOnly = form.dataset.profileOnly === "true";
       const minStep = 1;
-      const nextStep = Math.max(minStep, Math.min(6, Number(step) || minStep));
+      const nextStep = Math.max(minStep, Math.min(7, Number(step) || minStep));
       form.dataset.step = String(nextStep);
       const stepCopy = {
         1: ["약관 내용을 확인하고", "동의해주세요."],
         2: ["1분이면 충분해요", "로그인에 사용할 아이디를 입력해주세요."],
         3: ["회원정보를 입력해주세요.", "맞춤 견적과 여행 안내를 받으실 필수 정보입니다."],
         4: ["직업", "비슷한 관심사의\n골퍼를 만나보세요."],
-        5: ["나와 맞는 골퍼와 함께해요.", "핸디와 라운딩 스타일을 선택해주세요."],
-        6: ["가입이 완료되었어요", "이제 나에게 맞는 조인여행을 시작해볼까요?"]
+        5: ["실력이 비슷한 골퍼와 함께해요.", "현재 핸디를 선택해주세요."],
+        6: ["라운딩 스타일을 알려주세요.", "나와 맞는 골퍼를 더 쉽게 만날 수 있어요."],
+        7: ["가입이 완료되었어요", "이제 나에게 맞는 조인여행을 시작해볼까요?"]
       };
       const [title, desc] = stepCopy[nextStep] || stepCopy[1];
       const titleEl = document.getElementById("joinMemberSignupStepTitle");
@@ -33279,8 +33428,8 @@
       form.querySelectorAll("[data-progress-step]").forEach((bar) => {
         const barStep = Number(bar.dataset.progressStep || 0);
         const isActive = profileOnly
-          ? (barStep >= minStep && barStep <= Math.min(nextStep, 5))
-          : barStep <= Math.min(nextStep, 5);
+          ? (barStep >= minStep && barStep <= Math.min(nextStep, 6))
+          : barStep <= Math.min(nextStep, 6);
         bar.classList.toggle("is-active", isActive);
       });
       const prev = form.querySelector("[data-signup-prev]");
@@ -33288,11 +33437,11 @@
       const submit = form.querySelector("[data-signup-submit]");
       const nav = form.querySelector("[data-signup-nav]");
       const profileRequired = form.dataset.profileRequired === "true";
-      if (prev) prev.hidden = profileRequired ? nextStep <= 3 || nextStep >= 6 : nextStep <= minStep || nextStep >= 6;
-      if (next) next.hidden = nextStep >= 5;
-      if (submit) submit.hidden = nextStep !== 5;
-      nav?.classList.toggle("has-prev", profileRequired ? nextStep > 3 && nextStep < 6 : nextStep > minStep && nextStep < 6);
-      nav?.toggleAttribute("hidden", nextStep === 6);
+      if (prev) prev.hidden = profileRequired ? nextStep <= 3 || nextStep >= 7 : nextStep <= minStep || nextStep >= 7;
+      if (next) next.hidden = nextStep >= 6;
+      if (submit) submit.hidden = nextStep !== 6;
+      nav?.classList.toggle("has-prev", profileRequired ? nextStep > 3 && nextStep < 7 : nextStep > minStep && nextStep < 7);
+      nav?.toggleAttribute("hidden", nextStep === 7);
       updateJoinMemberSignupNavState();
     }
 
@@ -33374,7 +33523,10 @@
         return Boolean(document.getElementById("joinMemberSignupProfession")?.value.trim());
       }
       if (step === 5) {
-        return Boolean(getJoinMemberSignupSelectedLevel()) && hasJoinMemberSignupSelectedTravelStyle();
+        return Boolean(getJoinMemberSignupSelectedLevel());
+      }
+      if (step === 6) {
+        return hasJoinMemberSignupSelectedTravelStyle();
       }
       return true;
     }
@@ -33386,8 +33538,8 @@
       const complete = isJoinMemberSignupStepComplete(step);
       const next = form.querySelector("[data-signup-next]");
       const submit = form.querySelector("[data-signup-submit]");
-      if (next) next.disabled = step < 5 && !complete;
-      if (submit) submit.disabled = step === 5 && !complete;
+      if (next) next.disabled = step < 6 && !complete;
+      if (submit) submit.disabled = step === 6 && !complete;
     }
 
     function validateJoinMemberSignupStep(step = getJoinMemberSignupStep()) {
@@ -33433,7 +33585,7 @@
         setJoinMemberLoginStatus("현재 핸디를 선택해 주세요.");
         return false;
       }
-      if (step === 5 && !hasJoinMemberSignupSelectedTravelStyle()) {
+      if (step === 6 && !hasJoinMemberSignupSelectedTravelStyle()) {
         setJoinMemberLoginStatus("라운딩 스타일을 하나 이상 선택해 주세요.");
         return false;
       }
@@ -34319,6 +34471,10 @@
         setJoinMemberSignupStep(5);
         return;
       }
+      if (!validateJoinMemberSignupStep(6)) {
+        setJoinMemberSignupStep(6);
+        return;
+      }
       if (!profileRequired && !validateJoinMemberSignupAgreements()) {
         setJoinMemberLoginStatus("필수 약관에 모두 동의해 주세요.");
         setJoinMemberSignupStep(1);
@@ -34448,6 +34604,10 @@
       }
       if (!validateJoinMemberSignupStep(5)) {
         setJoinMemberSignupStep(5);
+        return;
+      }
+      if (!validateJoinMemberSignupStep(6)) {
+        setJoinMemberSignupStep(6);
         return;
       }
       if (password !== passwordConfirm) {
@@ -34685,6 +34845,12 @@
       if (ageTarget) ageTarget.textContent = age;
     }
 
+    function getJoinMyDrawerCachedProfile() {
+      const loginState = getJoinLoginState();
+      const member = loginState.member || {};
+      return mergeJoinMemberWithProfile(member, getRememberedJoinMemberProfile(member));
+    }
+
     function updateJoinMyDrawerHeaderOffset() {
       const overlay = document.getElementById("joinMyDrawerOverlay");
       if (!overlay) return;
@@ -34703,7 +34869,11 @@
 
     async function openJoinMyDrawer() {
       const overlay = document.getElementById("joinMyDrawerOverlay");
+      const cachedMember = getJoinMyDrawerCachedProfile();
       updateJoinMyDrawerHeaderOffset();
+      if (cachedMember.memberName || cachedMember.gender || getJoinMemberBirthYear(cachedMember)) {
+        updateJoinMyDrawerProfile(cachedMember);
+      }
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
       document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
@@ -34712,6 +34882,7 @@
       document.documentElement.classList.add("modal-open");
       document.body.classList.add("modal-open");
       const member = await getJoinCurrentMember({ refresh: true });
+      if (!document.getElementById("joinMyDrawerOverlay")?.classList.contains("open")) return;
       if (member && !isJoinMemberProfileComplete(member)) {
         closeJoinMyDrawer();
         openJoinMemberRequiredProfileForm(member, "my-menu");
@@ -34722,6 +34893,7 @@
 
     function closeJoinMyDrawer() {
       const overlay = document.getElementById("joinMyDrawerOverlay");
+      resetModalRuntimeState(overlay);
       overlay?.classList.remove("open");
       overlay?.setAttribute("aria-hidden", "true");
       if (!document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
@@ -35100,7 +35272,9 @@
     }
 
     function closeJoinMyMenu() {
-      document.getElementById("joinMyMenuModal")?.classList.remove("open");
+      const modal = document.getElementById("joinMyMenuModal");
+      resetModalRuntimeState(modal);
+      modal?.classList.remove("open");
       if (!document.getElementById("joinMyDrawerOverlay")?.classList.contains("open")) {
         document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
         setJoinMobileBottomNavVisible(true);
@@ -37417,7 +37591,9 @@
     }
 
     function closeCalendarEmptyScheduleSheet() {
-      document.getElementById("calendarEmptyScheduleSheet")?.classList.remove("open");
+      const sheet = document.getElementById("calendarEmptyScheduleSheet");
+      resetModalRuntimeState(sheet);
+      sheet?.classList.remove("open");
       calendarEmptyScheduleDate = "";
     }
 
@@ -37834,7 +38010,11 @@
 
     function closeCalendarSheet() {
       closeCalendarEmptyScheduleSheet();
-      document.getElementById("calendarSheet").classList.remove("open");
+      const sheet = document.getElementById("calendarSheet");
+      resetModalRuntimeState(sheet);
+      clearCalendarMobileSelection();
+      clearCalendarDesktopSelection();
+      sheet.classList.remove("open");
       setWidgetModalOpen(false);
     }
 
@@ -40072,6 +40252,7 @@
 
     function closeBuilderAlert() {
       const overlay = document.getElementById("builderAlertModal");
+      resetModalRuntimeState(overlay);
       overlay?.classList.remove("open");
       overlay?.setAttribute("aria-hidden", "true");
       setWidgetModalOpen(hasOpenBlockingModal());
@@ -40082,6 +40263,7 @@
         closeModal("builderModal");
         return;
       }
+      if (Date.now() < suppressBuilderNextUntil) return;
       if (builderStep === 3) {
         await submitBuilderApply();
         return;
@@ -40196,8 +40378,9 @@
       stopQuickMobileCarousel();
       const overlay = portalOverlayToBody(id);
       if (id === "detailModal" && overlay) {
-        overlay.style.setProperty("z-index", "2147483600", "important");
-        overlay.querySelector(".detail-modal")?.style.setProperty("z-index", "2147483601", "important");
+        const isBuilderProductDetail = currentDetailMode === "builderProduct" || overlay.classList.contains("builder-product-detail-mode");
+        overlay.style.setProperty("z-index", isBuilderProductDetail ? "2147483720" : "2147483600", "important");
+        overlay.querySelector(".detail-modal")?.style.setProperty("z-index", isBuilderProductDetail ? "2147483721" : "2147483601", "important");
       }
       if (id === "builderModal" && overlay) {
         overlay.style.setProperty("z-index", "2147483660", "important");
@@ -40222,8 +40405,50 @@
       updateDetailAnchorTabs();
     }
 
+    function resetModalScrollState(root) {
+      if (!root) return;
+      root.scrollTop = 0;
+      root.scrollLeft = 0;
+      root.querySelectorAll("*").forEach((node) => {
+        if (node.scrollTop) node.scrollTop = 0;
+        if (node.scrollLeft) node.scrollLeft = 0;
+      });
+    }
+
+    function resetModalInputState(root) {
+      if (!root) return;
+      root.querySelectorAll("input, textarea, select").forEach((field) => {
+        if (field.matches("[data-reset-ignore]")) return;
+        if (field.type === "checkbox" || field.type === "radio") {
+          field.checked = field.defaultChecked;
+          field.indeterminate = false;
+          return;
+        }
+        if (field.tagName === "SELECT") {
+          field.selectedIndex = Array.from(field.options).findIndex((option) => option.defaultSelected);
+          if (field.selectedIndex < 0) field.selectedIndex = 0;
+          return;
+        }
+        field.value = field.defaultValue || "";
+      });
+    }
+
+    function resetModalRuntimeState(root) {
+      if (!root) return;
+      resetModalScrollState(root);
+      resetModalInputState(root);
+      root.querySelectorAll(".field.has-error, .traveler-field.is-filled").forEach((node) => {
+        node.classList.remove("has-error", "is-filled");
+      });
+      root.querySelectorAll(".apply-error.is-visible, .join-member-email-helper.is-visible").forEach((node) => {
+        node.classList.remove("is-visible");
+      });
+    }
+
     function closeModal(id) {
-      document.getElementById(id).classList.remove("open");
+      const modal = document.getElementById(id);
+      resetModalRuntimeState(modal);
+      modal?.classList.remove("open");
       if ((id === "detailModal" || id === "builderModal") && !document.getElementById("detailModal")?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open") && !document.getElementById("regionSearchModal")?.classList.contains("open")) {
         setWidgetModalOpen(false);
       }
@@ -40242,6 +40467,7 @@
       if (id === "builderModal") {
         closeBuilderFlexSheet();
         closeBuilderProductDetail();
+        resetBuilderApplyForm();
       }
       resumeQuickMobileCarouselIfIdle();
     }
@@ -40285,7 +40511,9 @@
     }
 
     function closeRegionSearchModal() {
-      document.getElementById("regionSearchModal").classList.remove("open");
+      const modal = document.getElementById("regionSearchModal");
+      resetModalRuntimeState(modal);
+      modal.classList.remove("open");
       document.querySelector("#regionSearchModal .region-search-shell")?.classList.remove("builder-context", "mdpick-context");
       if (!document.getElementById("travelDateModal")?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open")) {
         setWidgetModalOpen(false);
@@ -42030,12 +42258,14 @@
     }
 
     function selectBuilderProduct(productId) {
-      const product = getBuilderRegionProducts(document.getElementById("builderRegionSearchInput")?.value || "").find((item) => item.id === productId);
-      if (!product) return;
+      const product = getBuilderRegionProducts(document.getElementById("builderRegionSearchInput")?.value || "").find((item) => item.id === productId)
+        || (currentDetailMode === "builderProduct" && currentDetailJoinData?.id === productId ? currentDetailJoinData : null);
+      if (!product) return false;
       builderState.productId = product.id;
       builderState.productName = product.title;
       updateBuilderSummary();
       renderBuilderRegionProducts(document.getElementById("builderRegionSearchInput")?.value || "");
+      return true;
     }
 
     async function openBuilderProductDetailModal(productId) {
@@ -42831,7 +43061,9 @@
     }
 
     function closeTravelDateModal() {
-      document.getElementById("travelDateModal").classList.remove("open");
+      const modal = document.getElementById("travelDateModal");
+      resetModalRuntimeState(modal);
+      modal.classList.remove("open");
       setWidgetModalOpen(false);
     }
 
@@ -42896,9 +43128,7 @@
     }
 
     function openDetailApply() {
-      stopQuickMobileCarousel();
-      document.getElementById("detailApplyPanel").classList.add("open");
-      ensurePhonePrefix(document.getElementById("detailApplyPhone"));
+      openGlobalApply();
     }
 
     function closeDetailApply() {
@@ -43206,8 +43436,8 @@
       return match ? match[0] : "";
     }
 
-    async function getJoinApplyMemberProfile() {
-      const member = await getJoinCurrentMember({ refresh: true });
+    async function getJoinApplyMemberProfile(memberSource = null) {
+      const member = memberSource || await getJoinCurrentMember({ refresh: true });
       const cached = getRememberedJoinMemberProfile(member || {});
       const birthYear = getBirthYearFromJoinMember(member || {}, cached);
       const mobile = normalizeJoinMemberPhone(cached.mobile || cached.phone || cached.memberMobile || member?.memberMobile || "");
@@ -43252,64 +43482,76 @@
     }
 
     async function openGlobalApply(options = {}) {
-      const applyJoinId = currentDetailJoinId || "";
-      if (!requireJoinLogin("apply", applyJoinId ? { applyJoinId } : {})) return;
-      if (!options.skipProfileCheck) {
-        const member = await ensureJoinMemberProfileReady("apply", applyJoinId ? { applyJoinId } : {});
-        if (!member) return;
-      }
-      stopQuickMobileCarousel();
-      const overlay = document.getElementById("globalApplyOverlay");
-      portalOverlayToBody("globalApplyOverlay");
-      const panel = document.getElementById("globalApplyPanel");
-      panel.classList.remove("is-complete");
-      overlay.style.setProperty("z-index", "2147483650", "important");
-      panel.style.setProperty("z-index", "2147483651", "important");
-      renderGlobalApplyJoinSummary();
-      clearApplyErrors();
-      document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip.active').forEach((chip) => chip.classList.remove("active"));
-      document.querySelector('[data-chip-group="global-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
-      const privacy = document.getElementById("globalApplyPrivacy");
-      if (privacy) {
-        privacy.checked = false;
-        privacy.indeterminate = false;
-      }
-      document.querySelectorAll(".global-apply-agreement").forEach((input) => {
-        input.checked = false;
-      });
-      document.querySelector("#globalApplyPanel .apply-agree-box")?.classList.remove("is-collapsed");
-      renderGlobalApplyAgreements();
-      globalApplyWaitlistApproved = false;
-      updateGlobalApplyRemainingSeat();
-      setGlobalApplyPeopleMode("solo");
-      const memberProfile = await getJoinApplyMemberProfile();
-      const nameInput = document.getElementById("globalApplyName");
-      const birthYearInput = document.getElementById("globalApplyBirthYear");
-      const phoneInput = document.getElementById("globalApplyPhone");
-      if (nameInput) nameInput.value = memberProfile.name || "";
-      if (birthYearInput) birthYearInput.value = memberProfile.birthYear || "";
-      if (phoneInput) phoneInput.value = memberProfile.phone || "";
-      if (memberProfile.gender) {
-        document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip').forEach((chip) => {
-          chip.classList.toggle("active", chip.dataset.value === memberProfile.gender);
+      if (openGlobalApply.isOpening) return;
+      openGlobalApply.isOpening = true;
+      try {
+        const applyJoinId = currentDetailJoinId || "";
+        if (!requireJoinLogin("apply", applyJoinId ? { applyJoinId } : {})) return;
+        let readyMember = null;
+        if (!options.skipProfileCheck) {
+          readyMember = await ensureJoinMemberProfileReady("apply", applyJoinId ? { applyJoinId } : {});
+          if (!readyMember) return;
+        }
+        stopQuickMobileCarousel();
+        const overlay = document.getElementById("globalApplyOverlay");
+        portalOverlayToBody("globalApplyOverlay");
+        const panel = document.getElementById("globalApplyPanel");
+        panel.classList.remove("is-complete");
+        const submitButton = document.getElementById("globalApplySubmitButton");
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = "모임 참여 신청하기";
+        }
+        overlay.style.setProperty("z-index", "2147483650", "important");
+        panel.style.setProperty("z-index", "2147483651", "important");
+        renderGlobalApplyJoinSummary();
+        clearApplyErrors();
+        document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip.active').forEach((chip) => chip.classList.remove("active"));
+        document.querySelector('[data-chip-group="global-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
+        const privacy = document.getElementById("globalApplyPrivacy");
+        if (privacy) {
+          privacy.checked = false;
+          privacy.indeterminate = false;
+        }
+        document.querySelectorAll(".global-apply-agreement").forEach((input) => {
+          input.checked = false;
         });
+        document.querySelector("#globalApplyPanel .apply-agree-box")?.classList.remove("is-collapsed");
+        renderGlobalApplyAgreements();
+        globalApplyWaitlistApproved = false;
+        updateGlobalApplyRemainingSeat();
+        setGlobalApplyPeopleMode("solo");
+        const memberProfile = await getJoinApplyMemberProfile(readyMember);
+        const nameInput = document.getElementById("globalApplyName");
+        const birthYearInput = document.getElementById("globalApplyBirthYear");
+        const phoneInput = document.getElementById("globalApplyPhone");
+        if (nameInput) nameInput.value = memberProfile.name || "";
+        if (birthYearInput) birthYearInput.value = memberProfile.birthYear || "";
+        if (phoneInput) phoneInput.value = memberProfile.phone || "";
+        if (memberProfile.gender) {
+          document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip').forEach((chip) => {
+            chip.classList.toggle("active", chip.dataset.value === memberProfile.gender);
+          });
+        }
+        const professionInput = document.getElementById("globalApplyProfession");
+        if (professionInput && memberProfile.profession && !professionInput.value.trim()) {
+          professionInput.value = memberProfile.profession;
+          syncApplyProfessionChips(professionInput.value);
+        }
+        if (memberProfile.travelStyles) {
+          const styles = new Set(splitJoinMemberProfileStyles(memberProfile.travelStyles));
+          document.querySelectorAll('[data-chip-group="global-style"] .apply-chip').forEach((chip) => {
+            chip.classList.toggle("active", styles.has(chip.dataset.value || chip.textContent.trim()));
+          });
+        }
+        overlay.classList.add("open");
+        requestAnimationFrame(() => panel.classList.add("open"));
+        setWidgetModalOpen(true);
+        updateApplyProgressive();
+        document.querySelectorAll("#globalApplyPanel .traveler-field input").forEach(updateTravelerFieldState);
+      } finally {
+        openGlobalApply.isOpening = false;
       }
-      const professionInput = document.getElementById("globalApplyProfession");
-      if (professionInput && memberProfile.profession && !professionInput.value.trim()) {
-        professionInput.value = memberProfile.profession;
-        syncApplyProfessionChips(professionInput.value);
-      }
-      if (memberProfile.travelStyles) {
-        const styles = new Set(splitJoinMemberProfileStyles(memberProfile.travelStyles));
-        document.querySelectorAll('[data-chip-group="global-style"] .apply-chip').forEach((chip) => {
-          chip.classList.toggle("active", styles.has(chip.dataset.value || chip.textContent.trim()));
-        });
-      }
-      overlay.classList.add("open");
-      requestAnimationFrame(() => panel.classList.add("open"));
-      setWidgetModalOpen(true);
-      updateApplyProgressive();
-      document.querySelectorAll("#globalApplyPanel .traveler-field input").forEach(updateTravelerFieldState);
     }
 
     function showGlobalApplyCompleteState() {
@@ -43319,11 +43561,50 @@
       panel?.classList.add("is-complete");
     }
 
+    function resetGlobalApplyModalState() {
+      const overlay = document.getElementById("globalApplyOverlay");
+      const panel = document.getElementById("globalApplyPanel");
+      resetModalRuntimeState(overlay);
+      panel?.classList.remove("open", "is-complete");
+      clearApplyErrors();
+      document.querySelectorAll("#globalApplyPanel .apply-chip.active, #globalApplyPanel .profession-chip.active").forEach((chip) => {
+        chip.classList.remove("active");
+      });
+      document.querySelector('[data-chip-group="global-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
+      const greeting = document.getElementById("globalApplyGreeting");
+      if (greeting) greeting.value = greeting.defaultValue || "잘 부탁드립니다.";
+      document.querySelectorAll(".global-apply-agreement").forEach((input) => {
+        input.checked = input.defaultChecked;
+        input.indeterminate = false;
+      });
+      const privacy = document.getElementById("globalApplyPrivacy");
+      if (privacy) {
+        privacy.checked = privacy.defaultChecked;
+        privacy.indeterminate = false;
+      }
+      document.querySelector("#globalApplyPanel .apply-agree-box")?.classList.remove("is-collapsed", "is-required-complete");
+      globalApplyWaitlistApproved = false;
+      setCompanionPeople("global", 1, { update: false });
+      document.querySelector('[data-people-mode="global"]')?.classList.remove("is-group");
+      document.querySelectorAll('[data-people-mode="global"] .apply-people-button').forEach((button) => {
+        button.classList.toggle("active", button.dataset.mode === "solo");
+      });
+      document.getElementById("globalApplyPeopleAccordion")?.classList.remove("open");
+      renderCompanionGenderRows("global");
+      const submitButton = document.getElementById("globalApplySubmitButton");
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "모임 참여 신청하기";
+      }
+      updateApplyProgressive();
+    }
+
     function closeGlobalApply() {
       const overlay = document.getElementById("globalApplyOverlay");
       const panel = document.getElementById("globalApplyPanel");
-      panel.classList.remove("open");
-      overlay.classList.remove("open");
+      resetGlobalApplyModalState();
+      panel?.classList.remove("open");
+      overlay?.classList.remove("open");
       setWidgetModalOpen(false);
       resumeQuickMobileCarouselIfIdle();
     }
@@ -43338,11 +43619,14 @@
       closeWaitlistApplyModal();
 
       document.querySelectorAll(".overlay.open, .global-apply-overlay.open, .calendar-sheet-overlay.open, .participant-floating.open").forEach((overlay) => {
+        resetModalRuntimeState(overlay);
         overlay.classList.remove("open");
       });
       document.querySelectorAll(".detail-apply-panel.open, #globalApplyPanel.is-complete, #detailModal.builder-select-mode, #detailModal.mdpick-recruit-mode").forEach((panel) => {
+        resetModalRuntimeState(panel);
         panel.classList.remove("open", "is-complete", "builder-select-mode", "builder-product-detail-mode", "mdpick-recruit-mode");
       });
+      resetGlobalApplyModalState();
       currentDetailMode = "normal";
       currentDetailJoinData = null;
       const primary = document.getElementById("detailPrimaryButton");
@@ -43473,6 +43757,15 @@
       field?.querySelector("input, textarea, select, button")?.focus();
     }
 
+    function showGlobalApplyRequiredMessage(message) {
+      openBuilderAlert(message || "필수정보를 입력해 주세요.");
+    }
+
+    function markApplyFieldErrorWithMessage(fieldKey, message) {
+      markApplyFieldError(fieldKey);
+      showGlobalApplyRequiredMessage(message);
+    }
+
     function openPrivacyApplyModal() {
       const overlay = portalOverlayToBody("privacyApplyModal");
       overlay?.style.setProperty("z-index", "2147483900", "important");
@@ -43518,7 +43811,9 @@
     }
 
     function closePrivacyApplyModal() {
-      document.getElementById("privacyApplyModal")?.classList.remove("open");
+      const modal = document.getElementById("privacyApplyModal");
+      resetModalRuntimeState(modal);
+      modal?.classList.remove("open");
       currentAgreementDetailKey = null;
       if (!document.getElementById("globalApplyOverlay")?.classList.contains("open")) {
         setWidgetModalOpen(false);
@@ -43564,23 +43859,40 @@
       const greeting = document.getElementById("globalApplyGreeting")?.value.trim();
 
       if (!name) {
-        markApplyFieldError("name");
+        markApplyFieldErrorWithMessage("name", "이름을 입력해 주세요.");
         return;
       }
       if (!gender) {
-        markApplyFieldError("gender");
+        markApplyFieldErrorWithMessage("gender", "성별을 선택해 주세요.");
         return;
       }
       updateApplyProgressive();
       if (!/^\d{4}$/.test(birthYear || "") || !ageDisplay) {
-        markApplyFieldError("birthYear");
+        markApplyFieldErrorWithMessage("birthYear", "생년월일 4자리를 입력해 주세요.");
         return;
       }
       if (!/^010\d{8}$/.test(phone || "")) {
-        markApplyFieldError("phone");
+        markApplyFieldErrorWithMessage("phone", "휴대폰 번호를 정확히 입력해 주세요.");
         return;
       }
       if (!validateCompanionGenders("global")) {
+        showGlobalApplyRequiredMessage("동반자 성별을 모두 선택해 주세요.");
+        return;
+      }
+      if (!level) {
+        showGlobalApplyRequiredMessage("핸디 정보를 입력해 주세요.");
+        return;
+      }
+      if (!styles.length) {
+        showGlobalApplyRequiredMessage("라운딩 스타일을 하나 이상 선택해 주세요.");
+        return;
+      }
+      if (!hasRequiredApplyAgreements()) {
+        document.getElementById("globalApplyPrivacyError")?.classList.add("is-visible");
+        const agreeBox = document.querySelector("#globalApplyPanel .apply-agree-box");
+        agreeBox?.classList.remove("is-collapsed");
+        ensureApplyAgreeBoxVisible(agreeBox);
+        showGlobalApplyRequiredMessage("필수 약관을 확인하고 동의해 주세요.");
         return;
       }
 
@@ -43733,7 +44045,9 @@
     }
 
     function closeWaitlistApplyModal() {
-      document.getElementById("waitlistApplyModal")?.classList.remove("open");
+      const modal = document.getElementById("waitlistApplyModal");
+      resetModalRuntimeState(modal);
+      modal?.classList.remove("open");
       waitlistConfirmAction = null;
       waitlistSoloAction = null;
     }
@@ -46741,7 +47055,9 @@
     }
 
     function closeDetailShareModal() {
-      document.getElementById("detailShareModal")?.classList.remove("open");
+      const modal = document.getElementById("detailShareModal");
+      resetModalRuntimeState(modal);
+      modal?.classList.remove("open");
     }
 
     async function copyDetailShareUrl() {
@@ -46976,9 +47292,10 @@
         return;
       }
       if (currentDetailMode === "builderProduct") {
-        selectBuilderProduct(currentDetailJoinId);
+        if (!selectBuilderProduct(currentDetailJoinId)) return;
         closeModal("detailModal");
         setBuilderStep(3);
+        suppressBuilderNextUntil = Date.now() + 500;
         return;
       }
       if (currentDetailMode === "builder") {
@@ -47372,6 +47689,31 @@
       scheduleParticipantClose();
     });
 
+    submitJoinMemberKakaoLogin = wrapJoinAsyncFunction(submitJoinMemberKakaoLogin);
+    submitJoinMemberFindId = wrapJoinAsyncFunction(submitJoinMemberFindId);
+    submitJoinMemberFindPw = wrapJoinAsyncFunction(submitJoinMemberFindPw);
+    submitJoinMemberResetPassword = wrapJoinAsyncFunction(submitJoinMemberResetPassword);
+    submitJoinMemberProfileOnly = wrapJoinAsyncFunction(submitJoinMemberProfileOnly);
+    submitJoinMemberSignup = wrapJoinAsyncFunction(submitJoinMemberSignup);
+    openJoinMyDrawer = wrapJoinAsyncFunction(openJoinMyDrawer);
+    handleJoinMyWishClick = wrapJoinAsyncFunction(handleJoinMyWishClick);
+    handleJoinWishRemove = wrapJoinAsyncFunction(handleJoinWishRemove);
+    handleJoinMyLogout = wrapJoinAsyncFunction(handleJoinMyLogout);
+    openJoinMyMenu = wrapJoinAsyncFunction(openJoinMyMenu);
+    resumeJoinKakaoProfileAfterLogin = wrapJoinAsyncFunction(resumeJoinKakaoProfileAfterLogin);
+    showMdPickDetailProduct = wrapJoinAsyncFunction(showMdPickDetailProduct);
+    submitBuilderApply = wrapJoinAsyncFunction(submitBuilderApply);
+    nextBuilderStep = wrapJoinAsyncFunction(nextBuilderStep);
+    openBuilderProductDetailModal = wrapJoinAsyncFunction(openBuilderProductDetailModal);
+    openGlobalApply = wrapJoinAsyncFunction(openGlobalApply);
+    submitGlobalApply = wrapJoinAsyncFunction(submitGlobalApply);
+    openMdPickProductDetail = wrapJoinAsyncFunction(openMdPickProductDetail);
+    handleDetailWish = wrapJoinAsyncFunction(handleDetailWish);
+    copyDetailShareUrl = wrapJoinAsyncFunction(copyDetailShareUrl);
+    handleDetailShare = wrapJoinAsyncFunction(handleDetailShare);
+    window.handleDetailShare = handleDetailShare;
+    window.copyDetailShareUrl = copyDetailShareUrl;
+
     document.addEventListener("mouseleave", (event) => {
       event.target.closest?.(".participant-info-wrap")?.classList.remove("suppress-hover");
     }, true);
@@ -47398,6 +47740,7 @@
             closeRegionSearchModal();
             return;
           }
+          resetModalRuntimeState(overlay);
           overlay.classList.remove("open");
         }
       });

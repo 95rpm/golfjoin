@@ -8715,6 +8715,10 @@
         align-items: center;
         gap: 12px;
       }
+      #detailModal .modal-header,
+      body > #detailModal.sgj-portal-overlay .modal-header {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
       .modal-header .modal-title,
       .calendar-sheet-header .calendar-sheet-title,
       .builder-header .builder-header-copy,
@@ -8739,6 +8743,23 @@
       .builder-header .modal-header-spacer,
       .region-search-header .region-search-header-spacer {
         display: none;
+      }
+      #detailModal .detail-pc-header-actions,
+      body > #detailModal.sgj-portal-overlay .detail-pc-header-actions {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+      }
+      #detailModal .detail-pc-header-actions .detail-mobile-header-button,
+      body > #detailModal.sgj-portal-overlay .detail-pc-header-actions .detail-mobile-header-button {
+        width: var(--modal-close-size-pc);
+        height: var(--modal-close-size-pc);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
       .modal-close-icon,
       .region-search-back,
@@ -11198,6 +11219,9 @@
       display: none;
     }
     .detail-mobile-sticky-header {
+      display: none;
+    }
+    .detail-pc-header-actions {
       display: none;
     }
     .detail-mobile-header-button {
@@ -21755,6 +21779,10 @@
         grid-template-columns: minmax(0, 1fr) var(--modal-close-size-pc) !important;
         align-items: center !important;
       }
+      #detailModal .modal-header,
+      body > #detailModal.sgj-portal-overlay .modal-header {
+        grid-template-columns: minmax(0, 1fr) auto !important;
+      }
       .modal-header .modal-title,
       .calendar-sheet-header .calendar-sheet-title,
       .builder-header .builder-header-copy,
@@ -21794,6 +21822,29 @@
         width: var(--modal-close-size-pc) !important;
         height: var(--modal-close-size-pc) !important;
         flex-basis: var(--modal-close-size-pc) !important;
+      }
+      #detailModal .detail-pc-header-actions,
+      body > #detailModal.sgj-portal-overlay .detail-pc-header-actions {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        justify-self: end !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 2px !important;
+      }
+      #detailModal .detail-pc-header-actions .detail-mobile-header-button,
+      body > #detailModal.sgj-portal-overlay .detail-pc-header-actions .detail-mobile-header-button {
+        width: var(--modal-close-size-pc) !important;
+        height: var(--modal-close-size-pc) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      #detailModal .detail-pc-header-actions .modal-close-icon,
+      body > #detailModal.sgj-portal-overlay .detail-pc-header-actions .modal-close-icon {
+        position: static !important;
+        grid-column: auto !important;
+        grid-row: auto !important;
       }
       #joinMemberLoginModal .join-member-login-header {
         width: min(100%, var(--join-member-login-content-width)) !important;
@@ -32292,7 +32343,7 @@
         </button>
         <button type="button" class="join-my-drawer-item" onclick="handleJoinMyWishClick()">
           <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-          <div>찜한 상품</div>
+          <div>찜</div>
         </button>
       </div>
       <div class="join-my-drawer-divider"></div>
@@ -33159,14 +33210,21 @@
   <div class="overlay sgj-portal-overlay" id="detailModal" style="z-index: 2147483640 !important;">
     <div class="modal detail-modal" style="z-index: 2147483641 !important;">
       <div class="modal-header">
-        <button type="button" class="modal-close-icon modal-back-icon" onclick="closeModal('detailModal')" aria-label="뒤로가기">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
-            <path d="m12 19-7-7 7-7"></path>
-            <path d="M19 12H5"></path>
-          </svg>
-        </button>
         <div class="modal-title" id="detailModalTitle">일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비</div>
-        <span class="modal-header-spacer" aria-hidden="true"></span>
+        <div class="detail-pc-header-actions" aria-label="상품상세 액션">
+          <button type="button" class="detail-mobile-header-button" data-detail-wish-button="" aria-label="찜하기" aria-pressed="false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-bookmark-check-icon lucide-bookmark-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path><path d="m9 10 2 2 4-4"></path></svg>
+          </button>
+          <button type="button" class="detail-mobile-header-button" aria-label="공유하기">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+          </button>
+          <button type="button" class="modal-close-icon modal-back-icon" onclick="closeModal('detailModal')" aria-label="닫기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+              <path d="m12 19-7-7 7-7"></path>
+              <path d="M19 12H5"></path>
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="modal-body" id="detailContent">
         <div class="detail-mobile-sticky-header" aria-hidden="true">
@@ -37690,10 +37748,34 @@
       alert("최근 본 상품은 준비 중입니다.");
     }
 
+    function getJoinWishType(join = {}) {
+      return isJoinMyBuilderApplicationJoin(join) ? "join_schedule" : "product";
+    }
+
+    function getJoinWishTargetKey(item = {}) {
+      const type = item.wishType || item.targetType || "product";
+      if (type === "join_schedule") {
+        return String(item.joinId || item.scheduleId || item.targetId || item.id || "").trim();
+      }
+      return String(item.goodSeq || item.productId || item.targetId || "").trim();
+    }
+
+    function normalizeJoinWishProduct(item = {}) {
+      const wishType = item.wishType || item.targetType || (item.joinId && !item.goodSeq ? "join_schedule" : "product");
+      const targetKey = getJoinWishTargetKey({ ...item, wishType });
+      return {
+        ...item,
+        wishType,
+        targetType: wishType,
+        targetKey,
+        savedAt: item.savedAt || item.createdAt || new Date().toISOString()
+      };
+    }
+
     function getJoinWishProducts() {
       try {
         const saved = JSON.parse(localStorage.getItem(JOIN_WISH_STORAGE_KEY) || "[]");
-        return Array.isArray(saved) ? saved : [];
+        return Array.isArray(saved) ? saved.map(normalizeJoinWishProduct).filter((item) => getJoinWishTargetKey(item)) : [];
       } catch (error) {
         return [];
       }
@@ -37701,7 +37783,7 @@
 
     function saveJoinWishProducts(items = []) {
       try {
-        localStorage.setItem(JOIN_WISH_STORAGE_KEY, JSON.stringify(items));
+        localStorage.setItem(JOIN_WISH_STORAGE_KEY, JSON.stringify(items.map(normalizeJoinWishProduct)));
       } catch (error) {
         console.warn("Failed to save wish products.", error);
       }
@@ -37713,17 +37795,30 @@
     }
 
     function isJoinProductWished(join = {}) {
-      const goodSeq = getJoinProductGoodSeq(join);
-      if (!goodSeq) return false;
-      return getJoinWishProducts().some((item) => String(item.goodSeq || "") === goodSeq);
+      const snapshot = createJoinWishProductSnapshot(join);
+      const targetKey = getJoinWishTargetKey(snapshot);
+      if (!targetKey) return false;
+      return getJoinWishProducts().some((item) => item.wishType === snapshot.wishType && getJoinWishTargetKey(item) === targetKey);
     }
 
     function createJoinWishProductSnapshot(join = {}) {
       const goodSeq = getJoinProductGoodSeq(join);
       const parsedReference = parseSecretTourProductReference(join.id || join.erpProductId || "", join.eventSeq || join.erpEventSeq || "");
       const eventSeq = String(join.eventSeq || parsedReference.eventSeq || join.erpEventSeq || "").trim();
+      const wishType = getJoinWishType(join);
+      const targetKey = wishType === "join_schedule" ? String(join.id || join.scheduleId || "").trim() : goodSeq;
+      const participants = getConfirmedParticipants(join);
+      const targetCount = getCardTeamCapacity(join, 4);
+      const sheetApplication = join.sheetApplication || {};
       return {
-        id: join.id || (goodSeq && eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : goodSeq),
+        id: wishType === "join_schedule" ? join.id : (join.id || (goodSeq && eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : goodSeq)),
+        wishType,
+        targetType: wishType,
+        targetKey,
+        joinId: join.id || "",
+        scheduleId: join.scheduleId || sheetApplication.scheduleId || "",
+        sourceApplicationId: join.sourceApplicationId || sheetApplication.applicationId || "",
+        productId: join.erpProductId || parsedReference.goodSeq || goodSeq || "",
         goodSeq,
         eventSeq,
         title: join.title || "골프여행 상품",
@@ -37732,22 +37827,26 @@
         price: Number(join.price || 0),
         departureDate: join.departureDate || "",
         returnDate: join.returnDate || "",
+        currentCount: participants.length,
+        targetCount,
+        hostNameMasked: maskApplyName(getNestedValue(sheetApplication, "applicant.name") || getNestedValue(sheetApplication, "member.memberName") || ""),
         savedAt: new Date().toISOString()
       };
     }
 
     function addJoinWishProduct(join = {}) {
       const snapshot = createJoinWishProductSnapshot(join);
-      if (!snapshot.goodSeq) return false;
-      const current = getJoinWishProducts().filter((item) => String(item.goodSeq || "") !== snapshot.goodSeq);
+      const targetKey = getJoinWishTargetKey(snapshot);
+      if (!targetKey) return false;
+      const current = getJoinWishProducts().filter((item) => !(item.wishType === snapshot.wishType && getJoinWishTargetKey(item) === targetKey));
       saveJoinWishProducts([snapshot, ...current].slice(0, 50));
       return true;
     }
 
-    function removeJoinWishProduct(goodSeq) {
-      const key = String(goodSeq || "").trim();
+    function removeJoinWishProduct(targetKey, wishType = "product") {
+      const key = String(targetKey || "").trim();
       if (!key) return;
-      saveJoinWishProducts(getJoinWishProducts().filter((item) => String(item.goodSeq || "") !== key));
+      saveJoinWishProducts(getJoinWishProducts().filter((item) => !(item.wishType === wishType && getJoinWishTargetKey(item) === key)));
       refreshDetailWishButtons();
       if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
         renderJoinMyWishMenu();
@@ -37772,8 +37871,16 @@
       return response.json().catch(() => ({}));
     }
 
-    function renderJoinMyWishCards(items = []) {
-      if (!items.length) return renderJoinMyEmptyState(tabKey);
+    function renderJoinMyWishEmptyState(tabKey = "product") {
+      const message = tabKey === "join_schedule" ? "찜한 조인 일정이 없어요." : "찜한 상품이 없어요.";
+      return `<div class="join-my-empty">
+        <div>${escapeHtml(message)}</div>
+        ${renderJoinMyEmptyRecommendations(tabKey)}
+      </div>`;
+    }
+
+    function renderJoinMyWishCards(items = [], tabKey = "product") {
+      if (!items.length) return renderJoinMyWishEmptyState(tabKey);
       return items.map((item) => `
         <article class="join-my-card">
           <div class="join-my-card-thumb">
@@ -37786,21 +37893,32 @@
                 <div class="join-my-card-title">${escapeHtml(item.title)}</div>
                 <div class="join-my-card-meta">${escapeHtml(formatCardDateRange(item) || "출발일 확인")}</div>
               </div>
-              <div class="join-my-status-pill green">찜한 상품</div>
+              <div class="join-my-status-pill green">${tabKey === "join_schedule" ? "조인모집" : "공식상품"}</div>
             </div>
             <div class="join-my-card-info">
-              <div class="join-my-info-chip">
-                <div class="join-my-info-chip-label">상품번호</div>
-                <div class="join-my-info-chip-value">${escapeHtml(item.goodSeq || "-")}</div>
-              </div>
-              <div class="join-my-info-chip">
-                <div class="join-my-info-chip-label">1인</div>
-                <div class="join-my-info-chip-value">${item.price ? formatPrice(item.price) : "확인"}</div>
-              </div>
+              ${tabKey === "join_schedule" ? `
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">참여현황</div>
+                  <div class="join-my-info-chip-value">${escapeHtml(String(item.targetCount ? `${item.currentCount || 0}/${item.targetCount}명` : `${item.currentCount || 0}명`))}</div>
+                </div>
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">모집자</div>
+                  <div class="join-my-info-chip-value">${escapeHtml(item.hostNameMasked || "참여자")}</div>
+                </div>
+              ` : `
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">상품번호</div>
+                  <div class="join-my-info-chip-value">${escapeHtml(item.goodSeq || "-")}</div>
+                </div>
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">1인</div>
+                  <div class="join-my-info-chip-value">${item.price ? formatPrice(item.price) : "확인"}</div>
+                </div>
+              `}
             </div>
             <div class="join-my-card-actions">
-              <button type="button" class="primary" onclick="openJoinWishProduct('${escapeJsString(item.goodSeq)}')">상품보기</button>
-              <button type="button" onclick="handleJoinWishRemove('${escapeJsString(item.goodSeq)}')">삭제</button>
+              <button type="button" class="primary" onclick="openJoinWishProduct('${escapeJsString(getJoinWishTargetKey(item))}', '${escapeJsString(tabKey)}')">${tabKey === "join_schedule" ? "참여하기" : "상품보기"}</button>
+              <button type="button" onclick="handleJoinWishRemove('${escapeJsString(getJoinWishTargetKey(item))}', '${escapeJsString(tabKey)}')">삭제</button>
             </div>
           </div>
         </article>
@@ -37810,12 +37928,23 @@
     function renderJoinMyWishMenu() {
       const target = document.getElementById("joinMyMenuBody");
       if (!target) return;
-      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜한 상품");
+      const wishes = getJoinWishProducts();
+      const productWishes = wishes.filter((item) => item.wishType === "product");
+      const joinScheduleWishes = wishes.filter((item) => item.wishType === "join_schedule");
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜");
       target.innerHTML = `
+        <div class="join-my-reservation-nav" role="tablist" aria-label="찜 분류">
+          <button type="button" class="join-my-tab active" data-join-my-tab="wish-products" role="tab" aria-selected="true" onclick="switchJoinMyTab('wish-products')">상품</button>
+          <button type="button" class="join-my-tab" data-join-my-tab="wish-joins" role="tab" aria-selected="false" onclick="switchJoinMyTab('wish-joins')">조인 일정</button>
+        </div>
         <div class="join-my-profile">
-          <section class="join-my-section">
+          <section class="join-my-section" data-join-my-section="wish-products">
             <div class="join-my-reservation-title">찜한 상품</div>
-            ${renderJoinMyWishCards(getJoinWishProducts())}
+            ${renderJoinMyWishCards(productWishes, "product")}
+          </section>
+          <section class="join-my-section" data-join-my-section="wish-joins" hidden>
+            <div class="join-my-reservation-title">찜한 조인 일정</div>
+            ${renderJoinMyWishCards(joinScheduleWishes, "join_schedule")}
           </section>
         </div>
       `;
@@ -37824,8 +37953,8 @@
     async function handleJoinMyWishClick() {
       const overlay = portalOverlayToBody("joinMyMenuModal");
       const body = document.getElementById("joinMyMenuBody");
-      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜한 상품");
-      if (body) body.innerHTML = `<div class="join-my-state">찜한 상품을 확인 중입니다.</div>`;
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜");
+      if (body) body.innerHTML = `<div class="join-my-state">찜한 목록을 확인 중입니다.</div>`;
       overlay?.classList.add("open");
       document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
       setJoinMobileBottomNavVisible(false);
@@ -37833,25 +37962,41 @@
       renderJoinMyWishMenu();
     }
 
-    function openJoinWishProduct(goodSeq) {
-      const key = String(goodSeq || "").trim();
+    function openJoinWishProduct(targetKey, wishType = "product") {
+      const key = String(targetKey || "").trim();
+      const type = String(wishType || "product");
+      if (!key) return;
+      if (type === "join_schedule") {
+        const join = joins.find((item) => item.id === key || item.scheduleId === key || item.sourceApplicationId === key);
+        if (!join) {
+          alert("연결된 조인 일정을 찾을 수 없습니다.");
+          return;
+        }
+        closeJoinMyMenu();
+        openDetail(join.id);
+        return;
+      }
+      const wish = getJoinWishProducts().find((item) => item.wishType === "product" && getJoinWishTargetKey(item) === key) || {};
       const join = joins.find((item) => getJoinProductGoodSeq(item) === key || String(item.goodSeq || "") === key);
       if (join) {
         closeJoinMyMenu();
         openDetail(join.id);
         return;
       }
-      location.href = `/goods/goods_view?goodSeq=${encodeURIComponent(key)}`;
+      const params = new URLSearchParams({ goodSeq: key });
+      if (wish.eventSeq) params.set("eventSeq", wish.eventSeq);
+      location.href = `/goods/goods_view?${params.toString()}`;
     }
 
-    async function handleJoinWishRemove(goodSeq) {
-      if (!confirm("찜한 상품을 삭제하시겠습니까?")) return;
+    async function handleJoinWishRemove(targetKey, wishType = "product") {
+      const type = String(wishType || "product");
+      if (!confirm(type === "join_schedule" ? "찜한 조인 일정을 삭제하시겠습니까?" : "찜한 상품을 삭제하시겠습니까?")) return;
       try {
-        await deleteSecretTourWishProduct(goodSeq);
+        if (type === "product") await deleteSecretTourWishProduct(targetKey);
       } catch (error) {
         console.warn("Secret Tour delete wish request failed.", error);
       }
-      removeJoinWishProduct(goodSeq);
+      removeJoinWishProduct(targetKey, type);
     }
 
     function handleJoinMyTripClick() {
@@ -43056,7 +43201,27 @@
     }
 
     function normalizeJoinApplyPayload(item = {}) {
-      if (item.applicant || item.join || item.agreements) return item;
+      if (item.applicant || item.join || item.agreements) {
+        return {
+          ...item,
+          member: {
+            ...(item.member || {}),
+            memberSeq: getNestedValue(item, "member.memberSeq") || item.memberSeq || "",
+            memberId: getNestedValue(item, "member.memberId") || item.memberId || "",
+            memberName: getNestedValue(item, "member.memberName") || item.memberName || item.name || "",
+            memberChannel: getNestedValue(item, "member.memberChannel") || item.memberChannel || "",
+            memberMobile: normalizeJoinMemberPhone(
+              getNestedValue(item, "member.memberMobile")
+              || item.memberMobile
+              || item.memberPhone
+              || getNestedValue(item, "applicant.phone")
+              || item.phone
+              || ""
+            ),
+            memberEmail: getNestedValue(item, "member.memberEmail") || item.memberEmail || item.email || ""
+          }
+        };
+      }
       const productReference = getSecretTourProductReference({
         id: item.productId || item.erpProductId,
         erpProductId: item.erpProductId || item.productId,
@@ -43073,6 +43238,14 @@
         targetType: item.targetType || "",
         targetScheduleId: item.targetScheduleId || "",
         targetApplicationId: item.targetApplicationId || "",
+        member: {
+          memberSeq: item.memberSeq || "",
+          memberId: item.memberId || "",
+          memberName: item.memberName || item.name || item.applicantName || "",
+          memberChannel: item.memberChannel || "",
+          memberMobile: normalizeJoinMemberPhone(item.memberMobile || item.memberPhone || item.phone || ""),
+          memberEmail: item.memberEmail || item.email || ""
+        },
         product: {
           erpProductId: item.erpProductId || productReference.id || "",
           erpEventSeq: item.erpEventSeq || productReference.eventSeq || ""
@@ -43096,6 +43269,8 @@
           companions: parseCompanionList(item.companions),
           level: item.level || "",
           styles: toBuilderApplicationArray(item.styles),
+          memberPreferences: toBuilderApplicationArray(item.memberPreferences),
+          preferredMemberComposition: toBuilderApplicationArray(item.preferredMemberComposition || item.memberPreferences),
           greeting: item.greeting || ""
         },
         agreements: {
@@ -50436,14 +50611,16 @@
         </div>
       `;
       const detailBody = document.getElementById("detailContent");
-      detailBody.querySelectorAll(".detail-mobile-header-button[data-detail-wish-button]").forEach((button) => {
+      document.querySelectorAll("#detailModal .detail-mobile-header-button[data-detail-wish-button]").forEach((button) => {
+        if (button.dataset.wishBound === "true") return;
         button.dataset.wishBound = "true";
         button.addEventListener("click", (event) => {
           event.preventDefault();
           handleDetailWish();
         });
       });
-      detailBody.querySelectorAll(".detail-mobile-header-button[aria-label='공유하기']").forEach((button) => {
+      document.querySelectorAll("#detailModal .detail-mobile-header-button[aria-label='공유하기']").forEach((button) => {
+        if (button.dataset.shareBound === "true") return;
         button.dataset.shareBound = "true";
         button.addEventListener("click", (event) => {
           event.preventDefault();
@@ -50625,24 +50802,25 @@
 
     async function handleDetailWish() {
       const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
+      const wishType = getJoinWishType(join);
       const goodSeq = getJoinProductGoodSeq(join);
-      if (!goodSeq) {
+      if (wishType === "product" && !goodSeq) {
         alert("찜하기에 필요한 상품번호를 확인할 수 없습니다.");
         return;
       }
       const alreadyWished = isJoinProductWished(join);
       if (alreadyWished) {
-        alert("이미 찜한 상품입니다.");
+        alert(wishType === "join_schedule" ? "이미 찜한 조인 일정입니다." : "이미 찜한 상품입니다.");
         return;
       }
       addJoinWishProduct(join);
       refreshDetailWishButtons();
       try {
-        await postDetailGoodsWish(goodSeq);
+        if (wishType === "product") await postDetailGoodsWish(goodSeq);
       } catch (error) {
         console.warn("Secret Tour wish request failed.", error);
       }
-      alert("찜한 상품에 추가되었습니다.");
+      alert(wishType === "join_schedule" ? "찜한 조인 일정에 추가되었습니다." : "찜한 상품에 추가되었습니다.");
     }
 
     function getDetailShortUrlEndpoint(sourceUrl) {

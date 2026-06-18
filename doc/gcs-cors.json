@@ -1,0 +1,12 @@
+[
+  {
+    "origin": [
+      "https://m.secret-tour.com",
+      "https://www.secret-tour.com",
+      "http://localhost:8000"
+    ],
+    "method": ["PUT", "GET", "HEAD"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 3600
+  }
+]

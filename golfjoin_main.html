@@ -18792,6 +18792,41 @@
       padding: 4px 2px 18px;
     }
 
+    .join-my-drawer-profile-row {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+    }
+
+    .join-my-drawer-avatar {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1;
+      border: 1px solid #e2e8f0;
+    }
+
+    .join-my-drawer-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .join-my-drawer-profile-copy {
+      min-width: 0;
+      display: grid;
+      gap: 7px;
+    }
+
     .join-my-drawer-name {
       color: #111827;
       font-size: 20px;
@@ -18802,6 +18837,7 @@
     .join-my-drawer-meta {
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 7px;
       color: #393939;
       font-size: 16px;
@@ -18814,6 +18850,24 @@
       height: 4px;
       border-radius: 999px;
       background: #94a3b8;
+    }
+
+    .join-my-drawer-profile-manage {
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .join-my-drawer-profile-manage:active,
+    .join-my-drawer-profile-manage:focus-visible {
+      background: #f8fafc;
+      outline: none;
     }
 
     .join-my-drawer-divider {
@@ -18848,6 +18902,208 @@
     .join-my-drawer-item:focus-visible {
       background: #f1f5f9;
       outline: none;
+    }
+
+    .join-profile-manage-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10080;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      background: rgba(15, 23, 42, .42);
+      padding: 18px;
+    }
+
+    .join-profile-manage-overlay.open {
+      display: flex;
+    }
+
+    .join-profile-manage-modal {
+      width: min(100%, 520px);
+      max-height: min(86vh, 720px);
+      overflow: auto;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .22);
+    }
+
+    .join-profile-manage-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 18px 10px;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    .join-profile-manage-title {
+      color: #111827;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .join-profile-manage-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .join-profile-manage-body {
+      display: grid;
+      gap: 14px;
+      padding: 16px 18px 18px;
+    }
+
+    .join-profile-photo-row {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .join-profile-photo-preview {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 22px;
+      font-weight: 800;
+      border: 1px solid #e2e8f0;
+    }
+
+    .join-profile-photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .join-profile-photo-actions {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .join-profile-photo-button {
+      width: fit-content;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+      font-size: 14px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .join-profile-photo-note {
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .join-profile-manage-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .join-profile-manage-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .join-profile-manage-field.is-wide {
+      grid-column: 1 / -1;
+    }
+
+    .join-profile-manage-label {
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .join-profile-manage-input,
+    .join-profile-manage-select,
+    .join-profile-manage-textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 0 12px;
+      color: #111827;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    .join-profile-manage-textarea {
+      min-height: 76px;
+      padding-top: 10px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .join-profile-manage-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 2px;
+    }
+
+    .join-profile-manage-cancel,
+    .join-profile-manage-save {
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .join-profile-manage-cancel {
+      background: #f8fafc;
+      color: #475569;
+    }
+
+    .join-profile-manage-save {
+      background: #111827;
+      color: #fff;
+    }
+
+    .join-profile-manage-status {
+      min-height: 18px;
+      color: #dc2626;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 640px) {
+      .join-profile-manage-overlay {
+        padding: 0;
+      }
+
+      .join-profile-manage-modal {
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 18px 18px 0 0;
+      }
+
+      .join-profile-manage-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .join-my-drawer-icon {
@@ -20017,6 +20273,257 @@
       word-break: break-word;
     }
 
+    .join-review-modal {
+      width: min(560px, calc(100vw - 24px));
+      max-height: min(760px, calc(100dvh - 24px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .join-review-body {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: grid;
+      gap: 16px;
+      padding: 20px 22px 22px;
+      overflow-y: auto;
+      background: #fff;
+    }
+
+    .join-review-trip {
+      display: grid;
+      gap: 6px;
+      padding: 14px;
+      border: 1px solid #e7edf5;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .join-review-trip-label {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .join-review-trip-title {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .join-review-field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .join-review-label {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .join-review-stars {
+      display: grid;
+      grid-template-columns: repeat(5, 44px);
+      gap: 6px;
+    }
+
+    .join-review-star {
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #fff;
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+
+    .join-review-star.is-active {
+      color: #ffbf00;
+      border-color: #ffd666;
+      background: #fff8db;
+    }
+
+    .join-review-star svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+      stroke: currentColor;
+    }
+
+    .join-review-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .join-review-tag {
+      min-height: 36px;
+      padding: 0 13px;
+      border: 1px solid #dbe4ee;
+      border-radius: 999px;
+      background: #fff;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .join-review-tag.is-active {
+      border-color: #0e60e8;
+      background: #eef5ff;
+      color: #0e60e8;
+    }
+
+    .join-review-textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 14px;
+      border: 1px solid #dbe4ee;
+      border-radius: 12px;
+      background: #fff;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.55;
+      resize: vertical;
+      outline: none;
+    }
+
+    .join-review-textarea:focus {
+      border-color: #0e60e8;
+      box-shadow: 0 0 0 3px rgba(14, 96, 232, .12);
+    }
+
+    .join-review-photo-button {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px dashed #b8c7d9;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .join-review-photo-button svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
+    .join-review-photo-preview {
+      display: grid;
+      gap: 8px;
+    }
+
+    .join-review-photo-item {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid #edf2f7;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .join-review-photo-thumb {
+      width: 54px;
+      height: 54px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #e2e8f0;
+    }
+
+    .join-review-photo-name {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .join-review-photo-meta {
+      margin-top: 3px;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .join-review-photo-remove {
+      width: 34px;
+      height: 34px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      color: #64748b;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .join-review-help {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+
+    .join-review-error {
+      min-height: 20px;
+      color: #dc2626;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .join-review-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px 22px 20px;
+      border-top: 1px solid #edf2f7;
+      background: #fff;
+    }
+
+    .join-review-actions button {
+      min-height: 48px;
+      padding: 0 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      font-size: var(--modal-bottom-button-font-size-pc);
+      font-weight: var(--modal-bottom-button-font-weight);
+      cursor: pointer;
+    }
+
+    .join-review-actions button.primary {
+      border-color: var(--modal-bottom-primary-color);
+      background: var(--modal-bottom-primary-color);
+      color: #fff;
+    }
+
     .join-my-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -20279,6 +20786,34 @@
 
       .join-my-card-actions button {
         flex: 1 1 auto;
+      }
+
+      .join-review-modal {
+        width: 100vw;
+        max-width: none;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+      }
+
+      .join-review-body {
+        padding: 16px 14px 18px;
+      }
+
+      .join-review-stars {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+
+      .join-review-star {
+        width: 100%;
+      }
+
+      .join-review-actions {
+        padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+      }
+
+      .join-review-actions button {
+        font-size: var(--modal-bottom-button-font-size-mo);
       }
     }
 
@@ -32324,11 +32859,17 @@
   <div class="join-my-drawer-overlay" id="joinMyDrawerOverlay" onclick="if(event.target.id === 'joinMyDrawerOverlay') closeJoinMyDrawer()" aria-hidden="true" style="--join-pc-header-zone-offset: 0px;">
     <aside class="join-my-drawer" role="dialog" aria-modal="true" aria-labelledby="joinMyDrawerName">
       <div class="join-my-drawer-profile">
-        <div class="join-my-drawer-name" id="joinMyDrawerName">관리자</div>
-        <div class="join-my-drawer-meta">
-          <div id="joinMyDrawerGender">남성</div>
-          <div class="join-my-drawer-dot" aria-hidden="true"></div>
-          <div id="joinMyDrawerAge">50대</div>
+        <div class="join-my-drawer-profile-row">
+          <div class="join-my-drawer-avatar" id="joinMyDrawerAvatar" aria-hidden="true"></div>
+          <div class="join-my-drawer-profile-copy">
+            <div class="join-my-drawer-name" id="joinMyDrawerName">관리자</div>
+            <div class="join-my-drawer-meta">
+              <div id="joinMyDrawerGender">남성</div>
+              <div class="join-my-drawer-dot" aria-hidden="true"></div>
+              <div id="joinMyDrawerAge">50대</div>
+              <button type="button" class="join-my-drawer-profile-manage" onclick="openJoinProfileManageModal()">프로필 관리</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="join-my-drawer-divider"></div>
@@ -35166,6 +35707,16 @@
     const GOOGLE_SHEET_READ_CACHE_TTL_MS = 60 * 1000;
     const GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY = "joinApplicationsSheetReadCache";
     const GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY = "builderApplicationsSheetReadCache";
+    const GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY = "joinReviewsSheetReadCache";
+    const REVIEW_IMAGE_SIGN_ENDPOINT = window.GOLFJOIN_IMAGE_SIGN_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sign-gcs-upload";
+    const REVIEW_IMAGE_MAX_FILES = 3;
+    const REVIEW_IMAGE_MAX_ORIGINAL_BYTES = 10 * 1024 * 1024;
+    const REVIEW_IMAGE_MAIN_MAX_SIDE = 1280;
+    const REVIEW_IMAGE_THUMB_MAX_SIDE = 480;
+    const REVIEW_IMAGE_QUALITY = 0.76;
+    const PROFILE_IMAGE_MAX_ORIGINAL_BYTES = 5 * 1024 * 1024;
+    const PROFILE_IMAGE_MAX_SIDE = 180;
+    const PROFILE_IMAGE_QUALITY = 0.68;
     const BUILDER_APPLICATION_JOIN_PREFIX = "sheet-builder-application-";
     const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
     const JOIN_APPLICATIONS_STORAGE_KEY = "secretGolfJoinApplications";
@@ -35175,6 +35726,7 @@
     const JOIN_MAX_CAPACITY = 4;
     const SHOW_DOMESTIC_JOIN_PRODUCTS = false;
     const joinApplicationPayloadMemory = new Map();
+    const joinReviewPayloadMemory = new Map();
     const BUILDER_APPLICATION_GENDER_ICON_POOLS = {
       male: [
         "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp",
@@ -36624,12 +37176,22 @@
     }
 
     function rememberJoinMemberProfileLocally(member = {}, profile = {}) {
-      const key = getJoinMemberProfileCacheKey(member);
-      if (!key) return;
+      const keys = Array.from(new Set([
+        member.memberSeq,
+        member.memberId,
+        normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || ""),
+        member.memberEmail,
+        profile.memberSeq,
+        profile.memberId,
+        normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || ""),
+        profile.memberEmail
+      ].map((value) => String(value || "").trim()).filter(Boolean)));
+      if (!keys.length) return;
       try {
         const store = JSON.parse(localStorage.getItem("joinMemberProfiles") || "{}");
-        store[key] = {
-          ...store[key],
+        const existingProfile = keys.map((key) => store[key]).find(Boolean) || {};
+        const cachedProfile = {
+          ...existingProfile,
           ...profile,
           memberSeq: member.memberSeq || profile.memberSeq || "",
           memberId: member.memberId || profile.memberId || "",
@@ -36639,12 +37201,25 @@
           memberChannel: member.memberChannel || profile.memberChannel || "",
           updatedAt: new Date().toISOString()
         };
+        keys.forEach((key) => {
+          store[key] = {
+            ...store[key],
+            ...cachedProfile
+          };
+        });
         localStorage.setItem("joinMemberProfiles", JSON.stringify(store));
         if (member.isTempAdmin) {
           sessionStorage.setItem(JOIN_TEMP_ADMIN_LOGIN_KEY, JSON.stringify({
             ...member,
-            ...store[key],
+            ...cachedProfile,
             isTempAdmin: true
+          }));
+        }
+        if (member.isSessionMember) {
+          sessionStorage.setItem(JOIN_SESSION_MEMBER_KEY, JSON.stringify({
+            ...member,
+            ...cachedProfile,
+            isSessionMember: true
           }));
         }
       } catch (error) {
@@ -36688,6 +37263,11 @@
         profession: row.profession || "",
         level: row.level || "",
         travelStyles: row.travelStyles || row.styles || "",
+        profileImageUrl: row.profileImageUrl || row.imageUrl || "",
+        profileThumbnailUrl: row.profileThumbnailUrl || row.thumbnailUrl || row.profileImageUrl || row.imageUrl || "",
+        profileImageObjectName: row.profileImageObjectName || row.objectName || "",
+        profileImageMimeType: row.profileImageMimeType || row.photoMimeType || "",
+        profileImageSize: row.profileImageSize || row.photoSize || "",
         updatedAt: row.updatedAt || row.submittedAt || ""
       };
     }
@@ -36715,7 +37295,7 @@
         const data = await response.json();
         const rows = Array.isArray(data) ? data : (data.items || data.rows || []);
         const profile = normalizeJoinMemberProfileRow(rows[0] || {});
-        if (profile.gender || profile.birthYear || profile.profession || profile.level || profile.travelStyles) {
+        if (profile.gender || profile.birthYear || profile.profession || profile.level || profile.travelStyles || profile.profileImageUrl || profile.profileThumbnailUrl) {
           rememberJoinMemberProfileLocally(member, profile);
           return profile;
         }
@@ -36736,7 +37316,12 @@
         birthday: profile.birthYear || member.birthday || "",
         profession: profile.profession || member.profession || "",
         level: profile.level || member.level || "",
-        travelStyles: profile.travelStyles || member.travelStyles || ""
+        travelStyles: profile.travelStyles || member.travelStyles || "",
+        profileImageUrl: profile.profileImageUrl || member.profileImageUrl || "",
+        profileThumbnailUrl: profile.profileThumbnailUrl || member.profileThumbnailUrl || profile.profileImageUrl || member.profileImageUrl || "",
+        profileImageObjectName: profile.profileImageObjectName || member.profileImageObjectName || "",
+        profileImageMimeType: profile.profileImageMimeType || member.profileImageMimeType || "",
+        profileImageSize: profile.profileImageSize || member.profileImageSize || ""
       };
     }
 
@@ -37645,9 +38230,11 @@
       const nameTarget = document.getElementById("joinMyDrawerName");
       const genderTarget = document.getElementById("joinMyDrawerGender");
       const ageTarget = document.getElementById("joinMyDrawerAge");
+      const avatarTarget = document.getElementById("joinMyDrawerAvatar");
       if (nameTarget) nameTarget.textContent = name;
       if (genderTarget) genderTarget.textContent = gender;
       if (ageTarget) ageTarget.textContent = age;
+      renderJoinProfileImage(avatarTarget, member);
     }
 
     function getJoinMyDrawerCachedProfile() {
@@ -38202,6 +38789,222 @@
       };
     }
 
+    const JOIN_REVIEW_STORAGE_KEY = "joinMyReservationReviews";
+
+    function getJoinMyReviewKey(joinId = "", title = "") {
+      return String(joinId || title || "").trim();
+    }
+
+    function getJoinReviewProductKey(product = {}) {
+      const reference = getSecretTourProductReference(product);
+      return [
+        reference.id || product.erpProductId || product.productId || product.id || "",
+        reference.eventSeq || product.erpEventSeq || product.eventSeq || "",
+        product.title || product.productName || ""
+      ].map((value) => String(value || "").trim()).join("|");
+    }
+
+    function getJoinReviewProductKeys(product = {}) {
+      const reference = getSecretTourProductReference(product);
+      return new Set([
+        getJoinReviewProductKey(product),
+        [reference.id || product.erpProductId || product.productId || product.id || "", "", ""].join("|"),
+        ["", reference.eventSeq || product.erpEventSeq || product.eventSeq || "", ""].join("|"),
+        ["", "", product.title || product.productName || ""].join("|")
+      ].filter((key) => key.replace(/\|/g, "")));
+    }
+
+    function readJoinMyReviewStore() {
+      try {
+        return JSON.parse(localStorage.getItem(JOIN_REVIEW_STORAGE_KEY) || "{}") || {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function writeJoinMyReviewStore(store = {}) {
+      try {
+        localStorage.setItem(JOIN_REVIEW_STORAGE_KEY, JSON.stringify(store));
+      } catch (error) {
+        console.warn("Failed to save join review", error);
+      }
+    }
+
+    function getJoinMySubmittedReview(joinId = "", title = "") {
+      const key = getJoinMyReviewKey(joinId, title);
+      if (!key) return null;
+      return readJoinMyReviewStore()[key] || joinReviewPayloadMemory.get(key) || null;
+    }
+
+    function hasJoinMySubmittedReview(joinId = "", title = "") {
+      return Boolean(getJoinMySubmittedReview(joinId, title));
+    }
+
+    function getJoinMySubmittedReviewForProduct(product = {}) {
+      const member = getJoinCachedCurrentMember() || {};
+      const memberSeq = String(member.memberSeq || "").trim();
+      const memberId = String(member.memberId || "").trim();
+      const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
+      const productKeys = getJoinReviewProductKeys(product);
+      return Array.from(joinReviewPayloadMemory.values())
+        .map(normalizeJoinReviewPayload)
+        .find((review) => {
+          const sameMember = (memberSeq && review.member.memberSeq === memberSeq)
+            || (memberId && review.member.memberId === memberId)
+            || (memberMobile && review.member.memberMobile === memberMobile);
+          if (!sameMember) return false;
+          const reviewKeys = getJoinReviewProductKeys({
+            id: review.product.erpProductId,
+            erpProductId: review.product.erpProductId,
+            erpEventSeq: review.product.erpEventSeq,
+            title: review.product.productName
+          });
+          return Array.from(reviewKeys).some((key) => productKeys.has(key));
+        }) || null;
+    }
+
+    function maskJoinReviewAuthor(name = "") {
+      const text = String(name || "").trim();
+      return text ? `${text.charAt(0)}*${text.length > 2 ? text.charAt(text.length - 1) : ""}` : "이용자";
+    }
+
+    function normalizeJoinReviewPayload(item = {}) {
+      const productReference = getSecretTourProductReference({
+        id: item.productId || item.erpProductId,
+        erpProductId: item.erpProductId || item.productId,
+        erpEventSeq: item.erpEventSeq || item.eventSeq
+      });
+      const rating = Math.max(1, Math.min(5, Number(item.rating || getNestedValue(item, "review.rating") || 5)));
+      const tags = Array.isArray(item.tags) ? item.tags : toBuilderApplicationArray(item.tags || getNestedValue(item, "review.tags"));
+      const reviewText = item.reviewText || item.text || getNestedValue(item, "review.text") || "";
+      const productName = item.productName || getNestedValue(item, "product.productName") || "";
+      const images = (() => {
+        const rawImages = item.images || getNestedValue(item, "review.images");
+        if (Array.isArray(rawImages)) return rawImages;
+        const imagesJson = item.imagesJson || getNestedValue(item, "review.imagesJson") || "";
+        if (!imagesJson) return [];
+        try {
+          const parsed = JSON.parse(imagesJson);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      })();
+      const normalized = {
+        reviewId: item.reviewId || "",
+        submittedAt: item.submittedAt || item.createdAt || "",
+        source: item.source || "join_review",
+        pageUrl: item.pageUrl || "",
+        member: {
+          memberSeq: getNestedValue(item, "member.memberSeq") || item.memberSeq || "",
+          memberId: getNestedValue(item, "member.memberId") || item.memberId || "",
+          memberName: getNestedValue(item, "member.memberName") || item.memberName || item.name || "",
+          memberMobile: normalizeJoinMemberPhone(getNestedValue(item, "member.memberMobile") || item.memberMobile || ""),
+          memberEmail: getNestedValue(item, "member.memberEmail") || item.memberEmail || ""
+        },
+        targetType: item.targetType || "",
+        targetScheduleId: item.targetScheduleId || "",
+        targetApplicationId: item.targetApplicationId || "",
+        product: {
+          erpProductId: productReference.id || item.erpProductId || item.productId || "",
+          erpEventSeq: productReference.eventSeq || item.erpEventSeq || item.eventSeq || "",
+          productName,
+          departureDate: item.departureDate || getNestedValue(item, "product.departureDate") || "",
+          returnDate: item.returnDate || getNestedValue(item, "product.returnDate") || "",
+          region: item.region || getNestedValue(item, "product.region") || ""
+        },
+        review: {
+          rating,
+          tags,
+          text: reviewText,
+          photoName: item.photoName || getNestedValue(item, "review.photoName") || "",
+          imageUrl: item.imageUrl || getNestedValue(item, "review.imageUrl") || images[0]?.imageUrl || "",
+          thumbnailUrl: item.thumbnailUrl || getNestedValue(item, "review.thumbnailUrl") || images[0]?.thumbnailUrl || "",
+          images,
+          photoSize: item.photoSize || getNestedValue(item, "review.photoSize") || "",
+          photoMimeType: item.photoMimeType || getNestedValue(item, "review.photoMimeType") || ""
+        },
+        status: item.status || "visible",
+        updatedAt: item.updatedAt || item.submittedAt || ""
+      };
+      if (!normalized.reviewId) {
+        normalized.reviewId = buildGoogleSheetRecordId("jr", normalized.submittedAt || new Date().toISOString(), normalized.member.memberSeq || normalized.member.memberId || normalized.member.memberMobile, normalized.product.erpProductId || normalized.product.productName);
+      }
+      return normalized;
+    }
+
+    function rememberJoinReviewPayload(payload = {}) {
+      const normalized = normalizeJoinReviewPayload(payload);
+      if (normalized.reviewId) joinReviewPayloadMemory.set(normalized.reviewId, normalized);
+      const ownKey = getJoinMyReviewKey(normalized.product.erpProductId || normalized.product.productName, normalized.product.productName);
+      if (ownKey) joinReviewPayloadMemory.set(ownKey, normalized);
+      return normalized;
+    }
+
+    function buildJoinMyCompletedReservationItem(source = {}) {
+      const join = source.join || source || {};
+      const seed = getJoinMyReservationProductSeed(join.id || "");
+      const joinId = join.id || source.joinId || "";
+      const title = join.title || source.title || "다녀온 조인 일정";
+      const submittedReview = getJoinMySubmittedReview(joinId, title) || getJoinMySubmittedReviewForProduct(join);
+      return {
+        joinId,
+        title,
+        countryRegion: seed.regionText || source.countryRegion || join.region || "태국 후아힌",
+        departureDate: join.departureDate || source.departureDate || "2026-05-08",
+        returnDate: join.returnDate || source.returnDate || "2026-05-11",
+        region: join.region || source.region || "후아힌",
+        image: join.image || source.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg",
+        status: "여행완료",
+        statusClass: "gray",
+        scheduleGroup: "completed",
+        currentCount: seed.confirmedParticipants.length || source.currentCount || 4,
+        targetCount: seed.targetCount || source.targetCount || 4,
+        flightPack: seed.hasFlight || source.flightPack,
+        flightInfo: seed.flightInfo || source.flightInfo || "",
+        price: join.price ? `${formatPrice(join.price)}원~` : source.price || "",
+        infos: [
+          ["후기", submittedReview ? "작성 완료" : "작성 가능"],
+          ["동반자", `${seed.confirmedParticipants.length || source.currentCount || 4}명`],
+          ["추천", "유사 일정 보기"]
+        ],
+        actions: [
+          { label: submittedReview ? "후기 수정" : "후기 쓰기", variant: "primary", action: "review" },
+          { label: "다시 가기", action: "product" },
+          { label: "문의하기", action: "contact" }
+        ]
+      };
+    }
+
+    function getJoinMyCompletedReservations(member = {}) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const completedFromApplications = Array.from(joinApplicationPayloadMemory.values())
+        .map(normalizeJoinApplyPayload)
+        .filter((application) => isJoinMyJoinApplicationForMember(application, member))
+        .map((application) => {
+          const joinId = getNestedValue(application, "join.id") || "";
+          const join = joins.find((item) => item.id === joinId) || getNestedValue(application, "join") || {};
+          return buildJoinMyCompletedReservationItem({ ...join, joinId });
+        })
+        .filter((item) => {
+          const endDate = new Date(`${item.returnDate || item.departureDate}T00:00:00`);
+          return !Number.isNaN(endDate.getTime()) && endDate < today;
+        });
+      if (completedFromApplications.length) return completedFromApplications;
+      const fallbackJoin = joins.find((join) => join.title?.includes("후아힌")) || joins.find((join) => join.region?.includes("후아힌")) || null;
+      return [buildJoinMyCompletedReservationItem(fallbackJoin || {
+        title: "후아힌 블랙마운틴 조인",
+        countryRegion: "태국 후아힌",
+        region: "후아힌",
+        departureDate: "2026-05-08",
+        returnDate: "2026-05-11",
+        image: "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg",
+        currentCount: 4,
+        targetCount: 4
+      })];
+    }
+
     function getJoinMyScheduleSheetStatus(item = {}) {
       const join = getJoinMyLinkedJoin(item);
       const source = join?.sheetApplication || item.sheetApplication || {};
@@ -38274,7 +39077,7 @@
       return {
         created: createdItems,
         joined: joinedItems,
-        completed: []
+        completed: getJoinMyCompletedReservations(member)
       };
     }
 
@@ -38744,8 +39547,834 @@
       document.getElementById("detailModal")?.classList.add("my-reservation-view-mode");
     }
 
+    function ensureJoinMyReviewModal() {
+      let overlay = document.getElementById("joinMyReviewModal");
+      if (overlay) return portalOverlayToBody("joinMyReviewModal");
+      overlay = document.createElement("div");
+      overlay.className = "overlay sgj-portal-overlay";
+      overlay.id = "joinMyReviewModal";
+      overlay.style.setProperty("z-index", "2147483630", "important");
+      overlay.setAttribute("onclick", "if(event.target.id === 'joinMyReviewModal') closeJoinMyReviewModal()");
+      overlay.innerHTML = `
+        <div class="modal join-review-modal" role="dialog" aria-modal="true" aria-labelledby="joinMyReviewTitle">
+          <div class="modal-header">
+            <button type="button" class="modal-close-icon modal-back-icon" onclick="closeJoinMyReviewModal()" aria-label="뒤로가기">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m12 19-7-7 7-7"></path>
+                <path d="M19 12H5"></path>
+              </svg>
+            </button>
+            <div class="modal-title" id="joinMyReviewTitle">후기 작성</div>
+            <span class="modal-header-spacer" aria-hidden="true"></span>
+          </div>
+          <form id="joinMyReviewForm" onsubmit="submitJoinMyReview(event)">
+            <div class="join-review-body">
+              <div class="join-review-trip">
+                <div class="join-review-trip-label">지난 일정</div>
+                <div class="join-review-trip-title" id="joinMyReviewTripTitle"></div>
+              </div>
+              <input type="hidden" id="joinMyReviewJoinId">
+              <input type="hidden" id="joinMyReviewRating" value="5">
+              <div class="join-review-field">
+                <div class="join-review-label">별점</div>
+                <div class="join-review-stars" role="radiogroup" aria-label="별점 선택">
+                  ${[1, 2, 3, 4, 5].map((rating) => `
+                    <button type="button" class="join-review-star" data-review-rating="${rating}" onclick="setJoinMyReviewRating(${rating})" aria-label="${rating}점">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg>
+                    </button>
+                  `).join("")}
+                </div>
+              </div>
+              <div class="join-review-field">
+                <div class="join-review-label">좋았던 점</div>
+                <div class="join-review-tags" aria-label="후기 키워드">
+                  ${["조인 분위기", "골프장 컨디션", "숙소", "이동 동선", "가이드 안내", "재참여 의사"].map((tag) => `<button type="button" class="join-review-tag" onclick="toggleJoinMyReviewTag(this)">${tag}</button>`).join("")}
+                </div>
+              </div>
+              <div class="join-review-field">
+                <label class="join-review-label" for="joinMyReviewText">후기 내용</label>
+                <textarea class="join-review-textarea" id="joinMyReviewText" maxlength="1000" placeholder="함께한 일정, 라운딩, 숙소, 이동 등 실제 이용 경험을 남겨주세요."></textarea>
+                <div class="join-review-help">최소 20자 이상 작성하면 등록할 수 있습니다.</div>
+              </div>
+              <div class="join-review-field">
+                <div class="join-review-label">사진</div>
+                <input type="file" id="joinMyReviewPhoto" accept="image/*" multiple hidden onchange="handleJoinMyReviewPhotoChange(this)">
+                <button type="button" class="join-review-photo-button" onclick="document.getElementById('joinMyReviewPhoto')?.click()">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4V7Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="13" r="3.5" stroke="currentColor"></circle></svg>
+                  <span id="joinMyReviewPhotoLabel">사진 첨부</span>
+                </button>
+                <div class="join-review-help">최대 ${REVIEW_IMAGE_MAX_FILES}장, 원본 10MB 이하 이미지만 첨부할 수 있습니다. 등록 전 자동으로 리사이즈/압축됩니다.</div>
+                <div class="join-review-photo-preview" id="joinMyReviewPhotoPreview"></div>
+              </div>
+              <div class="join-review-error" id="joinMyReviewError" aria-live="polite"></div>
+            </div>
+            <div class="join-review-actions">
+              <button type="button" onclick="closeJoinMyReviewModal()">취소</button>
+              <button type="submit" class="primary">후기 등록</button>
+            </div>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function setJoinMyReviewRating(rating = 5) {
+      const value = Math.max(1, Math.min(5, Number(rating) || 5));
+      const input = document.getElementById("joinMyReviewRating");
+      if (input) input.value = String(value);
+      document.querySelectorAll("#joinMyReviewModal .join-review-star").forEach((button) => {
+        const active = Number(button.dataset.reviewRating || 0) <= value;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-checked", Number(button.dataset.reviewRating || 0) === value ? "true" : "false");
+      });
+    }
+
+    function toggleJoinMyReviewTag(button) {
+      button?.classList.toggle("is-active");
+    }
+
+    function updateJoinMyReviewPhotoLabel(input) {
+      const label = document.getElementById("joinMyReviewPhotoLabel");
+      if (label) label.textContent = input?.files?.[0]?.name || "사진 첨부";
+    }
+
+    function formatReviewImageSize(bytes = 0) {
+      const size = Number(bytes || 0);
+      if (size >= 1024 * 1024) return `${(size / 1024 / 1024).toFixed(1)}MB`;
+      if (size >= 1024) return `${Math.round(size / 1024)}KB`;
+      return `${size}B`;
+    }
+
+    function getJoinMyReviewSelectedFiles() {
+      const input = document.getElementById("joinMyReviewPhoto");
+      return Array.from(input?.files || []).slice(0, REVIEW_IMAGE_MAX_FILES);
+    }
+
+    function clearJoinMyReviewPhotoInput() {
+      const input = document.getElementById("joinMyReviewPhoto");
+      if (input) input.value = "";
+      const preview = document.getElementById("joinMyReviewPhotoPreview");
+      if (preview) preview.innerHTML = "";
+      const label = document.getElementById("joinMyReviewPhotoLabel");
+      if (label) label.textContent = "사진 첨부";
+    }
+
+    function removeJoinMyReviewPhoto() {
+      clearJoinMyReviewPhotoInput();
+    }
+
+    function handleJoinMyReviewPhotoChange(input) {
+      const error = document.getElementById("joinMyReviewError");
+      if (error) error.textContent = "";
+      const files = Array.from(input?.files || []);
+      const invalid = files.find((file) => !/^image\//.test(file.type) || file.size > REVIEW_IMAGE_MAX_ORIGINAL_BYTES);
+      if (invalid) {
+        clearJoinMyReviewPhotoInput();
+        if (error) error.textContent = "이미지 파일만 첨부할 수 있고, 원본은 10MB 이하여야 합니다.";
+        return;
+      }
+      const selected = files.slice(0, REVIEW_IMAGE_MAX_FILES);
+      const label = document.getElementById("joinMyReviewPhotoLabel");
+      if (label) label.textContent = selected.length ? `사진 ${selected.length}장 선택` : "사진 첨부";
+      const preview = document.getElementById("joinMyReviewPhotoPreview");
+      if (!preview) return;
+      preview.innerHTML = selected.map((file, index) => {
+        const url = URL.createObjectURL(file);
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        return `
+          <div class="join-review-photo-item">
+            <img class="join-review-photo-thumb" src="${escapeHtml(url)}" alt="${escapeHtml(file.name)} 미리보기">
+            <div>
+              <div class="join-review-photo-name">${escapeHtml(file.name)}</div>
+              <div class="join-review-photo-meta">원본 ${escapeHtml(formatReviewImageSize(file.size))}</div>
+            </div>
+            <button type="button" class="join-review-photo-remove" onclick="removeJoinMyReviewPhoto()" aria-label="사진 삭제">×</button>
+          </div>
+        `;
+      }).join("");
+      if (files.length > REVIEW_IMAGE_MAX_FILES && error) {
+        error.textContent = `사진은 최대 ${REVIEW_IMAGE_MAX_FILES}장까지 등록됩니다.`;
+      }
+    }
+
+    function getReviewImageOutputType() {
+      const canvas = document.createElement("canvas");
+      return canvas.toDataURL("image/webp").startsWith("data:image/webp") ? "image/webp" : "image/jpeg";
+    }
+
+    function loadReviewImageBitmap(file) {
+      if ("createImageBitmap" in window) {
+        return createImageBitmap(file, { imageOrientation: "from-image" });
+      }
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = URL.createObjectURL(file);
+      });
+    }
+
+    function getReviewResizeRect(width, height, maxSide) {
+      const ratio = Math.min(1, maxSide / Math.max(width, height));
+      return {
+        width: Math.max(1, Math.round(width * ratio)),
+        height: Math.max(1, Math.round(height * ratio))
+      };
+    }
+
+    async function resizeJoinReviewImage(file, maxSide, quality = REVIEW_IMAGE_QUALITY) {
+      const bitmap = await loadReviewImageBitmap(file);
+      const size = getReviewResizeRect(bitmap.width, bitmap.height, maxSide);
+      const canvas = document.createElement("canvas");
+      canvas.width = size.width;
+      canvas.height = size.height;
+      const context = canvas.getContext("2d", { alpha: false });
+      context.drawImage(bitmap, 0, 0, size.width, size.height);
+      bitmap.close?.();
+      const mimeType = getReviewImageOutputType();
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, mimeType, quality));
+      if (!blob) throw new Error("Image compression failed");
+      return {
+        blob,
+        width: size.width,
+        height: size.height,
+        mimeType
+      };
+    }
+
+    function getReviewImageExtension(mimeType = "") {
+      return mimeType.includes("webp") ? "webp" : "jpg";
+    }
+
+    async function requestJoinReviewUploadUrls({ reviewId, images }) {
+      if (!REVIEW_IMAGE_SIGN_ENDPOINT) {
+        throw new Error("REVIEW_IMAGE_SIGN_ENDPOINT is not configured");
+      }
+      const response = await fetch(REVIEW_IMAGE_SIGN_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          type: "join_review_images",
+          reviewId,
+          images: images.map((image) => ({
+            role: image.role,
+            fileName: image.fileName,
+            contentType: image.mimeType,
+            size: image.blob.size
+          }))
+        })
+      });
+      if (!response.ok) throw new Error(`Upload URL request failed: ${response.status}`);
+      const data = await response.json();
+      const items = data.items || data.uploads || [];
+      if (!items.length) throw new Error("Upload URL response is empty");
+      return items;
+    }
+
+    async function uploadJoinReviewImageToGcs(upload, image) {
+      const response = await fetch(upload.uploadUrl || upload.signedUrl || upload.url, {
+        method: upload.method || "PUT",
+        headers: {
+          "Content-Type": image.mimeType
+        },
+        body: image.blob
+      });
+      if (!response.ok) throw new Error(`Image upload failed: ${response.status}`);
+      return {
+        ...image,
+        imageUrl: upload.publicUrl || upload.imageUrl || upload.downloadUrl || "",
+        objectName: upload.objectName || "",
+        gcsBucket: upload.bucket || ""
+      };
+    }
+
+    async function uploadJoinReviewImages(reviewId) {
+      const files = getJoinMyReviewSelectedFiles();
+      if (!files.length) return { images: [], imageUrl: "", thumbnailUrl: "", photoName: "", photoSize: 0, photoMimeType: "" };
+      const compressed = [];
+      for (const [index, file] of files.entries()) {
+        const main = await resizeJoinReviewImage(file, REVIEW_IMAGE_MAIN_MAX_SIDE);
+        const thumb = await resizeJoinReviewImage(file, REVIEW_IMAGE_THUMB_MAX_SIDE);
+        const extension = getReviewImageExtension(main.mimeType);
+        compressed.push({
+          role: `main_${index + 1}`,
+          fileName: `${reviewId}_${index + 1}.${extension}`,
+          sourceName: file.name,
+          ...main
+        });
+        compressed.push({
+          role: `thumb_${index + 1}`,
+          fileName: `${reviewId}_${index + 1}_thumb.${extension}`,
+          sourceName: file.name,
+          ...thumb
+        });
+      }
+      const uploads = await requestJoinReviewUploadUrls({ reviewId, images: compressed });
+      const uploaded = [];
+      for (const image of compressed) {
+        const upload = uploads.find((item) => item.role === image.role || item.fileName === image.fileName);
+        if (!upload) throw new Error(`Missing upload URL for ${image.fileName}`);
+        uploaded.push(await uploadJoinReviewImageToGcs(upload, image));
+      }
+      const mainImages = uploaded.filter((image) => image.role.startsWith("main_"));
+      const thumbImages = uploaded.filter((image) => image.role.startsWith("thumb_"));
+      return {
+        images: mainImages.map((image, index) => ({
+          imageUrl: image.imageUrl,
+          thumbnailUrl: thumbImages[index]?.imageUrl || image.imageUrl,
+          photoName: image.sourceName,
+          photoSize: image.blob.size,
+          photoWidth: image.width,
+          photoHeight: image.height,
+          photoMimeType: image.mimeType,
+          objectName: image.objectName,
+          thumbObjectName: thumbImages[index]?.objectName || ""
+        })),
+        imageUrl: mainImages[0]?.imageUrl || "",
+        thumbnailUrl: thumbImages[0]?.imageUrl || mainImages[0]?.imageUrl || "",
+        photoName: mainImages.map((image) => image.sourceName).filter(Boolean).join(", "),
+        photoSize: mainImages.reduce((sum, image) => sum + image.blob.size, 0),
+        photoMimeType: mainImages[0]?.mimeType || ""
+      };
+    }
+
+    let joinProfileManageSelectedFile = null;
+
+    function getJoinProfileInitial(member = {}) {
+      const name = String(member.memberName || member.name || "회원").trim();
+      return Array.from(name)[0] || "회";
+    }
+
+    function renderJoinProfileImage(target, member = {}) {
+      if (!target) return;
+      const imageUrl = member.profileThumbnailUrl || member.profileImageUrl || "";
+      if (imageUrl) {
+        target.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async">`;
+        return;
+      }
+      target.textContent = getJoinProfileInitial(member);
+    }
+
+    function ensureJoinProfileManageModal() {
+      let overlay = document.getElementById("joinProfileManageOverlay");
+      if (overlay) return overlay;
+      overlay = document.createElement("div");
+      overlay.id = "joinProfileManageOverlay";
+      overlay.className = "join-profile-manage-overlay";
+      overlay.setAttribute("aria-hidden", "true");
+      overlay.onclick = (event) => {
+        if (event.target.id === "joinProfileManageOverlay") closeJoinProfileManageModal();
+      };
+      overlay.innerHTML = `
+        <div class="join-profile-manage-modal" role="dialog" aria-modal="true" aria-labelledby="joinProfileManageTitle">
+          <div class="join-profile-manage-head">
+            <div class="join-profile-manage-title" id="joinProfileManageTitle">프로필 관리</div>
+            <button type="button" class="join-profile-manage-close" onclick="closeJoinProfileManageModal()" aria-label="닫기">&times;</button>
+          </div>
+          <form class="join-profile-manage-body" id="joinProfileManageForm" onsubmit="submitJoinProfileManage(event)">
+            <div class="join-profile-photo-row">
+              <div class="join-profile-photo-preview" id="joinProfileManagePreview"></div>
+              <div class="join-profile-photo-actions">
+                <label class="join-profile-photo-button" for="joinProfileManagePhoto">사진 변경</label>
+                <input type="file" id="joinProfileManagePhoto" accept="image/*" hidden onchange="handleJoinProfilePhotoChange(event)">
+                <div class="join-profile-photo-note" id="joinProfileManagePhotoNote">작은 프로필용으로 압축해서 1장만 저장됩니다.</div>
+              </div>
+            </div>
+            <div class="join-profile-manage-grid">
+              <label class="join-profile-manage-field">
+                <span class="join-profile-manage-label">이름</span>
+                <input class="join-profile-manage-input" id="joinProfileManageName" autocomplete="name" required>
+              </label>
+              <label class="join-profile-manage-field">
+                <span class="join-profile-manage-label">휴대폰</span>
+                <input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel">
+              </label>
+              <label class="join-profile-manage-field">
+                <span class="join-profile-manage-label">이메일</span>
+                <input class="join-profile-manage-input" id="joinProfileManageEmail" type="email" autocomplete="email">
+              </label>
+              <label class="join-profile-manage-field">
+                <span class="join-profile-manage-label">출생년도</span>
+                <input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" placeholder="1980">
+              </label>
+              <label class="join-profile-manage-field">
+                <span class="join-profile-manage-label">성별</span>
+                <select class="join-profile-manage-select" id="joinProfileManageGender">
+                  <option value="">선택</option>
+                  <option value="남성">남성</option>
+                  <option value="여성">여성</option>
+                </select>
+              </label>
+              <label class="join-profile-manage-field">
+                <span class="join-profile-manage-label">골프 수준</span>
+                <select class="join-profile-manage-select" id="joinProfileManageLevel">
+                  <option value="">선택</option>
+                  <option value="입문/초보">입문/초보</option>
+                  <option value="보기플레이어">보기플레이어</option>
+                  <option value="90대">90대</option>
+                  <option value="80대">80대</option>
+                  <option value="싱글 수준입니다">싱글 수준입니다</option>
+                </select>
+              </label>
+              <label class="join-profile-manage-field is-wide">
+                <span class="join-profile-manage-label">직업</span>
+                <input class="join-profile-manage-input" id="joinProfileManageProfession">
+              </label>
+              <label class="join-profile-manage-field is-wide">
+                <span class="join-profile-manage-label">선호 스타일</span>
+                <textarea class="join-profile-manage-textarea" id="joinProfileManageTravelStyles" placeholder="예: 조용한 일정, 친목, 프리미엄 리조트"></textarea>
+              </label>
+            </div>
+            <div class="join-profile-manage-status" id="joinProfileManageStatus"></div>
+            <div class="join-profile-manage-actions">
+              <button type="button" class="join-profile-manage-cancel" onclick="closeJoinProfileManageModal()">취소</button>
+              <button type="submit" class="join-profile-manage-save" id="joinProfileManageSave">저장</button>
+            </div>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function setJoinProfileManageStatus(message = "") {
+      const target = document.getElementById("joinProfileManageStatus");
+      if (target) target.textContent = message;
+    }
+
+    function fillJoinProfileManageForm(member = {}) {
+      joinProfileManageSelectedFile = null;
+      const fields = {
+        joinProfileManageName: member.memberName || member.name || "",
+        joinProfileManageMobile: member.memberMobile || member.mobile || "",
+        joinProfileManageEmail: member.memberEmail || member.email || "",
+        joinProfileManageBirthYear: getJoinMemberBirthYear(member),
+        joinProfileManageGender: member.gender || "",
+        joinProfileManageLevel: member.level || "",
+        joinProfileManageProfession: member.profession || "",
+        joinProfileManageTravelStyles: member.travelStyles || ""
+      };
+      Object.entries(fields).forEach(([id, value]) => {
+        const node = document.getElementById(id);
+        if (node) node.value = value || "";
+      });
+      const input = document.getElementById("joinProfileManagePhoto");
+      if (input) input.value = "";
+      renderJoinProfileImage(document.getElementById("joinProfileManagePreview"), member);
+      const note = document.getElementById("joinProfileManagePhotoNote");
+      if (note) note.textContent = "작은 프로필용으로 압축해서 1장만 저장됩니다.";
+      setJoinProfileManageStatus("");
+    }
+
+    async function openJoinProfileManageModal() {
+      const cached = getJoinCachedCurrentMember();
+      if (!cached) {
+        redirectToJoinLogin("my-menu");
+        return;
+      }
+      const overlay = ensureJoinProfileManageModal();
+      fillJoinProfileManageForm(cached);
+      overlay.classList.add("open");
+      overlay.setAttribute("aria-hidden", "false");
+      setWidgetModalOpen(true);
+      document.documentElement.classList.add("modal-open");
+      document.body.classList.add("modal-open");
+      refreshJoinMemberInBackground((member) => {
+        if (document.getElementById("joinProfileManageOverlay")?.classList.contains("open") && !joinProfileManageSelectedFile) {
+          fillJoinProfileManageForm(member);
+        }
+      });
+    }
+
+    function closeJoinProfileManageModal() {
+      const overlay = document.getElementById("joinProfileManageOverlay");
+      resetModalRuntimeState(overlay);
+      overlay?.classList.remove("open");
+      overlay?.setAttribute("aria-hidden", "true");
+      joinProfileManageSelectedFile = null;
+      setWidgetModalOpen(hasOpenBlockingModal());
+      if (!hasOpenBlockingModal()) {
+        document.documentElement.classList.remove("modal-open");
+        document.body.classList.remove("modal-open");
+      }
+    }
+
+    function handleJoinProfilePhotoChange(event) {
+      const file = event.target.files?.[0] || null;
+      const note = document.getElementById("joinProfileManagePhotoNote");
+      if (!file) {
+        joinProfileManageSelectedFile = null;
+        if (note) note.textContent = "작은 프로필용으로 압축해서 1장만 저장됩니다.";
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        event.target.value = "";
+        joinProfileManageSelectedFile = null;
+        setJoinProfileManageStatus("이미지 파일만 선택할 수 있습니다.");
+        return;
+      }
+      if (file.size > PROFILE_IMAGE_MAX_ORIGINAL_BYTES) {
+        event.target.value = "";
+        joinProfileManageSelectedFile = null;
+        setJoinProfileManageStatus("프로필 사진은 원본 5MB 이하만 선택할 수 있습니다.");
+        return;
+      }
+      joinProfileManageSelectedFile = file;
+      const preview = document.getElementById("joinProfileManagePreview");
+      if (preview) {
+        const url = URL.createObjectURL(file);
+        preview.innerHTML = `<img src="${escapeHtml(url)}" alt="">`;
+      }
+      if (note) note.textContent = `${file.name} · 원본 ${formatReviewImageSize(file.size)}`;
+      setJoinProfileManageStatus("");
+    }
+
+    async function requestJoinProfileUploadUrls({ profileId, images }) {
+      if (!REVIEW_IMAGE_SIGN_ENDPOINT) {
+        throw new Error("REVIEW_IMAGE_SIGN_ENDPOINT is not configured");
+      }
+      const response = await fetch(REVIEW_IMAGE_SIGN_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          type: "join_profile_image",
+          profileId,
+          images: images.map((image) => ({
+            role: image.role,
+            fileName: image.fileName,
+            contentType: image.mimeType,
+            size: image.blob.size
+          }))
+        })
+      });
+      if (!response.ok) throw new Error(`Profile upload URL request failed: ${response.status}`);
+      const data = await response.json();
+      const items = data.items || data.uploads || [];
+      if (!items.length) throw new Error("Profile upload URL response is empty");
+      return items;
+    }
+
+    async function uploadJoinProfileImage(profileId) {
+      const file = joinProfileManageSelectedFile;
+      if (!file) return null;
+      const resized = await resizeJoinReviewImage(file, PROFILE_IMAGE_MAX_SIDE, PROFILE_IMAGE_QUALITY);
+      const extension = getReviewImageExtension(resized.mimeType);
+      const image = {
+        role: "profile",
+        fileName: `${profileId}_profile.${extension}`,
+        sourceName: file.name,
+        ...resized
+      };
+      const uploads = await requestJoinProfileUploadUrls({ profileId, images: [image] });
+      const upload = uploads.find((item) => item.role === image.role || item.fileName === image.fileName) || uploads[0];
+      const uploaded = await uploadJoinReviewImageToGcs(upload, image);
+      return {
+        profileImageUrl: uploaded.imageUrl,
+        profileThumbnailUrl: uploaded.imageUrl,
+        profileImageObjectName: uploaded.objectName || "",
+        profileImageMimeType: uploaded.mimeType,
+        profileImageSize: uploaded.blob.size
+      };
+    }
+
+    function buildJoinProfileManagePayload(member = {}, image = null) {
+      const submittedAt = new Date().toISOString();
+      const mobile = normalizeJoinMemberPhone(document.getElementById("joinProfileManageMobile")?.value || member.memberMobile || "");
+      const name = document.getElementById("joinProfileManageName")?.value.trim() || member.memberName || "";
+      const email = document.getElementById("joinProfileManageEmail")?.value.trim() || member.memberEmail || "";
+      const birthYear = document.getElementById("joinProfileManageBirthYear")?.value.trim() || "";
+      const profileId = buildGoogleSheetRecordId("jmp", submittedAt, member.memberSeq || member.memberId || mobile || "");
+      const profileImage = image || {
+        profileImageUrl: member.profileImageUrl || "",
+        profileThumbnailUrl: member.profileThumbnailUrl || member.profileImageUrl || "",
+        profileImageObjectName: member.profileImageObjectName || "",
+        profileImageMimeType: member.profileImageMimeType || "",
+        profileImageSize: member.profileImageSize || ""
+      };
+      return {
+        profileId,
+        source: "join_member_profile",
+        sheet: "join_member_profiles",
+        submittedAt,
+        pageUrl: location.href,
+        member: {
+          memberSeq: member.memberSeq || "",
+          memberId: member.memberId || "",
+          memberName: name,
+          memberChannel: member.memberChannel || "HOME",
+          memberMobile: mobile,
+          memberEmail: email
+        },
+        profile: {
+          birthYear,
+          gender: document.getElementById("joinProfileManageGender")?.value || "",
+          profession: document.getElementById("joinProfileManageProfession")?.value.trim() || "",
+          level: document.getElementById("joinProfileManageLevel")?.value || "",
+          travelStyles: document.getElementById("joinProfileManageTravelStyles")?.value.trim() || "",
+          requiredAgreed: true,
+          marketingAgreed: Boolean(member.marketingAgreed),
+          termsAgreedAt: submittedAt,
+          ...profileImage
+        },
+        kakao: {
+          kakaoId: member.kakaoId || "",
+          nickname: member.kakaoNickname || ""
+        }
+      };
+    }
+
+    function validateJoinProfileManageForm() {
+      const name = document.getElementById("joinProfileManageName")?.value.trim() || "";
+      const mobile = normalizeJoinMemberPhone(document.getElementById("joinProfileManageMobile")?.value || "");
+      const birthYear = document.getElementById("joinProfileManageBirthYear")?.value.trim() || "";
+      if (name.length < 2) return "이름을 2자 이상 입력해 주세요.";
+      if (mobile && !/^01\d{8,9}$/.test(mobile)) return "휴대폰 번호를 다시 확인해 주세요.";
+      if (birthYear && !/^(19\d{2}|20\d{2})$/.test(birthYear)) return "출생년도 4자리를 입력해 주세요.";
+      return "";
+    }
+
+    async function submitJoinProfileManage(event) {
+      event.preventDefault();
+      const member = getJoinCachedCurrentMember();
+      if (!member) {
+        redirectToJoinLogin("my-menu");
+        return;
+      }
+      const message = validateJoinProfileManageForm();
+      if (message) {
+        setJoinProfileManageStatus(message);
+        return;
+      }
+      const saveButton = document.getElementById("joinProfileManageSave");
+      saveButton?.setAttribute("disabled", "disabled");
+      setJoinProfileManageStatus("저장 중입니다.");
+      try {
+        const payload = buildJoinProfileManagePayload(member, null);
+        const image = joinProfileManageSelectedFile
+          ? await uploadJoinProfileImage(payload.profileId)
+          : null;
+        if (joinProfileManageSelectedFile && !image?.profileImageUrl) {
+          throw new Error("Profile image upload failed");
+        }
+        if (image) {
+          payload.profile = {
+            ...payload.profile,
+            ...image
+          };
+        }
+        await saveJoinMemberProfileToGoogleSheet(payload);
+        const mergedProfile = normalizeJoinMemberProfileRow({
+          ...payload.member,
+          ...payload.profile,
+          profileId: payload.profileId,
+          submittedAt: payload.submittedAt
+        });
+        rememberJoinMemberProfileLocally(payload.member, mergedProfile);
+        const updatedMember = mergeJoinMemberWithProfile(member, mergedProfile);
+        rememberJoinMemberProfileLocally(member, updatedMember);
+        joinMyMenuState.memberPromise = Promise.resolve(updatedMember);
+        updateJoinMyDrawerProfile(updatedMember);
+        closeJoinProfileManageModal();
+      } catch (error) {
+        console.error("Failed to save join profile.", error);
+        setJoinProfileManageStatus(joinProfileManageSelectedFile && !REVIEW_IMAGE_SIGN_ENDPOINT
+          ? "사진 업로드 API 설정이 필요합니다. 관리자에게 문의해 주세요."
+          : "프로필 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+      } finally {
+        saveButton?.removeAttribute("disabled");
+      }
+    }
+
+    function findJoinForReview(joinId = "", title = "") {
+      const key = String(joinId || "").trim();
+      const name = String(title || "").trim();
+      return joins.find((item) => key && item.id === key)
+        || joins.find((item) => name && (String(item.title || "").includes(name) || name.includes(String(item.title || ""))))
+        || null;
+    }
+
+    function buildJoinReviewPayload({ reviewId: presetReviewId = "", joinId = "", title = "", rating = 5, tags = [], text = "", photoName = "", imageUpload = null } = {}) {
+      const join = findJoinForReview(joinId, title) || { id: joinId, title };
+      const productReference = getSecretTourProductReference(join);
+      const member = getJoinCachedCurrentMember() || {};
+      const submittedAt = new Date().toISOString();
+      const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
+      const reviewId = presetReviewId || buildGoogleSheetRecordId("jr", submittedAt, member.memberSeq || member.memberId || memberMobile, productReference.id || join.id || title);
+      return {
+        reviewId,
+        source: "join_review",
+        submittedAt,
+        pageUrl: location.href,
+        member: {
+          memberSeq: member.memberSeq || "",
+          memberId: member.memberId || "",
+          memberName: member.memberName || member.name || "",
+          memberMobile,
+          memberEmail: member.memberEmail || member.email || ""
+        },
+        targetType: join.scheduleId ? "new_schedule" : "erp_product",
+        targetScheduleId: join.scheduleId || "",
+        targetApplicationId: join.sourceApplicationId || getNestedValue(join.sheetApplication || {}, "applicationId") || "",
+        product: {
+          erpProductId: join.erpProductId || productReference.id || join.id || "",
+          erpEventSeq: join.erpEventSeq || productReference.eventSeq || "",
+          productName: join.title || title || "",
+          departureDate: join.departureDate || "",
+          returnDate: join.returnDate || "",
+          region: join.region || ""
+        },
+        rating,
+        tags,
+        reviewText: text,
+        photoName: imageUpload?.photoName || photoName,
+        imageUrl: imageUpload?.imageUrl || "",
+        thumbnailUrl: imageUpload?.thumbnailUrl || "",
+        imagesJson: imageUpload?.images?.length ? JSON.stringify(imageUpload.images) : "",
+        photoSize: imageUpload?.photoSize || "",
+        photoMimeType: imageUpload?.photoMimeType || "",
+        review: {
+          rating,
+          tags,
+          text,
+          photoName: imageUpload?.photoName || photoName,
+          imageUrl: imageUpload?.imageUrl || "",
+          thumbnailUrl: imageUpload?.thumbnailUrl || "",
+          images: imageUpload?.images || [],
+          photoSize: imageUpload?.photoSize || "",
+          photoMimeType: imageUpload?.photoMimeType || ""
+        },
+        status: "visible"
+      };
+    }
+
     function handleJoinMyReviewWrite(joinId = "", title = "") {
-      alert("후기 작성 기능은 준비 중입니다.");
+      const overlay = ensureJoinMyReviewModal();
+      const reviewJoin = findJoinForReview(joinId, title) || { id: joinId, title };
+      const existing = getJoinMySubmittedReview(joinId, title) || getJoinMySubmittedReviewForProduct(reviewJoin);
+      document.getElementById("joinMyReviewTitle") && (document.getElementById("joinMyReviewTitle").textContent = existing ? "후기 수정" : "후기 작성");
+      document.getElementById("joinMyReviewTripTitle") && (document.getElementById("joinMyReviewTripTitle").textContent = title || "다녀온 일정");
+      document.getElementById("joinMyReviewJoinId") && (document.getElementById("joinMyReviewJoinId").value = getJoinMyReviewKey(joinId, title));
+      overlay.dataset.reviewJoinId = joinId || "";
+      overlay.dataset.reviewTitle = title || "";
+      const text = document.getElementById("joinMyReviewText");
+      if (text) text.value = existing?.review?.text || existing?.text || "";
+      document.querySelectorAll("#joinMyReviewModal .join-review-tag").forEach((button) => {
+        const tags = existing?.review?.tags || existing?.tags || [];
+        button.classList.toggle("is-active", Boolean(tags.includes(button.textContent.trim())));
+      });
+      const photoInput = document.getElementById("joinMyReviewPhoto");
+      if (photoInput) photoInput.value = "";
+      document.getElementById("joinMyReviewPhotoLabel") && (document.getElementById("joinMyReviewPhotoLabel").textContent = existing?.review?.photoName || existing?.photoName || "사진 첨부");
+      document.getElementById("joinMyReviewError") && (document.getElementById("joinMyReviewError").textContent = "");
+      setJoinMyReviewRating(existing?.review?.rating || existing?.rating || 5);
+      overlay?.classList.add("open");
+      setWidgetModalOpen(true);
+      requestAnimationFrame(() => text?.focus());
+    }
+
+    function closeJoinMyReviewModal() {
+      const modal = document.getElementById("joinMyReviewModal");
+      resetModalRuntimeState(modal);
+      modal?.classList.remove("open");
+      if (!document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+        setWidgetModalOpen(false);
+      }
+    }
+
+    async function submitJoinMyReview(event) {
+      event?.preventDefault();
+      const key = document.getElementById("joinMyReviewJoinId")?.value || "";
+      const text = document.getElementById("joinMyReviewText")?.value.trim() || "";
+      const error = document.getElementById("joinMyReviewError");
+      if (!key) {
+        if (error) error.textContent = "후기를 등록할 일정을 확인할 수 없습니다.";
+        return;
+      }
+      if (text.length < 20) {
+        if (error) error.textContent = "후기 내용을 20자 이상 입력해 주세요.";
+        return;
+      }
+      const tags = Array.from(document.querySelectorAll("#joinMyReviewModal .join-review-tag.is-active")).map((button) => button.textContent.trim());
+      const photoName = document.getElementById("joinMyReviewPhoto")?.files?.[0]?.name || document.getElementById("joinMyReviewPhotoLabel")?.textContent || "";
+      const overlay = document.getElementById("joinMyReviewModal");
+      const reviewJoinId = overlay?.dataset.reviewJoinId || key;
+      const reviewTitle = overlay?.dataset.reviewTitle || document.getElementById("joinMyReviewTripTitle")?.textContent || "";
+      const existingReview = getJoinMySubmittedReview(reviewJoinId, reviewTitle) || getJoinMySubmittedReviewForProduct(findJoinForReview(reviewJoinId, reviewTitle) || { id: reviewJoinId, title: reviewTitle });
+      const preservedImageUpload = existingReview?.review?.imageUrl ? {
+        imageUrl: existingReview.review.imageUrl || "",
+        thumbnailUrl: existingReview.review.thumbnailUrl || existingReview.review.imageUrl || "",
+        images: existingReview.review.images || [],
+        photoName: existingReview.review.photoName || "",
+        photoSize: existingReview.review.photoSize || "",
+        photoMimeType: existingReview.review.photoMimeType || ""
+      } : null;
+      let payload = buildJoinReviewPayload({
+        joinId: reviewJoinId,
+        title: reviewTitle,
+        rating: Number(document.getElementById("joinMyReviewRating")?.value || 5),
+        tags,
+        text,
+        photoName: photoName === "사진 첨부" ? "" : photoName,
+        imageUpload: getJoinMyReviewSelectedFiles().length ? null : preservedImageUpload
+      });
+      const submitButton = document.querySelector("#joinMyReviewModal .join-review-actions .primary");
+      const previousText = submitButton?.textContent || "";
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = "저장 중";
+      }
+      try {
+        if (getJoinMyReviewSelectedFiles().length) {
+          submitButton && (submitButton.textContent = "사진 최적화 중");
+          const imageUpload = await uploadJoinReviewImages(payload.reviewId);
+          payload = buildJoinReviewPayload({
+            reviewId: payload.reviewId,
+            joinId: reviewJoinId,
+            title: reviewTitle,
+            rating: Number(document.getElementById("joinMyReviewRating")?.value || 5),
+            tags,
+            text,
+            photoName: imageUpload.photoName,
+            imageUpload
+          });
+        }
+        submitButton && (submitButton.textContent = "후기 저장 중");
+        await saveJoinReviewToGoogleSheet(payload);
+        rememberJoinReviewPayload(payload);
+      } catch (saveError) {
+        console.warn("Failed to save join review to Google Sheet.", saveError);
+        if (error) {
+          error.textContent = getJoinMyReviewSelectedFiles().length && !REVIEW_IMAGE_SIGN_ENDPOINT
+            ? "사진 업로드 API 설정이 필요합니다. 관리자에게 문의해 주세요."
+            : "후기 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+        }
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = previousText;
+        }
+        return;
+      }
+      const store = readJoinMyReviewStore();
+      store[key] = payload;
+      writeJoinMyReviewStore(store);
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = previousText;
+      }
+      closeJoinMyReviewModal();
+      const member = getJoinCachedCurrentMember();
+      if (member && document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+        renderJoinMyMenu(member);
+        switchJoinMyTab("completed");
+      }
+      if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinData) {
+        renderDetailContent(currentDetailJoinData);
+      }
     }
 
     function switchJoinMyTab(tabKey) {
@@ -39655,6 +41284,39 @@
       `;
     }
 
+    function getSheetDetailReviews(join) {
+      const slides = getDetailSlides(join);
+      const keys = getJoinReviewProductKeys(join);
+      return Array.from(joinReviewPayloadMemory.values())
+        .map(normalizeJoinReviewPayload)
+        .filter((review) => String(review.status || "visible") !== "hidden")
+        .filter((review) => {
+          const product = {
+            id: review.product.erpProductId,
+            erpProductId: review.product.erpProductId,
+            erpEventSeq: review.product.erpEventSeq,
+            title: review.product.productName
+          };
+          const reviewKeys = getJoinReviewProductKeys(product);
+          return Array.from(reviewKeys).some((key) => keys.has(key));
+        })
+        .filter((review, index, list) => {
+          return list.findIndex((item) => item.reviewId === review.reviewId) === index;
+        })
+        .map((review) => ({
+          stars: "★".repeat(Math.max(1, Math.min(5, Number(review.review.rating || 5)))),
+          rating: Number(review.review.rating || 5),
+          time: review.submittedAt || review.updatedAt || "",
+          text: review.review.text || "",
+          product: review.product.productName || join.title,
+          author: maskJoinReviewAuthor(review.member.memberName),
+          image: review.review.thumbnailUrl || review.review.imageUrl || slides[0],
+          count: review.review.images?.length > 1 ? `${review.review.images.length}+` : (review.review.imageUrl ? "1" : ""),
+          source: "sheet"
+        }))
+        .filter((review) => review.text);
+    }
+
     function getDetailReviews(join) {
       const slides = getDetailSlides(join);
       const baseReview = {
@@ -39667,6 +41329,7 @@
         count: "10+"
       };
       return [
+        ...getSheetDetailReviews(join),
         baseReview,
         {
           stars: "★★★★★",
@@ -39690,7 +41353,7 @@
     }
 
     function renderDetailReviewStars(review) {
-      const count = Math.max(1, Math.min(5, String(review?.stars || "").replace(/[^★]/g, "").length || 5));
+      const count = Math.max(1, Math.min(5, Number(review?.rating || 0) || String(review?.stars || "").replace(/[^★]/g, "").length || 5));
       const star = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg>`;
       return `<div class="detail-review-stars" aria-label="별점 ${count}점">${Array.from({ length: count }).map(() => star).join("")}</div>`;
     }
@@ -39751,13 +41414,13 @@
             <div class="detail-review-head">
               ${renderDetailReviewStars(review)}
               <div class="detail-review-time">${escapeHtml(reviewTime)}</div>
-              <div class="detail-review-author">${review.author}</div>
+              <div class="detail-review-author">${escapeHtml(review.author)}</div>
             </div>
-            <div class="detail-review-text">${review.text}</div>
+            <div class="detail-review-text">${escapeHtml(review.text)}</div>
           </div>
           <div class="detail-review-thumb-wrap">
-            <img class="detail-review-thumb" src="${review.image}" alt="${review.product} 후기 이미지">
-            <div class="detail-review-more">${review.count}</div>
+            <img class="detail-review-thumb" src="${escapeHtml(review.image)}" alt="${escapeHtml(review.product)} 후기 이미지">
+            ${review.count ? `<div class="detail-review-more">${escapeHtml(review.count)}</div>` : ""}
           </div>
         </div>
       `;
@@ -43117,6 +44780,22 @@
       return { ok: true };
     }
 
+    async function saveJoinReviewToGoogleSheet(payload) {
+      if (!GOOGLE_SHEET_WEB_APP_URL) {
+        console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Join review payload was not sent.", payload);
+        return { skipped: true };
+      }
+      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+      return { ok: true };
+    }
+
     async function saveJoinMemberProfileToGoogleSheet(payload) {
       if (!GOOGLE_SHEET_WEB_APP_URL) {
         console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Member profile payload was not sent.", payload);
@@ -43233,7 +44912,7 @@
       return {
         joinApplyId: item.joinApplyId || item.applicationId || "",
         source: item.source || "join_apply",
-        submittedAt: item.submittedAt || "",
+        submittedAt: item.submittedAt || item.createdAt || "",
         pageUrl: item.pageUrl || "",
         targetType: item.targetType || "",
         targetScheduleId: item.targetScheduleId || "",
@@ -43241,9 +44920,9 @@
         member: {
           memberSeq: item.memberSeq || "",
           memberId: item.memberId || "",
-          memberName: item.memberName || item.name || item.applicantName || "",
+          memberName: item.memberName || item.applicantName || item.name || "",
           memberChannel: item.memberChannel || "",
-          memberMobile: normalizeJoinMemberPhone(item.memberMobile || item.memberPhone || item.phone || ""),
+          memberMobile: normalizeJoinMemberPhone(item.memberMobile || item.memberPhone || item.applicantMobile || item.phone || ""),
           memberEmail: item.memberEmail || item.email || ""
         },
         product: {
@@ -43259,19 +44938,19 @@
           returnDate: item.returnDate || ""
         },
         applicant: {
-          name: item.name || item.applicantName || "",
-          gender: item.gender || item.applicantGender || "",
-          birthYear: item.birthYear || "",
-          ageDisplay: item.ageDisplay || item.age || "",
-          phone: item.phone || "",
-          profession: item.profession || "",
-          people: item.people || 1,
-          companions: parseCompanionList(item.companions),
-          level: item.level || "",
-          styles: toBuilderApplicationArray(item.styles),
-          memberPreferences: toBuilderApplicationArray(item.memberPreferences),
-          preferredMemberComposition: toBuilderApplicationArray(item.preferredMemberComposition || item.memberPreferences),
-          greeting: item.greeting || ""
+          name: item.applicantName || item.name || "",
+          gender: item.applicantGender || item.gender || "",
+          birthYear: item.applicantBirthYear || item.birthYear || "",
+          ageDisplay: item.applicantAgeBand || item.ageDisplay || item.age || "",
+          phone: item.applicantMobile || item.phone || "",
+          profession: item.applicantProfession || item.profession || "",
+          people: item.applicantPeople || item.people || 1,
+          companions: parseCompanionList(item.applicantCompanions || item.companions),
+          level: item.applicantLevel || item.level || "",
+          styles: toBuilderApplicationArray(item.applicantStyles || item.styles),
+          memberPreferences: toBuilderApplicationArray(item.applicantPreferredMembers || item.memberPreferences),
+          preferredMemberComposition: toBuilderApplicationArray(item.applicantPreferredMembers || item.preferredMemberComposition || item.memberPreferences),
+          greeting: item.applicantGreeting || item.greeting || ""
         },
         agreements: {
           required: item.requiredAgreed || "",
@@ -43383,6 +45062,17 @@
       }
     }
 
+    function hydrateJoinReviewsFromLocalCache() {
+      try {
+        Object.values(readJoinMyReviewStore()).forEach((payload) => rememberJoinReviewPayload(payload));
+        readGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY)
+          .map(normalizeJoinReviewPayload)
+          .forEach((payload) => rememberJoinReviewPayload(payload));
+      } catch (error) {
+        console.warn("Failed to load cached join reviews.", error);
+      }
+    }
+
     async function hydrateJoinApplicationsFromGoogleSheet() {
       if (!GOOGLE_SHEET_WEB_APP_URL) return [];
       googleSheetJoinApplicationsLoading = true;
@@ -43406,6 +45096,28 @@
       } finally {
         googleSheetJoinApplicationsLoading = false;
         renderJoins();
+      }
+    }
+
+    async function hydrateJoinReviewsFromGoogleSheet() {
+      if (!GOOGLE_SHEET_WEB_APP_URL) return [];
+      try {
+        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
+        url.searchParams.set("sheet", "join_reviews");
+        url.searchParams.set("source", "join_review");
+        url.searchParams.set("status", "visible");
+        url.searchParams.set("limit", "200");
+        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
+        if (!response.ok) throw new Error(`Join reviews load failed: ${response.status}`);
+        const data = await response.json();
+        const rows = Array.isArray(data) ? data : (data.items || data.rows || data.reviews || []);
+        writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY, rows);
+        rows.map(normalizeJoinReviewPayload).forEach((payload) => rememberJoinReviewPayload(payload));
+        renderJoins();
+        return rows;
+      } catch (error) {
+        console.warn("Failed to load join reviews from Google Sheet. Add matching join_reviews reads to the Apps Script doGet endpoint.", error);
+        return [];
       }
     }
 
@@ -43485,10 +45197,10 @@
       return ensureBuilderApplicationIdentifiers({
         applicationId: item.applicationId || "",
         scheduleId: item.scheduleId || "",
-        submittedAt: item.submittedAt || "",
+        submittedAt: item.submittedAt || item.createdAt || "",
         source: item.source || "new_schedule_builder",
-        status: item.status || item.scheduleStatus || item.departureStatus || item.managerStatus || item.confirmStatus || "",
-        scheduleStatus: item.scheduleStatus || item.status || "",
+        status: item.applicationStatus || item.status || item.scheduleStatus || item.departureStatus || item.managerStatus || item.confirmStatus || "",
+        scheduleStatus: item.scheduleStatus || item.applicationStatus || item.status || "",
         departureStatus: item.departureStatus || item.confirmStatus || "",
         managerStatus: item.managerStatus || "",
         paymentStatus: item.paymentStatus || item.balanceStatus || "",
@@ -43496,25 +45208,25 @@
         member: {
           memberSeq: item.memberSeq || "",
           memberId: item.memberId || "",
-          memberName: item.memberName || item.creatorName || item.name || "",
+          memberName: item.memberName || item.applicantName || item.creatorName || item.name || "",
           memberChannel: item.memberChannel || "",
-          memberMobile: normalizeJoinMemberPhone(item.memberMobile || item.mobile || item.creatorPhone || item.phone || ""),
+          memberMobile: normalizeJoinMemberPhone(item.memberMobile || item.mobile || item.applicantMobile || item.creatorPhone || item.phone || ""),
           memberEmail: item.memberEmail || item.email || ""
         },
         applicant: {
-          name: item.creatorName || item.name || "",
-          gender: item.creatorGender || item.gender || "",
-          birthYear: item.creatorBirthYear || item.birthYear || "",
-          ageDisplay: item.creatorAgeDisplay || item.ageDisplay || "",
-          phone: item.creatorPhone || item.phone || "",
-          profession: item.creatorProfession || item.profession || "",
-          people: item.creatorPeople || item.people || 1,
-          companions: parseCompanionList(item.creatorCompanions || item.companions),
-          level: item.creatorLevel || item.level || "",
-          styles: toBuilderApplicationArray(item.creatorStyles || item.styles),
-          memberPreferences: toBuilderApplicationArray(item.creatorMemberPreferences || item.creatorPreferredMemberComposition || item.memberPreferences || item.preferredMemberComposition),
-          preferredMemberComposition: toBuilderApplicationArray(item.creatorPreferredMemberComposition || item.creatorMemberPreferences || item.preferredMemberComposition || item.memberPreferences),
-          greeting: item.creatorGreeting || item.greeting || ""
+          name: item.applicantName || item.creatorName || item.name || "",
+          gender: item.applicantGender || item.creatorGender || item.gender || "",
+          birthYear: item.applicantBirthYear || item.creatorBirthYear || item.birthYear || "",
+          ageDisplay: item.applicantAgeBand || item.creatorAgeDisplay || item.ageDisplay || "",
+          phone: item.applicantMobile || item.creatorPhone || item.phone || "",
+          profession: item.applicantProfession || item.creatorProfession || item.profession || "",
+          people: item.applicantPeople || item.creatorPeople || item.people || 1,
+          companions: parseCompanionList(item.applicantCompanions || item.creatorCompanions || item.companions),
+          level: item.applicantLevel || item.creatorLevel || item.level || "",
+          styles: toBuilderApplicationArray(item.applicantStyles || item.creatorStyles || item.styles),
+          memberPreferences: toBuilderApplicationArray(item.applicantPreferredMembers || item.creatorMemberPreferences || item.creatorPreferredMemberComposition || item.memberPreferences || item.preferredMemberComposition),
+          preferredMemberComposition: toBuilderApplicationArray(item.applicantPreferredMembers || item.creatorPreferredMemberComposition || item.creatorMemberPreferences || item.preferredMemberComposition || item.memberPreferences),
+          greeting: item.applicantGreeting || item.creatorGreeting || item.greeting || ""
         },
         trip: {
           region: item.region || "",
@@ -43524,16 +45236,16 @@
           erpEventSeq: reference.eventSeq || item.erpEventSeq || item.eventSeq || "",
           productName: item.productName || "",
           productPrice: item.productPrice || item.price || "",
-          startSummary: item.startSummary || "",
-          endSummary: item.endSummary || "",
+          startSummary: item.startSummary || item.departureDateFrom || "",
+          endSummary: item.endSummary || item.returnDateFrom || "",
           tripSummary: item.tripSummary || "",
-          departureDates: toBuilderApplicationArray(item.departureDates),
-          returnDates: toBuilderApplicationArray(item.returnDates),
+          departureDates: toBuilderApplicationArray(item.departureDates || [item.departureDateFrom, item.departureDateTo].filter(Boolean)),
+          returnDates: toBuilderApplicationArray(item.returnDates || [item.returnDateFrom, item.returnDateTo].filter(Boolean)),
           flexibleDays: {
-            startBefore: item.startBefore || "",
-            startAfter: item.startAfter || "",
-            endBefore: item.endBefore || "",
-            endAfter: item.endAfter || ""
+            startBefore: item.departureDateFrom || item.startBefore || "",
+            startAfter: item.departureDateTo || item.startAfter || "",
+            endBefore: item.returnDateFrom || item.endBefore || "",
+            endAfter: item.returnDateTo || item.endAfter || ""
           }
         },
         agreements: {
@@ -48393,7 +50105,7 @@
     }
 
     function getJoinReviewCount(join) {
-      return Number(join.reviewCount || 0);
+      return Number(join.reviewCount || 0) + getSheetDetailReviews(join).length;
     }
 
     function sortByDeparture(items) {
@@ -51742,11 +53454,13 @@
     initializeJoinMobileBottomNav();
     hydrateBuilderApplicationJoinsFromLocalCache();
     hydrateJoinApplicationsFromLocalCache();
+    hydrateJoinReviewsFromLocalCache();
     hydrateOverseasJoinsWithSecretProducts();
     renderJoins();
     Promise.all([
       hydrateBuilderApplicationJoinsFromGoogleSheet(),
-      hydrateJoinApplicationsFromGoogleSheet()
+      hydrateJoinApplicationsFromGoogleSheet(),
+      hydrateJoinReviewsFromGoogleSheet()
     ]).then(() => {
       renderJoins();
       resumeJoinMyMenuAfterLogin();

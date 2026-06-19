@@ -3,6 +3,76 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>골프 조인 게시판</title>
+  <script>
+    window.updateMdPickThemeDots = window.updateMdPickThemeDots || function() {};
+    window.updateCustomSectionControls = window.updateCustomSectionControls || function() {};
+    window.updateQuickSectionControls = window.updateQuickSectionControls || function() {};
+    window.updateBestSectionControls = window.updateBestSectionControls || function() {};
+    window.refreshInitialJoinSlideDots = function() {
+      var getState = function(active, total) {
+        var visibleCount = 5;
+        var dotSpacing = 14;
+        var viewportCount = Math.min(total, visibleCount);
+        var half = Math.floor(visibleCount / 2);
+        var start = total <= visibleCount ? 0 : Math.max(0, Math.min(total - visibleCount, active - half));
+        var hasMoreLeft = start > 0;
+        var hasMoreRight = start + visibleCount < total;
+        var states = Array.from({ length: total }, function(_, index) {
+          var isInside = index >= start && index < start + viewportCount;
+          if (!isInside) return { index: index, scale: 0, opacity: 0, isActive: false };
+          if (index === active) return { index: index, scale: 1, opacity: 1, isActive: true };
+          var isLeftEdge = index === start;
+          var isRightEdge = index === start + viewportCount - 1;
+          var isLeftSecond = index === start + 1;
+          var isRightSecond = index === start + viewportCount - 2;
+          var scale = .65;
+          if (isLeftEdge && hasMoreLeft) scale = .4;
+          else if (isRightEdge && hasMoreRight) scale = .4;
+          else if (isLeftSecond && hasMoreLeft) scale = .75;
+          else if (isRightSecond && hasMoreRight) scale = .75;
+          return { index: index, scale: scale, opacity: .5, isActive: false };
+        });
+        return {
+          states: states,
+          start: start,
+          translation: -start * dotSpacing,
+          viewportWidth: viewportCount * dotSpacing,
+          dotSpacing: dotSpacing
+        };
+      };
+      var renderDotState = function(state) {
+        return '<div class="join-slide-dots-viewport" style="width:' + state.viewportWidth + 'px; --join-slide-dot-spacing:' + state.dotSpacing + 'px;">'
+          + '<div class="join-slide-dots-track" style="transform:translateX(' + state.translation + 'px);">'
+          + state.states.map(function(dot) {
+            return '<div class="join-slide-dot-slot"><div class="join-slide-dot' + (dot.isActive ? ' active' : '') + '" data-dot-index="' + dot.index + '" style="--dot-scale:' + dot.scale + '; --dot-opacity:' + dot.opacity + ';"></div></div>';
+          }).join("")
+          + '</div></div>';
+      };
+      var getCount = function(key, dots) {
+        if (key === "mdpick-country") return document.querySelectorAll("[data-mdpick-country-option]").length || 1;
+        if (key === "mdpick-theme") return document.querySelectorAll("[data-mdpick-theme-group]").length || 1;
+        if (key === "custom") {
+          return dots.closest("[data-join-section]")?.querySelectorAll(".join-custom-panel.active .join-card:not([data-quick-carousel-clone='true'])").length || 1;
+        }
+        return dots.closest("[data-join-section]")?.querySelectorAll(".join-grid .join-card:not([data-quick-carousel-clone='true'])").length || 1;
+      };
+      document.querySelectorAll("[data-slide-dots]").forEach(function(dots) {
+        var key = dots.getAttribute("data-slide-dots") || "";
+        var total = getCount(key, dots);
+        if (total <= 1) return;
+        var active = Math.min(total - 1, Math.max(0, Number(dots.dataset.activeIndex || 0) || 0));
+        var state = getState(active, total);
+        dots.classList.add("is-visible");
+        dots.dataset.activeIndex = String(active);
+        dots.dataset.dotStart = String(state.start);
+        dots.dataset.dotTotal = String(total);
+        dots.innerHTML = renderDotState(state);
+      });
+    };
+    window.addEventListener("DOMContentLoaded", function() {
+      setTimeout(window.refreshInitialJoinSlideDots, 0);
+    });
+  </script>
   <style>
     @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
 
@@ -35,7 +105,7 @@
       --font-weight-hero-title: 800;
       --color-hero-title: #373A3C;
       --font-hero-subtitle: 26px;
-      --font-weight-hero-subtitle: 500;
+      --font-weight-hero-subtitle: 600;
       --color-hero-subtitle: #373A3C;
       --font-hero-search-input: 18px;
       --font-weight-hero-search-input: 400;
@@ -276,6 +346,10 @@
       font-size: inherit;
       line-height: inherit;
       letter-spacing: 0;
+    }
+    #secret-golf-join :where(input, select, textarea):focus,
+    #secret-golf-join :where(input, select, textarea):focus-visible {
+      border-color: transparent;
     }
     #secret-golf-join :where(button) {
       cursor: pointer;
@@ -2646,61 +2720,55 @@
       display: none;
       align-items: center;
       justify-content: center;
-      gap: 7px;
       width: 100%;
-      min-height: 12px;
+      min-height: 14px;
       margin: 14px auto 0;
       pointer-events: none;
     }
     .join-slide-dots.is-visible {
       display: flex;
     }
+    .join-slide-dots-viewport {
+      position: relative;
+      height: 14px;
+      overflow: hidden;
+      transition: width .3s ease;
+    }
+    .join-slide-dots-track {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      transition: transform .3s ease-out;
+      will-change: transform;
+    }
+    .join-slide-dot-slot {
+      width: var(--join-slide-dot-spacing, 14px);
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 var(--join-slide-dot-spacing, 14px);
+    }
     .join-slide-dot {
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       border-radius: 999px;
+      border: 0;
+      padding: 0;
+      flex: 0 0 auto;
       background: #d2d8e1;
-      opacity: .95;
-      transform: translateX(0) scale(1);
-      transition: width .18s ease, height .18s ease, background .18s ease, opacity .18s ease, transform .22s ease;
+      opacity: var(--dot-opacity, .5);
+      transform: scale(var(--dot-scale, .65));
+      transition: background .3s ease-out, opacity .3s ease-out, transform .3s ease-out;
+      pointer-events: auto;
     }
     .join-slide-dot.active {
       background: #313437;
       opacity: 1;
-    }
-    .join-slide-dot.small {
-      width: 4px;
-      height: 4px;
-      opacity: .8;
-    }
-    .join-slide-dot.tiny,
-    .join-slide-dot.edge {
-      width: 3px;
-      height: 3px;
-      opacity: .72;
-    }
-    .join-slide-dots.is-moving-next .join-slide-dot {
-      animation: joinDotMoveNext .24s ease both;
-    }
-    .join-slide-dots.is-moving-prev .join-slide-dot {
-      animation: joinDotMovePrev .24s ease both;
-    }
-    .join-slide-dots.is-moving-next .join-slide-dot:first-child,
-    .join-slide-dots.is-moving-prev .join-slide-dot:last-child {
-      opacity: 0;
-      transform: translateX(var(--dot-exit-x, -13px)) scale(.5);
-    }
-    .join-slide-dots.is-moving-next .join-slide-dot:nth-last-child(2),
-    .join-slide-dots.is-moving-prev .join-slide-dot:nth-child(2) {
-      transform: scale(.5);
-    }
-    @keyframes joinDotMoveNext {
-      from { transform: translateX(13px) scale(var(--dot-start-scale, 1)); opacity: .72; }
-      to { transform: translateX(0) scale(1); opacity: .95; }
-    }
-    @keyframes joinDotMovePrev {
-      from { transform: translateX(-13px) scale(var(--dot-start-scale, 1)); opacity: .72; }
-      to { transform: translateX(0) scale(1); opacity: .95; }
+      transform: scale(1);
     }
     .join-product-section.layout-quick .join-section-controls {
       position: absolute;
@@ -3018,7 +3086,7 @@
     }
     .badge-tooltip-title {
       display: block;
-      color: #373A3C;
+      color: #fff;
       font-size: 13px;
       font-weight: 800;
       margin-bottom: 6px;
@@ -5376,8 +5444,7 @@
       padding-top: 0;
     }
     .builder-apply-form .traveler-field:not(.has-error) input:focus {
-      border-width: 2px;
-      border-color: #687cd6;
+      border-color: transparent;
       box-shadow: 0 0 0 3px rgba(104, 124, 214, 0.12);
     }
     .builder-apply-form .traveler-field input:placeholder-shown {
@@ -6693,6 +6760,28 @@
       transition: opacity .12s ease;
     }
     .join-action-loading-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    html.home-initial-loading,
+    body.home-initial-loading {
+      overflow: hidden !important;
+      overscroll-behavior: contain;
+      touch-action: none;
+    }
+    .home-initial-loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483647;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, .82);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .16s ease;
+    }
+    .home-initial-loading-overlay.open {
       opacity: 1;
       pointer-events: auto;
     }
@@ -9618,8 +9707,7 @@
       box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08);
     }
     .detail-apply-panel .traveler-field:not(.has-error) input:focus {
-      border-width: 2px;
-      border-color: #687cd6;
+      border-color: transparent;
       box-shadow: 0 0 0 3px rgba(104, 124, 214, 0.12);
     }
     .traveler-field {
@@ -11233,9 +11321,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 7px;
       overflow: hidden;
       z-index: 1;
+    }
+    .detail-slider-dots.join-slide-dots {
+      min-height: 18px;
+      margin: 0;
+      pointer-events: auto;
     }
     .detail-slider-back {
       display: none;
@@ -11313,6 +11406,13 @@
       transform: scale(.33);
       transform-origin: center;
       transition: transform .2s ease, left .2s ease, background .2s ease, opacity .2s ease;
+    }
+    .detail-slider-dots .join-slide-dot {
+      background: rgba(255, 255, 255, 0.55);
+      cursor: pointer;
+    }
+    .detail-slider-dots .join-slide-dot.active {
+      background: #fff;
     }
     .detail-slider-dot.active,
     .detail-slider-dot.swiper-pagination-bullet-active {
@@ -14122,101 +14222,128 @@
     .sgj-page .hero-calendar-button {
       position: relative;
       width: 100%;
-      min-height: 82px;
-      border-radius: 22px;
-      background: #f8fbff;
-      border: 1px solid rgba(226, 232, 240, .9);
-      color: #373a3c;
+      min-height: 0;
+      height: clamp(118px, 47.14vw, 132px);
+      max-height: 132px;
+      aspect-ratio: auto;
+      border-radius: 0;
+      background: transparent;
+      border: 0;
+      color: #373A3C;
       gap: 12px;
-      justify-content: flex-start;
-      padding: 12px 66px 12px 14px;
-      box-shadow: 0 14px 34px rgba(15, 23, 42, .12);
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 28px 176px 28px 28px;
+      box-shadow: none;
       text-align: left;
       overflow: hidden;
     }
-    .sgj-page .hero-calendar-button::after {
-      content: "";
+    .sgj-page .hero-calendar-shape {
       position: absolute;
-      right: -1px;
-      bottom: -1px;
-      width: 62px;
-      height: 62px;
-      border-top-left-radius: 38px;
-      background: #fff;
-      z-index: 1;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 0;
       pointer-events: none;
     }
-    .sgj-page .hero-calendar-button > * {
+    .sgj-page .hero-calendar-main-shape {
+      fill: #f5f6f7;
+    }
+    .sgj-page .hero-calendar-cta-shape {
+      fill: #b0ec82;
+    }
+    .sgj-page .hero-calendar-button > :not(.hero-calendar-shape) {
       position: relative;
       z-index: 2;
     }
     .sgj-page .hero-calendar-thumb-stack {
       display: flex;
       align-items: center;
+      align-self: flex-start;
       flex: 0 0 auto;
-      width: 76px;
-      min-width: 76px;
+      width: 104px;
+      min-width: 104px;
+      margin-top: 4px;
+      margin-left: 0;
     }
     .sgj-page .hero-calendar-thumb {
-      width: 34px;
-      height: 34px;
+      position: relative;
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      min-width: 40px;
       border-radius: 50%;
       overflow: hidden;
-      border: 2px solid #fff;
+      border: 1px solid #f1f1f1;
       background: #eaf2ff;
-      box-shadow: 0 6px 14px rgba(15, 23, 42, .12);
+      box-shadow: 2px 3px 10px rgba(15, 23, 42, 0.05);
+    }
+    .sgj-page .hero-calendar-thumb:nth-child(1) {
+      z-index: 1;
+    }
+    .sgj-page .hero-calendar-thumb:nth-child(2) {
+      z-index: 2;
+    }
+    .sgj-page .hero-calendar-thumb:nth-child(3) {
+      z-index: 3;
     }
     .sgj-page .hero-calendar-thumb + .hero-calendar-thumb {
-      margin-left: -13px;
+      margin-left: -9px;
     }
     .sgj-page .hero-calendar-thumb img {
       width: 100%;
       height: 100%;
       display: block;
       object-fit: cover;
+      transform: translate(var(--hero-calendar-thumb-img-x, 0), var(--hero-calendar-thumb-img-y, 5px)) scale(var(--hero-calendar-thumb-img-scale, 1.35));
+      transform-origin: center;
     }
     .sgj-page .hero-calendar-copy {
       display: grid;
       gap: 3px;
+      width: 100%;
       min-width: 0;
-      flex: 1 1 auto;
+      flex: 0 0 auto;
     }
     .sgj-page .hero-calendar-kicker {
-      color: #6b7280;
+      color: #373A3C;
       font-size: 11px;
       font-weight: 700;
       line-height: 1.2;
     }
     .sgj-page .hero-calendar-button-text {
-      color: #111827;
-      font-size: 15px;
-      font-weight: 800;
+      color: #373A3C;
+      font-size: 18px;
+      font-weight: 700;
       line-height: 1.25;
     }
     .sgj-page .hero-calendar-button-desc {
-      color: #6b7280;
-      font-size: 11px;
+      color: #5d6b82;
+      font-size: 15px;
       font-weight: 500;
       line-height: 1.25;
     }
     .sgj-page .hero-calendar-button:hover {
-      background: #f8fbff;
+      background: transparent;
       transform: translateY(-1px);
     }
     .sgj-page .hero-calendar-button .button-chevron {
       position: absolute;
-      right: 10px;
-      bottom: 10px;
-      width: 38px;
-      height: 38px;
+      right: auto;
+      top: 86.58%;
+      width: 24px;
+      height: 24px;
       margin: 0;
-      flex: 0 0 38px;
-      padding: 10px;
-      border-radius: 999px;
-      background: #373a3c;
+      flex: 0 0 auto;
+      padding: 0;
+      border-radius: 0;
+      background: transparent;
       color: #fff;
       z-index: 3;
-      box-shadow: 0 10px 20px rgba(15, 23, 42, .18);
+      box-shadow: none;
+      transform: translateY(-50%);
     }
     @media (max-width: 1024px) {
       .sgj-page .hero .hero-grid {
@@ -14270,7 +14397,7 @@
     .sgj-page .detail-apply-actions .button.primary {
       background: var(--blue);
       border-color: var(--blue);
-      color: #fff;
+      color: #373A3C;
     }
     .sgj-page .builder-bottom .button.primary,
     .sgj-page .detail-modal-actions .button.primary,
@@ -14326,13 +14453,13 @@
       color: #fff;
     }
     .sgj-page .button.secondary.hero-calendar-button {
-      background: #f8fbff;
-      border: 1px solid rgba(226, 232, 240, .9);
-      color: #373a3c;
+      background: transparent;
+      border: 0;
+      color: #373A3C;
     }
     .sgj-page .button.secondary.hero-calendar-button:hover {
-      background: #f8fbff;
-      color: #373a3c;
+      background: transparent;
+      color: #373A3C;
       transform: translateY(-1px);
     }
     .sgj-page .chip.active,
@@ -15025,6 +15152,18 @@
       .sgj-page .calendar-open-button {
         width: 100%;
         justify-content: center;
+      }
+      .sgj-page .hero-calendar-button {
+        min-height: 0;
+        border-radius: 0;
+        padding: 24px 132px 24px 20px;
+      }
+      .sgj-page .hero-calendar-button .button-chevron {
+        width: 24px;
+        height: 24px;
+        flex-basis: auto;
+        padding: 0;
+        border-radius: 0;
       }
       .sgj-page .calendar-sheet .calendar-cell strong {
         font-size: 17px;
@@ -17447,7 +17586,7 @@
       font-weight: 800;
     }
     #regionSearchModal .region-empty-recommend-tabs {
-      display: grid;
+      display: none !important;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       margin: 0 0 14px;
     }
@@ -19223,7 +19362,7 @@
       width: 100%;
       min-height: 40px;
       border: 1px solid transparent;
-      border-radius: 15px;
+      border-radius: 8px;
       padding: 0 12px;
       color: #373a3c;
       font-size: 18px;
@@ -19250,12 +19389,19 @@
 
     .join-profile-info-row.is-editing .join-profile-manage-select {
       cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, #6b7280 50%), linear-gradient(135deg, #6b7280 50%, transparent 50%);
+      background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 32px;
     }
 
     .join-profile-gender-radios {
       display: none;
       align-items: center;
-      gap: 10px;
+      gap: 0;
       min-height: 40px;
     }
 
@@ -19273,7 +19419,7 @@
       gap: 7px;
       min-height: 40px;
       padding: 0 12px;
-      border: 1px solid #e1e6eb;
+      border: 0;
       border-radius: 15px;
       color: #373a3c;
       font-size: 16px;
@@ -19282,11 +19428,12 @@
     }
 
     .join-profile-gender-option:has(input:checked) {
-      border-color: #3689ff;
       color: #3689ff;
     }
 
     .join-profile-gender-option input {
+      position: relative;
+      top: -1px;
       width: 16px;
       height: 16px;
       accent-color: #3689ff;
@@ -19309,8 +19456,44 @@
       gap: 8px;
     }
 
+    .join-profile-inline-picker .join-profile-level-picker {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .join-profile-inline-picker .join-profile-profession-picker {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .join-profile-picker-help {
+      margin: 0 0 10px;
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .join-profile-picker-done {
+      width: 100%;
+      min-height: 42px;
+      margin-top: 10px;
+      border-radius: 10px;
+      background: #3689ff;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .join-profile-inline-picker .join-profile-style-picker {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
     .join-profile-inline-picker .apply-chip,
     .join-profile-inline-picker .profession-chip {
+      width: 100%;
       min-height: 38px;
       border-radius: 999px;
       font-size: 14px;
@@ -19320,7 +19503,8 @@
     .join-profile-info-row.is-editing .join-profile-manage-input:focus,
     .join-profile-info-row.is-editing .join-profile-manage-select:focus,
     .join-profile-info-row.is-editing .join-profile-manage-textarea:focus {
-      outline: 2px solid rgba(54, 137, 255, .18);
+      border-color: transparent;
+      outline: 2px solid #3689ff;
       outline-offset: 2px;
     }
 
@@ -19415,6 +19599,14 @@
       .join-profile-manage-textarea {
         font-size: 16px;
       }
+
+      .join-profile-inline-picker .join-profile-level-picker {
+        grid-template-columns: 1fr;
+      }
+
+      .join-profile-inline-picker .join-profile-profession-picker {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
     .join-my-drawer-icon {
@@ -19469,6 +19661,7 @@
       color: #373a3c;
       font-size: 16px;
       font-weight: 700;
+      margin-bottom: 5px;
     }
 
     .join-my-drawer-support-line {
@@ -20413,14 +20606,14 @@
       align-items: center;
       justify-content: center;
       margin-top: 14px;
-      min-height: 54px;
-      padding: 16px 24px;
+      min-height: 45px;
+      padding: 10px 62px;
       border: 0;
       border-radius: 14px;
       color: #fff;
       background: var(--modal-bottom-primary-color);
-      font-size: var(--font-hero-cta);
-      font-weight: 700;
+      font-size: 17px;
+      font-weight: 600;
       cursor: pointer;
     }
 
@@ -20437,7 +20630,7 @@
     }
 
     #joinMyMenuModal .region-empty-recommend-tabs {
-      display: grid;
+      display: none !important;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       margin: 0 0 14px;
     }
@@ -20745,7 +20938,7 @@
     }
 
     .join-review-textarea:focus {
-      border-color: #3689ff;
+      border-color: transparent;
       box-shadow: 0 0 0 3px rgba(54, 137, 255, .12);
     }
 
@@ -21897,7 +22090,7 @@
     }
 
     .join-member-signup-form .join-member-signup-custom-profession-input:focus {
-      border-style: solid;
+      border-color: transparent;
       box-shadow: 0 0 0 3px rgba(54, 137, 255, .12);
     }
 
@@ -22214,8 +22407,7 @@
     }
 
     .join-member-email-input-wrap:focus-within {
-      border-width: 2px;
-      border-color: #687cd6;
+      border-color: transparent;
       box-shadow: 0 0 0 3px rgba(104, 124, 214, 0.12);
       outline: none;
     }
@@ -22925,7 +23117,12 @@
     }
   </style>
 </head>
-<body>
+<body class="home-initial-loading modal-open">
+  <div class="home-initial-loading-overlay open" id="homeInitialLoadingOverlay" aria-hidden="false">
+    <div class="join-action-loading-box" role="status" aria-live="polite" aria-label="상품 불러오는 중">
+      <div class="join-action-loading-icon" id="homeInitialLoadingIcon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tickets-plane-icon lucide-tickets-plane"><path d="M10.5 17h1.227a2 2 0 0 0 1.345-.52L18 12"></path><path d="m12 13.5 3.794.506"></path><path d="m3.173 8.18 11-5a2 2 0 0 1 2.647.993L18.56 8"></path><path d="M6 10V8"></path><path d="M6 14v1"></path><path d="M6 19v2"></path><rect x="2" y="8" width="20" height="13" rx="2"></rect></svg></div>
+    </div>
+  </div>
   <div id="secret-golf-join" class="sgj-page">
   <section class="sgj-section hero">
     <div class="page-container hero-grid">
@@ -22943,18 +23140,22 @@
             </button>
           </div>
           <button type="button" class="button secondary hero-calendar-button" onclick="openCalendarSheet()">
-            <div class="hero-calendar-thumb-stack" aria-hidden="true">
-              <div class="hero-calendar-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt=""></div>
-              <div class="hero-calendar-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg" alt=""></div>
-              <div class="hero-calendar-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/20190227_085648.jpg" alt=""></div>
-            </div>
+            <svg class="hero-calendar-shape" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <path class="hero-calendar-main-shape"></path>
+              <path class="hero-calendar-cta-shape"></path>
+            </svg>
             <div class="hero-calendar-copy">
-              <div class="hero-calendar-kicker">Join Schedule</div>
               <div class="hero-calendar-button-text">참여 가능한 일정보기</div>
-              <div class="hero-calendar-button-desc">날짜별 모집 일정을 확인하세요</div>
+              <div class="hero-calendar-button-desc">날짜별 모집중인 모임을 확인하세요</div>
             </div>
-            <svg class="button-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
+            <div class="hero-calendar-thumb-stack" aria-hidden="true">
+              <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt=""></div>
+              <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/woman1.webp" alt=""></div>
+              <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man2.webp" alt=""></div>
+            </div>
+            <svg class="button-chevron lucide lucide-arrow-right-icon lucide-arrow-right" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14"></path>
+              <path d="m14 7 5 5-5 5"></path>
             </svg>
           </button>
         </div>
@@ -36019,6 +36220,95 @@
 
     normalizeEmbeddedBoardContainer();
 
+    function randomizeHeroCalendarThumbs() {
+      const images = Array.from(document.querySelectorAll(".hero-calendar-thumb img"));
+      if (!images.length || !HERO_CALENDAR_AVATAR_POOL.length) return;
+      const shuffled = HERO_CALENDAR_AVATAR_POOL
+        .map((src) => ({ src, order: Math.random() }))
+        .sort((a, b) => a.order - b.order)
+        .map((item) => item.src);
+      images.forEach((image, index) => {
+        image.src = shuffled[index % shuffled.length];
+        image.alt = "";
+      });
+    }
+
+    function roundedRectPath(x, y, width, height, radius) {
+      const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+      const right = x + width;
+      const bottom = y + height;
+      return [
+        `M${x + r} ${y}`,
+        `H${right - r}`,
+        `Q${right} ${y} ${right} ${y + r}`,
+        `V${bottom - r}`,
+        `Q${right} ${bottom} ${right - r} ${bottom}`,
+        `H${x + r}`,
+        `Q${x} ${bottom} ${x} ${bottom - r}`,
+        `V${y + r}`,
+        `Q${x} ${y} ${x + r} ${y}`,
+        "Z"
+      ].join(" ");
+    }
+
+    function updateHeroCalendarShape() {
+      const svg = document.querySelector(".hero-calendar-shape");
+      const button = svg?.closest(".hero-calendar-button");
+      const mainPath = svg?.querySelector(".hero-calendar-main-shape");
+      const ctaPath = svg?.querySelector(".hero-calendar-cta-shape");
+      const chevron = button?.querySelector(".button-chevron");
+      if (!svg || !button || !mainPath || !ctaPath) return;
+      const width = Math.max(1, button.clientWidth);
+      const height = Math.max(1, button.clientHeight);
+      const outerRadius = 14;
+      const notchRadius = 18;
+      const ctaRadius = 25;
+      const notchWidth = width * 0.3215;
+      const notchHeight = height * 0.3182;
+      const notchLeft = width - notchWidth;
+      const notchTop = height - notchHeight;
+      const ctaWidth = width * 0.28571;
+      const ctaHeight = height * 0.25758;
+      const ctaLeft = width - ctaWidth;
+      const ctaTop = height - ctaHeight;
+      const mainD = [
+        `M${outerRadius} 0`,
+        `H${width - outerRadius}`,
+        `Q${width} 0 ${width} ${outerRadius}`,
+        `V${Math.max(outerRadius, notchTop - notchRadius)}`,
+        `Q${width} ${notchTop} ${width - notchRadius} ${notchTop}`,
+        `H${notchLeft + notchRadius}`,
+        `Q${notchLeft} ${notchTop} ${notchLeft} ${notchTop + notchRadius}`,
+        `V${height - notchRadius}`,
+        `Q${notchLeft} ${height} ${notchLeft - notchRadius} ${height}`,
+        `H${outerRadius}`,
+        `Q0 ${height} 0 ${height - outerRadius}`,
+        `V${outerRadius}`,
+        `Q0 0 ${outerRadius} 0`,
+        "Z"
+      ].join(" ");
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      mainPath.setAttribute("d", mainD);
+      ctaPath.setAttribute("d", roundedRectPath(ctaLeft, ctaTop, ctaWidth, ctaHeight, ctaRadius));
+      if (chevron) {
+        chevron.style.left = `${ctaLeft + (ctaWidth / 2) - 12}px`;
+        chevron.style.top = `${ctaTop + (ctaHeight / 2)}px`;
+        chevron.style.right = "auto";
+      }
+    }
+
+    function initializeHeroCalendarShape() {
+      updateHeroCalendarShape();
+      if (window.ResizeObserver) {
+        const button = document.querySelector(".hero-calendar-button");
+        if (button) {
+          const observer = new ResizeObserver(() => updateHeroCalendarShape());
+          observer.observe(button);
+        }
+      }
+      window.addEventListener("resize", updateHeroCalendarShape, { passive: true });
+    }
+
     let participantCloseTimer = null;
     let activeParticipantTrigger = null;
     let currentDetailJoinId = null;
@@ -36091,6 +36381,7 @@
     const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
     const JOIN_APPLICATIONS_STORAGE_KEY = "secretGolfJoinApplications";
     const JOIN_WISH_STORAGE_KEY = "secretGolfJoinWishProducts";
+    const JOIN_RECENT_VIEW_STORAGE_KEY = "secretGolfJoinRecentViewedProducts";
     const BUILDER_APPLICATION_MAX_CAPACITY = 4;
     const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = BUILDER_APPLICATION_MAX_CAPACITY;
     const JOIN_MAX_CAPACITY = 4;
@@ -36111,12 +36402,18 @@
         "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/woman4.webp"
       ]
     };
+    const HERO_CALENDAR_AVATAR_POOL = [
+      ...BUILDER_APPLICATION_GENDER_ICON_POOLS.male,
+      ...BUILDER_APPLICATION_GENDER_ICON_POOLS.female
+    ];
     let builderStep = 1;
     let suppressBuilderNextUntil = 0;
     let joinActionLoadingCount = 0;
     let joinActionLoadingIconIndex = 0;
     let joinActionLoadingTimer = null;
     let joinActionLoadingOpenedAt = 0;
+    let homeInitialLoadingIconTimer = null;
+    let homeInitialLoadingIconIndex = 0;
     const JOIN_ACTION_LOADING_MIN_VISIBLE_MS = 450;
     const JOIN_ACTION_LOADING_ICON_INTERVAL_MS = 400;
     let joinActionLoadingMinVisibleMs = JOIN_ACTION_LOADING_MIN_VISIBLE_MS;
@@ -36212,6 +36509,43 @@
       if (!target) return;
       target.innerHTML = joinActionLoadingIcons[joinActionLoadingIconIndex % joinActionLoadingIcons.length] || "";
       joinActionLoadingIconIndex += 1;
+    }
+
+    function renderHomeInitialLoadingIcon() {
+      const target = document.getElementById("homeInitialLoadingIcon");
+      if (!target) return;
+      target.innerHTML = joinActionLoadingIcons[homeInitialLoadingIconIndex % joinActionLoadingIcons.length] || "";
+      homeInitialLoadingIconIndex += 1;
+    }
+
+    function openHomeInitialLoading() {
+      const overlay = document.getElementById("homeInitialLoadingOverlay");
+      document.documentElement.classList.add("home-initial-loading", "modal-open");
+      document.body.classList.add("home-initial-loading", "modal-open");
+      document.getElementById("secret-golf-join")?.classList.add("modal-open");
+      overlay?.classList.add("open");
+      overlay?.setAttribute("aria-hidden", "false");
+      renderHomeInitialLoadingIcon();
+      if (!homeInitialLoadingIconTimer) {
+        homeInitialLoadingIconTimer = setInterval(renderHomeInitialLoadingIcon, JOIN_ACTION_LOADING_ICON_INTERVAL_MS);
+      }
+    }
+
+    function closeHomeInitialLoading() {
+      const overlay = document.getElementById("homeInitialLoadingOverlay");
+      overlay?.classList.remove("open");
+      overlay?.setAttribute("aria-hidden", "true");
+      document.documentElement.classList.remove("home-initial-loading");
+      document.body.classList.remove("home-initial-loading");
+      if (!hasOpenBlockingModal() && !isJoinActionLoadingOpen()) {
+        document.documentElement.classList.remove("modal-open");
+        document.body.classList.remove("modal-open");
+        document.getElementById("secret-golf-join")?.classList.remove("modal-open");
+      }
+      if (homeInitialLoadingIconTimer) {
+        clearInterval(homeInitialLoadingIconTimer);
+        homeInitialLoadingIconTimer = null;
+      }
     }
 
     function openJoinActionLoading(message = "", options = {}) {
@@ -38726,6 +39060,209 @@
       alert("최근 본 상품은 준비 중입니다.");
     }
 
+    function handleJoinMyRecentClick() {
+      openJoinMyRecentMenu();
+    }
+
+    function getJoinRecentViewType(join = {}, fallbackType = "join_schedule") {
+      const type = String(join.recentType || join.viewType || join.wishType || join.targetType || fallbackType || "").trim();
+      return type === "product" ? "product" : "join_schedule";
+    }
+
+    function getJoinRecentViewTargetKey(item = {}) {
+      const type = getJoinRecentViewType(item, item.targetType || item.recentType || "join_schedule");
+      if (type === "product") {
+        return String(item.goodSeq || item.productId || item.targetKey || item.targetId || item.id || "").trim();
+      }
+      return String(item.joinId || item.scheduleId || item.targetKey || item.targetId || item.id || "").trim();
+    }
+
+    function normalizeJoinRecentViewedItem(item = {}) {
+      const recentType = getJoinRecentViewType(item, item.recentType || item.targetType || "join_schedule");
+      const targetKey = getJoinRecentViewTargetKey({ ...item, recentType });
+      return {
+        ...item,
+        recentType,
+        targetType: recentType,
+        targetKey,
+        viewedAt: item.viewedAt || item.savedAt || new Date().toISOString()
+      };
+    }
+
+    function getJoinRecentViewedItems() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(JOIN_RECENT_VIEW_STORAGE_KEY) || "[]");
+        return Array.isArray(saved) ? saved.map(normalizeJoinRecentViewedItem).filter((item) => getJoinRecentViewTargetKey(item)) : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveJoinRecentViewedItems(items = []) {
+      try {
+        localStorage.setItem(JOIN_RECENT_VIEW_STORAGE_KEY, JSON.stringify(items.map(normalizeJoinRecentViewedItem)));
+      } catch (error) {
+        console.warn("Failed to save recent viewed products.", error);
+      }
+    }
+
+    function createJoinRecentViewedSnapshot(join = {}, recentType = "join_schedule") {
+      const parsedReference = parseSecretTourProductReference(join.id || join.erpProductId || "", join.eventSeq || join.erpEventSeq || "");
+      const type = getJoinRecentViewType(join, recentType);
+      const goodSeq = String(join.goodSeq || parsedReference.goodSeq || join.erpProductId || "").trim();
+      const eventSeq = String(join.eventSeq || parsedReference.eventSeq || join.erpEventSeq || "").trim();
+      const targetKey = type === "product"
+        ? String(goodSeq || join.productId || join.id || "").trim()
+        : String(join.id || join.scheduleId || "").trim();
+      const participants = getConfirmedParticipants(join);
+      return {
+        id: type === "product" ? (join.id || (goodSeq && eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : goodSeq)) : join.id,
+        recentType: type,
+        targetType: type,
+        targetKey,
+        joinId: join.id || "",
+        scheduleId: join.scheduleId || "",
+        productId: join.erpProductId || goodSeq || "",
+        goodSeq,
+        eventSeq,
+        title: join.title || (type === "product" ? "홈페이지 상품" : "조인모임"),
+        region: join.region || join.category || join.countryRegion || "골프여행",
+        image: join.image || getDetailSlides(join)[0] || "",
+        price: Number(join.price || 0),
+        departureDate: join.departureDate || "",
+        returnDate: join.returnDate || "",
+        currentCount: participants.length,
+        targetCount: getCardTeamCapacity(join, 4),
+        viewedAt: new Date().toISOString()
+      };
+    }
+
+    function addJoinRecentViewedItem(join = {}, recentType = "join_schedule") {
+      const snapshot = createJoinRecentViewedSnapshot(join, recentType);
+      const targetKey = getJoinRecentViewTargetKey(snapshot);
+      if (!targetKey) return false;
+      const current = getJoinRecentViewedItems().filter((item) => {
+        return !(getJoinRecentViewType(item, item.recentType) === snapshot.recentType && getJoinRecentViewTargetKey(item) === targetKey);
+      });
+      saveJoinRecentViewedItems([snapshot, ...current].slice(0, 50));
+      return true;
+    }
+
+    function renderJoinMyRecentEmptyState(tabKey = "product") {
+      const message = tabKey === "join_schedule" ? "최근 본 조인모임이 없어요." : "최근 본 홈페이지 상품이 없어요.";
+      return `<div class="join-my-empty"><div class="join-my-empty-box"><div>${escapeHtml(message)}</div></div></div>`;
+    }
+
+    function renderJoinMyRecentCards(items = [], tabKey = "product") {
+      if (!items.length) return renderJoinMyRecentEmptyState(tabKey);
+      return items.map((item) => {
+        const targetKey = getJoinRecentViewTargetKey(item);
+        return `
+        <article class="join-my-card">
+          <div class="join-my-card-thumb">
+            <img src="${escapeHtml(item.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg")}" alt="${escapeHtml(item.title || "")}">
+            <div class="join-my-card-thumb-badge">${escapeHtml(item.region || "골프여행")}</div>
+          </div>
+          <div class="join-my-card-content">
+            <div class="join-my-card-head">
+              <div>
+                <div class="join-my-card-title">${escapeHtml(item.title || "")}</div>
+                <div class="join-my-card-meta">${escapeHtml(formatCardDateRange(item) || "출발일 확인")}</div>
+              </div>
+              <div class="join-my-status-pill green">${tabKey === "join_schedule" ? "조인모임" : "홈페이지 상품"}</div>
+            </div>
+            <div class="join-my-card-info">
+              ${tabKey === "join_schedule" ? `
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">참여현황</div>
+                  <div class="join-my-info-chip-value">${escapeHtml(String(item.targetCount ? `${item.currentCount || 0}/${item.targetCount}명` : `${item.currentCount || 0}명`))}</div>
+                </div>
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">구분</div>
+                  <div class="join-my-info-chip-value">조인모임</div>
+                </div>
+              ` : `
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">상품번호</div>
+                  <div class="join-my-info-chip-value">${escapeHtml(item.goodSeq || "-")}</div>
+                </div>
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">상품가</div>
+                  <div class="join-my-info-chip-value">${item.price ? `${formatPrice(item.price)}원` : "확인"}</div>
+                </div>
+              `}
+            </div>
+            <div class="join-my-card-actions">
+              <button type="button" class="primary" onclick="openJoinRecentViewedProduct('${escapeJsString(targetKey)}', '${escapeJsString(tabKey)}')">${tabKey === "join_schedule" ? "모임 보기" : "상품 보기"}</button>
+            </div>
+          </div>
+        </article>`;
+      }).join("");
+    }
+
+    function renderJoinMyRecentMenu() {
+      const target = document.getElementById("joinMyMenuBody");
+      if (!target) return;
+      const recentItems = getJoinRecentViewedItems();
+      const productItems = recentItems.filter((item) => getJoinRecentViewType(item, item.recentType) === "product");
+      const joinItems = recentItems.filter((item) => getJoinRecentViewType(item, item.recentType) === "join_schedule");
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "최근 본 상품");
+      target.innerHTML = `
+        <div class="join-my-reservation-nav" role="tablist" aria-label="최근 본 상품 분류">
+          <button type="button" class="join-my-tab active" data-join-my-tab="recent-products" role="tab" aria-selected="true" onclick="switchJoinMyTab('recent-products')">홈페이지 상품</button>
+          <button type="button" class="join-my-tab" data-join-my-tab="recent-joins" role="tab" aria-selected="false" onclick="switchJoinMyTab('recent-joins')">조인모임</button>
+        </div>
+        <div class="join-my-profile">
+          <section class="join-my-section" data-join-my-section="recent-products">
+            <div class="join-my-reservation-title">최근 본 홈페이지 상품</div>
+            ${renderJoinMyRecentCards(productItems, "product")}
+          </section>
+          <section class="join-my-section" data-join-my-section="recent-joins" hidden>
+            <div class="join-my-reservation-title">최근 본 조인모임</div>
+            ${renderJoinMyRecentCards(joinItems, "join_schedule")}
+          </section>
+        </div>
+      `;
+    }
+
+    function openJoinMyRecentMenu() {
+      const overlay = portalOverlayToBody("joinMyMenuModal");
+      const body = document.getElementById("joinMyMenuBody");
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "최근 본 상품");
+      if (body) body.innerHTML = `<div class="join-my-state">최근 본 상품을 확인 중입니다.</div>`;
+      overlay?.classList.add("open");
+      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+      setJoinMobileBottomNavVisible(false);
+      setWidgetModalOpen(true);
+      renderJoinMyRecentMenu();
+    }
+
+    function openJoinRecentViewedProduct(targetKey, recentType = "product") {
+      const key = String(targetKey || "").trim();
+      const type = String(recentType || "product");
+      if (!key) return;
+      if (type === "join_schedule") {
+        const join = joins.find((item) => item.id === key || item.scheduleId === key || item.sourceApplicationId === key);
+        if (!join) {
+          alert("연결된 조인모임을 찾을 수 없습니다.");
+          return;
+        }
+        closeJoinMyMenu();
+        openDetail(join.id);
+        return;
+      }
+      const recent = getJoinRecentViewedItems().find((item) => getJoinRecentViewType(item, item.recentType) === "product" && getJoinRecentViewTargetKey(item) === key) || {};
+      const join = joins.find((item) => getJoinProductGoodSeq(item) === key || String(item.goodSeq || "") === key || item.id === key);
+      if (join) {
+        closeJoinMyMenu();
+        openDetail(join.id);
+        return;
+      }
+      const params = new URLSearchParams({ goodSeq: key });
+      if (recent.eventSeq) params.set("eventSeq", recent.eventSeq);
+      location.href = `/goods/goods_view?${params.toString()}`;
+    }
+
     function getJoinWishType(join = {}) {
       return isJoinMyBuilderApplicationJoin(join) ? "join_schedule" : "product";
     }
@@ -40289,7 +40826,7 @@
               </label>
               <label class="join-profile-manage-field">
                 <span class="join-profile-manage-label">휴대폰</span>
-                <input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel">
+                <input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel" maxlength="11" oninput="handleJoinProfileManageMobileInput(this)">
               </label>
               <label class="join-profile-manage-field">
                 <span class="join-profile-manage-label">이메일</span>
@@ -40297,7 +40834,7 @@
               </label>
               <label class="join-profile-manage-field">
                 <span class="join-profile-manage-label">출생년도</span>
-                <input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" placeholder="1980">
+                <select class="join-profile-manage-select" id="joinProfileManageBirthYear" onchange="handleJoinProfileManageBirthYearChange(this)">${renderJoinProfileBirthYearOptions()}</select>
               </label>
               <label class="join-profile-manage-field">
                 <span class="join-profile-manage-label">성별</span>
@@ -40313,7 +40850,7 @@
               </label>
               <label class="join-profile-manage-field is-wide">
                 <span class="join-profile-manage-label">선호하는<br>스타일</span>
-                <textarea class="join-profile-manage-textarea" id="joinProfileManageTravelStyles" placeholder="예: 조용한 일정, 친목, 프리미엄 리조트"></textarea>
+                <input class="join-profile-manage-input" id="joinProfileManageTravelStyles" placeholder="예: 조용한 일정, 친목, 프리미엄 리조트">
               </label>
             </div>
             <div class="join-profile-manage-status" id="joinProfileManageStatus"></div>
@@ -40377,7 +40914,7 @@
               </div>
               <div class="join-profile-info-row">
                 <div class="join-profile-manage-label">출생년도</div>
-                <input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" placeholder="1980" oninput="syncJoinProfileManageSummary()">
+                <select class="join-profile-manage-select" id="joinProfileManageBirthYear" onchange="handleJoinProfileManageBirthYearChange(this)">${renderJoinProfileBirthYearOptions()}</select>
                 <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')">변경</button>
               </div>
               <div class="join-profile-info-row">
@@ -40392,7 +40929,7 @@
               </div>
               <div class="join-profile-info-row is-tall">
                 <div class="join-profile-manage-label">선호하는<br>스타일</div>
-                <textarea class="join-profile-manage-textarea" id="joinProfileManageTravelStyles" placeholder="예: 조용한 일정, 친목, 프리미엄 리조트"></textarea>
+                <input class="join-profile-manage-input" id="joinProfileManageTravelStyles" placeholder="예: 조용한 일정, 친목, 프리미엄 리조트">
                 <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageTravelStyles')">변경</button>
               </div>
             </div>
@@ -40427,13 +40964,13 @@
             </div>
             <div class="join-profile-info-list">
               <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageName" autocomplete="name" required oninput="syncJoinProfileManageSummary()"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageName')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageMobile')"></button></div>
+              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel" maxlength="11" oninput="handleJoinProfileManageMobileInput(this)"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageMobile')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageEmail" type="email" autocomplete="email"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageEmail')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><div class="join-profile-gender-control"><input class="join-profile-manage-input" id="joinProfileManageGender" readonly onchange="syncJoinProfileManageSummary()"><div class="join-profile-gender-radios" role="radiogroup"><label class="join-profile-gender-option"><input type="radio" name="joinProfileManageGenderRadio" value="\uB0A8\uC131" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="male"></div></label><label class="join-profile-gender-option"><input type="radio" name="joinProfileManageGenderRadio" value="\uC5EC\uC131" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="female"></div></label></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageGender')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" placeholder="1980" oninput="syncJoinProfileManageSummary()"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')"></button></div>
+              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><select class="join-profile-manage-select" id="joinProfileManageBirthYear" onchange="handleJoinProfileManageBirthYearChange(this)">${renderJoinProfileBirthYearOptions()}</select><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageLevel" readonly><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageLevel')"></button><div class="join-profile-inline-picker" id="joinProfileManageLevelPicker"></div></div>
               <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageProfession"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageProfession')"></button><div class="join-profile-inline-picker" id="joinProfileManageProfessionPicker"></div></div>
-              <div class="join-profile-info-row is-tall"><div class="join-profile-manage-label"></div><textarea class="join-profile-manage-textarea" id="joinProfileManageTravelStyles"></textarea><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageTravelStyles')"></button><div class="join-profile-inline-picker" id="joinProfileManageTravelStylesPicker"></div></div>
+              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageTravelStyles"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageTravelStyles')"></button><div class="join-profile-inline-picker" id="joinProfileManageTravelStylesPicker"></div></div>
             </div>
             <div class="join-profile-manage-status" id="joinProfileManageStatus"></div>
             <div class="join-profile-manage-actions">
@@ -40504,6 +41041,39 @@
       if (target) target.textContent = message;
     }
 
+    function renderJoinProfileBirthYearOptions() {
+      const currentYear = new Date().getFullYear();
+      const startYear = Math.max(1900, currentYear - 100);
+      const endYear = Math.max(startYear, currentYear - 18);
+      const options = ['<option value="">선택</option>'];
+      for (let year = endYear; year >= startYear; year -= 1) {
+        options.push(`<option value="${year}">${year}</option>`);
+      }
+      return options.join("");
+    }
+
+    function completeJoinProfileManageField(field) {
+      if (!field) return;
+      closeJoinProfileManagePicker(field);
+      field.blur?.();
+    }
+
+    function handleJoinProfileManageMobileInput(input) {
+      if (!input) return;
+      const digits = String(input.value || "").replace(/\D/g, "").slice(0, 11);
+      if (input.value !== digits) input.value = digits;
+      if (digits.length === 11) {
+        setTimeout(() => completeJoinProfileManageField(input), 0);
+      }
+    }
+
+    function handleJoinProfileManageBirthYearChange(select) {
+      syncJoinProfileManageSummary();
+      if (select?.value) {
+        setTimeout(() => completeJoinProfileManageField(select), 0);
+      }
+    }
+
     function getJoinProfileManageAgeBandFromInput() {
       const birthYear = String(document.getElementById("joinProfileManageBirthYear")?.value || "").trim();
       if (!/^\d{4}$/.test(birthYear)) return "";
@@ -40539,67 +41109,82 @@
     }
 
     const JOIN_PROFILE_MANAGE_LEVEL_OPTIONS = [
-      ["\uC785\uBB38\u00B7\uCD08\uBCF4\uC785\uB2C8\uB2E4", "\uD3ED \uC785\uBB38\u00B7\uCD08\uBCF4\uC785\uB2C8\uB2E4"],
-      ["\uBCF4\uAE30 \uD50C\uB808\uC774\uC5B4", "\uD3FD \uBCF4\uAE30 \uD50C\uB808\uC774\uC5B4"],
-      ["90\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4", "\uD3CE 90\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4"],
-      ["80\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4", "\uD3CF 80\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4"],
-      ["\uC2F1\uAE00 \uC218\uC900\uC785\uB2C8\uB2E4", "\uD3C7 \uC2F1\uAE00 \uC218\uC900\uC785\uB2C8\uB2E4"],
-      ["\uACE8\uD504 \uD504\uB85C\uC785\uB2C8\uB2E4", "\uD3F3 \uACE8\uD504 \uD504\uB85C\uC785\uB2C8\uB2E4"]
+      ["\uC785\uBB38\u00B7\uCD08\uBCF4\uC785\uB2C8\uB2E4", "&#x1F3ED; \uC785\uBB38\u00B7\uCD08\uBCF4\uC785\uB2C8\uB2E4"],
+      ["\uBCF4\uAE30 \uD50C\uB808\uC774\uC5B4", "&#x1F3FD; \uBCF4\uAE30 \uD50C\uB808\uC774\uC5B4"],
+      ["90\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4", "&#x1F3CE; 90\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4"],
+      ["80\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4", "&#x1F3CF; 80\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4"],
+      ["\uC2F1\uAE00 \uC218\uC900\uC785\uB2C8\uB2E4", "&#x1F3C7; \uC2F1\uAE00 \uC218\uC900\uC785\uB2C8\uB2E4"],
+      ["\uACE8\uD504 \uD504\uB85C\uC785\uB2C8\uB2E4", "&#x1F3F3; \uACE8\uD504 \uD504\uB85C\uC785\uB2C8\uB2E4"]
     ];
 
     const JOIN_PROFILE_MANAGE_PROFESSION_OPTIONS = [
-      ["\uACBD\uC601", "\uD83D\uDCBC \uACBD\uC601"],
-      ["\uC0AC\uC5C5", "\uD83C\uDFE2 \uC0AC\uC5C5"],
-      ["\uBD80\uB3D9\uC0B0", "\uD83C\uDFE0 \uBD80\uB3D9\uC0B0"],
-      ["\uAC74\uC124", "\uD83D\uDE9C \uAC74\uC124"],
-      ["\uAE08\uC735", "\uD83D\uDCB1 \uAE08\uC735"],
-      ["\uBCF4\uD5D8", "\uD83D\uDEE1 \uBCF4\uD5D8"],
-      ["\uC138\uBB34", "\uD83E\uDDFE \uC138\uBB34"],
-      ["\uBC95\uB960", "\u2696 \uBC95\uB960"],
-      ["\uC758\uB8CC", "\uD83E\uDE7A \uC758\uB8CC"],
-      ["\uC81C\uC870", "\uD83C\uDFED \uC81C\uC870"],
-      ["\uC720\uD1B5", "\uD83D\uDE9A \uC720\uD1B5"],
-      ["\uBB34\uC5ED", "\uD83D\uDEA2 \uBB34\uC5ED"],
-      ["\uC601\uC5C5", "\uD83E\uDD1D \uC601\uC5C5"],
-      ["\uAD50\uC721", "\uD83C\uDF93 \uAD50\uC721"],
-      ["\uACF5\uACF5", "\uD83C\uDFDB \uACF5\uACF5"]
+      ["\uACBD\uC601", "&#x1F4BC; \uACBD\uC601"],
+      ["\uC0AC\uC5C5", "&#x1F3E2; \uC0AC\uC5C5"],
+      ["\uBD80\uB3D9\uC0B0", "&#x1F3E0; \uBD80\uB3D9\uC0B0"],
+      ["\uAC74\uC124", "&#x1F69C; \uAC74\uC124"],
+      ["\uAE08\uC735", "&#x1F4B1; \uAE08\uC735"],
+      ["\uBCF4\uD5D8", "&#x1F6E1; \uBCF4\uD5D8"],
+      ["\uC138\uBB34", "&#x1F9FE; \uC138\uBB34"],
+      ["\uBC95\uB960", "&#x2696; \uBC95\uB960"],
+      ["\uC758\uB8CC", "&#x1FA7A; \uC758\uB8CC"],
+      ["\uC81C\uC870", "&#x1F3ED; \uC81C\uC870"],
+      ["\uC720\uD1B5", "&#x1F69A; \uC720\uD1B5"],
+      ["\uBB34\uC5ED", "&#x1F6A2; \uBB34\uC5ED"],
+      ["\uC601\uC5C5", "&#x1F91D; \uC601\uC5C5"],
+      ["\uAD50\uC721", "&#x1F393; \uAD50\uC721"],
+      ["\uACF5\uACF5", "&#x1F3DB; \uACF5\uACF5"]
     ];
 
     const JOIN_PROFILE_MANAGE_STYLE_OPTIONS = [
-      ["\uC790\uC720\uB85C\uC6B4", "\uC790\uC720\uB85C\uC6B4 \uD83D\uDE0E"],
-      ["\uCE5C\uBAA9\uC911\uC2EC", "\uCE5C\uBAA9\uC911\uC2EC \uD83E\uDD1D"],
-      ["\uC2E4\uB825\uD5A5\uC0C1", "\uC2E4\uB825\uD5A5\uC0C1 \uD83D\uDCAA"],
-      ["\uB9DB\uC9D1\uAD00\uAD11", "\uB9DB\uC9D1\uAD00\uAD11 \uD83D\uDCF8"],
-      ["\uBA85\uB791\uACE8\uD504", "\uBA85\uB791\uACE8\uD504 \uD83D\uDE04"],
-      ["\uBE44\uC988\uB2C8\uC2A4", "\uBE44\uC988\uB2C8\uC2A4 \uD83C\uDFE2"]
+      ["\uC790\uC720\uB85C\uC6B4", "\uC790\uC720\uB85C\uC6B4 &#x1F60E;"],
+      ["\uCE5C\uBAA9\uC911\uC2EC", "\uCE5C\uBAA9\uC911\uC2EC &#x1F91D;"],
+      ["\uC2E4\uB825\uD5A5\uC0C1", "\uC2E4\uB825\uD5A5\uC0C1 &#x1F4AA;"],
+      ["\uB9DB\uC9D1\uAD00\uAD11", "\uB9DB\uC9D1\uAD00\uAD11 &#x1F4F8;"],
+      ["\uBA85\uB791\uACE8\uD504", "\uBA85\uB791\uACE8\uD504 &#x1F604;"],
+      ["\uBE44\uC988\uB2C8\uC2A4", "\uBE44\uC988\uB2C8\uC2A4 &#x1F3E2;"]
     ];
 
     function renderJoinProfileManagePickers() {
       const levelPicker = document.getElementById("joinProfileManageLevelPicker");
       if (levelPicker) {
-        levelPicker.innerHTML = `<div class="apply-chip-group" data-chip-group="join-profile-level">${JOIN_PROFILE_MANAGE_LEVEL_OPTIONS.map(([value, label]) => `<button type="button" class="apply-chip" data-value="${escapeHtml(value)}" onclick="selectJoinProfileManagePickerValue('joinProfileManageLevel', '${escapeJsString(value)}')">${escapeHtml(label)}</button>`).join("")}</div>`;
+        levelPicker.innerHTML = `<div class="apply-chip-group join-profile-level-picker" data-chip-group="join-profile-level">${JOIN_PROFILE_MANAGE_LEVEL_OPTIONS.map(([value, label]) => `<button type="button" class="apply-chip" data-value="${escapeHtml(value)}" onclick="selectJoinProfileManagePickerValue('joinProfileManageLevel', '${escapeJsString(value)}')">${label}</button>`).join("")}</div>`;
       }
       const professionPicker = document.getElementById("joinProfileManageProfessionPicker");
       if (professionPicker) {
-        professionPicker.innerHTML = `<div class="profession-chip-row join-member-signup-chip-row">${JOIN_PROFILE_MANAGE_PROFESSION_OPTIONS.map(([value, label]) => `<button type="button" class="profession-chip" data-value="${escapeHtml(value)}" onclick="selectJoinProfileManagePickerValue('joinProfileManageProfession', '${escapeJsString(value)}')">${escapeHtml(label)}</button>`).join("")}</div>`;
+        professionPicker.innerHTML = `
+          <div class="join-profile-picker-help">직업은 최대 3개까지 선택할 수 있어요.</div>
+          <div class="profession-chip-row join-profile-profession-picker">${JOIN_PROFILE_MANAGE_PROFESSION_OPTIONS.map(([value, label]) => `<button type="button" class="profession-chip" data-value="${escapeHtml(value)}" onclick="toggleJoinProfileManageProfession('${escapeJsString(value)}')">${label}</button>`).join("")}</div>
+          <button type="button" class="join-profile-picker-done" onclick="closeJoinProfileManagePicker(document.getElementById('joinProfileManageProfession'))">선택 완료</button>
+        `;
       }
       const stylePicker = document.getElementById("joinProfileManageTravelStylesPicker");
       if (stylePicker) {
-        stylePicker.innerHTML = `<div class="apply-chip-group" data-chip-group="join-profile-travel-style">${JOIN_PROFILE_MANAGE_STYLE_OPTIONS.map(([value, label]) => `<button type="button" class="apply-chip" data-value="${escapeHtml(value)}" onclick="selectJoinProfileManagePickerValue('joinProfileManageTravelStyles', '${escapeJsString(value)}')">${escapeHtml(label)}</button>`).join("")}</div>`;
+        stylePicker.innerHTML = `<div class="apply-chip-group join-profile-style-picker" data-chip-group="join-profile-travel-style">${JOIN_PROFILE_MANAGE_STYLE_OPTIONS.map(([value, label]) => `<button type="button" class="apply-chip" data-value="${escapeHtml(value)}" onclick="selectJoinProfileManagePickerValue('joinProfileManageTravelStyles', '${escapeJsString(value)}')">${label}</button>`).join("")}</div>`;
       }
       syncJoinProfileManagePickerActiveStates();
+    }
+
+    function getJoinProfileManageSelectedProfessionValues() {
+      return String(document.getElementById("joinProfileManageProfession")?.value || "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .slice(0, 3);
     }
 
     function syncJoinProfileManagePickerActiveStates() {
       const map = {
         joinProfileManageLevel: document.getElementById("joinProfileManageLevel")?.value || "",
-        joinProfileManageProfession: document.getElementById("joinProfileManageProfession")?.value || "",
         joinProfileManageTravelStyles: document.getElementById("joinProfileManageTravelStyles")?.value || ""
       };
       Object.entries(map).forEach(([id, value]) => {
         document.getElementById(`${id}Picker`)?.querySelectorAll("[data-value]").forEach((chip) => {
           chip.classList.toggle("active", chip.dataset.value === value);
         });
+      });
+      const selectedProfessions = new Set(getJoinProfileManageSelectedProfessionValues());
+      document.getElementById("joinProfileManageProfessionPicker")?.querySelectorAll("[data-value]").forEach((chip) => {
+        chip.classList.toggle("active", selectedProfessions.has(chip.dataset.value));
       });
     }
 
@@ -40618,6 +41203,25 @@
       field.value = value;
       syncJoinProfileManagePickerActiveStates();
       closeJoinProfileManagePicker(field);
+    }
+
+    function toggleJoinProfileManageProfession(value = "") {
+      const field = document.getElementById("joinProfileManageProfession");
+      if (!field) return;
+      const selected = getJoinProfileManageSelectedProfessionValues();
+      const nextValue = String(value || "").trim();
+      if (!nextValue) return;
+      const existingIndex = selected.indexOf(nextValue);
+      if (existingIndex >= 0) {
+        selected.splice(existingIndex, 1);
+      } else if (selected.length < 3) {
+        selected.push(nextValue);
+      }
+      field.value = selected.join(", ");
+      syncJoinProfileManagePickerActiveStates();
+      if (selected.length >= 3) {
+        setTimeout(() => closeJoinProfileManagePicker(field), 120);
+      }
     }
 
     function normalizeJoinProfileManageLevelValue(value = "") {
@@ -40698,6 +41302,13 @@
         return;
       }
       field.focus({ preventScroll: true });
+      if (id === "joinProfileManageBirthYear") {
+        try {
+          field.showPicker?.();
+        } catch (error) {
+          // Some browsers only allow native pickers during direct user activation.
+        }
+      }
       field.scrollIntoView({ block: "center", behavior: "smooth" });
     }
 
@@ -40732,6 +41343,9 @@
 
     function lockJoinProfileManagePageScroll() {
       if (document.body.classList.contains("join-profile-scroll-locked")) return;
+      const isOpenedFromMyLayer = document.getElementById("joinMyMenuModal")?.classList.contains("open")
+        || document.getElementById("joinMyDrawerOverlay")?.classList.contains("open");
+      if (isOpenedFromMyLayer) return;
       joinProfileManageScrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
       document.body.style.top = `-${joinProfileManageScrollLockY}px`;
       document.body.classList.add("join-profile-scroll-locked");
@@ -41018,6 +41632,26 @@
       return contentType.includes("application/json") ? response.json() : response.text();
     }
 
+    function validateJoinProfileManageForm() {
+      const name = document.getElementById("joinProfileManageName")?.value.trim() || "";
+      const mobile = normalizeJoinMemberPhone(document.getElementById("joinProfileManageMobile")?.value || "");
+      const email = document.getElementById("joinProfileManageEmail")?.value.trim() || "";
+      const birthYear = document.getElementById("joinProfileManageBirthYear")?.value.trim() || "";
+      if (name.length < 2) {
+        return { fieldId: "joinProfileManageName", message: "\uC774\uB984\uC744 2\uC790 \uC774\uC0C1 \uC785\uB825\uD574 \uC8FC\uC138\uC694." };
+      }
+      if (!/^01\d{9}$/.test(mobile)) {
+        return { fieldId: "joinProfileManageMobile", message: "\uD734\uB300\uD3F0\uBC88\uD638\uB294 \uC22B\uC790\uB9CC 11\uC790\uB9AC\uB85C \uC785\uB825\uD574 \uC8FC\uC138\uC694." };
+      }
+      if (email && !isValidJoinMemberEmail(email)) {
+        return { fieldId: "joinProfileManageEmail", message: "\uC774\uBA54\uC77C \uD615\uC2DD\uC73C\uB85C \uC785\uB825\uD574 \uC8FC\uC138\uC694." };
+      }
+      if (birthYear && !/^(19\d{2}|20\d{2})$/.test(birthYear)) {
+        return { fieldId: "joinProfileManageBirthYear", message: "\uCD9C\uC0DD\uB144\uB3C4 4\uC790\uB9AC\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694." };
+      }
+      return null;
+    }
+
     async function submitJoinProfileManage(event) {
       event.preventDefault();
       const member = getJoinCachedCurrentMember();
@@ -41025,9 +41659,12 @@
         redirectToJoinLogin("my-menu");
         return;
       }
-      const message = validateJoinProfileManageForm();
-      if (message) {
-        setJoinProfileManageStatus(message);
+      const validation = validateJoinProfileManageForm();
+      if (validation?.message) {
+        setJoinProfileManageStatus(validation.message);
+        if (validation.fieldId) {
+          setTimeout(() => focusJoinProfileManageField(validation.fieldId), 0);
+        }
         return;
       }
       const saveButton = document.getElementById("joinProfileManageSave");
@@ -44200,6 +44837,7 @@
       currentDetailMode = "mdPickProduct";
       currentDetailJoinId = product.id;
       currentDetailJoinData = product;
+      addJoinRecentViewedItem(product, "product");
       currentMdPickProductGroupKey = productGroupKey;
       currentMdPickCountryKey = countryKey;
       currentDetailSlideIndex = 0;
@@ -44228,6 +44866,7 @@
         }
         if (currentDetailMode === "mdPickProduct" && currentDetailJoinId === product.id && document.getElementById("detailModal")?.classList.contains("open")) {
           currentDetailJoinData = enrichedProduct;
+          addJoinRecentViewedItem(enrichedProduct, "product");
           currentDetailSlideIndex = 0;
           document.getElementById("detailModalTitle").textContent = enrichedProduct.title;
           renderDetailContent(enrichedProduct, { hideParticipants: true });
@@ -48621,6 +49260,7 @@
       currentDetailMode = "builderProduct";
       currentDetailJoinId = product.id;
       currentDetailJoinData = product;
+      addJoinRecentViewedItem(product, "product");
       currentDetailSlideIndex = 0;
       stopDetailReviewAutoSlide();
       closeDetailApply();
@@ -48643,6 +49283,7 @@
         }
         if (currentDetailMode === "builderProduct" && currentDetailJoinId === enrichedProduct.id && document.getElementById("detailModal")?.classList.contains("open")) {
           currentDetailJoinData = enrichedProduct;
+          addJoinRecentViewedItem(enrichedProduct, "product");
           currentDetailSlideIndex = 0;
           renderDetailContent(enrichedProduct, { mode: "builder", hideParticipants: true });
           requestAnimationFrame(() => {
@@ -49302,7 +49943,7 @@
                 <div class="region-empty-recommend-name">${escapeHtml(join.title || "")}</div>
                 <div class="region-empty-recommend-meta">${escapeHtml(formatCardDateRange(join))}</div>
                 <div class="region-empty-recommend-bottom">
-                  <div class="region-empty-recommend-price">1인 ${formatPrice(join.price)}원</div>
+                  <div class="region-empty-recommend-price">${formatPrice(join.price)}원</div>
                   <div class="region-empty-recommend-slot">${escapeHtml(String(join.emptySlots || 0))}자리 남음</div>
                 </div>
               </div>
@@ -51155,6 +51796,22 @@
       return `<div class="join-slide-dots" data-slide-dots="${key}" aria-hidden="true"></div>`;
     }
 
+    function getFallbackSlideDotPageCount(key, dots) {
+      if (key === "mdpick-country") {
+        return document.querySelectorAll("[data-mdpick-country-option]").length;
+      }
+      if (key === "mdpick-theme") {
+        return document.querySelectorAll("[data-mdpick-theme-group]").length;
+      }
+      if (key === "custom") {
+        return dots?.closest("[data-join-section]")?.querySelectorAll(".join-custom-panel.active .join-card:not([data-quick-carousel-clone='true'])").length || 0;
+      }
+      if (key === "detail") {
+        return document.querySelectorAll("#detailContent .detail-thumb").length || 0;
+      }
+      return dots?.closest("[data-join-section]")?.querySelectorAll(".join-grid .join-card:not([data-quick-carousel-clone='true'])").length || 0;
+    }
+
     function isMobileSlideDotsViewport() {
       return window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640;
     }
@@ -51167,91 +51824,96 @@
       return (card.getBoundingClientRect().width * visibleCardCount) + (gap * Math.max(0, visibleCardCount - 1));
     }
 
-    function getSlideDotWindow(currentIndex, pageCount) {
+    function getInstagramSlideDotState(currentIndex, pageCount, visibleCount = 5) {
       const total = Math.max(0, Number(pageCount) || 0);
-      if (total <= 5) return Array.from({ length: total }, (_, index) => ({ index, size: "" }));
       const current = Math.min(Math.max(Number(currentIndex) || 0, 0), total - 1);
-      const toDots = (indexes, sizes = {}) => indexes.map((index, position) => ({
-        index,
-        size: sizes[position] || ""
-      }));
-      if (current <= 2) return toDots([0, 1, 2, 3, 4], { 3: "small", 4: "tiny" });
-      if (current === 3) return toDots([0, 1, 2, 3, 4, 5], { 0: "small", 4: "small", 5: "tiny" });
-      if (current === total - 3) {
-        return toDots(
-          Array.from({ length: Math.min(7, total) }, (_, index) => total - Math.min(7, total) + index),
-          { 0: "tiny", 1: "small" }
-        );
-      }
-      if (current === total - 2) {
-        return toDots(
-          Array.from({ length: Math.min(6, total) }, (_, index) => total - Math.min(6, total) + index),
-          { 0: "tiny", 1: "small" }
-        );
-      }
-      if (current >= total - 1) {
-        return toDots(
-          [total - 5, total - 4, total - 3, total - 2, total - 1],
-          { 0: "tiny", 1: "small" }
-        );
-      }
-      return toDots(
-        [current - 4, current - 3, current - 2, current - 1, current, current + 1, current + 2],
-        { 0: "tiny", 1: "small", 5: "small", 6: "tiny" }
-      );
+      const dotSpacing = 14;
+      const viewportCount = Math.min(total, visibleCount);
+      const half = Math.floor(visibleCount / 2);
+      const start = total <= visibleCount
+        ? 0
+        : Math.max(0, Math.min(total - visibleCount, current - half));
+      const hasMoreLeft = start > 0;
+      const hasMoreRight = start + visibleCount < total;
+      const states = Array.from({ length: total }, (_, index) => {
+        const isInside = index >= start && index < start + viewportCount;
+        if (!isInside) return { index, scale: 0, opacity: 0, isActive: false };
+        if (index === current) return { index, scale: 1, opacity: 1, isActive: true };
+        const isLeftEdge = index === start;
+        const isRightEdge = index === start + viewportCount - 1;
+        const isLeftSecond = index === start + 1;
+        const isRightSecond = index === start + viewportCount - 2;
+        let scale = .65;
+        if (isLeftEdge && hasMoreLeft) scale = .4;
+        else if (isRightEdge && hasMoreRight) scale = .4;
+        else if (isLeftSecond && hasMoreLeft) scale = .75;
+        else if (isRightSecond && hasMoreRight) scale = .75;
+        return { index, scale, opacity: .5, isActive: false };
+      });
+      return {
+        states,
+        start,
+        translation: -start * dotSpacing,
+        viewportWidth: viewportCount * dotSpacing,
+        dotSpacing
+      };
     }
 
     function updateSlideDots(key, currentIndex, pageCount, isScrollable = true) {
       const dots = document.querySelector(`[data-slide-dots="${key}"]`);
       if (!dots) return;
-      const total = Math.max(0, Number(pageCount) || 0);
+      let total = Math.max(0, Number(pageCount) || 0);
+      if (total <= 1) {
+        total = Math.max(total, getFallbackSlideDotPageCount(key, dots));
+      }
+      if (total > 1 && !isScrollable) {
+        isScrollable = true;
+      }
       dots.classList.toggle("is-visible", Boolean(isScrollable && total > 1));
       if (!isScrollable || total <= 1) {
         dots.innerHTML = "";
-        delete dots.dataset.visibleIndexes;
+        delete dots.dataset.dotStart;
+        delete dots.dataset.dotTotal;
         return;
       }
       const current = Math.min(Math.max(Number(currentIndex) || 0, 0), total - 1);
-      const previous = Number(dots.dataset.activeIndex || 0);
-      const directionClass = current > previous ? "is-moving-next" : current < previous ? "is-moving-prev" : "";
-      const previousVisibleIndexes = (dots.dataset.visibleIndexes || "")
-        .split(",")
-        .map((value) => Number(value))
-        .filter((value) => Number.isFinite(value));
-      const visibleIndexes = getSlideDotWindow(current, total);
-      const visibleIndexNumbers = visibleIndexes.map((dot) => dot.index);
-      const previousActivePosition = previousVisibleIndexes.indexOf(previous);
-      const activePosition = visibleIndexNumbers.indexOf(current);
-      const windowChanged = previousVisibleIndexes.join(",") !== visibleIndexNumbers.join(",");
-      const isSevenDotMiddleMoveWithoutShift = previousVisibleIndexes.length === 7
-        && visibleIndexNumbers.length === 7
-        && previousActivePosition >= 2
-        && previousActivePosition <= 4
-        && activePosition >= 2
-        && activePosition <= 4
-        && !(directionClass === "is-moving-next" && previousActivePosition === 4)
-        && !(directionClass === "is-moving-prev" && previousActivePosition === 2);
-      dots.classList.remove("is-moving-next", "is-moving-prev");
-      dots.innerHTML = visibleIndexes.map((dot) => {
-        const sizeClass = dot.size ? ` ${dot.size}` : "";
-        const activeClass = dot.index === current ? " active" : "";
-        return `<div class="join-slide-dot${sizeClass}${activeClass}"></div>`;
-      }).join("");
-      dots.dataset.activeIndex = String(current);
-      dots.dataset.visibleIndexes = visibleIndexNumbers.join(",");
-      const shouldAnimateWindowShift = directionClass
-        && total > 5
-        && windowChanged
-        && !isSevenDotMiddleMoveWithoutShift
-        && (current >= 3 || previous >= 3);
-      if (shouldAnimateWindowShift) {
-        dots.classList.add(directionClass);
-        clearTimeout(updateSlideDots.timers?.[key]);
-        updateSlideDots.timers = updateSlideDots.timers || {};
-        updateSlideDots.timers[key] = setTimeout(() => {
-          dots.classList.remove("is-moving-next", "is-moving-prev");
-        }, 260);
+      const dotClickHandler = dots.dataset.dotClick || "";
+      const dotState = getInstagramSlideDotState(current, total);
+      const renderTrackHtml = () => `
+        <div class="join-slide-dots-viewport" style="width:${dotState.viewportWidth}px; --join-slide-dot-spacing:${dotState.dotSpacing}px;">
+          <div class="join-slide-dots-track" style="transform:translateX(${dotState.translation}px);">
+            ${dotState.states.map((dot) => {
+              const activeClass = dot.isActive ? " active" : "";
+              const dotStyle = `--dot-scale:${dot.scale}; --dot-opacity:${dot.opacity};`;
+              if (dotClickHandler) {
+                return `<div class="join-slide-dot-slot"><button type="button" class="join-slide-dot${activeClass}" data-dot-index="${dot.index}" style="${dotStyle}" onclick="${dotClickHandler}(${dot.index})" aria-label="${dot.index + 1}번 보기"></button></div>`;
+              }
+              return `<div class="join-slide-dot-slot"><div class="join-slide-dot${activeClass}" data-dot-index="${dot.index}" style="${dotStyle}"></div></div>`;
+            }).join("")}
+          </div>
+        </div>
+      `;
+      const viewport = dots.querySelector(".join-slide-dots-viewport");
+      const track = dots.querySelector(".join-slide-dots-track");
+      const existingDots = Array.from(dots.querySelectorAll(".join-slide-dot[data-dot-index]"));
+      if (!viewport || !track || existingDots.length !== total || dots.dataset.dotClickRendered !== dotClickHandler) {
+        dots.innerHTML = renderTrackHtml();
+      } else {
+        viewport.style.width = `${dotState.viewportWidth}px`;
+        viewport.style.setProperty("--join-slide-dot-spacing", `${dotState.dotSpacing}px`);
+        track.style.transform = `translateX(${dotState.translation}px)`;
+        dotState.states.forEach((dot) => {
+          const dotElement = track.querySelector(`.join-slide-dot[data-dot-index="${dot.index}"]`);
+          if (!dotElement) return;
+          dotElement.classList.toggle("active", dot.isActive);
+          dotElement.style.setProperty("--dot-scale", String(dot.scale));
+          dotElement.style.setProperty("--dot-opacity", String(dot.opacity));
+        });
       }
+      dots.dataset.activeIndex = String(current);
+      dots.dataset.dotStart = String(dotState.start);
+      dots.dataset.dotTotal = String(total);
+      dots.dataset.dotClickRendered = dotClickHandler;
     }
 
     function updateContainerSlideDots(key, container, stepCardCount = 1) {
@@ -51327,6 +51989,21 @@
       updateBestSectionControls("overseas");
       updateBestSectionControls("domestic");
     }
+    window.updateBestSectionControls = updateBestSectionControls;
+    window.updateBestSectionControlsAll = updateBestSectionControlsAll;
+
+    function scheduleHomeSlideDotsRefresh() {
+      requestAnimationFrame(updateQuickSectionControls);
+      requestAnimationFrame(updateCustomSectionControls);
+      requestAnimationFrame(updateBestSectionControlsAll);
+      requestAnimationFrame(updateMdPickSlideDots);
+      requestAnimationFrame(() => {
+        updateQuickSectionControls();
+        updateCustomSectionControls();
+        updateBestSectionControlsAll();
+        updateMdPickSlideDots();
+      });
+    }
 
     function getQuickSectionGrid() {
       return document.querySelector("#join-section-quick .join-grid");
@@ -51345,6 +52022,7 @@
       controls.classList.toggle("is-at-start", isAtStart);
       controls.classList.toggle("is-at-end", isAtEnd);
     }
+    window.updateQuickSectionControls = updateQuickSectionControls;
 
     function getActiveCustomJoinPanel() {
       return document.querySelector("#join-section-custom .join-custom-panel.active");
@@ -51372,6 +52050,14 @@
     function scrollCustomJoinSection(direction) {
       const panel = getActiveCustomJoinPanel();
       if (!panel) return;
+      const cards = Array.from(panel.querySelectorAll(".join-card:not([data-quick-carousel-clone='true'])"));
+      const cardCount = cards.length || 1;
+      const dots = document.querySelector(`[data-slide-dots="custom"]`);
+      const activeIndex = Math.min(cardCount - 1, Math.max(0, Number(dots?.dataset.activeIndex || 0)));
+      const nextIndex = Math.min(cardCount - 1, Math.max(0, activeIndex + (direction * 2)));
+      if (nextIndex !== activeIndex) {
+        updateSlideDots("custom", nextIndex, cardCount, cardCount > 1);
+      }
       const card = panel.querySelector(".join-card");
       const styles = window.getComputedStyle(panel);
       const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
@@ -51405,6 +52091,14 @@
       if (!isBestJoinSectionKey(key)) return;
       const grid = document.querySelector(`#join-section-${key} .join-grid`);
       if (!grid) return;
+      const cards = Array.from(grid.querySelectorAll(".join-card:not([data-quick-carousel-clone='true'])"));
+      const cardCount = cards.length || 1;
+      const dots = document.querySelector(`[data-slide-dots="${key}"]`);
+      const activeIndex = Math.min(cardCount - 1, Math.max(0, Number(dots?.dataset.activeIndex || 0)));
+      const nextIndex = Math.min(cardCount - 1, Math.max(0, activeIndex + direction));
+      if (nextIndex !== activeIndex) {
+        updateSlideDots(key, nextIndex, cardCount, cardCount > 1);
+      }
       const card = grid.querySelector(".join-card");
       const styles = window.getComputedStyle(grid);
       const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
@@ -52329,6 +53023,7 @@
       currentDetailMode = "mdPickProduct";
       currentDetailJoinId = product.id;
       currentDetailJoinData = product;
+      addJoinRecentViewedItem(product, "product");
       currentMdPickProductGroupKey = productGroupKey;
       currentMdPickCountryKey = countryKey;
       currentDetailSlideIndex = 0;
@@ -52357,6 +53052,7 @@
         }
         if (currentDetailMode === "mdPickProduct" && currentDetailJoinId === product.id && document.getElementById("detailModal")?.classList.contains("open")) {
           currentDetailJoinData = enrichedProduct;
+          addJoinRecentViewedItem(enrichedProduct, "product");
           currentDetailSlideIndex = 0;
           document.getElementById("detailModalTitle").textContent = enrichedProduct.title;
           renderDetailContent(enrichedProduct, { hideParticipants: true });
@@ -52863,10 +53559,7 @@
       }
       setupCustomThemeRailScrollSync();
       ensureJoinReservationCountdownTimer();
-      requestAnimationFrame(updateQuickSectionControls);
-      requestAnimationFrame(updateCustomSectionControls);
-      requestAnimationFrame(updateBestSectionControlsAll);
-      requestAnimationFrame(updateMdPickSlideDots);
+      scheduleHomeSlideDotsRefresh();
       scheduleMdPickImagePreload();
       updateJoinSectionNavFixed();
     }
@@ -53240,9 +53933,7 @@
             </div>
           </div>
           <button type="button" class="detail-slider-nav next" onclick="changeDetailSlide(1)" aria-label="다음 이미지">&gt;</button>
-          <div class="detail-slider-dots${isDetailSliderWindowed(slides.length) ? " is-windowed" : ""}">
-            ${renderDetailSliderDots(slides.length, slideIndex)}
-          </div>
+          <div class="detail-slider-dots join-slide-dots" data-slide-dots="detail" data-dot-click="setDetailSlide" aria-hidden="true"></div>
           <div class="detail-slider-pagination" aria-label="상품 이미지 ${slideIndex + 1} / ${slides.length}">
             <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-image-icon lucide-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
             <div id="detailSliderPageText" class="detail-slider-page-text">${slideIndex + 1}/${slides.length}</div>
@@ -53327,6 +54018,7 @@
       updateDetailAnchorTabs();
       updateDetailScheduleDayNav();
       bindDetailSliderSwipe();
+      updateDetailSlider(false);
       startDetailReviewAutoSlide();
     }
 
@@ -53368,22 +54060,7 @@
     }
 
     function updateDetailSliderDotsElement(dots, slideCount, activeIndex) {
-      const windowed = isDetailSliderWindowed(slideCount);
-      dots.classList.toggle("is-windowed", windowed);
-      if (!windowed) {
-        dots.innerHTML = renderDetailSliderDots(slideCount, activeIndex);
-        return;
-      }
-      if (dots.children.length !== slideCount) {
-        dots.innerHTML = renderDetailSliderDots(slideCount, activeIndex);
-        return;
-      }
-      [...dots.children].forEach((dot, index) => {
-        const state = getDetailSliderDotState(slideCount, activeIndex, index);
-        dot.className = state.className;
-        dot.style.setProperty("--dot-x", state.x);
-        dot.style.setProperty("--dot-scale", state.scale);
-      });
+      updateSlideDots("detail", activeIndex, slideCount, slideCount > 1);
     }
 
     function renderDetailSliderDots(slideCount, activeIndex) {
@@ -53715,6 +54392,7 @@
       currentDetailMode = "normal";
       currentDetailJoinId = id;
       currentDetailJoinData = join;
+      addJoinRecentViewedItem(join, "join_schedule");
       currentDetailSlideIndex = 0;
       stopDetailReviewAutoSlide();
       closeDetailApply();
@@ -54223,7 +54901,6 @@
     handleJoinWishRemove = wrapJoinAsyncFunction(handleJoinWishRemove);
     handleJoinMyLogout = wrapJoinAsyncFunction(handleJoinMyLogout);
     openJoinMyMenu = wrapJoinAsyncFunction(openJoinMyMenu);
-    resumeJoinKakaoProfileAfterLogin = wrapJoinAsyncFunction(resumeJoinKakaoProfileAfterLogin);
     showMdPickDetailProduct = wrapJoinAsyncFunction(showMdPickDetailProduct);
     nextBuilderStep = wrapJoinAsyncFunction(nextBuilderStep);
     openBuilderProductDetailModal = wrapJoinAsyncFunction(openBuilderProductDetailModal);
@@ -54402,6 +55079,9 @@
     }, { capture: true });
 
     async function initializeGolfJoinHome() {
+      openHomeInitialLoading();
+      randomizeHeroCalendarThumbs();
+      initializeHeroCalendarShape();
       startHeroSlider();
       initializeJoinMobileBottomNav();
       hydrateBuilderApplicationJoinsFromLocalCache();
@@ -54417,6 +55097,10 @@
         homeInitialExternalProductsLoadedOnce = true;
       }
       renderJoins();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      scheduleHomeSlideDotsRefresh();
+      window.refreshInitialJoinSlideDots?.();
+      closeHomeInitialLoading();
       Promise.all([
         hydrateBuilderApplicationJoinsFromGoogleSheet(),
         hydrateJoinApplicationsFromGoogleSheet(),
@@ -54436,6 +55120,7 @@
       homeInitialExternalProductsLoading = false;
       homeInitialExternalProductsLoadedOnce = true;
       renderJoins();
+      closeHomeInitialLoading();
     });
   </script>
 

@@ -4,15 +4,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>골프 조인 게시판</title>
   <style>
-    @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+    @font-face {
+      font-family: "GolfjoinPretendard";
+      src: url("https://storage.googleapis.com/golfjoin-bucket/font/1.woff2") format("woff2");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "GolfjoinPretendard";
+      src: url("https://storage.googleapis.com/golfjoin-bucket/font/2.woff2") format("woff2");
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "GolfjoinPretendard";
+      src: url("https://storage.googleapis.com/golfjoin-bucket/font/2.woff2") format("woff2");
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "GolfjoinPretendard";
+      src: url("https://storage.googleapis.com/golfjoin-bucket/font/3.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "GolfjoinPretendard";
+      src: url("https://storage.googleapis.com/golfjoin-bucket/font/4.woff2") format("woff2");
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: "GolfjoinPretendard";
+      src: url("https://storage.googleapis.com/golfjoin-bucket/font/4.woff2") format("woff2");
+      font-weight: 900;
+      font-style: normal;
+      font-display: swap;
+    }
 
-    :root,
-    #secret-golf-join {
+    /*
+      SGJ CSS REFACTOR TEST - PHASE 1
+
+      Operating constraints:
+      - This file must stay as one self-contained HTML source for the homepage event board.
+      - Do not rely on external CSS files.
+      - Do not style global tags such as body div span button directly unless they are scoped.
+      - Keep every app rule under #secret-golf-join, .sgj-page, or a portal overlay id.
+      - Portal overlays can move under body, so modal rules may need body > #modalId.sgj-portal-overlay.
+
+      Target structure inside this single file:
+      01 tokens and scoped reset
+      02 common layout and UI primitives
+      03 home hero
+      04 home product sections
+      05 calendar
+      06 builder
+      07 detail and apply overlays
+      08 action loading
+      09 region search
+      10 profile, review, my menu, member
+      99 compatibility overrides
+
+      This test file keeps the original cascade order first.
+      Later cleanup should move rules into the sections above without changing visible behavior.
+    */
+
+    /* 01. TOKENS AND SCOPED RESET */
+    #secret-golf-join,
+    .sgj-portal-overlay {
       --page-max-width: 1200px;
       --surface: #ffffff;
       --surface-soft: #f8fafc;
       --surface-muted: #eff6ff;
-      --border: #dbe4ee;
+      --border: #cfd8e3;
+      --border-soft: #dde5ef;
+      --border-strong: #b7c3d0;
       --text: #373A3C;
       --text-soft: #5d6b82;
       --blue: #373A3C;
@@ -43,7 +114,7 @@
       --modal-bottom-button-font-size-pc: 16px;
       --modal-bottom-button-font-size-mo: 15px;
       --modal-bottom-button-font-weight: 700;
-      --modal-bottom-primary-color: #3689ff;
+      --modal-bottom-primary-color: #0775f3;
       --modal-bottom-prev-width: 96px;
       --font-mobile-search-input: var(--font-hero-search-input);
       --font-weight-mobile-search-input: var(--font-weight-hero-search-input);
@@ -179,20 +250,21 @@
       --font-detail-schedule-meal-mobile: 16px;
       --font-weight-detail-schedule-meal-label: 700;
       --font-weight-detail-schedule-meal-menu: 600;
-      --font-family-sgj: "Pretendard", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", Arial, sans-serif;
+      --font-family-sgj: "GolfjoinPretendard", "Pretendard", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", Arial, sans-serif;
     }
 
-    * { box-sizing: border-box; }
-    html {
-      scroll-behavior: smooth;
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
+    #secret-golf-join,
+    #secret-golf-join *,
+    .sgj-portal-overlay,
+    .sgj-portal-overlay * {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    body {
-      margin: 0;
+    #secret-golf-join,
+    .sgj-portal-overlay {
       font-family: var(--font-family-sgj);
       color: var(--text);
-      background: #fff;
       line-height: 1.5;
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
@@ -203,10 +275,6 @@
       overscroll-behavior: contain;
       touch-action: none;
     }
-
-    img { display: block; max-width: 100%; }
-    button, input, select, textarea { font: inherit; }
-    button { border: 0; background: none; cursor: pointer; }
 
     .header_wrap,
     .mobile_mainmenu_zone,
@@ -225,10 +293,6 @@
       z-index: 1000 !important;
     }
 
-    #secret-golf-join,
-    #secret-golf-join * {
-      box-sizing: border-box;
-    }
     .section_special_event {
       display: none !important;
     }
@@ -236,15 +300,11 @@
       width: 100%;
       min-width: 0;
       margin: 0;
-      color: var(--text);
       background: #fff;
-      font-family: var(--font-family-sgj);
       font-size: 16px;
-      line-height: 1.5;
       letter-spacing: 0;
       word-break: keep-all;
       overflow-wrap: normal;
-      text-size-adjust: 100%;
       isolation: isolate;
     }
     .sgj-board-host {
@@ -262,41 +322,71 @@
     .sgj-board-root > .read_title {
       display: none !important;
     }
-    #secret-golf-join :where(img, svg, video, canvas) {
+    #secret-golf-join :where(img, svg, video, canvas),
+    .sgj-portal-overlay :where(img, svg, video, canvas) {
       display: block;
       max-width: 100%;
     }
-    #secret-golf-join :where(.join-thumb > img:first-child, .hero-slide > img, .support-card-image, .detail-thumb, .builder-product-card img, .builder-complete-card img, .builder-detail-hero) {
+    #secret-golf-join :where(.join-thumb > img:first-child, .hero-slide > img, .support-card-image, .detail-thumb, .builder-product-card img, .builder-complete-card img, .builder-detail-hero),
+    .sgj-portal-overlay :where(.join-thumb > img:first-child, .hero-slide > img, .support-card-image, .detail-thumb, .builder-product-card img, .builder-complete-card img, .builder-detail-hero) {
       width: 100% !important;
       height: 100% !important;
       object-fit: cover;
     }
-    #secret-golf-join :where(button, input, select, textarea) {
+    #secret-golf-join :where(button, input, select, textarea),
+    .sgj-portal-overlay :where(button, input, select, textarea) {
       font-family: var(--font-family-sgj);
       font-size: inherit;
+      font-style: inherit;
+      font-weight: inherit;
       line-height: inherit;
       letter-spacing: 0;
     }
-    #secret-golf-join :where(button) {
+    #secret-golf-join :where(button),
+    .sgj-portal-overlay :where(button) {
+      border: 1px solid var(--border);
+      background: none;
       cursor: pointer;
       text-align: inherit;
     }
-    #secret-golf-join :where(a) {
+    #secret-golf-join :where(a),
+    .sgj-portal-overlay :where(a) {
       color: inherit;
       text-decoration: none;
     }
-    #secret-golf-join :where(ul, ol) {
+    #secret-golf-join :where(.join-title, .join-mdpick-theme-product, .region-product-name, .calendar-product-title, .detail-title, .builder-product-name),
+    .sgj-portal-overlay :where(.join-title, .join-mdpick-theme-product, .region-product-name, .calendar-product-title, .detail-title, .builder-product-name) {
+      line-height: 1.38;
+      letter-spacing: -0.01em;
+    }
+    #secret-golf-join :where(.join-price, .join-price strong, .join-mdpick-theme-price, .region-product-price, .calendar-product-price, .button, button),
+    .sgj-portal-overlay :where(.join-price, .join-price strong, .join-mdpick-theme-price, .region-product-price, .calendar-product-price, .button, button) {
+      letter-spacing: 0;
+    }
+    #secret-golf-join :where(.join-card, .calendar-product-card, .region-product-card, .builder-product-card, .detail-list-card, .detail-note-card, .detail-schedule, .detail-place-card, .detail-review-card, .join-my-card, .profile-manage-panel),
+    .sgj-portal-overlay :where(.join-card, .calendar-product-card, .region-product-card, .builder-product-card, .detail-list-card, .detail-note-card, .detail-schedule, .detail-place-card, .detail-review-card, .join-my-card, .profile-manage-panel) {
+      border-color: var(--border);
+    }
+    #secret-golf-join :where(.field input, .field select, .field textarea, .builder-apply-form input, .builder-apply-form select, .builder-apply-form textarea, .region-search-input, .builder-region-search-field input),
+    .sgj-portal-overlay :where(.field input, .field select, .field textarea, .builder-apply-form input, .builder-apply-form select, .builder-apply-form textarea, .region-search-input, .builder-region-search-field input) {
+      border-color: var(--border);
+    }
+    #secret-golf-join :where(ul, ol),
+    .sgj-portal-overlay :where(ul, ol) {
       margin: 0;
       padding-left: 20px;
     }
-    #secret-golf-join :where(li) {
+    #secret-golf-join :where(li),
+    .sgj-portal-overlay :where(li) {
       display: list-item;
     }
-    #secret-golf-join :where(p) {
+    #secret-golf-join :where(p),
+    .sgj-portal-overlay :where(p) {
       word-break: keep-all;
       overflow-wrap: normal;
     }
-    #secret-golf-join :where(i, em, strong, small, label) {
+    #secret-golf-join :where(i, em, strong, small, label),
+    .sgj-portal-overlay :where(i, em, strong, small, label) {
       float: none !important;
       clear: none !important;
       width: auto !important;
@@ -309,13 +399,16 @@
       line-height: inherit;
       white-space: inherit;
     }
-    #secret-golf-join :where(i, em) {
+    #secret-golf-join :where(i, em),
+    .sgj-portal-overlay :where(i, em) {
       font-style: normal;
     }
-    #secret-golf-join :where(strong) {
+    #secret-golf-join :where(strong),
+    .sgj-portal-overlay :where(strong) {
       font-weight: inherit;
     }
-    #secret-golf-join :where(li) {
+    #secret-golf-join :where(li),
+    .sgj-portal-overlay :where(li) {
       float: none !important;
       clear: none !important;
       width: auto !important;
@@ -324,6 +417,7 @@
       border: 0;
     }
 
+    /* 02. COMMON LAYOUT AND UI PRIMITIVES */
     .page-container {
       width: 100%;
       max-width: var(--page-max-width);
@@ -414,6 +508,7 @@
     #secret-golf-join nav a { color: inherit; text-decoration: none; }
     #secret-golf-join nav a:hover { color: var(--blue); }
 
+    /* 03. HOME HERO */
     .hero {
       position: relative;
       overflow: hidden;
@@ -439,7 +534,7 @@
       align-items: center;
     }
     .hero-title {
-      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-family-sgj);
       font-size: var(--font-hero-title);
       line-height: 64px;
       font-weight: 700;
@@ -575,23 +670,20 @@
       font-weight: var(--font-weight-mobile-search-input);
       text-align: left;
     }
-    .mobile-search-input > div {
+    .mobile-search-input > div:not(.hero-destination-search-text) {
       font-size: var(--font-mobile-search-placeholder);
       font-weight: var(--font-weight-mobile-search-placeholder);
       line-height: 1.35;
     }
-    .hero-search-stack .mobile-search-input > div {
-      font-size: 16px;
-    }
     .mobile-search-icon {
       width: 20px;
       height: 20px;
-      color: #666d75;
+      color: #373A3C;
       flex: 0 0 20px;
     }
     .mobile-search-submit {
       width: 100%;
-      min-height: 52px;
+      min-height: 44px;
       margin-top: 8px;
       border-radius: 5px;
       background: #373A3C;
@@ -703,6 +795,7 @@
       gap: 56px;
       margin-top: 24px;
     }
+    /* 04. HOME PRODUCT SECTIONS */
     .join-product-section {
       position: relative;
       display: grid;
@@ -916,7 +1009,7 @@
       background: transparent;
       color: var(--text);
       padding: 0 0 3px;
-      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-family-sgj);
       font-size: 25px;
       font-weight: 700;
       line-height: 1.25;
@@ -1003,7 +1096,7 @@
       border-radius: 999px;
       background: #f1f3f5;
       color: #313437;
-      font-size: var(--font-mdpick-pack-chip) !important;
+      font-size: var(--font-mdpick-pack-chip);
       line-height: 1;
       font-weight: 600;
       white-space: nowrap;
@@ -1016,9 +1109,9 @@
     }
     #secret-golf-join .join-mdpick-pack-chip.active,
     .join-mdpick-pack-chip.active {
-      border-color: #313437 !important;
-      background: #313437 !important;
-      color: #fff !important;
+      border-color: #313437;
+      background: #313437;
+      color: #fff;
     }
     .join-mdpick-pack-chip::after {
       content: none;
@@ -1334,7 +1427,7 @@
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.94);
       color: #1f3f66;
-      font: 800 14px/1.25 Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font: 800 14px/1.25 var(--font-family-sgj);
       white-space: nowrap;
       transition: background .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
     }
@@ -1399,7 +1492,7 @@
       overflow: hidden;
       color: var(--text);
       font-size: 17px;
-      line-height: 1.35;
+      line-height: 1.38;
       font-weight: 800;
       text-overflow: ellipsis;
       word-break: break-all;
@@ -1424,7 +1517,7 @@
       .join-mdpick-theme-group {
         position: relative;
         display: block;
-        min-height: 566px;
+        min-height: 415px;
         border: 0;
         background: transparent;
         overflow: visible;
@@ -1432,8 +1525,9 @@
       }
       .join-mdpick-theme-head {
         width: 434px;
-        height: 566px;
-        padding: 78px 60px 54px;
+        height: 415px;
+        gap: 14px;
+        padding: 52px 52px 42px;
         justify-content: flex-start;
       }
       .join-mdpick-theme-name {
@@ -1442,41 +1536,49 @@
         font-weight: 700;
       }
       .join-mdpick-theme-subcopy {
-        max-width: 270px;
+        max-width: 210px;
         font-size: 17px;
       }
       .join-mdpick-theme-grid {
         position: absolute;
-        top: 78px;
+        top: 52px;
         right: 0;
         left: 300px;
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 24px;
         padding: 0;
+        align-items: start;
       }
       .join-mdpick-theme-card {
-        min-height: 432px;
+        min-height: 0;
+        height: auto;
+        border: 1px solid var(--border);
+        border-radius: 18px;
       }
       .join-mdpick-theme-thumb {
-        height: 210px;
+        height: 170px;
         aspect-ratio: auto;
-        border-radius: 8px 8px 0 0;
+        border-radius: 18px 18px 0 0;
       }
       .join-mdpick-theme-meta {
-        min-height: 222px;
-        padding: 18px 20px 24px;
-        border-right: 1px solid #e5e7eb;
-        border-bottom: 1px solid #e5e7eb;
-        border-left: 1px solid #e5e7eb;
-        border-radius: 0 0 8px 8px;
+        gap: 5px;
+        min-height: 0;
+        padding: 16px 16px 20px;
+        border: 0;
+        border-radius: 0 0 18px 18px;
+      }
+      .join-mdpick-theme-region {
+        line-height: 1.2;
       }
       .join-mdpick-theme-product {
-        min-height: 46px;
+        min-height: 0;
         font-size: 17px;
+        line-height: 1.3;
       }
       .join-mdpick-theme-price {
-        margin-top: 2px;
+        margin-top: 10px;
         font-size: 19px;
+        line-height: 1;
       }
       .join-mdpick-theme-tab:not(.active):not([aria-selected="true"]) {
         display: inline-flex;
@@ -1507,14 +1609,9 @@
       }
       .join-mdpick-theme-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 18px;
-        padding: 18px;
       }
       .join-mdpick-theme-card {
-        min-height: 360px;
-      }
-      .join-mdpick-theme-thumb {
-        aspect-ratio: 1.28 / 1;
+        min-height: 0;
       }
       .join-mdpick-theme-product {
         font-size: 16px;
@@ -1523,32 +1620,39 @@
         font-size: 20px;
       }
     }
-    @media (min-width: 641px) {
+    @media (min-width: 641px) and (max-width: 1169px) {
       .join-mdpick-theme-head {
         border-radius: 15px;
       }
+      .join-mdpick-theme-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(12px, 2vw, 24px);
+        padding: 18px 0;
+      }
       .join-mdpick-theme-card {
-        border: 0;
-        border-radius: 14px;
+        border: 1px solid var(--border);
+        min-height: 0;
+        height: auto;
+        border-radius: 18px;
         background: #fff;
         overflow: hidden;
       }
       .join-mdpick-theme-thumb {
         border: 0;
-        border-radius: 8px 8px 0 0;
+        aspect-ratio: 1.28 / .7;
+        border-radius: 18px 18px 0 0;
       }
       .join-mdpick-theme-thumb img {
         border: 0;
       }
       .join-mdpick-theme-meta {
-        border-right: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-        border-left: 1px solid var(--border);
-        border-radius: 0 0 8px 8px;
+        padding: 15px 18px 20px;
+        border: 0;
+        border-radius: 0 0 18px 18px;
       }
       .join-mdpick-theme-product {
         font-size: 19px;
-        line-height: 1.35;
+        line-height: 1.38;
         font-weight: 700;
       }
       .join-mdpick-theme-price {
@@ -1577,9 +1681,11 @@
       }
     }
     .join-product-section.layout-soon .join-grid {
+      position: relative;
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       gap: 14px;
+      padding-left: 0;
     }
     .join-soon-more {
       display: flex;
@@ -1595,7 +1701,7 @@
       min-height: 46px;
       border: 0;
       border-radius: 12px;
-      background: #f5f5f5 !important;
+      background: #f5f5f5;
       color: var(--text);
       font-size: 15px;
       font-weight: 700;
@@ -1616,7 +1722,7 @@
       line-height: inherit;
     }
     .join-soon-more-button:active {
-      background: #eeeeee !important;
+      background: #eeeeee;
     }
     @media (min-width: 641px) {
       .join-soon-more {
@@ -2142,15 +2248,6 @@
     .join-product-section.layout-quick .join-card .team-row {
       margin-top: 12px;
     }
-    .join-product-section.layout-soon .join-grid {
-      position: relative;
-      grid-template-columns: minmax(0, 1fr);
-      padding-left: 0;
-    }
-    .join-product-section.layout-soon .join-grid::before,
-    .join-product-section.layout-soon .join-card::before {
-      content: none;
-    }
     .join-product-section.layout-soon .join-thumb {
       --join-card-image-ratio: 2 / 1;
       height: auto;
@@ -2181,39 +2278,12 @@
     }
     .join-product-section.layout-soon .join-grid::before {
       content: none;
-      position: absolute;
-      left: 6px;
-      top: 14px;
-      bottom: 14px;
-      width: 2px;
-      border-radius: 999px;
-      background: #e2e8f0;
     }
     .join-product-section.layout-soon .join-card {
       position: relative;
     }
     .join-product-section.layout-soon .join-card::before {
       content: none;
-      position: absolute;
-      left: -31px;
-      top: 18px;
-      z-index: 2;
-      min-width: 52px;
-      padding: 8px 8px;
-      border-radius: 999px;
-      background: var(--blue);
-      color: #fff;
-      font-size: 17px;
-      font-weight: 600;
-      line-height: 1;
-      text-align: center;
-      box-shadow: 0 5px 14px rgba(30, 103, 181, 0.22);
-    }
-    @media (min-width: 1170px) {
-      .join-product-section.layout-soon .join-grid::before,
-      .join-product-section.layout-soon .join-card::before {
-        content: none;
-      }
     }
     .join-product-section.layout-popular .join-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2245,7 +2315,8 @@
       font-weight: 800;
       line-height: 1.1;
     }
-    .join-product-section.layout-overseas .join-grid {
+    .join-product-section.layout-overseas .join-grid,
+    .join-product-section.layout-domestic .join-grid {
       display: flex;
       grid-template-columns: none;
       gap: 14px;
@@ -2256,10 +2327,12 @@
       scrollbar-width: none;
       padding: 0;
     }
-    .join-product-section.layout-overseas .join-grid::-webkit-scrollbar {
+    .join-product-section.layout-overseas .join-grid::-webkit-scrollbar,
+    .join-product-section.layout-domestic .join-grid::-webkit-scrollbar {
       display: none;
     }
-    .join-product-section.layout-overseas .join-card {
+    .join-product-section.layout-overseas .join-card,
+    .join-product-section.layout-domestic .join-card {
       flex: 0 0 calc((100% - 42px) / 4);
       min-width: calc((100% - 42px) / 4);
       scroll-snap-align: start;
@@ -2273,25 +2346,6 @@
     }
     .join-product-section.layout-overseas .join-title {
       font-size: 19px;
-    }
-    .join-product-section.layout-domestic .join-grid {
-      display: flex;
-      grid-template-columns: none;
-      gap: 14px;
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
-      scroll-behavior: smooth;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      padding: 0;
-    }
-    .join-product-section.layout-domestic .join-grid::-webkit-scrollbar {
-      display: none;
-    }
-    .join-product-section.layout-domestic .join-card {
-      flex: 0 0 calc((100% - 42px) / 4);
-      min-width: calc((100% - 42px) / 4);
-      scroll-snap-align: start;
     }
     .join-product-section.layout-domestic .join-thumb,
     .join-product-section.layout-domestic .join-thumb > img:first-child {
@@ -2815,6 +2869,10 @@
     }
     .join-card {
       position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      min-width: 0;
       background: #fff;
       border-radius: 22px;
       border: 1px solid var(--border);
@@ -3629,6 +3687,7 @@
     .calendar-cell.can-create:not(.has-data) .calendar-day-button strong {
       color: var(--text);
     }
+    /* 05. CALENDAR SHEET */
     .calendar-sheet-overlay {
       position: fixed;
       inset: 0;
@@ -3906,9 +3965,9 @@
     .calendar-cell.unavailable.today .calendar-day-button strong,
     .calendar-cell.unavailable.today.holiday strong,
     .calendar-cell.unavailable.today.sunday strong {
-      color: #3689ff !important;
+      color: #0e60e8 !important;
       background: #eaf2ff;
-      box-shadow: inset 0 0 0 1px rgba(54, 137, 255, 0.22);
+      box-shadow: inset 0 0 0 1px rgba(14, 96, 232, 0.22);
     }
     .calendar-today-label {
       position: absolute;
@@ -4419,6 +4478,7 @@
       max-height: calc(100vh - 40px);
     }
     .modal.small { width: min(560px, calc(100vw - 24px)); }
+    /* 06. BUILDER MODAL */
     .builder-modal {
       width: min(720px, calc(100vw - 24px));
       max-height: calc(100vh - 40px);
@@ -4494,7 +4554,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 52px;
+      min-height: 44px;
       border: 0;
       background: transparent;
       color: var(--text-soft);
@@ -5124,8 +5184,8 @@
       cursor: pointer;
     }
     .builder-date-flex-actions .primary-action {
-      background: #3689ff;
-      border-color: #3689ff;
+      background: #0775f3;
+      border-color: #0775f3;
       color: #fff;
     }
     .builder-summary-card {
@@ -5742,29 +5802,11 @@
       .builder-region-body .region-subregion-heading {
         font-size: 15px;
       }
-      .builder-region-product-list .region-product-card {
-        max-width: 100%;
-        grid-template-columns: minmax(0, 1fr);
-        overflow: hidden;
-      }
-      .builder-region-product-list .region-product-info,
-      .builder-region-product-list .region-product-meta,
-      .builder-region-product-list .region-product-side,
-      .builder-region-product-list .region-product-price {
-        min-width: 0;
-        max-width: 100%;
-      }
       .builder-region-product-list .region-product-date {
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-      }
-      .builder-region-product-list .region-product-name {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        white-space: normal;
       }
     }
     .builder-region-results .region-result-suggestions {
@@ -5875,6 +5917,7 @@
     .builder-region-product-list .region-product-card {
       width: 100%;
       min-width: 0;
+      max-width: 100%;
       display: grid;
       grid-template-columns: 90px minmax(0, 1fr);
       align-items: center;
@@ -5885,6 +5928,7 @@
       background: #fff;
       box-sizing: border-box;
       cursor: pointer;
+      overflow: hidden;
     }
     .builder-region-product-list .region-product-card.selected {
       border-color: var(--blue);
@@ -5907,11 +5951,13 @@
     }
     .builder-region-product-list .region-product-info {
       min-width: 0;
+      max-width: 100%;
       display: grid;
       gap: 8px;
     }
     .builder-region-product-list .region-product-meta {
       min-width: 0;
+      max-width: 100%;
       display: flex;
       align-items: center;
       gap: 2px;
@@ -5962,6 +6008,8 @@
       mask: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 3v4M17 3v4M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
     }
     .builder-region-product-list .region-product-side {
+      min-width: 0;
+      max-width: 100%;
       display: grid;
       grid-template-columns: minmax(0, 1fr);
       align-items: center;
@@ -5972,6 +6020,8 @@
       border-top: 1px solid var(--border);
     }
     .builder-region-product-list .region-product-price {
+      min-width: 0;
+      max-width: 100%;
       display: flex;
       align-items: baseline;
       justify-content: flex-end;
@@ -6025,9 +6075,6 @@
       line-height: 1.45;
     }
     @media (max-width: 640px) {
-      .builder-region-product-list .region-product-card {
-        grid-template-columns: minmax(0, 1fr);
-      }
       .builder-region-product-date-context {
         display: none;
       }
@@ -6035,8 +6082,6 @@
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
         white-space: normal;
       }
     }
@@ -6089,9 +6134,6 @@
       }
     }
     @media (min-width: 641px) {
-      .builder-modal {
-        height: min(710px, calc(100vh - 40px));
-      }
       .builder-region-product-sort select,
       .builder-region-product-sort .native-sort-chevron {
         display: none;
@@ -6121,7 +6163,7 @@
         color: #64748b;
       }
       .builder-region-product-sort.open .builder-region-sort-custom {
-        box-shadow: 0 0 0 3px rgba(54, 137, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
       }
       .builder-region-product-sort.open .builder-region-sort-menu {
         display: grid;
@@ -6270,6 +6312,7 @@
     #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
       grid-template-columns: minmax(96px, .32fr) minmax(0, 1fr);
     }
+    /* 07. DETAIL MODAL AND DETAIL PORTAL OVERRIDES */
     body > #detailModal.sgj-portal-overlay.builder-select-mode.builder-product-detail-mode {
       z-index: 2147483640 !important;
     }
@@ -6676,11 +6719,13 @@
       min-height: 44px;
       margin-top: 18px;
       border-radius: 10px;
-      background: #111827;
+      background: var(--modal-bottom-primary-color);
+      border-color: var(--modal-bottom-primary-color);
       color: #fff;
-      font-size: 15px;
-      font-weight: 900;
+      font-size: var(--modal-bottom-button-font-size-pc);
+      font-weight: var(--modal-bottom-button-font-weight);
     }
+    /* 08. ACTION LOADING OVERLAY */
     .join-action-loading-overlay {
       position: fixed;
       inset: 0;
@@ -8707,7 +8752,7 @@
       border: 0;
       border-radius: 12px;
       padding: 0 14px;
-      background: #3689ff;
+      background: #0775f3;
       color: #fff;
       font-size: 14px;
       font-weight: 800;
@@ -9733,7 +9778,7 @@
     }
 
     [data-chip-group="join-member-gender"] .apply-chip.active {
-      background: #3689ff;
+      background: #2563eb;
       color: #ffffff;
     }
 
@@ -11087,8 +11132,7 @@
     .waitlist-modal-actions .button,
     .travel-date-view,
     .calendar-empty-schedule-action,
-    .apply-complete-close,
-    .builder-alert-button {
+    .apply-complete-close {
       font-size: var(--modal-bottom-button-font-size-pc);
       font-weight: var(--modal-bottom-button-font-weight);
     }
@@ -11099,8 +11143,7 @@
     .waitlist-modal-actions .button.primary,
     .travel-date-view,
     .calendar-empty-schedule-action,
-    .apply-complete-close,
-    .builder-alert-button {
+    .apply-complete-close {
       background: var(--modal-bottom-primary-color);
       border-color: var(--modal-bottom-primary-color);
       color: #fff;
@@ -11258,7 +11301,7 @@
       display: block;
     }
     .detail-mobile-header-button.is-wished {
-      color: #3689ff;
+      color: #0775f3;
     }
     .detail-mobile-header-button.is-wished svg {
       fill: rgba(7, 117, 243, 0.12);
@@ -13277,8 +13320,8 @@
     }
 
     @media (max-width: 1024px) {
-      :root,
-      #secret-golf-join {
+      #secret-golf-join,
+      .sgj-portal-overlay {
         --font-hero-title: 50px;
         --font-hero-subtitle: 26px;
         --font-section-title: 35px;
@@ -13294,8 +13337,8 @@
     }
 
     @media (max-width: 640px) {
-      :root,
-      #secret-golf-join {
+      #secret-golf-join,
+      .sgj-portal-overlay {
         --font-header-logo: 18px;
         --font-header-nav: 13px;
         --font-hero-title: 34px;
@@ -13748,7 +13791,8 @@
     }
 
     @media (min-width: 641px) {
-      .region-search-overlay {
+    /* 09. REGION SEARCH MODAL */
+    .region-search-overlay {
         align-items: center;
         justify-content: center;
         padding: 24px;
@@ -14098,18 +14142,17 @@
       margin: 0;
     }
     .sgj-page .hero-search-stack .mobile-search-input {
-      min-height: 52px;
+      min-height: 44px;
       border: 1px solid var(--border);
       border-radius: 14px;
-      background: #f5f6f7;
+      background: #fff;
       box-shadow: none;
-      color: #495056;
-      padding: 0 20px;
+      color: var(--text);
     }
     .sgj-page .hero-destination-search-text {
-      color: #495056;
+      color: var(--text);
       font-size: 15px;
-      font-weight: 500;
+      font-weight: 800;
       line-height: 1.35;
     }
     .sgj-page .hero-create-button {
@@ -14120,103 +14163,22 @@
       font-weight: 800;
     }
     .sgj-page .hero-calendar-button {
-      position: relative;
       width: 100%;
-      min-height: 82px;
-      border-radius: 22px;
-      background: #f8fbff;
-      border: 1px solid rgba(226, 232, 240, .9);
-      color: #373a3c;
-      gap: 12px;
-      justify-content: flex-start;
-      padding: 12px 66px 12px 14px;
-      box-shadow: 0 14px 34px rgba(15, 23, 42, .12);
-      text-align: left;
-      overflow: hidden;
-    }
-    .sgj-page .hero-calendar-button::after {
-      content: "";
-      position: absolute;
-      right: -1px;
-      bottom: -1px;
-      width: 62px;
-      height: 62px;
-      border-top-left-radius: 38px;
-      background: #fff;
-      z-index: 1;
-      pointer-events: none;
-    }
-    .sgj-page .hero-calendar-button > * {
-      position: relative;
-      z-index: 2;
-    }
-    .sgj-page .hero-calendar-thumb-stack {
-      display: flex;
-      align-items: center;
-      flex: 0 0 auto;
-      width: 76px;
-      min-width: 76px;
-    }
-    .sgj-page .hero-calendar-thumb {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      overflow: hidden;
-      border: 2px solid #fff;
-      background: #eaf2ff;
-      box-shadow: 0 6px 14px rgba(15, 23, 42, .12);
-    }
-    .sgj-page .hero-calendar-thumb + .hero-calendar-thumb {
-      margin-left: -13px;
-    }
-    .sgj-page .hero-calendar-thumb img {
-      width: 100%;
-      height: 100%;
-      display: block;
-      object-fit: cover;
-    }
-    .sgj-page .hero-calendar-copy {
-      display: grid;
-      gap: 3px;
-      min-width: 0;
-      flex: 1 1 auto;
-    }
-    .sgj-page .hero-calendar-kicker {
-      color: #6b7280;
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1.2;
+      min-height: 43px;
+      border-radius: 14px;
+      gap: 8px;
+      transform: none;
     }
     .sgj-page .hero-calendar-button-text {
-      color: #111827;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 800;
-      line-height: 1.25;
-    }
-    .sgj-page .hero-calendar-button-desc {
-      color: #6b7280;
-      font-size: 11px;
-      font-weight: 500;
-      line-height: 1.25;
-    }
-    .sgj-page .hero-calendar-button:hover {
-      background: #f8fbff;
-      transform: translateY(-1px);
+      line-height: 1.35;
     }
     .sgj-page .hero-calendar-button .button-chevron {
-      position: absolute;
-      right: 10px;
-      bottom: 10px;
-      width: 38px;
-      height: 38px;
-      margin: 0;
-      flex: 0 0 38px;
-      padding: 10px;
-      border-radius: 999px;
-      background: #373a3c;
-      color: #fff;
-      z-index: 3;
-      box-shadow: 0 10px 20px rgba(15, 23, 42, .18);
+      width: 15px;
+      height: 15px;
+      margin-left: auto;
+      flex: 0 0 auto;
     }
     @media (max-width: 1024px) {
       .sgj-page .hero .hero-grid {
@@ -14249,7 +14211,6 @@
     .sgj-page .travel-date-view,
     .sgj-page .calendar-empty-schedule-action,
     .sgj-page .apply-complete-close,
-    .sgj-page .builder-alert-button,
     body > #detailModal.sgj-portal-overlay .detail-modal-actions .button,
     body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button,
     body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-footer .button {
@@ -14280,7 +14241,6 @@
     .sgj-page .travel-date-view,
     .sgj-page .calendar-empty-schedule-action,
     .sgj-page .apply-complete-close,
-    .sgj-page .builder-alert-button,
     body > #detailModal.sgj-portal-overlay .detail-modal-actions .button.primary,
     body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button.primary,
     body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-footer .button.primary {
@@ -14297,7 +14257,6 @@
       .sgj-page .travel-date-view,
       .sgj-page .calendar-empty-schedule-action,
       .sgj-page .apply-complete-close,
-      .sgj-page .builder-alert-button,
       body > #detailModal.sgj-portal-overlay .detail-modal-actions .button,
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions .button,
       body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-footer .button {
@@ -14326,14 +14285,9 @@
       color: #fff;
     }
     .sgj-page .button.secondary.hero-calendar-button {
-      background: #f8fbff;
-      border: 1px solid rgba(226, 232, 240, .9);
-      color: #373a3c;
-    }
-    .sgj-page .button.secondary.hero-calendar-button:hover {
-      background: #f8fbff;
-      color: #373a3c;
-      transform: translateY(-1px);
+      background: #40434f;
+      border: 0;
+      color: #ffffff;
     }
     .sgj-page .chip.active,
     .sgj-page .detail-content-tab.active {
@@ -14356,16 +14310,6 @@
       .sgj-page .join-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
       }
-    }
-    .sgj-page .join-card {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      min-width: 0;
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      overflow: visible;
-      background: #fff;
     }
     .sgj-page .join-thumb,
     .sgj-page .join-thumb > img:first-child {
@@ -14430,17 +14374,7 @@
       display: grid;
       grid-template-columns: 168px minmax(0, 1fr);
     }
-    .sgj-page .join-product-section.layout-overseas .join-grid {
-      display: flex;
-      grid-template-columns: none;
-      gap: 14px;
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
-      scroll-behavior: smooth;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      padding: 0;
-    }
+    .sgj-page .join-product-section.layout-overseas .join-grid,
     .sgj-page .join-product-section.layout-domestic .join-grid {
       display: flex;
       grid-template-columns: none;
@@ -14557,22 +14491,12 @@
     .sgj-page .calendar-sheet-overlay,
     .sgj-page .global-apply-overlay,
     .sgj-page .participant-floating {
-      z-index: 100200;
-      font-family: var(--font-family-sgj);
-    }
-    .sgj-page .overlay,
-    .sgj-page .calendar-sheet-overlay,
-    .sgj-page .global-apply-overlay,
-    .sgj-page .participant-floating {
       position: fixed;
       z-index: 100300;
     }
-    body > .sgj-portal-overlay,
-    body > .sgj-portal-overlay.calendar-sheet-overlay,
-    body > .sgj-portal-overlay.global-apply-overlay {
+    body > .sgj-portal-overlay {
       position: fixed;
       z-index: 2147483000 !important;
-      font-family: var(--font-family-sgj);
     }
     body > .sgj-portal-overlay.overlay,
     body > .sgj-portal-overlay.calendar-sheet-overlay,
@@ -14603,7 +14527,6 @@
     body > .sgj-portal-overlay .detail-apply-panel,
     body > .sgj-portal-overlay .participant-popover {
       z-index: 100201;
-      font-family: var(--font-family-sgj);
     }
     body > #globalApplyOverlay.sgj-portal-overlay {
       z-index: 2147483650 !important;
@@ -14733,13 +14656,6 @@
       }
       .sgj-page .join-mdpick-theme-head {
         min-height: 210px;
-      }
-      .sgj-page .join-mdpick-theme-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        padding: 18px;
-      }
-      .sgj-page .join-mdpick-theme-meta {
-        padding: 6px 2px 0;
       }
       .sgj-page .join-product-section.layout-quick .join-grid {
         grid-template-columns: 1fr;
@@ -14959,13 +14875,13 @@
         box-shadow: none;
       }
       .sgj-page .hero-search-stack .mobile-search-input {
-        min-height: 48px;
+        min-height: 44px;
         border-radius: 14px;
       }
       .sgj-page .hero-destination-search-text {
-        color: #495056;
+        color: #373a3c;
         font-size: 15px;
-        font-weight: 500;
+        font-weight: 600;
       }
       .sgj-page .hero .hero-visual {
         width: 100%;
@@ -15088,11 +15004,8 @@
       .sgj-page .join-section-calendar-button .calendar-label-short {
         display: inline;
       }
-      .sgj-page .join-product-section.layout-quick .join-grid,
       .sgj-page .join-product-section.layout-soon .join-grid,
-      .sgj-page .join-product-section.layout-popular .join-grid,
-      .sgj-page .join-product-section.layout-custom .join-grid,
-      .sgj-page .join-product-section.layout-domestic .join-grid {
+      .sgj-page .join-product-section.layout-custom .join-grid {
         grid-template-columns: 1fr;
       }
       .sgj-page .join-custom-themes {
@@ -15289,8 +15202,12 @@
       .sgj-page .join-product-section.layout-custom .join-title {
         font-size: var(--font-card-title);
       }
-      .sgj-page .join-product-section.layout-quick .join-grid {
+      .sgj-page .join-product-section.layout-quick .join-grid,
+      .sgj-page .join-product-section.layout-popular .join-grid,
+      .sgj-page .join-product-section.layout-overseas .join-grid,
+      .sgj-page .join-product-section.layout-domestic .join-grid {
         display: flex;
+        grid-template-columns: none;
         align-items: flex-start;
         gap: 10px;
         overflow-x: auto;
@@ -15305,43 +15222,8 @@
         padding: 0 0 4px;
         box-sizing: border-box;
       }
-      .sgj-page .join-product-section.layout-quick .join-grid::-webkit-scrollbar {
-        display: none;
-      }
-      .sgj-page .join-product-section.layout-popular .join-grid {
-        display: flex;
-        grid-template-columns: none;
-        gap: 10px;
-        overflow-x: auto;
-        overscroll-behavior-x: contain;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none;
-        width: 100vw;
-        max-width: none;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
-        padding: 0 0 4px;
-        box-sizing: border-box;
-      }
-      .sgj-page .join-product-section.layout-popular .join-grid::-webkit-scrollbar {
-        display: none;
-      }
-      .sgj-page .join-product-section.layout-overseas .join-grid,
-      .sgj-page .join-product-section.layout-domestic .join-grid {
-        display: flex;
-        grid-template-columns: none;
-        gap: 10px;
-        overflow-x: auto;
-        overscroll-behavior-x: contain;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none;
-        width: 100vw;
-        max-width: none;
-        margin-left: calc(50% - 50vw);
-        margin-right: calc(50% - 50vw);
-        padding: 0 0 4px;
-        box-sizing: border-box;
-      }
+      .sgj-page .join-product-section.layout-quick .join-grid::-webkit-scrollbar,
+      .sgj-page .join-product-section.layout-popular .join-grid::-webkit-scrollbar,
       .sgj-page .join-product-section.layout-overseas .join-grid::-webkit-scrollbar,
       .sgj-page .join-product-section.layout-domestic .join-grid::-webkit-scrollbar {
         display: none;
@@ -15793,14 +15675,7 @@
           height .38s cubic-bezier(0.16, 1, 0.3, 1),
           min-height .38s cubic-bezier(0.16, 1, 0.3, 1),
           padding .32s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow .2s ease-out;
-      }
-      .sgj-page .join-section-nav .chip[data-join-section-target="overseas"] {
-        flex: 0 0 88px;
-        flex-basis: 88px;
-        width: 88px;
-        min-width: 88px;
-        max-width: 88px;
+          box-shadow .2s ease-out;
       }
       .sgj-page .join-section-nav:not(.is-fixed) .chip {
         flex-direction: column;
@@ -15891,13 +15766,6 @@
         font-weight: 700;
         line-height: 1;
       }
-      .sgj-page .join-section-nav.is-fixed .chip[data-join-section-target="overseas"] {
-        flex: 0 0 88px !important;
-        flex-basis: 88px !important;
-        width: 88px !important;
-        min-width: 88px !important;
-        max-width: 88px !important;
-      }
       .sgj-page .join-section-nav.is-fixed .join-section-nav-icon {
         display: flex;
         width: 0;
@@ -15930,12 +15798,6 @@
         background: #fff !important;
         border-color: #dde3ea !important;
         color: var(--text) !important;
-      }
-      .sgj-page .join-section-nav.is-fixed .chip.active,
-      .sgj-page .join-section-nav.is-fixed .chip[aria-current="true"] {
-        background: #373a3c !important;
-        border-color: #373a3c !important;
-        color: #fff !important;
       }
       .sgj-page .join-product-section.layout-soon .join-section-controls {
         display: none;
@@ -17423,19 +17285,9 @@
       padding: 12px 160px;
       border-radius: 14px;
       color: #fff;
-      background: #3689ff;
+      background: #0775f3;
       font-size: 16px;
       font-weight: 700;
-    }
-    @media (min-width: 641px) {
-      #regionSearchModal .region-result-empty-copy,
-      .join-my-empty-copy {
-        color: #373a3c;
-        font-size: 20px;
-        font-weight: 600;
-        line-height: 1.5;
-        text-align: center;
-      }
     }
     #regionSearchModal .region-empty-recommend {
       margin-top: 18px;
@@ -18502,7 +18354,7 @@
       }
       .join-mdpick-theme-tab {
         padding: 5px 16px;
-        font: 800 14px/1.25 Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font: 800 14px/1.25 var(--font-family-sgj);
       }
       .join-mdpick-theme-tab.active,
       .join-mdpick-theme-tab[aria-selected="true"] {
@@ -18584,72 +18436,6 @@
         margin-top: 14px;
       }
     }
-    @media (min-width: 640px) and (max-width: 1169px) {
-      #secret-golf-join.sgj-page .join-mdpick-theme-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: clamp(12px, 2vw, 24px);
-        padding: 18px 0;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-card {
-        min-height: 0;
-        height: auto;
-        border-radius: 18px;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-thumb {
-        aspect-ratio: 1.28 / .7;
-        border-radius: 18px 18px 0 0;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-meta {
-        padding: 15px 18px 20px;
-        border-radius: 0 0 18px 18px;
-      }
-    }
-    @media (min-width: 1170px) {
-      #secret-golf-join.sgj-page .join-mdpick-theme-group {
-        min-height: 415px;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-head {
-        height: 415px;
-        gap: 14px;
-        padding: 52px 52px 42px;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-subcopy {
-        max-width: 210px;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-grid {
-        top: 52px;
-        padding: 0;
-        align-items: start;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-card {
-        min-height: 0;
-        height: auto;
-        border-radius: 18px;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-thumb {
-        height: 170px;
-        border-radius: 18px 18px 0 0;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-meta {
-        gap: 5px;
-        min-height: 0;
-        padding: 16px 16px 20px;
-        border-radius: 0 0 18px 18px;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-region {
-        line-height: 1.2;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-product {
-        min-height: 0;
-        font-size: 17px;
-        line-height: 1.3;
-      }
-      #secret-golf-join.sgj-page .join-mdpick-theme-price {
-        margin-top: 10px;
-        font-size: 19px;
-        line-height: 1;
-      }
-    }
     .join-mobile-bottom-nav {
       position: fixed;
       left: 50%;
@@ -18659,12 +18445,12 @@
       display: block;
       width: min(560px, calc(100vw - 40px));
       padding: 8px 10px max(8px, env(safe-area-inset-bottom, 0px));
-      background: #3689ff;
-      border-top: 1px solid rgba(54, 137, 255, .95);
-      border-left: 1px solid rgba(54, 137, 255, .95);
-      border-right: 1px solid rgba(54, 137, 255, .95);
+      background: #2563eb;
+      border-top: 1px solid rgba(37, 99, 235, .95);
+      border-left: 1px solid rgba(37, 99, 235, .95);
+      border-right: 1px solid rgba(37, 99, 235, .95);
       border-radius: 18px 18px 0 0;
-      box-shadow: 0 -14px 30px rgba(54, 137, 255, .25);
+      box-shadow: 0 -14px 30px rgba(37, 99, 235, .25);
       transform: translate(-50%, calc(100% + var(--join-mobile-visual-bottom, 0px) + 8px));
       transition: transform .26s ease;
       will-change: transform;
@@ -18934,16 +18720,16 @@
 
     .join-my-drawer-profile-row {
       display: grid;
-      grid-template-columns: 52px minmax(0, 1fr);
-      align-items: start;
+      grid-template-columns: 48px minmax(0, 1fr);
+      align-items: center;
       gap: 12px;
     }
 
     .join-my-drawer-avatar {
       display: grid;
       place-items: center;
-      width: 52px;
-      height: 52px;
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       overflow: hidden;
       background: #f1f5f9;
@@ -18964,7 +18750,7 @@
     .join-my-drawer-profile-copy {
       min-width: 0;
       display: grid;
-      gap: 6px;
+      gap: 7px;
     }
 
     .join-my-drawer-name {
@@ -18993,22 +18779,15 @@
     }
 
     .join-my-drawer-profile-manage {
-      justify-self: start;
-      min-height: 0;
-      padding: 0;
-      border-radius: 0;
-      border: 0;
-      background: transparent;
-      font: inherit;
-      line-height: inherit;
-    }
-
-    .join-my-drawer-profile-manage-text {
-      color: rgb(43, 150, 237);
-      font-size: 15px;
-      font-weight: 500;
-      line-height: 1.2;
-      margin-top: 3px;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1;
     }
 
     .join-my-drawer-profile-manage:active,
@@ -19051,12 +18830,13 @@
       outline: none;
     }
 
+    /* 10. PROFILE MANAGEMENT MODAL */
     .join-profile-manage-overlay {
       position: fixed;
       inset: 0;
       z-index: 10080;
       display: none;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
       background: rgba(15, 23, 42, .42);
       padding: 18px;
@@ -19066,65 +18846,57 @@
       display: flex;
     }
 
-    body.join-profile-scroll-locked {
-      position: fixed;
-      width: 100%;
-      overflow: hidden !important;
-    }
-
     .join-profile-manage-modal {
       width: min(100%, 520px);
-      max-height: min(92vh, 760px);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      max-height: min(86vh, 720px);
+      overflow: auto;
       border-radius: 18px;
       background: #fff;
       box-shadow: 0 24px 70px rgba(15, 23, 42, .22);
     }
 
-    .join-profile-manage-head.modal-header {
-      flex: 0 0 auto;
+    .join-profile-manage-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 18px 10px;
+      border-bottom: 1px solid #edf2f7;
     }
 
-    .join-profile-manage-head .join-profile-manage-title {
-      flex: 1 1 auto;
-      min-width: 0;
-      text-align: center;
+    .join-profile-manage-title {
+      color: #111827;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.25;
     }
 
-    .join-profile-manage-head .modal-header-spacer {
-      flex: 0 0 var(--modal-close-button-size, 44px);
+    .join-profile-manage-close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #f8fafc;
+      color: #334155;
+      font-size: 22px;
+      line-height: 1;
     }
 
     .join-profile-manage-body {
-      flex: 1 1 auto;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-      overflow-y: auto;
-      padding: 22px 22px 0;
-    }
-
-    .join-profile-manage-summary {
       display: grid;
-      justify-items: center;
-      gap: 4px;
-      padding: 4px 0 10px;
-      text-align: center;
+      gap: 14px;
+      padding: 16px 18px 18px;
     }
 
-    .join-profile-photo-wrap {
-      position: relative;
-      width: 104px;
-      height: 104px;
-      margin-bottom: 8px;
+    .join-profile-photo-row {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
     }
 
     .join-profile-photo-preview {
-      width: 104px;
-      height: 104px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       overflow: hidden;
       display: grid;
@@ -19143,235 +18915,97 @@
       display: block;
     }
 
+    .join-profile-photo-actions {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
     .join-profile-photo-button {
-      position: absolute;
-      right: -10px;
-      bottom: 1px;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 1px solid #e5e7eb;
-      background: #f5f6f7;
-      color: #666d75;
+      width: fit-content;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #334155;
       font-size: 14px;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, .12);
-    }
-
-    .join-profile-photo-button svg {
-      width: 20px;
-      height: 20px;
-      display: block;
     }
 
     .join-profile-photo-note {
-      display: none;
-      min-height: 18px;
       color: #64748b;
       font-size: 12px;
       line-height: 1.35;
-      text-align: center;
     }
 
-    .join-profile-summary-name {
-      color: #373a3c;
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1.3;
-    }
-
-    .join-profile-summary-meta {
-      color: #6b7280;
-      font-size: 17px;
-      font-weight: 600;
-      line-height: 1.35;
-    }
-
-    .join-profile-info-list {
+    .join-profile-manage-grid {
       display: grid;
-      border-top: 1px solid #eef1f4;
-    }
-
-    .join-profile-info-row {
-      display: grid;
-      grid-template-columns: 94px minmax(0, 1fr) 54px;
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
-      align-items: center;
-      min-height: 64px;
-      border-bottom: 1px solid #eef1f4;
     }
 
-    .join-profile-info-row.is-tall {
-      align-items: start;
-      padding: 14px 0;
+    .join-profile-manage-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .join-profile-manage-field.is-wide {
+      grid-column: 1 / -1;
     }
 
     .join-profile-manage-label {
-      color: #373a3c;
-      font-size: 17px;
-      font-weight: 500;
-      line-height: 1.35;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 700;
     }
 
     .join-profile-manage-input,
     .join-profile-manage-select,
     .join-profile-manage-textarea {
       width: 100%;
-      min-height: 40px;
-      border: 1px solid transparent;
-      border-radius: 15px;
+      min-height: 42px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
       padding: 0 12px;
-      color: #373a3c;
-      font-size: 18px;
-      font-weight: 700;
+      color: #111827;
+      font-size: 15px;
       background: #fff;
-      outline: none;
-      cursor: default;
-      opacity: 1;
     }
 
     .join-profile-manage-textarea {
-      min-height: 72px;
+      min-height: 76px;
       padding-top: 10px;
       resize: vertical;
       line-height: 1.45;
     }
 
-    .join-profile-info-row.is-editing .join-profile-manage-input,
-    .join-profile-info-row.is-editing .join-profile-manage-select,
-    .join-profile-info-row.is-editing .join-profile-manage-textarea {
-      border-color: #3689ff;
-      cursor: text;
-    }
-
-    .join-profile-info-row.is-editing .join-profile-manage-select {
-      cursor: pointer;
-    }
-
-    .join-profile-gender-radios {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      min-height: 40px;
-    }
-
-    .join-profile-info-row.is-editing #joinProfileManageGender {
-      display: none;
-    }
-
-    .join-profile-info-row.is-editing .join-profile-gender-radios {
-      display: flex;
-    }
-
-    .join-profile-gender-option {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      min-height: 40px;
-      padding: 0 12px;
-      border: 1px solid #e1e6eb;
-      border-radius: 15px;
-      color: #373a3c;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .join-profile-gender-option:has(input:checked) {
-      border-color: #3689ff;
-      color: #3689ff;
-    }
-
-    .join-profile-gender-option input {
-      width: 16px;
-      height: 16px;
-      accent-color: #3689ff;
-    }
-
-    .join-profile-inline-picker {
-      grid-column: 1 / -1;
-      display: none;
-      padding: 0 0 14px;
-    }
-
-    .join-profile-info-row.is-picker-open .join-profile-inline-picker {
-      display: block;
-    }
-
-    .join-profile-inline-picker .apply-chip-group,
-    .join-profile-inline-picker .profession-chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .join-profile-inline-picker .apply-chip,
-    .join-profile-inline-picker .profession-chip {
-      min-height: 38px;
-      border-radius: 999px;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .join-profile-info-row.is-editing .join-profile-manage-input:focus,
-    .join-profile-info-row.is-editing .join-profile-manage-select:focus,
-    .join-profile-info-row.is-editing .join-profile-manage-textarea:focus {
-      outline: 2px solid rgba(54, 137, 255, .18);
-      outline-offset: 2px;
-    }
-
-    .join-profile-info-change {
-      width: 40px;
-      min-width: 40px;
-      min-height: 40px;
-      padding: 0;
-      border: 0;
-      border-radius: 0;
-      background: transparent;
-      color: #a6a6a6;
-      font-size: 15px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .join-profile-info-change svg {
-      width: 20px;
-      height: 20px;
-      display: block;
-    }
-
     .join-profile-manage-actions {
-      position: sticky;
-      bottom: 0;
-      display: grid;
-      grid-template-columns: 1fr;
+      display: flex;
+      justify-content: flex-end;
       gap: 8px;
-      padding: 12px 0 18px;
-      margin-top: auto;
-      background: #fff;
+      padding-top: 2px;
     }
 
     .join-profile-manage-cancel,
     .join-profile-manage-save {
-      min-height: 50px;
+      min-height: 42px;
       padding: 0 16px;
-      border-radius: 12px;
-      font-size: 19px;
-      font-weight: 600;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 800;
     }
 
     .join-profile-manage-cancel {
-      display: none;
+      background: #f8fafc;
+      color: #475569;
     }
 
     .join-profile-manage-save {
-      background: #3689ff;
+      background: #111827;
       color: #fff;
     }
 
@@ -19386,34 +19020,16 @@
     @media (max-width: 640px) {
       .join-profile-manage-overlay {
         padding: 0;
-        align-items: stretch;
-        justify-content: stretch;
       }
 
       .join-profile-manage-modal {
-        width: 100vw;
-        height: 100dvh;
-        max-height: none;
-        border-radius: 0;
+        width: 100%;
+        max-height: 92vh;
+        border-radius: 18px 18px 0 0;
       }
 
-      .join-profile-manage-body {
-        padding: 18px 18px 0;
-      }
-
-      .join-profile-info-row {
-        grid-template-columns: 65px minmax(0, 1fr) 34px;
-        gap: 7px;
-      }
-
-      .join-profile-manage-label {
-        font-size: 14px;
-      }
-
-      .join-profile-manage-input,
-      .join-profile-manage-select,
-      .join-profile-manage-textarea {
-        font-size: 16px;
+      .join-profile-manage-grid {
+        grid-template-columns: 1fr;
       }
     }
 
@@ -19425,7 +19041,7 @@
       justify-content: center;
       border-radius: 10px;
       background: #f8fafc;
-      color: #3689ff;
+      color: #2563eb;
     }
 
     .join-my-drawer-icon svg {
@@ -19458,33 +19074,7 @@
       font-weight: 500;
     }
 
-    .join-my-drawer-support-info {
-      display: grid;
-      gap: 5px;
-      padding: 18px 2px 18px;
-      line-height: 1.45;
-    }
-
-    .join-my-drawer-support-title {
-      color: #373a3c;
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .join-my-drawer-support-line {
-      display: grid;
-      grid-template-columns: 51px minmax(0, 1fr);
-      gap: 8px;
-      color: #6b7280;
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    .join-my-drawer-support-value {
-      color: #373a3c;
-      font-weight: 600;
-    }
-
+    /* 11. MY MENU MODAL */
     .join-my-modal {
       width: min(760px, calc(100vw - 32px));
       max-height: calc(100vh - 40px);
@@ -19648,8 +19238,8 @@
     }
 
     .join-my-tab.active {
-      border-color: #3689ff;
-      background: #3689ff;
+      border-color: #0e60e8;
+      background: #0e60e8;
       color: #fff;
       box-shadow: none;
     }
@@ -20391,10 +19981,10 @@
     }
 
     .join-my-empty {
-      padding: 0;
-      border: 0;
+      padding: 24px 16px;
+      border: 1px dashed #cbd5e1;
       border-radius: 16px;
-      background: transparent;
+      background: #f8fafc;
       color: #373A3C;
       font-size: 16px;
       font-weight: 600;
@@ -20402,25 +19992,19 @@
       text-align: center;
     }
 
-    .join-my-empty-box {
-      padding: 24px 16px;
-      border-radius: 15px;
-      background: #f5f6f7;
-    }
-
     .join-my-empty .region-result-empty-action {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       margin-top: 14px;
-      min-height: 54px;
-      padding: 16px 24px;
+      min-height: 38px;
+      padding: 0 16px;
       border: 0;
-      border-radius: 14px;
+      border-radius: 999px;
       color: #fff;
-      background: var(--modal-bottom-primary-color);
-      font-size: var(--font-hero-cta);
-      font-weight: 700;
+      background: var(--blue);
+      font-size: 14px;
+      font-weight: 800;
       cursor: pointer;
     }
 
@@ -20724,9 +20308,9 @@
     }
 
     .join-review-tag.is-active {
-      border-color: #3689ff;
+      border-color: #0e60e8;
       background: #eef5ff;
-      color: #3689ff;
+      color: #0e60e8;
     }
 
     .join-review-textarea {
@@ -20745,8 +20329,8 @@
     }
 
     .join-review-textarea:focus {
-      border-color: #3689ff;
-      box-shadow: 0 0 0 3px rgba(54, 137, 255, .12);
+      border-color: #0e60e8;
+      box-shadow: 0 0 0 3px rgba(14, 96, 232, .12);
     }
 
     .join-review-photo-button {
@@ -21161,6 +20745,7 @@
       }
     }
 
+    /* 12. MEMBER LOGIN AND SIGNUP MODAL */
     .join-member-login-overlay {
       align-items: stretch;
       justify-content: center;
@@ -21342,7 +20927,7 @@
     }
 
     .join-member-login-copy-word.taste {
-      color: #3689ff;
+      color: #2563eb;
     }
 
     .join-member-login-copy-word.business {
@@ -21565,7 +21150,7 @@
     }
 
     .join-member-signup-progress-bar.is-active {
-      background: #3689ff;
+      background: #2563eb;
     }
 
     .join-member-signup-form.is-profile-only .join-member-signup-progress-bar[data-progress-step="2"] {
@@ -21727,7 +21312,7 @@
 
     .join-member-password-toggle:hover,
     .join-member-password-toggle:focus-visible {
-      color: #3689ff;
+      color: #2563eb;
       background: #eff6ff;
       outline: none;
     }
@@ -21830,7 +21415,7 @@
 
     .join-member-signup-custom-profession {
       border-style: dashed;
-      color: #3689ff;
+      color: #2563eb;
       gap: 6px;
     }
 
@@ -21885,7 +21470,7 @@
       min-width: 0;
       min-height: 44px;
       padding: 8px 10px;
-      border: 1px dashed #3689ff;
+      border: 1px dashed #2563eb;
       border-radius: 12px;
       background: #fff;
       color: #212529;
@@ -21898,7 +21483,7 @@
 
     .join-member-signup-form .join-member-signup-custom-profession-input:focus {
       border-style: solid;
-      box-shadow: 0 0 0 3px rgba(54, 137, 255, .12);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
     }
 
     .join-member-signup-complete {
@@ -21943,9 +21528,9 @@
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: #3689ff;
+      background: #2563eb;
       color: #fff;
-      box-shadow: 0 18px 38px rgba(54, 137, 255, 0.28);
+      box-shadow: 0 18px 38px rgba(37, 99, 235, 0.28);
       z-index: 1;
     }
 
@@ -22181,7 +21766,7 @@
 
     .join-member-signup-agree .apply-check-line input[type="checkbox"]:checked + .apply-check-box {
       border-color: transparent;
-      background: #3689ff;
+      background: #2563eb;
     }
 
     .join-member-signup-agree .apply-check-line input[type="checkbox"]:checked + .apply-check-box::before {
@@ -22191,7 +21776,7 @@
 
     .join-member-signup-agree .apply-check-line input[type="checkbox"]:indeterminate + .apply-check-box {
       border-color: transparent;
-      background: #3689ff;
+      background: #2563eb;
     }
 
     .join-member-signup-agree .apply-check-line input[type="checkbox"]:indeterminate + .apply-check-box::before {
@@ -22442,7 +22027,7 @@
     }
 
     .join-member-found-id {
-      color: #3689ff;
+      color: #2563eb;
       font-size: 24px;
       font-weight: 800;
       line-height: 1.25;
@@ -22480,8 +22065,8 @@
 
     .join-member-login-button.signup {
       min-height: 48px;
-      background: #3689ff;
-      border-color: #3689ff;
+      background: #2563eb;
+      border-color: #2563eb;
     }
 
     .join-member-signup-intro {
@@ -22607,15 +22192,15 @@
       }
 
       .join-mobile-bottom-nav button.is-active {
-        color: #3689ff;
+        color: #2563eb;
       }
 
       .join-mobile-bottom-nav button.is-active svg {
-        color: #3689ff;
+        color: #2563eb;
       }
 
       .join-mobile-bottom-nav button.is-active .join-mobile-bottom-nav-label {
-        color: #3689ff;
+        color: #2563eb;
       }
 
       .join-mobile-bottom-nav button:active,
@@ -22943,16 +22528,11 @@
             </button>
           </div>
           <button type="button" class="button secondary hero-calendar-button" onclick="openCalendarSheet()">
-            <div class="hero-calendar-thumb-stack" aria-hidden="true">
-              <div class="hero-calendar-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt=""></div>
-              <div class="hero-calendar-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg" alt=""></div>
-              <div class="hero-calendar-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/20190227_085648.jpg" alt=""></div>
-            </div>
-            <div class="hero-calendar-copy">
-              <div class="hero-calendar-kicker">Join Schedule</div>
-              <div class="hero-calendar-button-text">참여 가능한 일정보기</div>
-              <div class="hero-calendar-button-desc">날짜별 모집 일정을 확인하세요</div>
-            </div>
+            <svg class="button-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="16" rx="2" stroke="currentColor" stroke-width="2"></rect>
+              <path d="M16 3v4M8 3v4M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+            <div class="hero-calendar-button-text">참여 가능한 일정보기</div>
             <svg class="button-chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
@@ -31135,7 +30715,7 @@
           
         <div class="join-soon-more">
           <button type="button" class="join-soon-more-button" onclick="loadMoreSoonItems()">
-            <div class="join-soon-more-button-text">다음 모임 더보기</div>
+            <div class="join-soon-more-button-text">다음 일정 더보기</div>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
@@ -33216,8 +32796,8 @@
               <div id="joinMyDrawerGender">남성</div>
               <div class="join-my-drawer-dot" aria-hidden="true"></div>
               <div id="joinMyDrawerAge">50대</div>
+              <button type="button" class="join-my-drawer-profile-manage" onclick="openJoinProfileManageModal()">프로필 관리</button>
             </div>
-            <button type="button" class="join-my-drawer-profile-manage" onclick="openJoinProfileManageModal()"><div class="join-my-drawer-profile-manage-text">프로필 관리</div></button>
           </div>
         </div>
       </div>
@@ -33233,7 +32813,7 @@
         </button>
         <button type="button" class="join-my-drawer-item" onclick="handleJoinMyWishClick()">
           <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-          <div>찜한 상품</div>
+          <div>찜</div>
         </button>
       </div>
       <div class="join-my-drawer-divider"></div>
@@ -33247,22 +32827,6 @@
           <div class="join-my-drawer-icon" aria-hidden="true"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/callcenter.webp" alt=""></div>
           <div>전화문의</div>
         </button>
-      </div>
-      <div class="join-my-drawer-divider"></div>
-      <div class="join-my-drawer-support-info">
-        <div class="join-my-drawer-support-title">고객지원실 운영안내</div>
-        <div class="join-my-drawer-support-line">
-          <div class="join-my-drawer-support-label">채팅상담</div>
-          <div class="join-my-drawer-support-value">연중무휴 24시간</div>
-        </div>
-        <div class="join-my-drawer-support-line">
-          <div class="join-my-drawer-support-label">유선상담</div>
-          <div class="join-my-drawer-support-value">주중 09:00-18:00</div>
-        </div>
-        <div class="join-my-drawer-support-line">
-          <div class="join-my-drawer-support-label">대표번호</div>
-          <div class="join-my-drawer-support-value">02-3446-1119</div>
-        </div>
       </div>
       <div class="join-my-drawer-divider"></div>
       <button type="button" class="join-my-drawer-logout" onclick="handleJoinMyLogout()">로그아웃</button>
@@ -33749,7 +33313,7 @@
     <div class="calendar-empty-schedule-sheet" id="calendarEmptyScheduleSheet" onclick="event.stopPropagation()">
       <button type="button" class="modal-close-icon calendar-empty-schedule-close" onclick="closeCalendarEmptyScheduleSheet()" aria-label="닫기"></button>
       <div class="calendar-empty-schedule-copy">내가 먼저 일정을 만들어<br>멤버를 모집해보세요.</div>
-      <button type="button" class="button primary large calendar-empty-schedule-action" onclick="openBuilderFromCalendarEmptyDate()">새 모임 만들기</button>
+      <button type="button" class="button primary large calendar-empty-schedule-action" onclick="openBuilderFromCalendarEmptyDate()">새 일정 만들기</button>
     </div>
   </div>
 
@@ -36057,9 +35621,6 @@
     let quickMobileCarouselTargetLeft = null;
     let quickMobileCarouselTouching = false;
     let joinSectionNavLastScrollY = 0;
-    let joinSectionNavLockedKey = "";
-    let joinSectionNavLockedTargetY = null;
-    let joinSectionNavUnlockTimer = null;
     let selectedTravelRegion = "";
     let selectedTravelStart = null;
     let selectedTravelEnd = null;
@@ -36068,8 +35629,6 @@
     let externalGolfJoinProductsLoadPromise = null;
     let externalGolfJoinProductsLoadFailed = false;
     let externalGolfJoinProductsLoading = false;
-    let homeInitialExternalProductsLoading = false;
-    let homeInitialExternalProductsLoadedOnce = false;
     let googleSheetBuilderApplicationsLoading = false;
     let googleSheetBuilderApplicationsReadCompleted = false;
     let googleSheetBuilderApplicationsReadFailed = false;
@@ -36118,7 +35677,7 @@
     let joinActionLoadingTimer = null;
     let joinActionLoadingOpenedAt = 0;
     const JOIN_ACTION_LOADING_MIN_VISIBLE_MS = 450;
-    const JOIN_ACTION_LOADING_ICON_INTERVAL_MS = 400;
+    const JOIN_ACTION_LOADING_ICON_INTERVAL_MS = 180;
     let joinActionLoadingMinVisibleMs = JOIN_ACTION_LOADING_MIN_VISIBLE_MS;
     let lastJoinAsyncClickButton = null;
     const joinActionLoadingIcons = [
@@ -38909,7 +38468,7 @@
       const wishes = getJoinWishProducts();
       const productWishes = wishes.filter((item) => item.wishType === "product");
       const joinScheduleWishes = wishes.filter((item) => item.wishType === "join_schedule");
-      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜한 상품");
+      document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜");
       target.innerHTML = `
         <div class="join-my-reservation-nav" role="tablist" aria-label="찜 분류">
           <button type="button" class="join-my-tab active" data-join-my-tab="wish-products" role="tab" aria-selected="true" onclick="switchJoinMyTab('wish-products')">상품</button>
@@ -39340,9 +38899,7 @@
       const submittedReview = getJoinMySubmittedReview(joinId, title) || getJoinMySubmittedReviewForProduct(join);
       return {
         joinId,
-        hideImage: true,
         title,
-        meta: `${formatJoinMyDateRange(join.id ? join : source)} · ${seed.regionText || source.countryRegion || join.region || "태국 후아힌"}`,
         countryRegion: seed.regionText || source.countryRegion || join.region || "태국 후아힌",
         departureDate: join.departureDate || source.departureDate || "2026-05-08",
         returnDate: join.returnDate || source.returnDate || "2026-05-11",
@@ -39351,16 +38908,20 @@
         status: "여행완료",
         statusClass: "gray",
         scheduleGroup: "completed",
-        hideParticipants: true,
-        detailHideParticipants: true,
         currentCount: seed.confirmedParticipants.length || source.currentCount || 4,
         targetCount: seed.targetCount || source.targetCount || 4,
         flightPack: seed.hasFlight || source.flightPack,
         flightInfo: seed.flightInfo || source.flightInfo || "",
         price: join.price ? `${formatPrice(join.price)}원~` : source.price || "",
+        infos: [
+          ["후기", submittedReview ? "작성 완료" : "작성 가능"],
+          ["동반자", `${seed.confirmedParticipants.length || source.currentCount || 4}명`],
+          ["추천", "유사 일정 보기"]
+        ],
         actions: [
-          { label: "상세정보 열기", action: "accordion", placement: "head" },
-          { label: submittedReview ? "후기 수정" : "후기 작성", variant: "primary", action: "review" }
+          { label: submittedReview ? "후기 수정" : "후기 쓰기", variant: "primary", action: "review" },
+          { label: "다시 가기", action: "product" },
+          { label: "문의하기", action: "contact" }
         ]
       };
     }
@@ -39738,10 +39299,10 @@
     }
 
     function getJoinMyEmptyMessage(tabKey = "") {
-      if (tabKey === "created") return "아직 모집중인 모임이 없어요.";
-      if (tabKey === "joined") return "아직 참여중인 모임이 없어요.";
-      if (tabKey === "completed") return "아직 다녀온 모임이 없어요.";
-      return "아직 표시할 모임이 없어요.";
+      if (tabKey === "created") return "아직 모집 중인 일정이 없어요.";
+      if (tabKey === "joined") return "참여중인 일정이 없어요.";
+      if (tabKey === "completed") return "아직 다녀온 일정이 없어요.";
+      return "아직 표시할 일정이 없어요.";
     }
 
     function getJoinMyEmptyRecommendTitle(tabKey = "") {
@@ -39780,10 +39341,8 @@
 
     function renderJoinMyEmptyState(tabKey = "") {
       return `<div class="join-my-empty">
-        <div class="join-my-empty-box">
-          <div class="join-my-empty-copy">${escapeHtml(getJoinMyEmptyMessage(tabKey))}</div>
-          ${tabKey === "created" ? `<button type="button" class="region-result-empty-action" onclick="openBuilderFromRegionSearch()">새로운 모임 만들기</button>` : ""}
-        </div>
+        <div>${escapeHtml(getJoinMyEmptyMessage(tabKey))}</div>
+        ${tabKey === "created" ? `<button type="button" class="region-result-empty-action" onclick="openBuilderFromRegionSearch()">새 일정 만들기</button>` : ""}
         ${renderJoinMyEmptyRecommendations(tabKey)}
       </div>`;
     }
@@ -39956,7 +39515,7 @@
               </svg>
             </button>
             <div class="modal-title" id="joinMyReviewTitle">후기 작성</div>
-            <div class="modal-header-spacer" aria-hidden="true"></div>
+            <span class="modal-header-spacer" aria-hidden="true"></span>
           </div>
           <form id="joinMyReviewForm" onsubmit="submitJoinMyReview(event)">
             <div class="join-review-body">
@@ -40233,7 +39792,6 @@
     }
 
     let joinProfileManageSelectedFile = null;
-    let joinProfileManageScrollLockY = 0;
 
     function getJoinProfileInitial(member = {}) {
       const name = String(member.memberName || member.name || "회원").trim();
@@ -40244,22 +39802,15 @@
       if (!target) return;
       const imageUrl = member.profileThumbnailUrl || member.profileImageUrl || "";
       if (imageUrl) {
-        const currentImage = target.querySelector("img");
-        if (currentImage?.getAttribute("src") === imageUrl) return;
         target.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async">`;
         return;
       }
-      const initial = getJoinProfileInitial(member);
-      if (target.textContent === initial && !target.querySelector("img")) return;
-      target.textContent = initial;
+      target.textContent = getJoinProfileInitial(member);
     }
 
     function ensureJoinProfileManageModal() {
       let overlay = document.getElementById("joinProfileManageOverlay");
-      if (overlay) {
-        upgradeJoinProfileManageModalMarkup(overlay);
-        return overlay;
-      }
+      if (overlay) return overlay;
       overlay = document.createElement("div");
       overlay.id = "joinProfileManageOverlay";
       overlay.className = "join-profile-manage-overlay";
@@ -40284,7 +39835,7 @@
             </div>
             <div class="join-profile-manage-grid">
               <label class="join-profile-manage-field">
-                <div class="join-profile-manage-label">이름</div>
+                <span class="join-profile-manage-label">이름</span>
                 <input class="join-profile-manage-input" id="joinProfileManageName" autocomplete="name" required>
               </label>
               <label class="join-profile-manage-field">
@@ -40301,18 +39852,29 @@
               </label>
               <label class="join-profile-manage-field">
                 <span class="join-profile-manage-label">성별</span>
-                <input class="join-profile-manage-input" id="joinProfileManageGender" readonly>
+                <select class="join-profile-manage-select" id="joinProfileManageGender">
+                  <option value="">선택</option>
+                  <option value="남성">남성</option>
+                  <option value="여성">여성</option>
+                </select>
               </label>
               <label class="join-profile-manage-field">
                 <span class="join-profile-manage-label">골프 수준</span>
-                <input class="join-profile-manage-input" id="joinProfileManageLevel" readonly>
+                <select class="join-profile-manage-select" id="joinProfileManageLevel">
+                  <option value="">선택</option>
+                  <option value="입문/초보">입문/초보</option>
+                  <option value="보기플레이어">보기플레이어</option>
+                  <option value="90대">90대</option>
+                  <option value="80대">80대</option>
+                  <option value="싱글 수준입니다">싱글 수준입니다</option>
+                </select>
               </label>
               <label class="join-profile-manage-field is-wide">
                 <span class="join-profile-manage-label">직업</span>
                 <input class="join-profile-manage-input" id="joinProfileManageProfession">
               </label>
               <label class="join-profile-manage-field is-wide">
-                <span class="join-profile-manage-label">선호하는<br>스타일</span>
+                <span class="join-profile-manage-label">선호 스타일</span>
                 <textarea class="join-profile-manage-textarea" id="joinProfileManageTravelStyles" placeholder="예: 조용한 일정, 친목, 프리미엄 리조트"></textarea>
               </label>
             </div>
@@ -40325,380 +39887,12 @@
         </div>
       `;
       document.body.appendChild(overlay);
-      upgradeJoinProfileManageModalMarkup(overlay);
       return overlay;
-    }
-
-    function upgradeJoinProfileManageModalMarkup(overlay) {
-      if (!overlay || overlay.dataset.profileManageUpgraded === "true") return;
-      overlay.dataset.profileManageUpgraded = "true";
-      overlay.innerHTML = `
-        <div class="join-profile-manage-modal" role="dialog" aria-modal="true" aria-labelledby="joinProfileManageTitle">
-          <div class="modal-header join-profile-manage-head">
-            <button type="button" class="modal-close-icon modal-back-icon join-profile-manage-close" onclick="closeJoinProfileManageModal()" aria-label="닫기">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
-            </button>
-            <div class="modal-title join-profile-manage-title" id="joinProfileManageTitle">프로필 관리</div>
-            <span class="modal-header-spacer" aria-hidden="true"></span>
-          </div>
-          <form class="join-profile-manage-body" id="joinProfileManageForm" onsubmit="submitJoinProfileManage(event)">
-            <div class="join-profile-manage-summary">
-              <div class="join-profile-photo-wrap">
-                <div class="join-profile-photo-preview" id="joinProfileManagePreview"></div>
-                <label class="join-profile-photo-button" for="joinProfileManagePhoto" aria-label="사진 변경">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-camera-icon lucide-camera" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg>
-                </label>
-                <input type="file" id="joinProfileManagePhoto" accept="image/*" hidden onchange="handleJoinProfilePhotoChange(event)">
-              </div>
-              <div class="join-profile-summary-name" id="joinProfileManageSummaryName"></div>
-              <div class="join-profile-summary-meta" id="joinProfileManageSummaryMeta"></div>
-              <div class="join-profile-photo-note" id="joinProfileManagePhotoNote"></div>
-            </div>
-            <div class="join-profile-info-list">
-              <div class="join-profile-info-row">
-                <span class="join-profile-manage-label">이름</span>
-                <input class="join-profile-manage-input" id="joinProfileManageName" autocomplete="name" required oninput="syncJoinProfileManageSummary()">
-                <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageName')">변경</button>
-              </div>
-              <div class="join-profile-info-row">
-                <div class="join-profile-manage-label">휴대폰번호</div>
-                <input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel">
-                <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageMobile')">변경</button>
-              </div>
-              <div class="join-profile-info-row">
-                <div class="join-profile-manage-label">이메일</div>
-                <input class="join-profile-manage-input" id="joinProfileManageEmail" type="email" autocomplete="email">
-                <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageEmail')">변경</button>
-              </div>
-              <div class="join-profile-info-row">
-                <div class="join-profile-manage-label">성별</div>
-                <input class="join-profile-manage-input" id="joinProfileManageGender" readonly onchange="syncJoinProfileManageSummary()">
-                <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageGender')">변경</button>
-              </div>
-              <div class="join-profile-info-row">
-                <div class="join-profile-manage-label">출생년도</div>
-                <input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" placeholder="1980" oninput="syncJoinProfileManageSummary()">
-                <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')">변경</button>
-              </div>
-              <div class="join-profile-info-row">
-                <div class="join-profile-manage-label">골프 수준</div>
-                <input class="join-profile-manage-input" id="joinProfileManageLevel" readonly>
-                <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageLevel')">변경</button>
-              </div>
-              <div class="join-profile-info-row">
-                <div class="join-profile-manage-label">직업</div>
-                <input class="join-profile-manage-input" id="joinProfileManageProfession">
-                <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageProfession')">변경</button>
-              </div>
-              <div class="join-profile-info-row is-tall">
-                <div class="join-profile-manage-label">선호하는<br>스타일</div>
-                <textarea class="join-profile-manage-textarea" id="joinProfileManageTravelStyles" placeholder="예: 조용한 일정, 친목, 프리미엄 리조트"></textarea>
-                <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageTravelStyles')">변경</button>
-              </div>
-            </div>
-            <div class="join-profile-manage-status" id="joinProfileManageStatus"></div>
-            <div class="join-profile-manage-actions">
-              <button type="submit" class="join-profile-manage-save" id="joinProfileManageSave">저장</button>
-            </div>
-          </form>
-        </div>
-      `;
-      overlay.innerHTML = `
-        <div class="join-profile-manage-modal" role="dialog" aria-modal="true" aria-labelledby="joinProfileManageTitle">
-          <div class="modal-header join-profile-manage-head">
-            <button type="button" class="modal-close-icon modal-back-icon join-profile-manage-close" onclick="closeJoinProfileManageModal()" aria-label="">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
-            </button>
-            <div class="modal-title join-profile-manage-title" id="joinProfileManageTitle"></div>
-            <div class="modal-header-spacer" aria-hidden="true"></div>
-          </div>
-          <form class="join-profile-manage-body" id="joinProfileManageForm" onsubmit="submitJoinProfileManage(event)">
-            <div class="join-profile-manage-summary">
-              <div class="join-profile-photo-wrap">
-                <div class="join-profile-photo-preview" id="joinProfileManagePreview"></div>
-                <label class="join-profile-photo-button" for="joinProfileManagePhoto" aria-label="">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-camera-icon lucide-camera" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg>
-                </label>
-                <input type="file" id="joinProfileManagePhoto" accept="image/*" hidden onchange="handleJoinProfilePhotoChange(event)">
-              </div>
-              <div class="join-profile-summary-name" id="joinProfileManageSummaryName"></div>
-              <div class="join-profile-summary-meta" id="joinProfileManageSummaryMeta"></div>
-              <div class="join-profile-photo-note" id="joinProfileManagePhotoNote"></div>
-            </div>
-            <div class="join-profile-info-list">
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageName" autocomplete="name" required oninput="syncJoinProfileManageSummary()"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageName')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageMobile')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageEmail" type="email" autocomplete="email"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageEmail')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><div class="join-profile-gender-control"><input class="join-profile-manage-input" id="joinProfileManageGender" readonly onchange="syncJoinProfileManageSummary()"><div class="join-profile-gender-radios" role="radiogroup"><label class="join-profile-gender-option"><input type="radio" name="joinProfileManageGenderRadio" value="\uB0A8\uC131" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="male"></div></label><label class="join-profile-gender-option"><input type="radio" name="joinProfileManageGenderRadio" value="\uC5EC\uC131" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="female"></div></label></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageGender')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" placeholder="1980" oninput="syncJoinProfileManageSummary()"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageLevel" readonly><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageLevel')"></button><div class="join-profile-inline-picker" id="joinProfileManageLevelPicker"></div></div>
-              <div class="join-profile-info-row"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageProfession"><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageProfession')"></button><div class="join-profile-inline-picker" id="joinProfileManageProfessionPicker"></div></div>
-              <div class="join-profile-info-row is-tall"><div class="join-profile-manage-label"></div><textarea class="join-profile-manage-textarea" id="joinProfileManageTravelStyles"></textarea><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageTravelStyles')"></button><div class="join-profile-inline-picker" id="joinProfileManageTravelStylesPicker"></div></div>
-            </div>
-            <div class="join-profile-manage-status" id="joinProfileManageStatus"></div>
-            <div class="join-profile-manage-actions">
-              <button type="submit" class="join-profile-manage-save" id="joinProfileManageSave"></button>
-            </div>
-          </form>
-        </div>
-      `;
-      localizeJoinProfileManageModal(overlay);
-    }
-
-    function localizeJoinProfileManageModal(overlay) {
-      overlay.querySelectorAll("span.join-profile-manage-label, span.modal-header-spacer").forEach((span) => {
-        const div = document.createElement("div");
-        Array.from(span.attributes).forEach((attribute) => {
-          div.setAttribute(attribute.name, attribute.value);
-        });
-        div.innerHTML = span.innerHTML;
-        span.replaceWith(div);
-      });
-      const setText = (selector, text) => {
-        const node = overlay.querySelector(selector);
-        if (node) node.textContent = text;
-      };
-      const setHtml = (selector, html) => {
-        const node = overlay.querySelector(selector);
-        if (node) node.innerHTML = html;
-      };
-      const setAttr = (selector, name, value) => {
-        const node = overlay.querySelector(selector);
-        if (node) node.setAttribute(name, value);
-      };
-      setText("#joinProfileManageTitle", "\uD504\uB85C\uD544 \uAD00\uB9AC");
-      setAttr(".join-profile-manage-close", "aria-label", "\uB2EB\uAE30");
-      setAttr(".join-profile-photo-button", "aria-label", "\uC0AC\uC9C4 \uBCC0\uACBD");
-      setText(".join-profile-info-row:nth-child(1) .join-profile-manage-label", "\uC774\uB984");
-      setText(".join-profile-info-row:nth-child(2) .join-profile-manage-label", "\uD734\uB300\uD3F0\uBC88\uD638");
-      setText(".join-profile-info-row:nth-child(3) .join-profile-manage-label", "\uC774\uBA54\uC77C");
-      setText(".join-profile-info-row:nth-child(4) .join-profile-manage-label", "\uC131\uBCC4");
-      setText(".join-profile-info-row:nth-child(5) .join-profile-manage-label", "\uCD9C\uC0DD\uB144\uB3C4");
-      setText(".join-profile-info-row:nth-child(6) .join-profile-manage-label", "\uD578\uB514");
-      setText(".join-profile-info-row:nth-child(7) .join-profile-manage-label", "\uC9C1\uC5C5");
-      setHtml(".join-profile-info-row:nth-child(8) .join-profile-manage-label", "\uC120\uD638\uD558\uB294<br>\uC2A4\uD0C0\uC77C");
-      const changeIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path></svg>';
-      overlay.querySelectorAll(".join-profile-info-change").forEach((button) => {
-        button.innerHTML = changeIcon;
-        button.setAttribute("aria-label", "\uBCC0\uACBD");
-        button.setAttribute("title", "\uBCC0\uACBD");
-      });
-      setText("#joinProfileManageSave", "\uC800\uC7A5");
-      const gender = overlay.querySelector("#joinProfileManageGender");
-      if (gender) {
-        gender.placeholder = "\uC120\uD0DD";
-      }
-      setText('[data-gender-label="male"]', "\uB0A8\uC131");
-      setText('[data-gender-label="female"]', "\uC5EC\uC131");
-      const level = overlay.querySelector("#joinProfileManageLevel");
-      if (level) {
-        level.placeholder = "\uC120\uD0DD";
-      }
-      const styles = overlay.querySelector("#joinProfileManageTravelStyles");
-      if (styles) styles.placeholder = "\uC608: \uC870\uC6A9\uD55C \uC77C\uC815, \uCE5C\uBAA9, \uD504\uB9AC\uBBF8\uC5C4 \uB9AC\uC870\uD2B8";
-      renderJoinProfileManagePickers();
     }
 
     function setJoinProfileManageStatus(message = "") {
       const target = document.getElementById("joinProfileManageStatus");
       if (target) target.textContent = message;
-    }
-
-    function getJoinProfileManageAgeBandFromInput() {
-      const birthYear = String(document.getElementById("joinProfileManageBirthYear")?.value || "").trim();
-      if (!/^\d{4}$/.test(birthYear)) return "";
-      const age = new Date().getFullYear() - Number(birthYear) + 1;
-      if (!Number.isFinite(age) || age < 1) return "";
-      return `${Math.floor(age / 10) * 10}대`;
-    }
-
-    function syncJoinProfileManageSummary() {
-      const name = String(document.getElementById("joinProfileManageName")?.value || "").trim();
-      const gender = String(document.getElementById("joinProfileManageGender")?.value || "").trim();
-      const ageBand = getJoinProfileManageAgeBandFromInput();
-      const nameTarget = document.getElementById("joinProfileManageSummaryName");
-      const metaTarget = document.getElementById("joinProfileManageSummaryMeta");
-      if (nameTarget) nameTarget.textContent = name || "회원";
-      if (metaTarget) metaTarget.textContent = [gender, ageBand].filter(Boolean).join(", ") || "성별, 연령대";
-      if (nameTarget && !name) nameTarget.textContent = "\uD68C\uC6D0";
-      if (metaTarget && !gender && !ageBand) metaTarget.textContent = "\uC131\uBCC4, \uC5F0\uB839\uB300";
-    }
-
-    function syncJoinProfileManageGenderRadios() {
-      const value = document.getElementById("joinProfileManageGender")?.value || "";
-      document.querySelectorAll('input[name="joinProfileManageGenderRadio"]').forEach((radio) => {
-        radio.checked = radio.value === value;
-      });
-    }
-
-    function selectJoinProfileManageGender(value = "") {
-      const select = document.getElementById("joinProfileManageGender");
-      if (select) select.value = value;
-      syncJoinProfileManageGenderRadios();
-      syncJoinProfileManageSummary();
-    }
-
-    const JOIN_PROFILE_MANAGE_LEVEL_OPTIONS = [
-      ["\uC785\uBB38\u00B7\uCD08\uBCF4\uC785\uB2C8\uB2E4", "\uD3ED \uC785\uBB38\u00B7\uCD08\uBCF4\uC785\uB2C8\uB2E4"],
-      ["\uBCF4\uAE30 \uD50C\uB808\uC774\uC5B4", "\uD3FD \uBCF4\uAE30 \uD50C\uB808\uC774\uC5B4"],
-      ["90\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4", "\uD3CE 90\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4"],
-      ["80\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4", "\uD3CF 80\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4"],
-      ["\uC2F1\uAE00 \uC218\uC900\uC785\uB2C8\uB2E4", "\uD3C7 \uC2F1\uAE00 \uC218\uC900\uC785\uB2C8\uB2E4"],
-      ["\uACE8\uD504 \uD504\uB85C\uC785\uB2C8\uB2E4", "\uD3F3 \uACE8\uD504 \uD504\uB85C\uC785\uB2C8\uB2E4"]
-    ];
-
-    const JOIN_PROFILE_MANAGE_PROFESSION_OPTIONS = [
-      ["\uACBD\uC601", "\uD83D\uDCBC \uACBD\uC601"],
-      ["\uC0AC\uC5C5", "\uD83C\uDFE2 \uC0AC\uC5C5"],
-      ["\uBD80\uB3D9\uC0B0", "\uD83C\uDFE0 \uBD80\uB3D9\uC0B0"],
-      ["\uAC74\uC124", "\uD83D\uDE9C \uAC74\uC124"],
-      ["\uAE08\uC735", "\uD83D\uDCB1 \uAE08\uC735"],
-      ["\uBCF4\uD5D8", "\uD83D\uDEE1 \uBCF4\uD5D8"],
-      ["\uC138\uBB34", "\uD83E\uDDFE \uC138\uBB34"],
-      ["\uBC95\uB960", "\u2696 \uBC95\uB960"],
-      ["\uC758\uB8CC", "\uD83E\uDE7A \uC758\uB8CC"],
-      ["\uC81C\uC870", "\uD83C\uDFED \uC81C\uC870"],
-      ["\uC720\uD1B5", "\uD83D\uDE9A \uC720\uD1B5"],
-      ["\uBB34\uC5ED", "\uD83D\uDEA2 \uBB34\uC5ED"],
-      ["\uC601\uC5C5", "\uD83E\uDD1D \uC601\uC5C5"],
-      ["\uAD50\uC721", "\uD83C\uDF93 \uAD50\uC721"],
-      ["\uACF5\uACF5", "\uD83C\uDFDB \uACF5\uACF5"]
-    ];
-
-    const JOIN_PROFILE_MANAGE_STYLE_OPTIONS = [
-      ["\uC790\uC720\uB85C\uC6B4", "\uC790\uC720\uB85C\uC6B4 \uD83D\uDE0E"],
-      ["\uCE5C\uBAA9\uC911\uC2EC", "\uCE5C\uBAA9\uC911\uC2EC \uD83E\uDD1D"],
-      ["\uC2E4\uB825\uD5A5\uC0C1", "\uC2E4\uB825\uD5A5\uC0C1 \uD83D\uDCAA"],
-      ["\uB9DB\uC9D1\uAD00\uAD11", "\uB9DB\uC9D1\uAD00\uAD11 \uD83D\uDCF8"],
-      ["\uBA85\uB791\uACE8\uD504", "\uBA85\uB791\uACE8\uD504 \uD83D\uDE04"],
-      ["\uBE44\uC988\uB2C8\uC2A4", "\uBE44\uC988\uB2C8\uC2A4 \uD83C\uDFE2"]
-    ];
-
-    function renderJoinProfileManagePickers() {
-      const levelPicker = document.getElementById("joinProfileManageLevelPicker");
-      if (levelPicker) {
-        levelPicker.innerHTML = `<div class="apply-chip-group" data-chip-group="join-profile-level">${JOIN_PROFILE_MANAGE_LEVEL_OPTIONS.map(([value, label]) => `<button type="button" class="apply-chip" data-value="${escapeHtml(value)}" onclick="selectJoinProfileManagePickerValue('joinProfileManageLevel', '${escapeJsString(value)}')">${escapeHtml(label)}</button>`).join("")}</div>`;
-      }
-      const professionPicker = document.getElementById("joinProfileManageProfessionPicker");
-      if (professionPicker) {
-        professionPicker.innerHTML = `<div class="profession-chip-row join-member-signup-chip-row">${JOIN_PROFILE_MANAGE_PROFESSION_OPTIONS.map(([value, label]) => `<button type="button" class="profession-chip" data-value="${escapeHtml(value)}" onclick="selectJoinProfileManagePickerValue('joinProfileManageProfession', '${escapeJsString(value)}')">${escapeHtml(label)}</button>`).join("")}</div>`;
-      }
-      const stylePicker = document.getElementById("joinProfileManageTravelStylesPicker");
-      if (stylePicker) {
-        stylePicker.innerHTML = `<div class="apply-chip-group" data-chip-group="join-profile-travel-style">${JOIN_PROFILE_MANAGE_STYLE_OPTIONS.map(([value, label]) => `<button type="button" class="apply-chip" data-value="${escapeHtml(value)}" onclick="selectJoinProfileManagePickerValue('joinProfileManageTravelStyles', '${escapeJsString(value)}')">${escapeHtml(label)}</button>`).join("")}</div>`;
-      }
-      syncJoinProfileManagePickerActiveStates();
-    }
-
-    function syncJoinProfileManagePickerActiveStates() {
-      const map = {
-        joinProfileManageLevel: document.getElementById("joinProfileManageLevel")?.value || "",
-        joinProfileManageProfession: document.getElementById("joinProfileManageProfession")?.value || "",
-        joinProfileManageTravelStyles: document.getElementById("joinProfileManageTravelStyles")?.value || ""
-      };
-      Object.entries(map).forEach(([id, value]) => {
-        document.getElementById(`${id}Picker`)?.querySelectorAll("[data-value]").forEach((chip) => {
-          chip.classList.toggle("active", chip.dataset.value === value);
-        });
-      });
-    }
-
-    function closeJoinProfileManagePicker(field) {
-      field?.closest(".join-profile-info-row")?.classList.remove("is-picker-open", "is-editing");
-      if (field?.tagName === "SELECT") {
-        field.setAttribute("disabled", "disabled");
-      } else {
-        field?.setAttribute("readonly", "readonly");
-      }
-    }
-
-    function selectJoinProfileManagePickerValue(id, value = "") {
-      const field = document.getElementById(id);
-      if (!field) return;
-      field.value = value;
-      syncJoinProfileManagePickerActiveStates();
-      closeJoinProfileManagePicker(field);
-    }
-
-    function normalizeJoinProfileManageLevelValue(value = "") {
-      const text = String(value || "").trim();
-      if (!text) return "";
-      if (JOIN_PROFILE_MANAGE_LEVEL_OPTIONS.some(([option]) => option === text)) return text;
-      const compact = text.replace(/\s+/g, "");
-      if (compact.includes("\uC785\uBB38") || compact.includes("\uCD08\uBCF4")) return "\uC785\uBB38\u00B7\uCD08\uBCF4\uC785\uB2C8\uB2E4";
-      if (compact.includes("\uBCF4\uAE30")) return "\uBCF4\uAE30 \uD50C\uB808\uC774\uC5B4";
-      if (compact.includes("90")) return "90\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4";
-      if (compact.includes("80")) return "80\uB300 \uC815\uB3C4\uC785\uB2C8\uB2E4";
-      if (compact.includes("\uC2F1\uAE00")) return "\uC2F1\uAE00 \uC218\uC900\uC785\uB2C8\uB2E4";
-      if (compact.includes("\uD504\uB85C")) return "\uACE8\uD504 \uD504\uB85C\uC785\uB2C8\uB2E4";
-      return text;
-    }
-
-    function getJoinProfileManageEditableFields() {
-      return Array.from(document.querySelectorAll(
-        "#joinProfileManageForm .join-profile-manage-input, #joinProfileManageForm .join-profile-manage-select, #joinProfileManageForm .join-profile-manage-textarea"
-      ));
-    }
-
-    function hasJoinProfileManageEditingField() {
-      return Boolean(document.querySelector("#joinProfileManageForm .join-profile-info-row.is-editing"));
-    }
-
-    function lockJoinProfileManageFields() {
-      getJoinProfileManageEditableFields().forEach((field) => {
-        field.closest(".join-profile-info-row")?.classList.remove("is-editing", "is-picker-open");
-        field.style.cursor = "";
-        if (field.tagName === "SELECT") {
-          field.setAttribute("disabled", "disabled");
-        } else {
-          field.setAttribute("readonly", "readonly");
-        }
-      });
-      document.querySelectorAll('input[name="joinProfileManageGenderRadio"]').forEach((radio) => {
-        radio.setAttribute("disabled", "disabled");
-      });
-    }
-
-    function unlockJoinProfileManageField(field) {
-      if (!field) return;
-      if (["joinProfileManageLevel", "joinProfileManageProfession", "joinProfileManageTravelStyles"].includes(field.id)) {
-        document.querySelectorAll("#joinProfileManageForm .join-profile-info-row.is-picker-open").forEach((row) => {
-          if (row !== field.closest(".join-profile-info-row")) row.classList.remove("is-picker-open", "is-editing");
-        });
-        field.closest(".join-profile-info-row")?.classList.add("is-editing", "is-picker-open");
-        syncJoinProfileManagePickerActiveStates();
-        return;
-      }
-      field.closest(".join-profile-info-row")?.classList.add("is-editing");
-      field.removeAttribute("readonly");
-      field.removeAttribute("disabled");
-      if (field.tagName === "SELECT") field.style.cursor = "pointer";
-      if (field.id === "joinProfileManageGender") {
-        document.querySelectorAll('input[name="joinProfileManageGenderRadio"]').forEach((radio) => {
-          radio.removeAttribute("disabled");
-        });
-        syncJoinProfileManageGenderRadios();
-      }
-    }
-
-    function focusJoinProfileManageField(id) {
-      const field = document.getElementById(id);
-      if (!field) return;
-      unlockJoinProfileManageField(field);
-      if (["joinProfileManageLevel", "joinProfileManageProfession", "joinProfileManageTravelStyles"].includes(id)) {
-        field.closest(".join-profile-info-row")?.scrollIntoView({ block: "center", behavior: "smooth" });
-        field.closest(".join-profile-info-row")?.querySelector(".join-profile-inline-picker button")?.focus({ preventScroll: true });
-        return;
-      }
-      if (id === "joinProfileManageGender") {
-        const activeRadio = document.querySelector('input[name="joinProfileManageGenderRadio"]:checked')
-          || document.querySelector('input[name="joinProfileManageGenderRadio"]');
-        activeRadio?.focus({ preventScroll: true });
-        field.closest(".join-profile-info-row")?.scrollIntoView({ block: "center", behavior: "smooth" });
-        return;
-      }
-      field.focus({ preventScroll: true });
-      field.scrollIntoView({ block: "center", behavior: "smooth" });
     }
 
     function fillJoinProfileManageForm(member = {}) {
@@ -40709,7 +39903,7 @@
         joinProfileManageEmail: member.memberEmail || member.email || "",
         joinProfileManageBirthYear: getJoinMemberBirthYear(member),
         joinProfileManageGender: member.gender || "",
-        joinProfileManageLevel: normalizeJoinProfileManageLevelValue(member.level || ""),
+        joinProfileManageLevel: member.level || "",
         joinProfileManageProfession: member.profession || "",
         joinProfileManageTravelStyles: member.travelStyles || ""
       };
@@ -40717,32 +39911,12 @@
         const node = document.getElementById(id);
         if (node) node.value = value || "";
       });
-      lockJoinProfileManageFields();
-      syncJoinProfileManageGenderRadios();
-      syncJoinProfileManagePickerActiveStates();
       const input = document.getElementById("joinProfileManagePhoto");
       if (input) input.value = "";
       renderJoinProfileImage(document.getElementById("joinProfileManagePreview"), member);
-      syncJoinProfileManageSummary();
       const note = document.getElementById("joinProfileManagePhotoNote");
       if (note) note.textContent = "작은 프로필용으로 압축해서 1장만 저장됩니다.";
-      if (note) note.textContent = "\uC571\uC6A9 \uD504\uB85C\uD544\uB85C \uC555\uCD95\uD574\uC11C 1\uC7A5\uB9CC \uC800\uC7A5\uB429\uB2C8\uB2E4.";
       setJoinProfileManageStatus("");
-    }
-
-    function lockJoinProfileManagePageScroll() {
-      if (document.body.classList.contains("join-profile-scroll-locked")) return;
-      joinProfileManageScrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
-      document.body.style.top = `-${joinProfileManageScrollLockY}px`;
-      document.body.classList.add("join-profile-scroll-locked");
-    }
-
-    function unlockJoinProfileManagePageScroll() {
-      if (!document.body.classList.contains("join-profile-scroll-locked")) return;
-      document.body.classList.remove("join-profile-scroll-locked");
-      document.body.style.top = "";
-      window.scrollTo(0, joinProfileManageScrollLockY || 0);
-      joinProfileManageScrollLockY = 0;
     }
 
     async function openJoinProfileManageModal() {
@@ -40758,13 +39932,8 @@
       setWidgetModalOpen(true);
       document.documentElement.classList.add("modal-open");
       document.body.classList.add("modal-open");
-      lockJoinProfileManagePageScroll();
       refreshJoinMemberInBackground((member) => {
-        if (
-          document.getElementById("joinProfileManageOverlay")?.classList.contains("open")
-          && !joinProfileManageSelectedFile
-          && !hasJoinProfileManageEditingField()
-        ) {
+        if (document.getElementById("joinProfileManageOverlay")?.classList.contains("open") && !joinProfileManageSelectedFile) {
           fillJoinProfileManageForm(member);
         }
       });
@@ -40781,7 +39950,6 @@
         document.documentElement.classList.remove("modal-open");
         document.body.classList.remove("modal-open");
       }
-      unlockJoinProfileManagePageScroll();
     }
 
     function handleJoinProfilePhotoChange(event) {
@@ -40920,104 +40088,6 @@
       return "";
     }
 
-    function splitJoinMemberMobileParts(value = "") {
-      const mobile = normalizeJoinMemberPhone(value);
-      const match = mobile.match(/^(010|011|016|017|018|019)(\d{3,4})(\d{4})$/);
-      if (!match) {
-        return {
-          mobile1: mobile.slice(0, 3),
-          mobile2: mobile.slice(3, -4),
-          mobile3: mobile.slice(-4)
-        };
-      }
-      return {
-        mobile1: match[1],
-        mobile2: match[2],
-        mobile3: match[3]
-      };
-    }
-
-    function getSecretTourGenderCode(value = "") {
-      const text = String(value || "").trim().toLowerCase();
-      if (text === "m" || text === "male" || text.includes("\uB0A8")) return "M";
-      if (text === "f" || text === "female" || text.includes("\uC5EC")) return "F";
-      return "";
-    }
-
-    function isSecretTourMemberMobileChanged(payload = {}, member = {}) {
-      const nextMobile = normalizeJoinMemberPhone(payload.member?.memberMobile || "");
-      const currentMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
-      return Boolean(nextMobile && currentMobile && nextMobile !== currentMobile);
-    }
-
-    async function checkSecretTourMemberMobileDuplicate(parts = {}) {
-      const result = await postJoinMemberForm("/member/getMemberMobileCheck.json", {
-        mobile1: parts.mobile1 || "",
-        mobile2: parts.mobile2 || "",
-        mobile3: parts.mobile3 || ""
-      });
-      return Number(result?.count || 0) !== 0;
-    }
-
-    function buildSecretTourMemberUpdateBody(payload = {}, member = {}) {
-      const mobile = payload.member?.memberMobile || member.memberMobile || member.mobile || "";
-      const parts = splitJoinMemberMobileParts(mobile);
-      const email = payload.member?.memberEmail || member.memberEmail || member.email || "";
-      const birthday = String(member.birthday || payload.profile?.birthday || payload.profile?.birthYear || "").trim();
-      const mobileChanged = isSecretTourMemberMobileChanged(payload, member);
-      const currentEmail = String(member.memberEmail || member.email || "").trim();
-      const emailChanged = Boolean(email && currentEmail && email !== currentEmail);
-      const gender = getSecretTourGenderCode(payload.profile?.gender || member.gender || "");
-      const params = new URLSearchParams();
-      params.set("mobile1", parts.mobile1 || "");
-      params.set("mobile2", parts.mobile2 || "");
-      params.set("mobile3", parts.mobile3 || "");
-      params.set("email", email);
-      params.set("engLastNm", member.engLastNm || "");
-      params.set("engFirstNm", member.engFirstNm || "");
-      params.set("gender", gender);
-      params.set("birthday", birthday);
-      params.set("mobile1Tmp", parts.mobile1 || "");
-      params.set("mobile2Tmp", parts.mobile2 || "");
-      params.set("mobile3Tmp", parts.mobile3 || "");
-      params.set("mobileChangeYn", mobileChanged ? "Y" : "N");
-      params.set("homeTel1", member.homeTel1 || "");
-      params.set("homeTel2", member.homeTel2 || "");
-      params.set("homeTel3", member.homeTel3 || "");
-      params.set("emailTmp", email);
-      params.set("emailChangeYn", emailChanged ? "Y" : "N");
-      params.set("smsYn", member.smsYn || "Y");
-      params.set("emailYn", member.emailYn || "Y");
-      params.set("homePostNo", member.homePostNo || "");
-      params.set("homeAddr1", member.homeAddr1 || "");
-      params.set("homeAddr2", member.homeAddr2 || "");
-      return params;
-    }
-
-    async function updateSecretTourMemberProfile(payload = {}, member = {}) {
-      const mobile = payload.member?.memberMobile || member.memberMobile || member.mobile || "";
-      const parts = splitJoinMemberMobileParts(mobile);
-      if (isSecretTourMemberMobileChanged(payload, member) && await checkSecretTourMemberMobileDuplicate(parts)) {
-        const error = new Error("Duplicate mobile number");
-        error.code = "DUPLICATE_MOBILE";
-        throw error;
-      }
-      const response = await fetch("/mypage/updateMember.json", {
-        method: "POST",
-        credentials: "include",
-        cache: "no-store",
-        headers: {
-          "Accept": "application/json, text/javascript, */*; q=0.01",
-          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-          "X-Requested-With": "XMLHttpRequest"
-        },
-        body: buildSecretTourMemberUpdateBody(payload, member)
-      });
-      if (!response.ok) throw new Error(`Secret Tour member update failed: ${response.status}`);
-      const contentType = response.headers.get("content-type") || "";
-      return contentType.includes("application/json") ? response.json() : response.text();
-    }
-
     async function submitJoinProfileManage(event) {
       event.preventDefault();
       const member = getJoinCachedCurrentMember();
@@ -41047,10 +40117,7 @@
             ...image
           };
         }
-        await Promise.all([
-          saveJoinMemberProfileToGoogleSheet(payload),
-          updateSecretTourMemberProfile(payload, member)
-        ]);
+        await saveJoinMemberProfileToGoogleSheet(payload);
         const mergedProfile = normalizeJoinMemberProfileRow({
           ...payload.member,
           ...payload.profile,
@@ -41065,12 +40132,6 @@
         closeJoinProfileManageModal();
       } catch (error) {
         console.error("Failed to save join profile.", error);
-        if (error?.code === "DUPLICATE_MOBILE") {
-          const duplicateMessage = "\uC774\uBBF8 \uC0AC\uC6A9\uC911\uC774\uAC70\uB098 \uD0C8\uD1F4\uD55C \uD734\uB300\uD3F0 \uBC88\uD638\uC785\uB2C8\uB2E4.";
-          alert(duplicateMessage);
-          setJoinProfileManageStatus(duplicateMessage);
-          return;
-        }
         setJoinProfileManageStatus(joinProfileManageSelectedFile && !REVIEW_IMAGE_SIGN_ENDPOINT
           ? "사진 업로드 API 설정이 필요합니다. 관리자에게 문의해 주세요."
           : "프로필 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
@@ -49370,8 +48431,8 @@
         const emptyRegionName = escapeHtml(formatRegionDisplayName(query) || query);
         list.innerHTML = `
           <div class="region-result-empty">
-            <div class="region-result-empty-copy">아직 등록된 일정이 없어요.<br>${emptyRegionName}에 내가 먼저 일정을 만들어<br>멤버를 초대해보세요.</div>
-            <div><button type="button" class="region-result-empty-action" onclick="openBuilderFromRegionSearch()">새 모임 만들기</button></div>
+            아직 등록된 일정이 없어요.<br>${emptyRegionName}에 내가 먼저 일정을 만들어<br>멤버를 초대해보세요.
+            <div><button type="button" class="region-result-empty-action" onclick="openBuilderFromRegionSearch()">새 일정 만들기</button></div>
           </div>
           ${renderEmptyRegionRecommendations(query)}
         `;
@@ -51430,12 +50491,8 @@
       return false;
     }
 
-    function shouldShowHomeInitialLoading() {
-      return Boolean(homeInitialExternalProductsLoading && !homeInitialExternalProductsLoadedOnce);
-    }
-
     function isMdPickProductsLoading() {
-      return Boolean(!homeInitialExternalProductsLoadedOnce && externalGolfJoinProductsLoading && !externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed);
+      return Boolean(externalGolfJoinProductsLoading && !externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed);
     }
 
     function renderJoinCardSkeleton(index = 0) {
@@ -52706,7 +51763,7 @@
       return `
         <div class="join-soon-more">
           <button type="button" class="join-soon-more-button" onclick="loadMoreSoonItems()">
-            <div class="join-soon-more-button-text">다음 모임 더보기</div>
+            <div class="join-soon-more-button-text">다음 일정 더보기</div>
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -52827,18 +51884,6 @@
       const sectionList = document.getElementById("joinSectionList");
       const mdPickSection = document.getElementById("joinMdPickSection");
       const legacyGrid = document.getElementById("joinGrid");
-      if (shouldShowHomeInitialLoading()) {
-        if (mdPickSection) mdPickSection.innerHTML = "";
-        if (sectionList) {
-          sectionList.classList.add("is-loading-products");
-          sectionList.innerHTML = renderJoinLoadingSection();
-          const empty = document.getElementById("joinEmpty");
-          if (empty) empty.hidden = true;
-        }
-        updateJoinSectionNavVisibility([], false);
-        updateJoinSectionNavFixed();
-        return;
-      }
       const mdPickSectionHtml = renderMdPickSection();
       if (mdPickSection) {
         mdPickSection.innerHTML = mdPickSectionHtml;
@@ -52848,14 +51893,12 @@
         sectionList.innerHTML = sections.length
           ? sections.map(renderJoinProductSection).join("")
           : (isLoading ? renderJoinLoadingSection() : "");
-        const empty = document.getElementById("joinEmpty");
-        if (empty) empty.hidden = sections.length > 0 || Boolean(mdPickSectionHtml) || isLoading;
+        document.getElementById("joinEmpty").hidden = sections.length > 0 || Boolean(mdPickSectionHtml) || isLoading;
       } else if (legacyGrid) {
         const filtered = sortJoins(getVisibleJoinProducts().filter(matchesPeriod));
         legacyGrid.classList.toggle("is-loading-products", isLoading);
         legacyGrid.innerHTML = filtered.map(renderJoinCard).join("");
-        const empty = document.getElementById("joinEmpty");
-        if (empty) empty.hidden = filtered.length > 0 || isLoading;
+        document.getElementById("joinEmpty").hidden = filtered.length > 0 || isLoading;
       }
       updateJoinSectionNavVisibility(sections, Boolean(mdPickSectionHtml));
       if (!options.skipQuickMobileCarousel) {
@@ -52869,19 +51912,6 @@
       requestAnimationFrame(updateMdPickSlideDots);
       scheduleMdPickImagePreload();
       updateJoinSectionNavFixed();
-    }
-
-    function renderHomeInitialLoading() {
-      const sectionList = document.getElementById("joinSectionList");
-      const mdPickSection = document.getElementById("joinMdPickSection");
-      if (mdPickSection) mdPickSection.innerHTML = "";
-      if (sectionList) {
-        sectionList.classList.add("is-loading-products");
-        sectionList.innerHTML = renderJoinLoadingSection();
-      }
-      const empty = document.getElementById("joinEmpty");
-      if (empty) empty.hidden = true;
-      updateJoinSectionNavVisibility([], false);
     }
 
     function stopQuickMobileCarousel() {
@@ -53106,16 +52136,7 @@
       const nav = document.getElementById("joinSectionNav");
       const offset = getJoinSectionNavScrollOffset(nav);
       const top = section.getBoundingClientRect().top + window.scrollY - offset;
-      const targetY = Math.max(0, top);
-      joinSectionNavLockedKey = key;
-      joinSectionNavLockedTargetY = targetY;
-      clearTimeout(joinSectionNavUnlockTimer);
-      joinSectionNavUnlockTimer = setTimeout(() => {
-        joinSectionNavLockedKey = "";
-        joinSectionNavLockedTargetY = null;
-        updateJoinSectionNavActive();
-      }, 1400);
-      window.scrollTo({ top: targetY, behavior: "smooth" });
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
       setJoinSectionNavActive(key);
     }
 
@@ -53161,28 +52182,6 @@
       updateJoinSectionNavFixed();
       if (!sections.length) return;
       const nav = document.getElementById("joinSectionNav");
-      if (joinSectionNavLockedKey) {
-        const targetExists = Boolean(document.getElementById(`join-section-${joinSectionNavLockedKey}`));
-        if (!targetExists) {
-          joinSectionNavLockedKey = "";
-          joinSectionNavLockedTargetY = null;
-          clearTimeout(joinSectionNavUnlockTimer);
-        } else {
-          setJoinSectionNavActive(joinSectionNavLockedKey);
-          if (
-            Number.isFinite(Number(joinSectionNavLockedTargetY))
-            && Math.abs((window.scrollY || 0) - Number(joinSectionNavLockedTargetY)) <= 6
-          ) {
-            clearTimeout(joinSectionNavUnlockTimer);
-            joinSectionNavUnlockTimer = setTimeout(() => {
-              joinSectionNavLockedKey = "";
-              joinSectionNavLockedTargetY = null;
-              updateJoinSectionNavActive();
-            }, 120);
-          }
-          return;
-        }
-      }
       const headerOffset = Number.parseFloat(getComputedStyle(document.getElementById("secret-golf-join") || document.documentElement).getPropertyValue("--mobile-home-header-height")) || 55;
       const offset = window.innerWidth > 640
         ? getJoinSectionNavScrollOffset(nav)
@@ -54401,41 +53400,21 @@
       }
     }, { capture: true });
 
-    async function initializeGolfJoinHome() {
-      startHeroSlider();
-      initializeJoinMobileBottomNav();
-      hydrateBuilderApplicationJoinsFromLocalCache();
-      hydrateJoinApplicationsFromLocalCache();
-      hydrateJoinReviewsFromLocalCache();
-      hydrateOverseasJoinsWithSecretProducts();
-      homeInitialExternalProductsLoading = true;
-      renderHomeInitialLoading();
-      try {
-        await ensureExternalGolfJoinProductsLoaded();
-      } finally {
-        homeInitialExternalProductsLoading = false;
-        homeInitialExternalProductsLoadedOnce = true;
-      }
+    startHeroSlider();
+    initializeJoinMobileBottomNav();
+    hydrateBuilderApplicationJoinsFromLocalCache();
+    hydrateJoinApplicationsFromLocalCache();
+    hydrateJoinReviewsFromLocalCache();
+    hydrateOverseasJoinsWithSecretProducts();
+    renderJoins();
+    Promise.all([
+      hydrateBuilderApplicationJoinsFromGoogleSheet(),
+      hydrateJoinApplicationsFromGoogleSheet(),
+      hydrateJoinReviewsFromGoogleSheet()
+    ]).then(() => {
       renderJoins();
-      Promise.all([
-        hydrateBuilderApplicationJoinsFromGoogleSheet(),
-        hydrateJoinApplicationsFromGoogleSheet(),
-        hydrateJoinReviewsFromGoogleSheet()
-      ]).then(() => {
-        renderJoins();
-        resumeJoinMyMenuAfterLogin();
-        resumeJoinKakaoProfileAfterLogin();
-      }).catch((error) => {
-        console.warn("Failed to hydrate join sheet data.", error);
-        renderJoins();
-      });
-    }
-
-    initializeGolfJoinHome().catch((error) => {
-      console.warn("Failed to initialize golf join home.", error);
-      homeInitialExternalProductsLoading = false;
-      homeInitialExternalProductsLoadedOnce = true;
-      renderJoins();
+      resumeJoinMyMenuAfterLogin();
+      resumeJoinKakaoProfileAfterLogin();
     });
   </script>
 

@@ -6776,7 +6776,7 @@
     .join-action-loading-overlay {
       position: fixed;
       inset: 0;
-      z-index: 2147483990;
+      z-index: 2147483647;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -6787,6 +6787,37 @@
     .join-action-loading-overlay.open {
       opacity: 1;
       pointer-events: auto;
+    }
+    body > #joinActionLoadingOverlay.join-action-loading-overlay {
+      position: fixed !important;
+      top: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      min-height: 100vh !important;
+      min-height: 100dvh !important;
+      max-height: none !important;
+      padding: 0 !important;
+      background: transparent !important;
+      z-index: 2147483647 !important;
+    }
+    body > #joinActionLoadingOverlay.join-action-loading-overlay::before {
+      display: none !important;
+    }
+    body > #joinActionLoadingOverlay.join-action-loading-overlay.open {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+    body > #joinActionLoadingOverlay .join-action-loading-box {
+      position: relative !important;
+      z-index: 2147483647 !important;
     }
     html.home-initial-loading,
     body.home-initial-loading {
@@ -23696,16 +23727,24 @@
         display: flex !important;
       }
 
+      #participantModal.participant-floating.open::before,
+      body > #participantModal.participant-floating.open::before,
+      body > .participant-floating.sgj-portal-overlay.open::before {
+        display: none !important;
+      }
+
       #participantModal.participant-floating .participant-popover,
       body > #participantModal.participant-floating .participant-popover,
       body > .participant-floating.sgj-portal-overlay .participant-popover {
+        --participant-sheet-max-height: min(calc(100dvh - 52px), 720px);
         display: flex;
         flex-direction: column;
         box-sizing: border-box;
         width: 100vw !important;
         max-width: 100vw !important;
-        height: auto;
-        max-height: min(88dvh, 720px);
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: var(--participant-sheet-max-height) !important;
         padding: 0;
         border: 0;
         border-radius: 22px 22px 0 0;
@@ -23773,7 +23812,7 @@
         grid-auto-rows: max-content;
         flex: 0 1 auto;
         min-height: 0;
-        max-height: calc(min(88dvh, 720px) - 66px);
+        max-height: calc(var(--participant-sheet-max-height) - 66px);
         gap: 0;
         padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
         overflow-y: auto;
@@ -36915,6 +36954,7 @@
     let currentDetailJoinId = null;
     let currentDetailMode = "normal";
     let currentDetailJoinData = null;
+    let currentDetailReturnContext = null;
     let currentMdPickProductGroupKey = "";
     let currentMdPickCountryKey = "";
     let currentDetailSlideIndex = 0;
@@ -36967,10 +37007,14 @@
     let googleSheetJoinApplicationsLoading = false;
     let googleSheetJoinApplicationsReadCompleted = false;
     let googleSheetJoinApplicationsReadFailed = false;
+    let googleSheetJoinWishesLoading = false;
+    let googleSheetJoinWishesReadCompleted = false;
+    let googleSheetJoinWishesReadFailed = false;
     const GOOGLE_SHEET_READ_CACHE_TTL_MS = 60 * 1000;
     const GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY = "joinApplicationsSheetReadCache";
     const GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY = "builderApplicationsSheetReadCache";
     const GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY = "joinReviewsSheetReadCache";
+    const GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY = "joinWishesSheetReadCache";
     const REVIEW_IMAGE_SIGN_ENDPOINT = window.GOLFJOIN_IMAGE_SIGN_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sign-gcs-upload";
     const REVIEW_IMAGE_MAX_FILES = 3;
     const REVIEW_IMAGE_MAX_ORIGINAL_BYTES = 10 * 1024 * 1024;
@@ -37102,7 +37146,7 @@
                     : id === "builderAlertModal"
                       ? "2147484000"
                       : id === "joinActionLoadingOverlay"
-                        ? "2147483990"
+                        ? "2147483647"
                         : "2147483000";
       overlay?.style.setProperty("z-index", zIndex, "important");
       if (id === "phoneModal") {
@@ -37168,6 +37212,10 @@
         Number.isFinite(minVisibleMs) ? minVisibleMs : JOIN_ACTION_LOADING_MIN_VISIBLE_MS
       );
       document.body.appendChild(overlay);
+      overlay.style.setProperty("display", "flex", "important");
+      overlay.style.setProperty("visibility", "visible", "important");
+      overlay.style.setProperty("opacity", "1", "important");
+      overlay.style.setProperty("pointer-events", "auto", "important");
       overlay.style.setProperty("z-index", "2147483647", "important");
       const box = overlay.querySelector(".join-action-loading-box");
       const messageEl = document.getElementById("joinActionLoadingMessage");
@@ -37202,6 +37250,9 @@
       const messageEl = document.getElementById("joinActionLoadingMessage");
       overlay?.classList.remove("open");
       overlay?.setAttribute("aria-hidden", "true");
+      overlay?.style.setProperty("visibility", "hidden", "important");
+      overlay?.style.setProperty("opacity", "0", "important");
+      overlay?.style.setProperty("pointer-events", "none", "important");
       box?.classList.remove("has-message");
       box?.setAttribute("aria-label", "처리 중");
       if (messageEl) messageEl.textContent = "";
@@ -37503,6 +37554,49 @@
       return data.message || data.resultMessage || data.msg || data.error || data.result || "";
     }
 
+    function findJoinApiStringValue(source, candidateKeys = []) {
+      const keys = new Set(candidateKeys.map((key) => String(key).toLowerCase()));
+      const visited = new Set();
+      const queue = [source];
+      while (queue.length) {
+        const item = queue.shift();
+        if (!item || typeof item !== "object" || visited.has(item)) continue;
+        visited.add(item);
+        if (Array.isArray(item)) {
+          item.forEach((entry) => queue.push(entry));
+          continue;
+        }
+        for (const [key, value] of Object.entries(item)) {
+          if (keys.has(String(key).toLowerCase()) && value != null && String(value).trim()) {
+            return String(value).trim();
+          }
+        }
+        Object.values(item).forEach((value) => {
+          if (value && typeof value === "object") queue.push(value);
+        });
+      }
+      return "";
+    }
+
+    function buildJoinErpMemberFromLoginResponse(data = {}, kakaoResponse = {}) {
+      const kakaoId = String(kakaoResponse?.id || "").trim();
+      const memberSeq = findJoinApiStringValue(data, ["memberSeq", "userSeq", "custSeq", "custNo", "mberSeq"]);
+      const memberId = findJoinApiStringValue(data, ["memberId", "userId", "custId", "loginId", "mberId"]);
+      const memberName = findJoinApiStringValue(data, ["memberName", "userNm", "custNm", "memberNm", "mberNm", "custName", "userName"]);
+      const memberMobile = normalizeJoinMemberPhone(findJoinApiStringValue(data, ["memberMobile", "mobile", "mobileNo", "hpNo", "phone", "telNo"]));
+      const memberEmail = findJoinApiStringValue(data, ["memberEmail", "email", "emailAddr", "userEmail", "custEmail"]);
+      return {
+        memberSeq,
+        memberId: memberId || kakaoId,
+        memberName,
+        memberChannel: "KAKAO",
+        memberMobile,
+        memberEmail: memberEmail || kakaoResponse?.kakao_account?.email || "",
+        kakaoId,
+        kakaoNickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || ""
+      };
+    }
+
     function postJoinMemberLoginForm(url, data) {
       const body = new URLSearchParams();
       Object.entries(data).forEach(([key, value]) => body.set(key, value == null ? "" : String(value)));
@@ -37585,16 +37679,17 @@
       }
     }
 
-    async function continueWithExistingKakaoProfileIfReady(kakaoResponse = {}) {
+    async function continueWithExistingKakaoProfileIfReady(kakaoResponse = {}, options = {}) {
       const kakaoId = String(kakaoResponse?.id || "").trim();
       if (!kakaoId) return false;
+      const erpMember = options.member || {};
       const member = {
-        memberSeq: "",
-        memberId: kakaoId,
-        memberName: kakaoResponse?.kakao_account?.name || kakaoResponse?.properties?.nickname || "",
+        memberSeq: erpMember.memberSeq || "",
+        memberId: erpMember.memberId || kakaoId,
+        memberName: erpMember.memberName || kakaoResponse?.kakao_account?.name || "",
         memberChannel: "KAKAO",
-        memberMobile: "",
-        memberEmail: kakaoResponse?.kakao_account?.email || "",
+        memberMobile: erpMember.memberMobile || "",
+        memberEmail: erpMember.memberEmail || kakaoResponse?.kakao_account?.email || "",
         kakaoId,
         kakaoNickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || ""
       };
@@ -37632,11 +37727,22 @@
                 }).then((aspData) => {
                   joinMyMenuState.loginRedirecting = false;
                   if ((aspData?.message || "") === "SUCCESS") {
+                    const erpMember = buildJoinErpMemberFromLoginResponse(aspData, res);
+                    if (
+                      erpMember.memberName
+                      || erpMember.memberSeq
+                      || erpMember.memberMobile
+                      || (erpMember.memberId && erpMember.memberId !== String(res?.id || "").trim())
+                    ) {
+                      setJoinSessionMember(erpMember);
+                    }
                     clearJoinLogoutMarker();
                     location.href = getJoinLoginRedirectTarget();
                     return;
                   }
-                  continueWithExistingKakaoProfileIfReady(res).then((continued) => {
+                  continueWithExistingKakaoProfileIfReady(res, {
+                    member: buildJoinErpMemberFromLoginResponse(aspData, res)
+                  }).then((continued) => {
                     if (continued) return;
                     markPendingJoinKakaoProfile(res, authObj);
                     openJoinMemberKakaoProfileForm({
@@ -38569,18 +38675,26 @@
     }
 
     function getJoinMemberProfileCacheKey(member = {}) {
-      return String(member.memberSeq || member.memberId || member.memberMobile || member.memberEmail || "").trim();
+      return String(
+        member.memberSeq
+        || member.memberId
+        || normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "")
+        || member.memberEmail
+        || ""
+      ).trim();
     }
 
     function rememberJoinMemberProfileLocally(member = {}, profile = {}) {
+      const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
+      const profileMobile = normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || "");
       const keys = Array.from(new Set([
         member.memberSeq,
         member.memberId,
-        normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || ""),
+        memberMobile,
         member.memberEmail,
         profile.memberSeq,
         profile.memberId,
-        normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || ""),
+        profileMobile,
         profile.memberEmail
       ].map((value) => String(value || "").trim()).filter(Boolean)));
       if (!keys.length) return;
@@ -38593,7 +38707,7 @@
           memberSeq: member.memberSeq || profile.memberSeq || "",
           memberId: member.memberId || profile.memberId || "",
           memberName: member.memberName || profile.memberName || profile.name || "",
-          memberMobile: member.memberMobile || profile.memberMobile || profile.mobile || "",
+          memberMobile: memberMobile || profileMobile || "",
           memberEmail: member.memberEmail || profile.memberEmail || profile.email || "",
           memberChannel: member.memberChannel || profile.memberChannel || "",
           updatedAt: new Date().toISOString()
@@ -38630,7 +38744,7 @@
         const keys = [
           member.memberSeq,
           member.memberId,
-          member.memberMobile,
+          normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || ""),
           member.memberEmail
         ].map((value) => String(value || "").trim()).filter(Boolean);
         for (const key of keys) {
@@ -38747,10 +38861,12 @@
     }
 
     function mergeJoinMemberWithProfile(member = {}, profile = {}) {
+      const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
+      const profileMobile = normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || "");
       return {
         ...member,
         memberName: member.memberName || profile.memberName || profile.name || "",
-        memberMobile: member.memberMobile || profile.memberMobile || profile.mobile || "",
+        memberMobile: memberMobile || profileMobile || "",
         memberEmail: member.memberEmail || profile.memberEmail || profile.email || "",
         gender: profile.gender || member.gender || "",
         birthYear: profile.birthYear || member.birthYear || "",
@@ -39648,7 +39764,9 @@
     }
 
     function normalizeJoinMemberPhone(value) {
-      return String(value || "").replace(/\D/g, "");
+      const digits = String(value || "").replace(/\D/g, "");
+      if (/^1[016789]\d{8}$/.test(digits)) return `0${digits}`;
+      return digits;
     }
 
     function normalizeJoinMemberGender(value) {
@@ -39667,10 +39785,28 @@
         }
         const html = await response.text();
         const doc = new DOMParser().parseFromString(html, "text/html");
+        const readMemberDetailValue = (selectors) => {
+          for (const selector of selectors) {
+            const node = doc.querySelector(selector);
+            const value = node?.value || node?.textContent || "";
+            if (String(value).trim()) return String(value).trim();
+          }
+          return "";
+        };
         const mobile = ["#mobile1Tmp", "#mobile2Tmp", "#mobile3Tmp"]
           .map((selector) => doc.querySelector(selector)?.value || doc.querySelector(selector)?.textContent || "")
           .join("");
         return {
+          memberName: readMemberDetailValue([
+            "#userNm",
+            "#custNm",
+            "#memberName",
+            "#memberNm",
+            "input[name='userNm']",
+            "input[name='custNm']",
+            "input[name='memberName']",
+            "input[name='memberNm']"
+          ]),
           memberMobile: normalizeJoinMemberPhone(mobile),
           memberEmail: String(doc.querySelector("#emailTmp")?.value || doc.querySelector("#emailTmp")?.textContent || "").trim(),
           gender: normalizeJoinMemberGender(doc.querySelector('input[name="gender"]:checked')?.value || ""),
@@ -39694,6 +39830,7 @@
         const member = {
           ...loginState.member,
           ...detail,
+          memberName: detail.memberName || loginState.member.memberName || "",
           memberMobile: detail.memberMobile || loginState.member.memberMobile || "",
           memberEmail: detail.memberEmail || loginState.member.memberEmail || ""
         };
@@ -40008,13 +40145,15 @@
           alert("연결된 조인모임을 찾을 수 없습니다.");
           return;
         }
-        openDetail(join.id);
+        closeJoinMyMenu();
+        openDetail(join.id, { returnToJoinMy: { menu: "recent", tab: "recent-joins" } });
         return;
       }
       const recent = getJoinRecentViewedItems().find((item) => getJoinRecentViewType(item, item.recentType) === "product" && getJoinRecentViewTargetKey(item) === key) || {};
       const join = joins.find((item) => getJoinProductGoodSeq(item) === key || String(item.goodSeq || "") === key || item.id === key);
       if (join) {
-        openDetail(join.id);
+        closeJoinMyMenu();
+        openDetail(join.id, { returnToJoinMy: { menu: "recent", tab: "recent-products" } });
         return;
       }
       const params = new URLSearchParams({ goodSeq: key });
@@ -40042,6 +40181,7 @@
         wishType,
         targetType: wishType,
         targetKey,
+        status: item.status || "active",
         savedAt: item.savedAt || item.createdAt || new Date().toISOString()
       };
     }
@@ -40049,7 +40189,11 @@
     function getJoinWishProducts() {
       try {
         const saved = JSON.parse(localStorage.getItem(JOIN_WISH_STORAGE_KEY) || "[]");
-        return Array.isArray(saved) ? saved.map(normalizeJoinWishProduct).filter((item) => getJoinWishTargetKey(item)) : [];
+        const cachedRows = readGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY).map(normalizeJoinWishSheetRow);
+        const localItems = Array.isArray(saved)
+          ? saved.map(normalizeJoinWishProduct).filter((item) => getJoinWishTargetKey(item) && item.status !== "deleted")
+          : [];
+        return mergeJoinWishProducts(localItems, cachedRows);
       } catch (error) {
         return [];
       }
@@ -40060,6 +40204,93 @@
         localStorage.setItem(JOIN_WISH_STORAGE_KEY, JSON.stringify(items.map(normalizeJoinWishProduct)));
       } catch (error) {
         console.warn("Failed to save wish products.", error);
+      }
+    }
+
+    function getJoinWishMemberKey(member = getJoinCachedCurrentMember()) {
+      const normalized = member ? getJoinMemberWithCachedProfile(member) : {};
+      return String(
+        normalized.memberSeq
+        || normalized.memberId
+        || normalizeJoinMemberPhone(normalized.memberMobile || normalized.mobile || normalized.phone || "")
+        || normalized.memberEmail
+        || ""
+      ).trim();
+    }
+
+    function getJoinWishId(member = getJoinCachedCurrentMember(), wishType = "product", targetKey = "") {
+      return buildGoogleSheetRecordId("jw", getJoinWishMemberKey(member), wishType, targetKey);
+    }
+
+    function normalizeJoinWishSheetRow(row = {}) {
+      const wishType = row.wishType || row.targetType || "product";
+      const targetKey = row.targetKey || getJoinWishTargetKey({ ...row, wishType });
+      return normalizeJoinWishProduct({
+        id: row.id || row.joinId || (row.erpProductId && row.erpEventSeq ? `secret-tour-${row.erpProductId}-${row.erpEventSeq}` : row.erpProductId || targetKey),
+        wishId: row.wishId || getJoinWishId(row, wishType, targetKey),
+        wishType,
+        targetType: wishType,
+        targetKey,
+        joinId: row.joinId || row.targetScheduleId || "",
+        scheduleId: row.scheduleId || row.targetScheduleId || "",
+        sourceApplicationId: row.sourceApplicationId || row.targetApplicationId || "",
+        productId: row.productId || row.erpProductId || "",
+        goodSeq: row.goodSeq || row.erpProductId || "",
+        eventSeq: row.eventSeq || row.erpEventSeq || "",
+        title: row.title || row.productName || "",
+        region: row.region || row.category || "",
+        image: row.image || row.imageUrl || "",
+        price: Number(row.price || 0),
+        departureDate: row.departureDate || "",
+        returnDate: row.returnDate || "",
+        status: row.status || "active",
+        savedAt: row.savedAt || row.createdAt || row.updatedAt || new Date().toISOString()
+      });
+    }
+
+    function mergeJoinWishProducts(localItems = [], sheetItems = []) {
+      const merged = new Map();
+      [...localItems, ...sheetItems].map(normalizeJoinWishProduct).forEach((item) => {
+        const key = `${item.wishType}:${getJoinWishTargetKey(item)}`;
+        if (!key || key.endsWith(":")) return;
+        const previous = merged.get(key);
+        if (!previous || new Date(item.updatedAt || item.savedAt || 0).getTime() >= new Date(previous.updatedAt || previous.savedAt || 0).getTime()) {
+          merged.set(key, item);
+        }
+      });
+      return Array.from(merged.values()).filter((item) => item.status !== "deleted");
+    }
+
+    function updateJoinWishRowsCache(item = {}, status = "active") {
+      try {
+        const normalized = normalizeJoinWishProduct({ ...item, status });
+        const targetKey = getJoinWishTargetKey(normalized);
+        if (!targetKey) return;
+        const cached = JSON.parse(localStorage.getItem(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY) || "null");
+        const rows = Array.isArray(cached?.rows) ? cached.rows : [];
+        const nextRows = rows.filter((row) => {
+          const rowType = row.wishType || row.targetType || "product";
+          return !(rowType === normalized.wishType && getJoinWishTargetKey({ ...row, wishType: rowType }) === targetKey);
+        });
+        if (status !== "deleted") {
+          nextRows.unshift({
+            ...normalized,
+            wishId: normalized.wishId || getJoinWishId(getJoinCachedCurrentMember(), normalized.wishType, targetKey),
+            targetType: normalized.wishType,
+            targetKey,
+            erpProductId: normalized.goodSeq || normalized.productId || (normalized.wishType === "product" ? targetKey : ""),
+            erpEventSeq: normalized.eventSeq || "",
+            productName: normalized.title || "",
+            imageUrl: normalized.image || "",
+            updatedAt: new Date().toISOString()
+          });
+        }
+        localStorage.setItem(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, JSON.stringify({
+          fetchedAt: Date.now(),
+          rows: nextRows
+        }));
+      } catch (error) {
+        console.warn("Failed to update wish rows cache.", error);
       }
     }
 
@@ -40108,19 +40339,88 @@
       };
     }
 
+    function buildJoinWishSheetPayload(item = {}, status = "active", member = getJoinCachedCurrentMember()) {
+      const normalizedMember = getJoinMemberWithCachedProfile(member || {});
+      const wishType = item.wishType || item.targetType || "product";
+      const targetKey = getJoinWishTargetKey({ ...item, wishType });
+      const savedAt = item.savedAt || item.createdAt || new Date().toISOString();
+      return {
+        source: "join_wish",
+        sheet: "join_wishes",
+        action: "upsert",
+        keyField: "wishId",
+        wishId: item.wishId || getJoinWishId(normalizedMember, wishType, targetKey),
+        createdAt: savedAt,
+        savedAt,
+        pageUrl: location.href,
+        member: {
+          memberSeq: normalizedMember.memberSeq || "",
+          memberId: normalizedMember.memberId || "",
+          memberName: normalizedMember.memberName || "",
+          memberChannel: normalizedMember.memberChannel || "",
+          memberMobile: normalizeJoinMemberPhone(normalizedMember.memberMobile || normalizedMember.mobile || normalizedMember.phone || ""),
+          memberEmail: normalizedMember.memberEmail || ""
+        },
+        targetType: wishType,
+        targetKey,
+        targetScheduleId: wishType === "join_schedule" ? (item.scheduleId || item.joinId || "") : "",
+        targetApplicationId: item.sourceApplicationId || "",
+        erpProductId: item.goodSeq || item.productId || (wishType === "product" ? targetKey : ""),
+        erpEventSeq: item.eventSeq || "",
+        product: {
+          erpProductId: item.goodSeq || item.productId || (wishType === "product" ? targetKey : ""),
+          erpEventSeq: item.eventSeq || "",
+          productName: item.title || "",
+          departureDate: item.departureDate || "",
+          returnDate: item.returnDate || "",
+          category: item.category || "",
+          region: item.region || item.countryRegion || "",
+          imageUrl: item.image || "",
+          price: item.price || ""
+        },
+        productName: item.title || "",
+        departureDate: item.departureDate || "",
+        returnDate: item.returnDate || "",
+        region: item.region || item.countryRegion || "",
+        imageUrl: item.image || "",
+        price: item.price || "",
+        status
+      };
+    }
+
+    async function saveJoinWishToGoogleSheet(item = {}, status = "active") {
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return null;
+      const member = getJoinCachedCurrentMember();
+      if (!getJoinWishMemberKey(member)) return null;
+      return postGolfJoinSheetPayload(buildJoinWishSheetPayload(item, status, member), "Join wish");
+    }
+
     function addJoinWishProduct(join = {}) {
       const snapshot = createJoinWishProductSnapshot(join);
       const targetKey = getJoinWishTargetKey(snapshot);
       if (!targetKey) return false;
       const current = getJoinWishProducts().filter((item) => !(item.wishType === snapshot.wishType && getJoinWishTargetKey(item) === targetKey));
       saveJoinWishProducts([snapshot, ...current].slice(0, 50));
+      updateJoinWishRowsCache(snapshot, "active");
+      void saveJoinWishToGoogleSheet(snapshot, "active").catch((error) => {
+        console.warn("Failed to save wish to Google Sheet.", error);
+      });
       return true;
     }
 
     function removeJoinWishProduct(targetKey, wishType = "product") {
       const key = String(targetKey || "").trim();
       if (!key) return;
+      const removed = getJoinWishProducts().find((item) => item.wishType === wishType && getJoinWishTargetKey(item) === key) || {
+        wishType,
+        targetType: wishType,
+        targetKey: key
+      };
       saveJoinWishProducts(getJoinWishProducts().filter((item) => !(item.wishType === wishType && getJoinWishTargetKey(item) === key)));
+      updateJoinWishRowsCache(removed, "deleted");
+      void saveJoinWishToGoogleSheet(removed, "deleted").catch((error) => {
+        console.warn("Failed to remove wish from Google Sheet.", error);
+      });
       refreshDetailWishButtons();
       if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
         renderJoinMyWishMenu();
@@ -40206,6 +40506,46 @@
       `;
     }
 
+    async function hydrateJoinWishesFromGoogleSheet(options = {}) {
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return getJoinWishProducts();
+      const member = getJoinCachedCurrentMember();
+      if (!getJoinWishMemberKey(member)) return getJoinWishProducts();
+      if (googleSheetJoinWishesLoading && !options.force) return getJoinWishProducts();
+      googleSheetJoinWishesLoading = true;
+      googleSheetJoinWishesReadFailed = false;
+      try {
+        const params = {
+          sheet: "join_wishes",
+          source: "join_wish",
+          status: "active",
+          limit: "200"
+        };
+        const normalizedMember = getJoinMemberWithCachedProfile(member);
+        if (normalizedMember.memberSeq) {
+          params.memberSeq = normalizedMember.memberSeq;
+        } else if (normalizedMember.memberId) {
+          params.memberId = normalizedMember.memberId;
+        } else {
+          params.memberMobile = normalizeJoinMemberPhone(normalizedMember.memberMobile || normalizedMember.mobile || normalizedMember.phone || "");
+        }
+        const rows = await fetchGolfJoinSheetRows(params, "Join wishes");
+        const sheetItems = rows.map(normalizeJoinWishSheetRow).filter((item) => item.status !== "deleted");
+        const merged = mergeJoinWishProducts(getJoinWishProducts(), sheetItems);
+        saveJoinWishProducts(merged);
+        writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, rows);
+        googleSheetJoinWishesReadCompleted = true;
+        googleSheetJoinWishesReadFailed = false;
+        return merged;
+      } catch (error) {
+        googleSheetJoinWishesReadCompleted = true;
+        googleSheetJoinWishesReadFailed = true;
+        console.warn("Failed to load join wishes from Google Sheet.", error);
+        return getJoinWishProducts();
+      } finally {
+        googleSheetJoinWishesLoading = false;
+      }
+    }
+
     async function handleJoinMyWishClick() {
       const overlay = portalOverlayToBody("joinMyMenuModal");
       const body = document.getElementById("joinMyMenuBody");
@@ -40216,6 +40556,10 @@
       setJoinMobileBottomNavVisible(false);
       setWidgetModalOpen(true);
       renderJoinMyWishMenu();
+      await hydrateJoinWishesFromGoogleSheet();
+      if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+        renderJoinMyWishMenu();
+      }
     }
 
     function openJoinWishProduct(targetKey, wishType = "product") {
@@ -40229,14 +40573,14 @@
           return;
         }
         closeJoinMyMenu();
-        openDetail(join.id);
+        openDetail(join.id, { returnToJoinMy: { menu: "wish", tab: "wish-joins" } });
         return;
       }
       const wish = getJoinWishProducts().find((item) => item.wishType === "product" && getJoinWishTargetKey(item) === key) || {};
       const join = joins.find((item) => getJoinProductGoodSeq(item) === key || String(item.goodSeq || "") === key);
       if (join) {
         closeJoinMyMenu();
-        openDetail(join.id);
+        openDetail(join.id, { returnToJoinMy: { menu: "wish", tab: "wish-products" } });
         return;
       }
       const params = new URLSearchParams({ goodSeq: key });
@@ -40501,6 +40845,24 @@
       } catch (error) {
         console.warn("Failed to save join review", error);
       }
+    }
+
+    function pruneJoinMyReviewStoreByServerReviews(serverReviews = []) {
+      const serverReviewIds = new Set(serverReviews.map((review) => String(review.reviewId || "").trim()).filter(Boolean));
+      if (!serverReviewIds.size) {
+        writeJoinMyReviewStore({});
+        return;
+      }
+      const store = readJoinMyReviewStore();
+      let changed = false;
+      Object.entries(store).forEach(([key, payload]) => {
+        const reviewId = String(payload?.reviewId || "").trim();
+        if (reviewId && !serverReviewIds.has(reviewId)) {
+          delete store[key];
+          changed = true;
+        }
+      });
+      if (changed) writeJoinMyReviewStore(store);
     }
 
     function getJoinMySubmittedReview(joinId = "", title = "") {
@@ -42440,7 +42802,7 @@
       joinProfileManageSelectedFile = null;
       const fields = {
         joinProfileManageName: member.memberName || member.name || "",
-        joinProfileManageMobile: member.memberMobile || member.mobile || "",
+        joinProfileManageMobile: normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || ""),
         joinProfileManageEmail: member.memberEmail || member.email || "",
         joinProfileManageBirthYear: getJoinMemberBirthYear(member),
         joinProfileManageGender: member.gender || "",
@@ -42936,7 +43298,10 @@
       };
     }
 
-    function handleJoinMyReviewWrite(joinId = "", title = "", summary = {}) {
+    async function handleJoinMyReviewWrite(joinId = "", title = "", summary = {}) {
+      openJoinActionLoading("", { minVisibleMs: 500 });
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      try {
       const overlay = ensureJoinMyReviewModal();
       const reviewJoin = findJoinForReview(joinId, title) || { id: joinId, title };
       const existing = getJoinMySubmittedReview(joinId, title) || getJoinMySubmittedReviewForProduct(reviewJoin);
@@ -42970,6 +43335,9 @@
         const body = document.querySelector("#joinMyReviewModal .join-review-body");
         if (body) body.scrollTop = 0;
       });
+      } finally {
+        await closeJoinActionLoading();
+      }
     }
 
     function closeJoinMyReviewModal() {
@@ -43089,6 +43457,21 @@
       document.querySelectorAll("#joinMyMenuModal .join-my-section").forEach((section) => {
         section.hidden = section.dataset.joinMySection !== tabKey;
       });
+    }
+
+    function restoreJoinMyMenuAfterDetail(context = {}) {
+      const menu = String(context.menu || "").trim();
+      const tab = String(context.tab || "").trim();
+      if (menu === "wish") {
+        void handleJoinMyWishClick();
+      } else if (menu === "recent") {
+        openJoinMyRecentMenu();
+      } else {
+        return;
+      }
+      if (tab) {
+        requestAnimationFrame(() => switchJoinMyTab(tab));
+      }
     }
 
     function renderJoinMyMenu(member) {
@@ -47867,7 +48250,10 @@
           limit: "200"
         }, "Join reviews");
         writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY, rows);
-        rows.map(normalizeJoinReviewPayload).forEach((payload) => rememberJoinReviewPayload(payload));
+        const normalizedRows = rows.map(normalizeJoinReviewPayload);
+        pruneJoinMyReviewStoreByServerReviews(normalizedRows);
+        joinReviewPayloadMemory.clear();
+        normalizedRows.forEach((payload) => rememberJoinReviewPayload(payload));
         renderJoins();
         if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinData) {
           renderDetailContent(currentDetailJoinData);
@@ -48632,6 +49018,7 @@
 
     function closeModal(id) {
       const modal = document.getElementById(id);
+      const detailReturnContext = id === "detailModal" ? currentDetailReturnContext : null;
       resetModalRuntimeState(modal);
       modal?.classList.remove("open");
       if ((id === "detailModal" || id === "builderModal") && !document.getElementById("detailModal")?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open") && !document.getElementById("regionSearchModal")?.classList.contains("open")) {
@@ -48641,6 +49028,7 @@
         closeDetailApply();
         currentDetailMode = "normal";
         currentDetailJoinData = null;
+        currentDetailReturnContext = null;
         document.getElementById("detailModal")?.classList.remove("builder-select-mode", "builder-product-detail-mode", "mdpick-recruit-mode", "my-reservation-view-mode");
         const primary = document.getElementById("detailPrimaryButton");
         if (primary) {
@@ -48655,6 +49043,9 @@
         resetBuilderApplyForm();
       }
       resumeQuickMobileCarouselIfIdle();
+      if (detailReturnContext) {
+        restoreJoinMyMenuAfterDetail(detailReturnContext);
+      }
     }
 
     function openMdPickRegionSearchModal(event) {
@@ -55464,6 +55855,11 @@
     }
 
     async function handleDetailWish() {
+      const member = getJoinCachedCurrentMember();
+      if (!getJoinWishMemberKey(member)) {
+        redirectToJoinLogin("my-menu");
+        return;
+      }
       const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
       const wishType = getJoinWishType(join);
       const goodSeq = getJoinProductGoodSeq(join);
@@ -55715,6 +56111,7 @@
       currentDetailMode = "normal";
       currentDetailJoinId = id;
       currentDetailJoinData = join;
+      currentDetailReturnContext = options.returnToJoinMy || null;
       addJoinRecentViewedItem(join, "join_schedule");
       currentDetailSlideIndex = 0;
       stopDetailReviewAutoSlide();
@@ -56411,6 +56808,12 @@
       hydrateJoinApplicationsFromLocalCache();
       hydrateJoinReviewsFromLocalCache();
       hydrateOverseasJoinsWithSecretProducts();
+      hydrateJoinWishesFromGoogleSheet().then(() => {
+        refreshDetailWishButtons();
+        if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+          renderJoinMyWishMenu();
+        }
+      });
       homeInitialExternalProductsLoading = true;
       renderHomeInitialLoading();
       try {
@@ -57240,7 +57643,7 @@
     </div>
   </div>
 <div class="join-action-loading-overlay sgj-portal-overlay" id="joinActionLoadingOverlay" aria-hidden="true" style="z-index: 2147483647 !important;">
-    <div class="join-action-loading-box" role="status" aria-live="polite" aria-label="처리 중" style="z-index: 2147483647 !important;">
+    <div class="join-action-loading-box" role="status" aria-live="polite" aria-label="loading" style="z-index: 2147483647 !important;">
       <div class="join-action-loading-icon" id="joinActionLoadingIcon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tickets-plane-icon lucide-tickets-plane"><path d="M10.5 17h1.227a2 2 0 0 0 1.345-.52L18 12"></path><path d="m12 13.5 3.794.506"></path><path d="m3.173 8.18 11-5a2 2 0 0 1 2.647.993L18.56 8"></path><path d="M6 10V8"></path><path d="M6 14v1"></path><path d="M6 19v2"></path><rect x="2" y="8" width="20" height="13" rx="2"></rect></svg></div>
       <div class="join-action-loading-message" id="joinActionLoadingMessage"></div>
     </div>

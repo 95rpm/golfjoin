@@ -3,6 +3,7 @@ const SHEET_NAMES = {
   JOIN_APPLICATIONS: "join_applications",
   JOIN_MEMBER_PROFILES: "join_member_profiles",
   JOIN_REVIEWS: "join_reviews",
+  JOIN_WISHES: "join_wishes",
   SCHEDULE_PARTICIPANT_SUMMARY: "schedule_participant_summary",
   PRODUCT_DISPLAY_RULES: "product_display_rules"
 };
@@ -148,6 +149,34 @@ const SHEET_HEADERS = {
     "adminMemo",
     "updatedAt"
   ],
+  [SHEET_NAMES.JOIN_WISHES]: [
+    "wishId",
+    "createdAt",
+    "source",
+    "pageUrl",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberChannel",
+    "memberMobile",
+    "memberEmail",
+    "targetType",
+    "targetKey",
+    "targetScheduleId",
+    "targetApplicationId",
+    "erpProductId",
+    "erpEventSeq",
+    "productName",
+    "departureDate",
+    "returnDate",
+    "category",
+    "region",
+    "imageUrl",
+    "price",
+    "status",
+    "adminMemo",
+    "updatedAt"
+  ],
   [SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY]: [
     "scheduleId",
     "sourceApplicationId",
@@ -194,6 +223,13 @@ const SHEET_HEADERS = {
   ]
 };
 
+const TEXT_FORMAT_HEADERS = [
+  "memberMobile",
+  "applicantMobile",
+  "creatorPhone",
+  "participantPhones"
+];
+
 function doPost(e) {
   const payload = JSON.parse((e && e.postData && e.postData.contents) || "{}");
   setupGolfJoinSheets();
@@ -205,7 +241,9 @@ function doPost(e) {
       ? SHEET_NAMES.JOIN_MEMBER_PROFILES
       : source === "join_review"
         ? SHEET_NAMES.JOIN_REVIEWS
-        : SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS;
+        : source === "join_wish"
+          ? SHEET_NAMES.JOIN_WISHES
+          : SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS;
   const headers = SHEET_HEADERS[sheetName];
   const row = headers.map(function (header) {
     return getPayloadColumnValue_(payload, header, sheetName);
@@ -326,6 +364,7 @@ function ensureSheetHeaders_(sheetName, headers) {
 
   if (lastRow === 0) {
     sheet.appendRow(headers);
+    applyTextColumnFormats_(sheet, headers);
     return sheet;
   }
 
@@ -333,20 +372,33 @@ function ensureSheetHeaders_(sheetName, headers) {
   const matches = headers.every(function (header, index) {
     return currentHeaders[index] === header;
   });
-  if (matches) return sheet;
+  if (matches) {
+    applyTextColumnFormats_(sheet, headers);
+    return sheet;
+  }
 
   if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS) {
     migrateSheetToHeaders_(sheet, headers, mapLegacyNewScheduleRow_);
   } else {
     migrateSheetToHeaders_(sheet, headers, mapLegacyGenericRow_);
   }
+  applyTextColumnFormats_(sheet, headers);
   return sheet;
+}
+
+function applyTextColumnFormats_(sheet, headers) {
+  TEXT_FORMAT_HEADERS.forEach(function (header) {
+    const columnIndex = headers.indexOf(header);
+    if (columnIndex === -1) return;
+    sheet.getRange(1, columnIndex + 1, sheet.getMaxRows(), 1).setNumberFormat("@");
+  });
 }
 
 function migrateSheetToHeaders_(sheet, headers, mapper) {
   const values = sheet.getDataRange().getValues();
   if (!values.length) {
     sheet.appendRow(headers);
+    applyTextColumnFormats_(sheet, headers);
     return;
   }
 
@@ -440,6 +492,9 @@ function getPayloadColumnValue_(payload, header, sheetName) {
   }
   if (sheetName === SHEET_NAMES.JOIN_REVIEWS) {
     return getJoinReviewValue_(payload, header);
+  }
+  if (sheetName === SHEET_NAMES.JOIN_WISHES) {
+    return getJoinWishValue_(payload, header);
   }
   return getNewScheduleApplicationValue_(payload, header);
 }
@@ -604,6 +659,42 @@ function getJoinReviewValue_(payload, header) {
     thumbnailUrl: payload.thumbnailUrl || value_(payload, "review.thumbnailUrl"),
     imagesJson: payload.imagesJson || stringifyJsonArray_(value_(payload, "review.images")),
     status: payload.status || "visible",
+    adminMemo: payload.adminMemo || "",
+    updatedAt: new Date().toISOString()
+  };
+  return values[header] !== undefined ? values[header] : "";
+}
+
+function getJoinWishValue_(payload, header) {
+  const createdAt = payload.createdAt || payload.savedAt || new Date().toISOString();
+  const targetType = payload.targetType || value_(payload, "target.type") || "product";
+  const targetKey = payload.targetKey || value_(payload, "target.targetKey") || value_(payload, "target.key") || value_(payload, "product.erpProductId") || value_(payload, "product.productId") || payload.erpProductId || payload.goodSeq || "";
+  const wishId = payload.wishId || buildId_("jw", value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberMobile"), targetType, targetKey);
+  const values = {
+    wishId: wishId,
+    createdAt: createdAt,
+    source: payload.source || "join_wish",
+    pageUrl: payload.pageUrl || "",
+    memberSeq: value_(payload, "member.memberSeq"),
+    memberId: value_(payload, "member.memberId"),
+    memberName: value_(payload, "member.memberName"),
+    memberChannel: value_(payload, "member.memberChannel"),
+    memberMobile: value_(payload, "member.memberMobile"),
+    memberEmail: value_(payload, "member.memberEmail"),
+    targetType: targetType,
+    targetKey: targetKey,
+    targetScheduleId: payload.targetScheduleId || value_(payload, "target.scheduleId"),
+    targetApplicationId: payload.targetApplicationId || value_(payload, "target.applicationId"),
+    erpProductId: payload.erpProductId || value_(payload, "product.erpProductId") || value_(payload, "product.productId"),
+    erpEventSeq: payload.erpEventSeq || value_(payload, "product.erpEventSeq") || value_(payload, "product.eventSeq"),
+    productName: value_(payload, "product.productName") || payload.productName,
+    departureDate: value_(payload, "product.departureDate") || payload.departureDate,
+    returnDate: value_(payload, "product.returnDate") || payload.returnDate,
+    category: value_(payload, "product.category") || payload.category,
+    region: value_(payload, "product.region") || payload.region,
+    imageUrl: value_(payload, "product.imageUrl") || payload.imageUrl,
+    price: value_(payload, "product.price") || payload.price,
+    status: payload.status || "active",
     adminMemo: payload.adminMemo || "",
     updatedAt: new Date().toISOString()
   };
@@ -800,6 +891,9 @@ function resolveReadSheetName_(value) {
     join_review: SHEET_NAMES.JOIN_REVIEWS,
     join_reviews: SHEET_NAMES.JOIN_REVIEWS,
     reviews: SHEET_NAMES.JOIN_REVIEWS,
+    join_wish: SHEET_NAMES.JOIN_WISHES,
+    join_wishes: SHEET_NAMES.JOIN_WISHES,
+    wishes: SHEET_NAMES.JOIN_WISHES,
     schedule_participant_summary: SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY,
     summary: SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY,
     product_display_rules: SHEET_NAMES.PRODUCT_DISPLAY_RULES,
@@ -882,19 +976,24 @@ function filterRowsForRequest_(rows, params) {
 }
 
 function normalizePhone_(value) {
-  return String(value || "").replace(/\D/g, "");
+  const digits = String(value || "").replace(/\D/g, "");
+  if (/^1[016789]\d{8}$/.test(digits)) return `0${digits}`;
+  return digits;
 }
 
 function normalizeRowForJson_(row) {
   return Object.keys(row).reduce(function (object, key) {
-    object[key] = normalizeCellForJson_(row[key]);
+    object[key] = normalizeCellForJson_(row[key], key);
     return object;
   }, {});
 }
 
-function normalizeCellForJson_(value) {
+function normalizeCellForJson_(value, key) {
   if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
     return value.toISOString();
+  }
+  if (["memberMobile", "applicantMobile", "creatorPhone"].indexOf(key) !== -1) {
+    return normalizePhone_(value);
   }
   return value;
 }

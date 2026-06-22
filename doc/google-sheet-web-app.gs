@@ -212,8 +212,9 @@ function doPost(e) {
   });
 
   LockService.getScriptLock().waitLock(30000);
+  let writeResult = { action: "append" };
   try {
-    getOrCreateSheet_(sheetName).appendRow(row);
+    writeResult = writeSheetRow_(sheetName, headers, row, payload);
     if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS || value_(payload, "targetType") === "new_schedule") {
       refreshScheduleParticipantSummary_();
     }
@@ -222,7 +223,7 @@ function doPost(e) {
   }
 
   return ContentService
-    .createTextOutput(JSON.stringify({ ok: true, sheet: sheetName }))
+    .createTextOutput(JSON.stringify({ ok: true, sheet: sheetName, write: writeResult.action, row: writeResult.row }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -274,6 +275,48 @@ function setupGolfJoinSheets() {
 function getOrCreateSheet_(sheetName) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   return spreadsheet.getSheetByName(sheetName) || spreadsheet.insertSheet(sheetName);
+}
+
+function writeSheetRow_(sheetName, headers, row, payload) {
+  const sheet = getOrCreateSheet_(sheetName);
+  if (String(payload.action || "").toLowerCase() !== "upsert") {
+    sheet.appendRow(row);
+    return { action: "append", row: sheet.getLastRow() };
+  }
+
+  const keyField = String(payload.keyField || "").trim();
+  const keyValue = String(payload.keyValue || "").trim();
+  const keyIndex = headers.indexOf(keyField);
+  if (!keyField || !keyValue || keyIndex === -1) {
+    sheet.appendRow(row);
+    return { action: "append", row: sheet.getLastRow(), reason: "missing_upsert_key" };
+  }
+
+  const existingRowNumber = findSheetRowByKey_(sheet, keyIndex + 1, keyValue);
+  if (!existingRowNumber) {
+    sheet.appendRow(row);
+    return { action: "insert", row: sheet.getLastRow() };
+  }
+
+  const createdAtIndex = headers.indexOf("createdAt");
+  if (createdAtIndex !== -1) {
+    const existingCreatedAt = sheet.getRange(existingRowNumber, createdAtIndex + 1).getValue();
+    if (existingCreatedAt) row[createdAtIndex] = existingCreatedAt;
+  }
+  sheet.getRange(existingRowNumber, 1, 1, headers.length).setValues([row]);
+  return { action: "update", row: existingRowNumber };
+}
+
+function findSheetRowByKey_(sheet, keyColumn, keyValue) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  const values = sheet.getRange(2, keyColumn, lastRow - 1, 1).getValues();
+  for (let index = 0; index < values.length; index += 1) {
+    if (String(values[index][0] || "").trim() === keyValue) {
+      return index + 2;
+    }
+  }
+  return 0;
 }
 
 function ensureSheetHeaders_(sheetName, headers) {

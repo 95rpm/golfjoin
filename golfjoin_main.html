@@ -39205,7 +39205,7 @@
       joinMyMenuState.loginRedirecting = true;
       setJoinMemberLoginStatus("아이디를 확인하고 있습니다.");
       try {
-        const result = await postJoinMemberForm("https://www.secret-tour.com/member/getMemberFindId.json", {
+        const result = await postJoinMemberForm("/member/getMemberFindId.json", {
           email,
           custNm,
           mobile1: mobileParts.mobile1,
@@ -39252,7 +39252,7 @@
       joinMyMenuState.loginRedirecting = true;
       setJoinMemberLoginStatus("비밀번호 재설정 정보를 확인하고 있습니다.");
       try {
-        const result = await postJoinMemberForm("https://www.secret-tour.com/member/getMemberFindPw.json", {
+        const result = await postJoinMemberForm("/member/getMemberFindPw.json", {
           custId,
           custNm,
           mobile1: mobileParts.mobile1,
@@ -39298,7 +39298,7 @@
       joinMyMenuState.loginRedirecting = true;
       setJoinMemberLoginStatus("비밀번호를 변경하고 있습니다.");
       try {
-        const result = await postJoinMemberForm("https://www.secret-tour.com/member/updateMemberPw.json", {
+        const result = await postJoinMemberForm("/member/updateMemberPw.json", {
           custSeq: token.custSeq,
           custId: token.custId,
           custPw: window.$.crypto.encrypt(password)

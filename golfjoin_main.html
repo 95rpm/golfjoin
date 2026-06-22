@@ -295,6 +295,15 @@
       z-index: 1000 !important;
     }
 
+    html.modal-open .join-mobile-bottom-nav,
+    body.modal-open .join-mobile-bottom-nav,
+    #secret-golf-join.modal-open .join-mobile-bottom-nav {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transform: translate(-50%, calc(100% + 80px)) !important;
+    }
+
     #secret-golf-join,
     #secret-golf-join * {
       box-sizing: border-box;
@@ -7561,6 +7570,16 @@
         z-index: 40;
         grid-template-columns: 104px 1fr;
         padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+      }
+      .builder-bottom::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 120px;
+        background: #fff;
+        pointer-events: none;
       }
       .builder-bottom .button {
         min-height: 52px;
@@ -14976,9 +14995,27 @@
     }
     @media (max-width: 640px) {
       #detailModal.mdpick-recruit-mode .detail-modal-actions,
-      body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions {
+      #detailModal.builder-product-detail-mode .detail-modal-actions,
+      body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions,
+      body > #detailModal.sgj-portal-overlay.builder-product-detail-mode .detail-modal-actions {
+        position: relative;
         display: grid !important;
         grid-template-columns: minmax(0, .72fr) minmax(0, 1fr) !important;
+        overflow: visible;
+      }
+
+      #detailModal.mdpick-recruit-mode .detail-modal-actions::after,
+      #detailModal.builder-product-detail-mode .detail-modal-actions::after,
+      body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions::after,
+      body > #detailModal.sgj-portal-overlay.builder-product-detail-mode .detail-modal-actions::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 120px;
+        background: #fff;
+        pointer-events: none;
       }
       #detailModal.mdpick-recruit-mode .detail-modal-actions .detail-contact-button,
       body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions .detail-contact-button {
@@ -16070,11 +16107,11 @@
         line-height: 1;
       }
       .sgj-page .join-section-nav.is-fixed .chip[data-join-section-target="overseas"] {
-        flex: 0 0 88px !important;
-        flex-basis: 88px !important;
-        width: 88px !important;
-        min-width: 88px !important;
-        max-width: 88px !important;
+        flex: 0 0 94px !important;
+        flex-basis: 94px !important;
+        width: 94px !important;
+        min-width: 94px !important;
+        max-width: 94px !important;
       }
       .sgj-page .join-section-nav.is-fixed .join-section-nav-icon {
         display: flex;
@@ -16087,7 +16124,9 @@
       }
       .sgj-page .join-section-nav.is-fixed .join-section-nav-label {
         width: 100%;
+        overflow: visible;
         text-align: center;
+        text-overflow: clip;
         font-size: 15px !important;
         opacity: 1;
         transform: translateX(0);
@@ -16280,8 +16319,8 @@
       body > #builderModal.sgj-portal-overlay .builder-modal {
         width: 100vw;
         max-width: none;
-        height: 100dvh;
-        max-height: 100dvh;
+        height: var(--join-mobile-modal-height, 100dvh);
+        max-height: none;
         border-radius: 0;
       }
       #detailModal.open,
@@ -20226,6 +20265,11 @@
       color: #0e60e8;
     }
 
+    .join-my-card-schedule-badge.joined {
+      background: #eef5ff;
+      color: #0e60e8;
+    }
+
     .join-my-card-meta {
       margin-top: 5px;
       color: #373A3C;
@@ -20345,6 +20389,10 @@
       display: block;
     }
 
+    .join-my-card-detail-row.participants .join-my-card-detail-icon {
+      color: #373A3C;
+    }
+
     .join-my-card-detail-icon {
       width: 34px;
       height: 34px;
@@ -20434,10 +20482,16 @@
       color: #fff;
       border: 1px solid #fff;
       box-shadow: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       line-height: 1;
+      white-space: nowrap;
       z-index: 2;
+    }
+
+    .join-my-card-participant-me-badge.host {
+      min-width: 50px;
+      background: #f97316;
     }
 
     .join-my-card-participants .team-couple-wrap {
@@ -20502,7 +20556,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      color: #0e60e8;
+      color: #373A3C;
     }
 
     .join-my-participant-panel-icon svg {
@@ -20712,6 +20766,7 @@
     .join-my-card.is-accordion-collapsed .join-my-card-detail-list,
     .join-my-card.is-accordion-collapsed .join-my-card-info,
     .join-my-card.is-accordion-collapsed .join-my-card-actions,
+    .join-my-card.is-accordion-collapsed .join-my-review-box,
     .join-my-card.is-accordion-collapsed .join-my-card-expanded {
       display: none;
     }
@@ -20801,6 +20856,105 @@
       border-color: var(--modal-bottom-primary-color);
       background: var(--modal-bottom-primary-color);
       color: #fff;
+    }
+
+    .join-my-review-box {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid #e7edf5;
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .join-my-review-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .join-my-review-title {
+      color: #373A3C;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .join-my-review-meta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #6b7280;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .join-my-review-date {
+      color: #979797;
+      font-size: 12px;
+    }
+
+    .join-my-review-stars {
+      color: #ffbf00;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .join-my-review-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .join-my-review-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #dbe6f3;
+      color: #495056;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .join-my-review-text {
+      color: #495056;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+
+    .join-my-review-photos {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .join-my-review-photos::-webkit-scrollbar {
+      display: none;
+    }
+
+    .join-my-review-photo {
+      width: 64px;
+      height: 64px;
+      flex: 0 0 64px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: #e2e8f0;
     }
 
     .join-my-empty {
@@ -21710,6 +21864,27 @@
 
       .join-my-card-actions button {
         flex: 1 1 auto;
+      }
+
+      .join-my-review-box {
+        gap: 9px;
+        padding: 12px;
+      }
+
+      .join-my-review-title,
+      .join-my-review-meta,
+      .join-my-review-stars {
+        font-size: 15px;
+      }
+
+      .join-my-review-text {
+        font-size: 14px;
+      }
+
+      .join-my-review-photo {
+        width: 58px;
+        height: 58px;
+        flex-basis: 58px;
       }
 
       #joinMyReviewModal {
@@ -23287,6 +23462,55 @@
       }
     }
 
+    @media (max-width: 640px) {
+      body > .sgj-portal-overlay,
+      body > .sgj-portal-overlay.overlay,
+      body > .sgj-portal-overlay.calendar-sheet-overlay,
+      body > .sgj-portal-overlay.global-apply-overlay,
+      body > .participant-floating.sgj-portal-overlay {
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: auto !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        max-height: none !important;
+        background: #fff;
+      }
+
+      body > .sgj-portal-overlay.open::before,
+      body > .sgj-portal-overlay.overlay.open::before,
+      body > .sgj-portal-overlay.calendar-sheet-overlay.open::before,
+      body > .sgj-portal-overlay.global-apply-overlay.open::before,
+      body > .participant-floating.sgj-portal-overlay.open::before {
+        content: "";
+        position: fixed;
+        top: -2px;
+        right: 0;
+        bottom: -120px;
+        left: 0;
+        z-index: 0;
+        background: #fff;
+        pointer-events: none;
+      }
+
+      body > .sgj-portal-overlay .modal,
+      body > .sgj-portal-overlay .calendar-sheet,
+      body > .sgj-portal-overlay .builder-modal,
+      body > .sgj-portal-overlay .detail-modal,
+      body > .sgj-portal-overlay .detail-apply-panel,
+      body > .sgj-portal-overlay .join-my-modal,
+      body > .sgj-portal-overlay .join-review-modal,
+      body > .participant-floating.sgj-portal-overlay .participant-popover {
+        position: relative;
+        z-index: 1;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        max-height: none !important;
+      }
+    }
+
     @media (min-width: 641px) {
       .modal-header,
       .calendar-sheet-header,
@@ -23410,6 +23634,16 @@
         justify-content: flex-start !important;
         padding-left: 0 !important;
         padding-right: 0 !important;
+        color: #373A3C !important;
+      }
+
+      .modal-header .modal-back-icon > svg,
+      .calendar-sheet-header .modal-back-icon > svg,
+      .builder-header .modal-back-icon > svg,
+      .region-search-header .region-search-back > svg,
+      .join-member-login-header .join-member-login-back > svg {
+        color: #373A3C !important;
+        stroke: currentColor !important;
       }
 
       .join-member-login-header .join-member-login-back {
@@ -23672,7 +23906,7 @@
         <button type="button" class="chip" data-join-section-target="quick" onclick="scrollHomeJoinSection('quick')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav2.png" alt=""></div><div class="join-section-nav-label">마감임박</div></button>
         <button type="button" class="chip" data-join-section-target="soon" onclick="scrollHomeJoinSection('soon')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav3.png" alt=""></div><div class="join-section-nav-label">곧출발</div></button>
         <button type="button" class="chip" data-join-section-target="custom" onclick="scrollHomeJoinSection('custom')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav4.png" alt=""></div><div class="join-section-nav-label">맞춤조인</div></button>
-        <button type="button" class="chip" data-join-section-target="overseas" data-compact-label="해외골프" onclick="scrollHomeJoinSection('overseas')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav5.png" alt=""></div><div class="join-section-nav-label" data-compact-label="해외골프">해외BEST</div></button>
+        <button type="button" class="chip" data-join-section-target="overseas" onclick="scrollHomeJoinSection('overseas')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav5.png" alt=""></div><div class="join-section-nav-label">해외BEST</div></button>
       </div>
 
       </div>
@@ -33892,7 +34126,7 @@
               <label class="join-member-email-field" for="joinMemberLoginId" id="joinMemberLoginIdField">
                 <div class="join-member-email-label">아이디*</div>
                 <div class="join-member-email-input-wrap">
-                  <input type="text" id="joinMemberLoginId" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberLoginIdField', 'joinMemberLoginIdHelper', '')" onblur="validateJoinMemberEmailField(false)">
+                  <input type="text" id="joinMemberLoginId" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" autocapitalize="none" spellcheck="false" oninput="normalizeJoinMemberLoginIdInput(this); setJoinMemberFieldInvalid('joinMemberLoginIdField', 'joinMemberLoginIdHelper', '')" onblur="normalizeJoinMemberLoginIdInput(this); validateJoinMemberEmailField(false)">
                 </div>
                 <div class="join-member-email-helper" id="joinMemberLoginIdHelper" aria-live="polite"></div>
               </label>
@@ -35494,7 +35728,7 @@
 
   <script src="web/golf-join-products-data.js"></script>
   <script>
-    const GOOGLE_SHEET_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwYXBg5VNq77SSg_qTxC1bJp_CLvweOYYQ3LxbdP6A_jVMwJ9ISGO7EbFy-rNB-JIo2/exec";
+    const GOLFJOIN_SHEET_API_ENDPOINT = window.GOLFJOIN_SHEET_API_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
 
     const BADGE_IMAGES = {
       justgo: "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/badge_justgo.png",
@@ -36830,6 +37064,7 @@
       document.documentElement.classList.toggle("modal-open", isOpen);
       document.body.classList.toggle("modal-open", isOpen);
       document.getElementById("secret-golf-join")?.classList.toggle("modal-open", isOpen);
+      if (isOpen) setJoinMobileBottomNavVisible(false, { force: true });
     }
 
     function isJoinActionLoadingOpen() {
@@ -37350,6 +37585,28 @@
       }
     }
 
+    async function continueWithExistingKakaoProfileIfReady(kakaoResponse = {}) {
+      const kakaoId = String(kakaoResponse?.id || "").trim();
+      if (!kakaoId) return false;
+      const member = {
+        memberSeq: "",
+        memberId: kakaoId,
+        memberName: kakaoResponse?.kakao_account?.name || kakaoResponse?.properties?.nickname || "",
+        memberChannel: "KAKAO",
+        memberMobile: "",
+        memberEmail: kakaoResponse?.kakao_account?.email || "",
+        kakaoId,
+        kakaoNickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || ""
+      };
+      const profile = await fetchJoinMemberProfileFromGoogleSheet(member);
+      const mergedMember = mergeJoinMemberWithProfile(member, profile);
+      if (!isJoinMemberProfileComplete(mergedMember)) return false;
+      rememberJoinMemberProfileLocally(member, profile);
+      clearJoinPendingKakaoProfile();
+      finishJoinMemberSignupAndContinue(mergedMember, profile);
+      return true;
+    }
+
     async function submitJoinMemberKakaoLogin() {
       if (joinMyMenuState.loginRedirecting) return;
       joinMyMenuState.loginRedirecting = true;
@@ -37379,23 +37636,46 @@
                     location.href = getJoinLoginRedirectTarget();
                     return;
                   }
-                  markPendingJoinKakaoProfile(res, authObj);
-                  openJoinMemberKakaoProfileForm({
-                    memberName: res?.kakao_account?.name || "",
-                    memberEmail: res?.kakao_account?.email || "",
-                    memberChannel: "KAKAO"
-                  });
-                }).catch((error) => {
-                  joinMyMenuState.loginRedirecting = false;
-                  console.warn("Kakao external login failed.", error);
-                  if (isJoinLocalDevHost()) {
+                  continueWithExistingKakaoProfileIfReady(res).then((continued) => {
+                    if (continued) return;
                     markPendingJoinKakaoProfile(res, authObj);
                     openJoinMemberKakaoProfileForm({
                       memberName: res?.kakao_account?.name || "",
                       memberEmail: res?.kakao_account?.email || "",
                       memberChannel: "KAKAO"
                     });
-                    setJoinMemberLoginStatus("");
+                  }).catch((profileError) => {
+                    console.warn("Existing Kakao profile lookup failed.", profileError);
+                    markPendingJoinKakaoProfile(res, authObj);
+                    openJoinMemberKakaoProfileForm({
+                      memberName: res?.kakao_account?.name || "",
+                      memberEmail: res?.kakao_account?.email || "",
+                      memberChannel: "KAKAO"
+                    });
+                  });
+                }).catch((error) => {
+                  joinMyMenuState.loginRedirecting = false;
+                  console.warn("Kakao external login failed.", error);
+                  if (isJoinLocalDevHost()) {
+                    continueWithExistingKakaoProfileIfReady(res).then((continued) => {
+                      if (continued) return;
+                      markPendingJoinKakaoProfile(res, authObj);
+                      openJoinMemberKakaoProfileForm({
+                        memberName: res?.kakao_account?.name || "",
+                        memberEmail: res?.kakao_account?.email || "",
+                        memberChannel: "KAKAO"
+                      });
+                      setJoinMemberLoginStatus("");
+                    }).catch((profileError) => {
+                      console.warn("Existing Kakao profile lookup failed.", profileError);
+                      markPendingJoinKakaoProfile(res, authObj);
+                      openJoinMemberKakaoProfileForm({
+                        memberName: res?.kakao_account?.name || "",
+                        memberEmail: res?.kakao_account?.email || "",
+                        memberChannel: "KAKAO"
+                      });
+                      setJoinMemberLoginStatus("");
+                    });
                     return;
                   }
                   setJoinMemberLoginStatus("카카오 로그인 처리 중 오류가 발생했습니다.");
@@ -37668,7 +37948,7 @@
     }
 
     function validateJoinMemberEmailField(force = false) {
-      const value = document.getElementById("joinMemberLoginId")?.value.trim() || "";
+      const value = normalizeJoinMemberLoginIdInput(document.getElementById("joinMemberLoginId")).trim();
       const isValid = value.length >= 2;
       const message = value
         ? (isValid ? "" : "아이디를 입력해 주세요.")
@@ -37711,6 +37991,13 @@
     function normalizeJoinMemberSignupIdInput(input) {
       if (!input) return "";
       const normalized = String(input.value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (input.value !== normalized) input.value = normalized;
+      return normalized;
+    }
+
+    function normalizeJoinMemberLoginIdInput(input) {
+      if (!input) return "";
+      const normalized = String(input.value || "").toLowerCase();
       if (input.value !== normalized) input.value = normalized;
       return normalized;
     }
@@ -38429,27 +38716,25 @@
     }
 
     async function fetchJoinMemberProfileFromGoogleSheet(member = {}) {
-      if (!GOOGLE_SHEET_WEB_APP_URL) return {};
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return {};
       const memberSeq = String(member.memberSeq || "").trim();
       const memberId = String(member.memberId || "").trim();
       const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
       if (!memberSeq && !memberId && !memberMobile) return {};
       try {
-        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
-        url.searchParams.set("sheet", "join_member_profiles");
-        url.searchParams.set("source", "join_member_profile");
-        url.searchParams.set("limit", "1");
+        const params = {
+          sheet: "join_member_profiles",
+          source: "join_member_profile",
+          limit: "1"
+        };
         if (memberSeq) {
-          url.searchParams.set("memberSeq", memberSeq);
+          params.memberSeq = memberSeq;
         } else if (memberId) {
-          url.searchParams.set("memberId", memberId);
+          params.memberId = memberId;
         } else {
-          url.searchParams.set("memberMobile", memberMobile);
+          params.memberMobile = memberMobile;
         }
-        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
-        if (!response.ok) throw new Error(`Member profile load failed: ${response.status}`);
-        const data = await response.json();
-        const rows = Array.isArray(data) ? data : (data.items || data.rows || []);
+        const rows = await fetchGolfJoinSheetRows(params, "Member profile");
         const profile = normalizeJoinMemberProfileRow(rows[0] || {});
         if (profile.gender || profile.birthYear || profile.profession || profile.level || profile.travelStyles || profile.profileImageUrl || profile.profileThumbnailUrl) {
           rememberJoinMemberProfileLocally(member, profile);
@@ -38479,6 +38764,19 @@
         profileImageMimeType: profile.profileImageMimeType || member.profileImageMimeType || "",
         profileImageSize: profile.profileImageSize || member.profileImageSize || ""
       };
+    }
+
+    function getJoinMemberWithCachedProfile(member = {}) {
+      if (!member) return member;
+      return mergeJoinMemberWithProfile(member, getRememberedJoinMemberProfile(member));
+    }
+
+    function preloadJoinProfileImage(member = {}) {
+      const imageUrl = member.profileThumbnailUrl || member.profileImageUrl || "";
+      if (!imageUrl || typeof Image === "undefined") return;
+      const image = new Image();
+      image.decoding = "async";
+      image.src = imageUrl;
     }
 
     function stripJoinMemberProfileFields(member = {}) {
@@ -39303,7 +39601,7 @@
 
     function submitJoinMemberEmailLogin() {
       if (joinMyMenuState.loginRedirecting) return;
-      const custId = document.getElementById("joinMemberLoginId")?.value.trim() || "";
+      const custId = normalizeJoinMemberLoginIdInput(document.getElementById("joinMemberLoginId")).trim();
       const custPwPlain = document.getElementById("joinMemberLoginPassword")?.value || "";
       const isEmailValid = validateJoinMemberEmailField(true);
       if (!isEmailValid) {
@@ -39432,6 +39730,8 @@
     }
 
     function updateJoinMyDrawerProfile(member = {}) {
+      member = getJoinMemberWithCachedProfile(member);
+      preloadJoinProfileImage(member);
       const name = member.memberName || "회원";
       const gender = member.gender || "성별";
       const age = getJoinMemberAgeBand(member);
@@ -39448,13 +39748,13 @@
     function getJoinMyDrawerCachedProfile() {
       const loginState = getJoinLoginState();
       const member = loginState.member || {};
-      return mergeJoinMemberWithProfile(member, getRememberedJoinMemberProfile(member));
+      return getJoinMemberWithCachedProfile(member);
     }
 
     function getJoinCachedCurrentMember() {
       const loginState = getJoinLoginState();
       if (!loginState.isLogin) return null;
-      return mergeJoinMemberWithProfile(loginState.member || {}, getRememberedJoinMemberProfile(loginState.member || {}));
+      return getJoinMemberWithCachedProfile(loginState.member || {});
     }
 
     function refreshJoinMemberInBackground(onReady) {
@@ -40134,6 +40434,8 @@
       const joinId = getNestedValue(application, "join.id") || "";
       const seed = getJoinMyReservationProductSeed(joinId);
       const join = seed.join || {};
+      const applicationRecordId = application.joinApplyId || buildGoogleSheetRecordId("ja", application.submittedAt, getNestedValue(application, "applicant.phone"), joinId);
+      const hostParticipant = Array.isArray(join.participants) ? getConfirmedParticipants(join)[0] || null : null;
       return {
         joinId,
         hideImage: true,
@@ -40147,6 +40449,8 @@
         status: "참여중",
         statusClass: "",
         scheduleGroup: "joined",
+        myParticipantId: applicationRecordId ? `${applicationRecordId}-p1` : "",
+        hostParticipantId: hostParticipant?.id || "",
         currentCount: seed.confirmedParticipants.length,
         targetCount: seed.targetCount,
         flightPack: seed.hasFlight,
@@ -40331,6 +40635,7 @@
         scheduleGroup: "completed",
         hideParticipants: true,
         detailHideParticipants: true,
+        submittedReview,
         currentCount: seed.confirmedParticipants.length || source.currentCount || 4,
         targetCount: seed.targetCount || source.targetCount || 4,
         flightPack: seed.hasFlight || source.flightPack,
@@ -40402,6 +40707,9 @@
     }
 
     function getJoinMyScheduleBadge(item = {}) {
+      if (item.scheduleGroup === "joined") {
+        return { label: item.status || "참여중", className: item.statusClass || "joined" };
+      }
       if (item.scheduleGroup !== "created") return null;
       const statusText = getJoinMyScheduleSheetStatus(item);
       if (/출발\s*확정|출발확정|departure\s*confirmed|confirmed\s*departure/i.test(statusText)) {
@@ -40438,7 +40746,7 @@
         })
         .sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")))
         .map(buildJoinMyCreatedReservationItem);
-      const joinedSourceApplications = GOOGLE_SHEET_WEB_APP_URL && !googleSheetJoinApplicationsReadCompleted && !googleSheetJoinApplicationsReadFailed
+      const joinedSourceApplications = GOLFJOIN_SHEET_API_ENDPOINT && !googleSheetJoinApplicationsReadCompleted && !googleSheetJoinApplicationsReadFailed
         ? []
         : Array.from(joinApplicationPayloadMemory.values());
       const joinedItems = joinedSourceApplications
@@ -40509,6 +40817,17 @@
       return diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
     }
 
+    function formatJoinMyCardDateBadge(item = {}) {
+      if (item.scheduleGroup !== "completed") return formatJoinMyDday(item.departureDate);
+      const date = new Date(`${item.returnDate || item.departureDate || ""}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return "";
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diff = Math.round((today.getTime() - date.getTime()) / 86400000);
+      if (diff >= 0 && diff <= 30) return diff === 0 ? "오늘" : `${diff}일 전`;
+      return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+    }
+
     function getJoinMyLinkedJoin(item = {}) {
       const key = String(item.joinId || "").trim();
       if (!key) return null;
@@ -40575,12 +40894,15 @@
       const payload = encodeURIComponent(JSON.stringify({ joinId, participantId: participant.id }));
       const genderFlowClass = getParticipantGenderFlowClass(participant.gender);
       const flowDelayStyle = getParticipantFlowDelayStyle(participant, joinId);
+      const badge = options.isHost
+        ? '<div class="join-my-card-participant-me-badge host">모임장</div>'
+        : (options.isMe ? '<div class="join-my-card-participant-me-badge">나</div>' : "");
       return `<div class="join-my-card-participant-slot">
         <div class="team-avatar-wrap">
           <button type="button" class="team-avatar participant-flow-avatar ${genderFlowClass}" data-participant="${payload}" data-participant-gender="${escapeHtml(participant.gender || "")}" style="${flowDelayStyle}" onclick="event.stopPropagation(); handleParticipantClick(this)" title="${escapeHtml(participant.name || "")} / ${escapeHtml(participant.age || "")} / ${escapeHtml(participant.handicap || "")}" aria-label="${escapeHtml(participant.name || "참여자")} 참여자 정보">
             <img src="${escapeHtml(participant.gif || "")}" alt="${escapeHtml(participant.name || "참여자")}">
           </button>
-          ${options.isMe ? '<div class="join-my-card-participant-me-badge">나</div>' : ""}
+          ${badge}
         </div>
       </div>`;
     }
@@ -40593,19 +40915,34 @@
       return `<div class="team-couple-wrap">${participants.map((participant, index) => {
         return renderJoinMyParticipantSlot(participant, joinId, {
           ...options,
-          isMe: Boolean(options.isMe && index === 0)
+          isMe: Boolean(options.isMe && index === 0),
+          isHost: Boolean(options.isHost && index === 0)
         });
       }).join("")}</div>`;
     }
 
+    function isJoinMyParticipantMe(participant = {}, index = 0, item = {}) {
+      if (item.myParticipantId) return String(participant.id || "") === String(item.myParticipantId);
+      return item.showMeBadge !== false && index === 0;
+    }
+
+    function isJoinMyParticipantHost(participant = {}, index = 0, item = {}) {
+      if (item.hostParticipantId) return String(participant.id || "") === String(item.hostParticipantId);
+      return Boolean(participant.isHost || participant.isCreator || (item.scheduleGroup === "joined" && index === 0));
+    }
+
     function renderJoinMyGroupedParticipantSlots(participants = [], joinId = "", options = {}) {
       const showMeBadge = options.showMeBadge !== false;
+      const item = options.item || {};
       const renderedGroups = [];
       for (let index = 0; index < participants.length;) {
         const participant = participants[index];
         const groupKey = participant?.companionGroup || "";
         if (!groupKey) {
-          renderedGroups.push(renderJoinMyParticipantSlot(participant, joinId, { isMe: showMeBadge && index === 0 }));
+          renderedGroups.push(renderJoinMyParticipantSlot(participant, joinId, {
+            isMe: showMeBadge && isJoinMyParticipantMe(participant, index, item),
+            isHost: isJoinMyParticipantHost(participant, index, item)
+          }));
           index += 1;
           continue;
         }
@@ -40615,7 +40952,10 @@
           groupedParticipants.push(participants[index]);
           index += 1;
         }
-        renderedGroups.push(renderJoinMyParticipantGroup(groupedParticipants, joinId, { isMe: showMeBadge && groupStartIndex === 0 }));
+        renderedGroups.push(renderJoinMyParticipantGroup(groupedParticipants, joinId, {
+          isMe: showMeBadge && isJoinMyParticipantMe(groupedParticipants[0], groupStartIndex, item),
+          isHost: isJoinMyParticipantHost(groupedParticipants[0], groupStartIndex, item)
+        }));
       }
       return renderedGroups.join("");
     }
@@ -40628,10 +40968,60 @@
       const emptyCount = Math.max(0, slotCount - visibleParticipants.length);
       return [
         join && visibleParticipants.length
-          ? renderJoinMyGroupedParticipantSlots(visibleParticipants, join.id, { showMeBadge: item.showMeBadge !== false })
+          ? renderJoinMyGroupedParticipantSlots(visibleParticipants, join.id, { showMeBadge: item.showMeBadge !== false, item })
           : "",
         ...Array.from({ length: emptyCount }).map(() => renderJoinMyEmptySlot())
       ].join("");
+    }
+
+    function getJoinMySubmittedReviewImages(review = {}) {
+      const source = review.review || review || {};
+      const images = Array.isArray(source.images) ? source.images : [];
+      const normalizedImages = images.map((image = {}) => ({
+        url: image.thumbnailUrl || image.imageUrl || image.previewUrl || "",
+        alt: image.photoName || image.fileName || "후기 사진"
+      })).filter((image) => image.url);
+      const fallbackUrl = source.thumbnailUrl || source.imageUrl || "";
+      if (!normalizedImages.length && fallbackUrl) {
+        normalizedImages.push({ url: fallbackUrl, alt: source.photoName || "후기 사진" });
+      }
+      return normalizedImages.slice(0, REVIEW_IMAGE_MAX_FILES);
+    }
+
+    function formatJoinMySubmittedReviewDate(review = {}) {
+      const raw = String(review.submittedAt || review.updatedAt || review.createdAt || "").trim();
+      if (!raw) return "";
+      const date = new Date(raw);
+      if (Number.isNaN(date.getTime())) return raw;
+      const today = new Date();
+      if (date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate()) return "오늘";
+      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const startOfReviewDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const dayDiff = Math.round((startOfToday.getTime() - startOfReviewDate.getTime()) / 86400000);
+      if (dayDiff > 0 && dayDiff <= 7) return `${dayDiff}일 전`;
+      return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function renderJoinMySubmittedReviewBox(review = null) {
+      if (!review) return "";
+      const source = review.review || review || {};
+      const rating = Math.max(1, Math.min(5, Number(source.rating || review.rating || 0) || 5));
+      const tags = Array.isArray(source.tags) ? source.tags : toBuilderApplicationArray(source.tags || review.tags);
+      const text = String(source.text || review.reviewText || review.text || "").trim();
+      const images = getJoinMySubmittedReviewImages(review);
+      const reviewDate = formatJoinMySubmittedReviewDate(review);
+      return `<div class="join-my-review-box">
+        <div class="join-my-review-head">
+          <div class="join-my-review-title">내가 작성한 후기</div>
+          <div class="join-my-review-meta">
+            ${reviewDate ? `<span class="join-my-review-date">${escapeHtml(reviewDate)}</span>` : ""}
+            <span class="join-my-review-stars" aria-label="별점 ${rating}점">${"★".repeat(rating)}</span>
+          </div>
+        </div>
+        ${tags.length ? `<div class="join-my-review-tags">${tags.map((tag) => `<span class="join-my-review-tag">${escapeHtml(tag)}</span>`).join("")}</div>` : ""}
+        ${text ? `<div class="join-my-review-text">${escapeHtml(text)}</div>` : ""}
+        ${images.length ? `<div class="join-my-review-photos">${images.map((image) => `<img class="join-my-review-photo" src="${escapeHtml(image.url)}" alt="${escapeHtml(image.alt)}" loading="lazy" decoding="async">`).join("")}</div>` : ""}
+      </div>`;
     }
 
     function getJoinMyParticipantSummary(participants = [], item = {}) {
@@ -40851,8 +41241,11 @@
     }
 
     function renderJoinMyAccordionCard(item = {}, headAction = null) {
-      const dday = item.hideDday ? "" : formatJoinMyDday(item.departureDate);
-      const bottomActions = (item.actions || []).map(getJoinMyActionConfig).filter((action) => action.placement !== "head");
+      const dday = item.hideDday ? "" : formatJoinMyCardDateBadge(item);
+      const bottomActions = (item.actions || [])
+        .map(getJoinMyActionConfig)
+        .filter((action) => action.placement !== "head")
+        .filter((action) => !(item.submittedReview && action.action === "review"));
       const locationParts = [escapeHtml(item.countryRegion || item.region || "")];
       const departureAirport = getJoinMyDepartureAirportLabel(item);
       if (departureAirport) {
@@ -40890,6 +41283,7 @@
             </div>
           </div>
           ${item.hideParticipants ? "" : `<div class="join-my-card-expanded">${renderJoinMyParticipants(item)}</div>`}
+          ${item.submittedReview ? renderJoinMySubmittedReviewBox(item.submittedReview) : ""}
           ${bottomActions.length ? `<div class="join-my-card-actions">
             ${bottomActions.map((action) => `<button type="button" class="${escapeHtml(action.variant || "")}" onclick="${getJoinMyActionOnclick(item, action)}">${escapeHtml(action.label)}</button>`).join("")}
           </div>` : ""}
@@ -40911,7 +41305,11 @@
       if (!items.length) return renderJoinMyEmptyState(tabKey);
       return items.map((item) => {
         const headAction = getJoinMyHeadAction(item);
-        const bottomActions = (item.actions || []).map(getJoinMyActionConfig).filter((action) => action.placement !== "head");
+        const dateBadge = item.hideDday ? "" : formatJoinMyCardDateBadge(item);
+        const bottomActions = (item.actions || [])
+          .map(getJoinMyActionConfig)
+          .filter((action) => action.placement !== "head")
+          .filter((action) => !(item.submittedReview && action.action === "review"));
         if (headAction?.action === "accordion") {
           return renderJoinMyAccordionCard(item, headAction);
         }
@@ -40924,7 +41322,7 @@
           <div class="join-my-card-content">
             <div class="join-my-card-head">
               <div>
-                ${!item.hideDday && formatJoinMyDday(item.departureDate) ? `<div class="join-my-card-dday">${escapeHtml(formatJoinMyDday(item.departureDate))}</div>` : ""}
+                ${dateBadge ? `<div class="join-my-card-dday">${escapeHtml(dateBadge)}</div>` : ""}
                 <div class="join-my-card-title">${escapeHtml(item.title)}</div>
               </div>
               ${headAction?.action === "accordion" ? `<button type="button" class="join-my-card-accordion-button" onclick="${getJoinMyActionOnclick(item, headAction)}" aria-label="상세정보 열기" aria-expanded="false">${getJoinMyAccordionIcon(false)}</button>` : headAction ? `<button type="button" class="join-my-card-detail-button" onclick="${getJoinMyActionOnclick(item, headAction)}">${escapeHtml(headAction.label)}</button>` : `<div class="join-my-status-pill ${escapeHtml(item.statusClass || "")}">${escapeHtml(item.status)}</div>`}
@@ -40938,6 +41336,7 @@
                 </div>
               `).join("")}
             </div>` : ""}
+            ${item.submittedReview ? renderJoinMySubmittedReviewBox(item.submittedReview) : ""}
             ${bottomActions.length ? `<div class="join-my-card-actions">
               ${bottomActions.map((action) => {
                 return `<button type="button" class="${escapeHtml(action.variant || "")}" onclick="${getJoinMyActionOnclick(item, action)}">${escapeHtml(action.label)}</button>`;
@@ -41375,7 +41774,7 @@
       if (imageUrl) {
         const currentImage = target.querySelector("img");
         if (currentImage?.getAttribute("src") === imageUrl) return;
-        target.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" decoding="async">`;
+        target.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="" loading="eager" decoding="async" fetchpriority="high">`;
         return;
       }
       const initial = getJoinProfileInitial(member);
@@ -42415,6 +42814,7 @@
       }
       const saveButton = document.getElementById("joinProfileManageSave");
       saveButton?.setAttribute("disabled", "disabled");
+      openJoinActionLoading("", { minVisibleMs: 450 });
       setJoinProfileManageStatus("저장 중입니다.");
       try {
         const payload = buildJoinProfileManagePayload(member, null);
@@ -42458,6 +42858,7 @@
           ? "사진 업로드 API 설정이 필요합니다. 관리자에게 문의해 주세요."
           : "프로필 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
+        await closeJoinActionLoading();
         saveButton?.removeAttribute("disabled");
       }
     }
@@ -42697,6 +43098,8 @@
         target.innerHTML = `<div class="join-my-state">로그인 정보가 만료되었습니다. 다시 로그인해 주세요.</div>`;
         return;
       }
+      member = getJoinMemberWithCachedProfile(member);
+      preloadJoinProfileImage(member);
       const memberName = member.memberName || "회원";
       const groups = getJoinMyReservationGroups(member);
       document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "내 예약");
@@ -42729,12 +43132,12 @@
     async function openJoinMyMenu(options = {}) {
       const overlay = portalOverlayToBody("joinMyMenuModal");
       const wasOpen = Boolean(overlay?.classList.contains("open"));
-      const cachedMember = options.member || getJoinCachedCurrentMember();
+      const cachedMember = options.member ? getJoinMemberWithCachedProfile(options.member) : getJoinCachedCurrentMember();
       if (!cachedMember) {
         redirectToJoinLogin("my-menu");
         return;
       }
-      let member = cachedMember;
+      let member = getJoinMemberWithCachedProfile(cachedMember);
       if (!options.skipProfileCheck && !isJoinMemberProfileComplete(cachedMember)) {
         member = await getJoinCurrentMember({ refresh: true });
         if (!member) {
@@ -42746,7 +43149,8 @@
           return;
         }
       }
-      const body = document.getElementById("joinMyMenuBody");
+      member = getJoinMemberWithCachedProfile(member);
+      preloadJoinProfileImage(member);
       document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "내 예약");
       if (!wasOpen) joinMyReservationActiveTab = "created";
       overlay?.classList.add("open");
@@ -42761,13 +43165,13 @@
           renderJoinMyMenu(member);
         }
       });
-      if (!options.member) {
-        refreshJoinMemberInBackground((freshMember) => {
-          if (document.getElementById("joinMyMenuModal")?.classList.contains("open") && isJoinMemberProfileComplete(freshMember)) {
-            renderJoinMyMenu(freshMember);
-          }
-        });
-      }
+      refreshJoinMemberInBackground((freshMember) => {
+        const refreshedMember = getJoinMemberWithCachedProfile(freshMember);
+        preloadJoinProfileImage(refreshedMember);
+        if (document.getElementById("joinMyMenuModal")?.classList.contains("open") && isJoinMemberProfileComplete(refreshedMember)) {
+          renderJoinMyMenu(refreshedMember);
+        }
+      });
     }
 
     function closeJoinMyMenu() {
@@ -42809,11 +43213,12 @@
       handlePhoneContact();
     }
 
-    function setJoinMobileBottomNavVisible(visible) {
+    function setJoinMobileBottomNavVisible(visible, options = {}) {
       const nav = document.getElementById("joinMobileBottomNav");
       scheduleJoinMobileVisualViewportVarsUpdate();
-      nav?.classList.toggle("is-visible", Boolean(visible));
-      nav?.classList.toggle("is-hidden", !visible);
+      const nextVisible = Boolean(visible) && (options.force || !hasOpenBlockingModal());
+      nav?.classList.toggle("is-visible", nextVisible);
+      nav?.classList.toggle("is-hidden", !nextVisible);
     }
 
     function setJoinMobileNavActive(key) {
@@ -42828,11 +43233,15 @@
       const root = document.documentElement;
       const viewport = window.visualViewport;
       if (window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640) {
-        const visualEnd = viewport
-          ? Math.round(viewport.offsetTop + viewport.height)
-          : window.innerHeight;
+        const visualEnd = viewport ? viewport.offsetTop + viewport.height : 0;
+        const modalHeight = Math.ceil(Math.max(
+          visualEnd,
+          window.innerHeight || 0,
+          document.documentElement.clientHeight || 0
+        ));
         root.style.setProperty("--join-mobile-visual-bottom", "0px");
-        root.style.setProperty("--join-mobile-visual-end", `${visualEnd}px`);
+        root.style.setProperty("--join-mobile-visual-end", `${modalHeight}px`);
+        root.style.setProperty("--join-mobile-modal-height", `${modalHeight}px`);
         return;
       }
       let bottomGap = 0;
@@ -42841,6 +43250,7 @@
       }
       root.style.setProperty("--join-mobile-visual-bottom", `${Math.round(bottomGap)}px`);
       root.style.removeProperty("--join-mobile-visual-end");
+      root.style.removeProperty("--join-mobile-modal-height");
     }
 
     function scheduleJoinMobileVisualViewportVarsUpdate() {
@@ -42930,6 +43340,21 @@
       history.replaceState(null, "", cleanUrl);
       if (!getJoinLoginState().isLogin || !pending.kakaoId) return;
       const member = await getJoinCurrentMember({ refresh: true });
+      if (member && isJoinMemberProfileComplete(member)) {
+        clearJoinPendingKakaoProfile();
+        continueAfterJoinMemberLogin(joinMyMenuState.pendingAfterLogin || "my-menu");
+        return;
+      }
+      const continued = await continueWithExistingKakaoProfileIfReady({
+        id: pending.kakaoId,
+        properties: { nickname: pending.nickname || "" },
+        kakao_account: {
+          name: pending.name || "",
+          email: pending.email || "",
+          profile: { nickname: pending.nickname || "" }
+        }
+      });
+      if (continued) return;
       openJoinMemberKakaoProfileForm(member || {});
     }
 
@@ -47090,71 +47515,56 @@
       if (!validateCompanionGenders("builder")) {
         return false;
       }
+      if (!Array.isArray(payload.applicant.styles) || !payload.applicant.styles.length) {
+        scrollApplyChipGroupIntoView("builder-style");
+        openBuilderAlert("라운딩 스타일을 하나 이상 선택해 주세요.");
+        return false;
+      }
       return true;
     }
 
-    async function saveBuilderApplyToGoogleSheet(payload) {
-      if (!GOOGLE_SHEET_WEB_APP_URL) {
-        console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Builder apply payload was not sent.", payload);
+    async function postGolfJoinSheetPayload(payload, label = "Golfjoin sheet payload") {
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) {
+        console.warn("GOLFJOIN_SHEET_API_ENDPOINT is empty. Payload was not sent.", payload);
         return { skipped: true };
       }
-      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+      const response = await fetch(GOLFJOIN_SHEET_API_ENDPOINT, {
         method: "POST",
-        mode: "no-cors",
         headers: {
-          "Content-Type": "text/plain;charset=utf-8"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
       });
-      return { ok: true };
+      if (!response.ok) throw new Error(`${label} save failed: ${response.status}`);
+      return response.json().catch(() => ({ ok: true }));
+    }
+
+    async function fetchGolfJoinSheetRows(params = {}, label = "Golfjoin sheet rows") {
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
+      const url = new URL(GOLFJOIN_SHEET_API_ENDPOINT);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, value);
+      });
+      const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
+      if (!response.ok) throw new Error(`${label} load failed: ${response.status}`);
+      const data = await response.json();
+      return Array.isArray(data) ? data : (data.items || data.rows || data.applications || data.reviews || []);
+    }
+
+    async function saveBuilderApplyToGoogleSheet(payload) {
+      return postGolfJoinSheetPayload(payload, "Builder apply");
     }
 
     async function saveJoinApplyToGoogleSheet(payload) {
-      if (!GOOGLE_SHEET_WEB_APP_URL) {
-        console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Join apply payload was not sent.", payload);
-        return { skipped: true };
-      }
-      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify(payload)
-      });
-      return { ok: true };
+      return postGolfJoinSheetPayload(payload, "Join apply");
     }
 
     async function saveJoinReviewToGoogleSheet(payload) {
-      if (!GOOGLE_SHEET_WEB_APP_URL) {
-        console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Join review payload was not sent.", payload);
-        return { skipped: true };
-      }
-      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify(payload)
-      });
-      return { ok: true };
+      return postGolfJoinSheetPayload(payload, "Join review");
     }
 
     async function saveJoinMemberProfileToGoogleSheet(payload) {
-      if (!GOOGLE_SHEET_WEB_APP_URL) {
-        console.warn("GOOGLE_SHEET_WEB_APP_URL is empty. Member profile payload was not sent.", payload);
-        return { skipped: true };
-      }
-      await fetch(GOOGLE_SHEET_WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify(payload)
-      });
-      return { ok: true };
+      return postGolfJoinSheetPayload(payload, "Member profile");
     }
 
     function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
@@ -47419,19 +47829,16 @@
     }
 
     async function hydrateJoinApplicationsFromGoogleSheet() {
-      if (!GOOGLE_SHEET_WEB_APP_URL) return [];
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
       googleSheetJoinApplicationsLoading = true;
       googleSheetJoinApplicationsReadFailed = false;
       renderJoins();
       try {
-        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
-        url.searchParams.set("sheet", "join_applications");
-        url.searchParams.set("source", "join_apply");
-        url.searchParams.set("limit", "50");
-        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
-        if (!response.ok) throw new Error(`Join applications load failed: ${response.status}`);
-        const data = await response.json();
-        const rows = Array.isArray(data) ? data : (data.items || data.rows || data.applications || []);
+        const rows = await fetchGolfJoinSheetRows({
+          sheet: "join_applications",
+          source: "join_apply",
+          limit: "50"
+        }, "Join applications");
         writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows);
         joinApplicationPayloadMemory.clear();
         rows.map(normalizeJoinApplyPayload).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
@@ -47451,17 +47858,14 @@
     }
 
     async function hydrateJoinReviewsFromGoogleSheet() {
-      if (!GOOGLE_SHEET_WEB_APP_URL) return [];
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
       try {
-        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
-        url.searchParams.set("sheet", "join_reviews");
-        url.searchParams.set("source", "join_review");
-        url.searchParams.set("status", "visible");
-        url.searchParams.set("limit", "200");
-        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
-        if (!response.ok) throw new Error(`Join reviews load failed: ${response.status}`);
-        const data = await response.json();
-        const rows = Array.isArray(data) ? data : (data.items || data.rows || data.reviews || []);
+        const rows = await fetchGolfJoinSheetRows({
+          sheet: "join_reviews",
+          source: "join_review",
+          status: "visible",
+          limit: "200"
+        }, "Join reviews");
         writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY, rows);
         rows.map(normalizeJoinReviewPayload).forEach((payload) => rememberJoinReviewPayload(payload));
         renderJoins();
@@ -47830,19 +48234,16 @@
     }
 
     async function hydrateBuilderApplicationJoinsFromGoogleSheet() {
-      if (!GOOGLE_SHEET_WEB_APP_URL) return [];
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
       googleSheetBuilderApplicationsLoading = true;
       googleSheetBuilderApplicationsReadFailed = false;
       renderJoins();
       try {
-        const url = new URL(GOOGLE_SHEET_WEB_APP_URL);
-        url.searchParams.set("sheet", "new_schedule_applications");
-        url.searchParams.set("source", "new_schedule_builder");
-        url.searchParams.set("limit", "100");
-        const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
-        if (!response.ok) throw new Error(`Builder applications load failed: ${response.status}`);
-        const data = await response.json();
-        const rows = Array.isArray(data) ? data : (data.items || data.rows || data.applications || []);
+        const rows = await fetchGolfJoinSheetRows({
+          sheet: "new_schedule_applications",
+          source: "new_schedule_builder",
+          limit: "100"
+        }, "Builder applications");
         writeGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, rows);
         rows.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
         googleSheetBuilderApplicationsReadCompleted = true;
@@ -51130,6 +51531,25 @@
       return Array.from(document.querySelectorAll(`[data-chip-group="${groupName}"] .apply-chip.active`)).map((chip) => chip.dataset.value || chip.textContent.trim()).filter(Boolean);
     }
 
+    function scrollApplyChipGroupIntoView(groupName) {
+      const group = document.querySelector(`[data-chip-group="${groupName}"]`);
+      if (!group) return;
+      const target = group.closest(".field") || group;
+      const scrollBox = target.closest(".detail-apply-scroll, .builder-body, .join-profile-manage-body, .modal-body");
+      target.classList.add("has-error");
+      requestAnimationFrame(() => {
+        if (scrollBox) {
+          const scrollRect = scrollBox.getBoundingClientRect();
+          const targetRect = target.getBoundingClientRect();
+          const nextTop = scrollBox.scrollTop + targetRect.top - scrollRect.top - 18;
+          scrollBox.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+        } else {
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        setTimeout(() => group.querySelector(".apply-chip")?.focus?.({ preventScroll: true }), 180);
+      });
+    }
+
     const applyAgreementDetails = {
       booking: {
         title: "예약안내 및 취소규정",
@@ -51755,6 +52175,7 @@
         return;
       }
       if (!styles.length) {
+        scrollApplyChipGroupIntoView("global-style");
         showGlobalApplyRequiredMessage("라운딩 스타일을 하나 이상 선택해 주세요.");
         return;
       }

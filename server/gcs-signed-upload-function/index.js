@@ -1,11 +1,12 @@
 "use strict";
 
+const crypto = require("crypto");
 const { Storage } = require("@google-cloud/storage");
 
 const storage = new Storage();
 const BUCKET_NAME = process.env.GCS_BUCKET || "golfjoin-bucket";
 const SIGNED_URL_TTL_MS = Number(process.env.SIGNED_URL_TTL_MS || 10 * 60 * 1000);
-const ALLOWED_ORIGINS = String(process.env.ALLOWED_ORIGINS || "*")
+const ALLOWED_ORIGINS = String(process.env.ALLOWED_ORIGINS || "https://m.secret-tour.com,https://www.secret-tour.com")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -14,11 +15,20 @@ const MAX_REVIEW_UPLOAD_ITEMS = 6;
 const MAX_PROFILE_UPLOAD_ITEMS = 1;
 const MAX_REVIEW_IMAGE_BYTES = 2 * 1024 * 1024;
 const MAX_PROFILE_IMAGE_BYTES = 200 * 1024;
+const UPLOAD_PREFIXES = {
+  join_profile_image: "golfjoin_uploads/photos/profiles",
+  join_review_images: "golfjoin_uploads/photos/reviews"
+};
 const ALLOWED_CONTENT_TYPES = new Set([
   "image/webp",
   "image/jpeg",
   "image/png"
 ]);
+const CONTENT_TYPE_EXTENSIONS = {
+  "image/webp": "webp",
+  "image/jpeg": "jpg",
+  "image/png": "png"
+};
 
 function getAllowedOrigin(origin = "") {
   if (ALLOWED_ORIGINS.includes("*")) return "*";
@@ -39,7 +49,7 @@ function setCorsHeaders(req, res) {
 function safePathPart(value = "") {
   return String(value || "")
     .normalize("NFKC")
-    .replace(/[^a-zA-Z0-9가-힣._-]+/g, "-")
+    .replace(/[^a-zA-Z0-9_-]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 120) || "item";
 }
@@ -53,17 +63,37 @@ function getRequestBody(req) {
 function validateUploadRequest(body) {
   const type = String(body.type || "");
   const images = Array.isArray(body.images) ? body.images : [];
-  if (!["join_review_images", "join_profile_image"].includes(type)) {
+  if (!Object.prototype.hasOwnProperty.call(UPLOAD_PREFIXES, type)) {
     throw new Error("Unsupported upload type");
   }
+  if (type === "join_profile_image" && !String(body.profileId || "").trim()) {
+    throw new Error("Missing profileId");
+  }
+  if (type === "join_review_images" && !String(body.reviewId || "").trim()) {
+    throw new Error("Missing reviewId");
+  }
+
   const maxItems = type === "join_profile_image" ? MAX_PROFILE_UPLOAD_ITEMS : MAX_REVIEW_UPLOAD_ITEMS;
   const maxBytes = type === "join_profile_image" ? MAX_PROFILE_IMAGE_BYTES : MAX_REVIEW_IMAGE_BYTES;
   if (!images.length || images.length > maxItems) {
     throw new Error("Invalid image count");
   }
+
+  const seenRoles = new Set();
   images.forEach((image) => {
+    const role = String(image.role || "");
     const contentType = String(image.contentType || "");
     const size = Number(image.size || 0);
+    if (seenRoles.has(role)) {
+      throw new Error("Duplicate image role");
+    }
+    seenRoles.add(role);
+    if (type === "join_profile_image" && role !== "profile") {
+      throw new Error("Invalid profile image role");
+    }
+    if (type === "join_review_images" && !/^(main|thumb)_[1-3]$/.test(role)) {
+      throw new Error("Invalid review image role");
+    }
     if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
       throw new Error("Unsupported image content type");
     }
@@ -75,11 +105,14 @@ function validateUploadRequest(body) {
 
 function buildObjectName(body, image) {
   const type = String(body.type || "");
-  const fileName = safePathPart(image.fileName || `${image.role || "image"}.webp`);
+  const extension = CONTENT_TYPE_EXTENSIONS[String(image.contentType || "")] || "bin";
+  const objectId = crypto.randomUUID();
+  const role = safePathPart(image.role || "image");
+  const fileName = `${objectId}-${role}.${extension}`;
   if (type === "join_profile_image") {
-    return `golfjoin_uploads/photos/${safePathPart(body.profileId)}/${fileName}`;
+    return `${UPLOAD_PREFIXES.join_profile_image}/${safePathPart(body.profileId)}/${fileName}`;
   }
-  return `golfjoin_uploads/reviews/${safePathPart(body.reviewId)}/${fileName}`;
+  return `${UPLOAD_PREFIXES.join_review_images}/${safePathPart(body.reviewId)}/${fileName}`;
 }
 
 exports.signGcsUpload = async (req, res) => {
@@ -90,6 +123,11 @@ exports.signGcsUpload = async (req, res) => {
   }
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
+
+  if (ALLOWED_ORIGINS.length && !getAllowedOrigin(req.headers.origin || "")) {
+    res.status(403).json({ error: "Origin not allowed" });
     return;
   }
 

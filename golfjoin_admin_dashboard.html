@@ -1,0 +1,1077 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>골프조인 운영 대시보드</title>
+  <style>
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --line: #dfe5ec;
+      --line-soft: #edf1f5;
+      --text: #1f262d;
+      --muted: #697480;
+      --soft: #8c98a4;
+      --brand: #1273e4;
+      --brand-soft: #eaf3ff;
+      --green: #14895f;
+      --green-soft: #e8f6ef;
+      --orange: #b76400;
+      --orange-soft: #fff3df;
+      --red: #cc3340;
+      --red-soft: #ffecef;
+      --shadow: 0 14px 32px rgba(28, 39, 54, .08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .94);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+
+    .brand-sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .last-updated {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font-weight: 800;
+    }
+
+    .button.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #fff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 390px minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px 24px 28px;
+    }
+
+    .sidebar,
+    .detail {
+      min-width: 0;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .metric-value {
+      margin-top: 8px;
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .filters {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      min-height: 38px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+      font-weight: 700;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(18, 115, 228, .12);
+    }
+
+    .schedule-list {
+      max-height: calc(100vh - 255px);
+      overflow: auto;
+    }
+
+    .schedule-item {
+      width: 100%;
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      border: 0;
+      border-bottom: 1px solid var(--line-soft);
+      background: #fff;
+      color: inherit;
+      text-align: left;
+    }
+
+    .schedule-item:hover {
+      background: #f8fbff;
+    }
+
+    .schedule-item.active {
+      background: var(--brand-soft);
+      box-shadow: inset 4px 0 0 var(--brand);
+    }
+
+    .schedule-title {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .schedule-meta,
+    .inline-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 23px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: #eef2f6;
+      color: #48525d;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .badge.open,
+    .badge.visible,
+    .badge.active {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .badge.pending {
+      background: var(--orange-soft);
+      color: var(--orange);
+    }
+
+    .badge.cancelled,
+    .badge.deleted,
+    .badge.hidden {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .detail-head {
+      padding: 20px;
+    }
+
+    .detail-title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .detail-title {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.28;
+      word-break: keep-all;
+    }
+
+    .section {
+      padding: 18px;
+    }
+
+    .section + .section {
+      border-top: 1px solid var(--line-soft);
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .info {
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+
+    .info-label {
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .info-value {
+      margin-top: 6px;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .person-card {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .person-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .person-name {
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      background: #fff;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line-soft);
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    td {
+      font-weight: 700;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .empty,
+    .error {
+      padding: 28px 18px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .error {
+      color: var(--red);
+    }
+
+    .loading {
+      display: grid;
+      place-items: center;
+      min-height: 280px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .profile-image {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--line);
+      background: #eef2f6;
+    }
+
+    .review-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .review-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .review-text {
+      margin-top: 8px;
+      color: #3c444c;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    @media (max-width: 1100px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .schedule-list {
+        max-height: 420px;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px;
+      }
+
+      .layout {
+        padding: 12px;
+      }
+
+      .summary-grid,
+      .info-grid,
+      .split {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-title {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1 class="brand-title">골프조인 운영 대시보드</h1>
+        <div class="brand-sub">구글시트 저장 데이터를 운영 조회용으로 묶어서 표시합니다.</div>
+      </div>
+      <div class="top-actions">
+        <div class="last-updated" id="lastUpdated">-</div>
+        <button type="button" class="button" id="reloadButton">새로고침</button>
+        <button type="button" class="button primary" id="downloadButton">CSV 다운로드</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar panel">
+        <div class="filters">
+          <div class="field">
+            <label for="searchInput">검색</label>
+            <input id="searchInput" type="search" placeholder="일정명, 지역, 이름, 휴대폰">
+          </div>
+          <div class="field">
+            <label for="statusFilter">상태</label>
+            <select id="statusFilter">
+              <option value="">전체 상태</option>
+              <option value="open">모집중</option>
+              <option value="pending">승인대기</option>
+              <option value="closed">마감</option>
+              <option value="cancelled">취소</option>
+            </select>
+          </div>
+        </div>
+        <div class="schedule-list" id="scheduleList">
+          <div class="loading">데이터를 불러오는 중입니다.</div>
+        </div>
+      </aside>
+
+      <section class="detail">
+        <div class="summary-grid" id="summaryGrid"></div>
+        <div class="detail-grid" id="detailGrid">
+          <div class="panel loading">왼쪽에서 일정을 선택하세요.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    "use strict";
+
+    const SHEET_API_ENDPOINT = window.GOLFJOIN_SHEET_API_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
+    const SHEETS = {
+      schedules: "new_schedule_applications",
+      applications: "join_applications",
+      profiles: "join_member_profiles",
+      reviews: "join_reviews",
+      wishes: "join_wishes",
+      summary: "schedule_participant_summary"
+    };
+
+    const state = {
+      rows: {
+        schedules: [],
+        applications: [],
+        profiles: [],
+        reviews: [],
+        wishes: [],
+        summary: []
+      },
+      schedules: [],
+      selectedKey: "",
+      loading: false,
+      error: ""
+    };
+
+    const $ = (selector) => document.querySelector(selector);
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    function asText(value) {
+      return String(value == null ? "" : value).trim();
+    }
+
+    function normalizePhone(value) {
+      const digits = asText(value).replace(/\D/g, "");
+      if (/^1[016789]\d{8}$/.test(digits)) return `0${digits}`;
+      return digits;
+    }
+
+    function formatPhone(value) {
+      const digits = normalizePhone(value);
+      if (/^010\d{8}$/.test(digits)) return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+      return asText(value) || "-";
+    }
+
+    function parseList(value) {
+      if (Array.isArray(value)) return value.map(asText).filter(Boolean);
+      const text = asText(value);
+      if (!text) return [];
+      try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) return parsed.map(asText).filter(Boolean);
+      } catch (error) {
+        // Comma-separated values are used in sheet cells.
+      }
+      return text.split(",").map(asText).filter(Boolean);
+    }
+
+    function formatDate(value) {
+      const text = asText(value);
+      if (!text) return "-";
+      const date = new Date(text);
+      if (Number.isNaN(date.getTime())) return text;
+      return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function formatDateTime(value) {
+      const text = asText(value);
+      if (!text) return "-";
+      const date = new Date(text);
+      if (Number.isNaN(date.getTime())) return text;
+      return `${formatDate(date.toISOString())} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+    }
+
+    function statusLabel(value) {
+      const status = asText(value).toLowerCase();
+      return ({
+        open: "모집중",
+        active: "활성",
+        pending: "대기",
+        visible: "노출",
+        hidden: "숨김",
+        closed: "마감",
+        cancelled: "취소",
+        deleted: "삭제"
+      })[status] || asText(value) || "-";
+    }
+
+    function statusClass(value) {
+      return asText(value).toLowerCase() || "default";
+    }
+
+    function getMemberKey(row = {}) {
+      return asText(row.memberSeq) || asText(row.memberId) || normalizePhone(row.memberMobile || row.applicantMobile);
+    }
+
+    function getScheduleKey(row = {}) {
+      return asText(row.scheduleId) || asText(row.applicationId) || asText(row.targetScheduleId) || asText(row.targetApplicationId);
+    }
+
+    function getScheduleTitle(row = {}) {
+      return asText(row.productName) || asText(row.title) || asText(row.tripSummary) || "상품 미지정 새 일정";
+    }
+
+    function getScheduleDate(row = {}) {
+      const departure = asText(row.departureDateFrom) || asText(row.departureDate) || asText(row.departureSummary);
+      const end = asText(row.returnDateFrom) || asText(row.returnDate) || asText(row.returnSummary);
+      if (departure && end && departure !== end) return `${formatDate(departure)} - ${formatDate(end)}`;
+      return formatDate(departure || end);
+    }
+
+    async function fetchSheet(sheet, params = {}) {
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("sheet", sheet);
+      url.searchParams.set("limit", params.limit || "1000");
+      if (params.refreshSummary) url.searchParams.set("refreshSummary", "true");
+      const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
+      if (!response.ok) throw new Error(`${sheet} load failed: ${response.status}`);
+      const data = await response.json();
+      return Array.isArray(data) ? data : (data.rows || data.items || []);
+    }
+
+    async function loadDashboard() {
+      state.loading = true;
+      state.error = "";
+      renderLoading();
+      try {
+        const [schedules, applications, profiles, reviews, wishes, summary] = await Promise.all([
+          fetchSheet(SHEETS.schedules, { limit: "1000" }),
+          fetchSheet(SHEETS.applications, { limit: "1000" }),
+          fetchSheet(SHEETS.profiles, { limit: "1000" }),
+          fetchSheet(SHEETS.reviews, { limit: "1000" }),
+          fetchSheet(SHEETS.wishes, { limit: "1000" }),
+          fetchSheet(SHEETS.summary, { limit: "1000", refreshSummary: true })
+        ]);
+        state.rows = { schedules, applications, profiles, reviews, wishes, summary };
+        state.schedules = buildSchedules();
+        state.selectedKey = state.schedules[0]?.key || "";
+        $("#lastUpdated").textContent = `최근 갱신 ${formatDateTime(new Date().toISOString())}`;
+      } catch (error) {
+        console.error(error);
+        state.error = error.message || "데이터 로드 실패";
+      } finally {
+        state.loading = false;
+        render();
+      }
+    }
+
+    function buildSchedules() {
+      const summaryMap = new Map(state.rows.summary.map((row) => [getScheduleKey(row), row]));
+      return state.rows.schedules.map((row, index) => {
+        const key = getScheduleKey(row) || `schedule-${index}`;
+        const relatedApplications = state.rows.applications.filter((item) => {
+          const targetScheduleId = asText(item.targetScheduleId);
+          const targetApplicationId = asText(item.targetApplicationId);
+          return (targetScheduleId && targetScheduleId === asText(row.scheduleId))
+            || (targetApplicationId && targetApplicationId === asText(row.applicationId));
+        });
+        const relatedReviews = state.rows.reviews.filter((item) => {
+          return asText(item.targetScheduleId) === asText(row.scheduleId)
+            || asText(item.targetApplicationId) === asText(row.applicationId)
+            || (asText(item.erpProductId) && asText(item.erpProductId) === asText(row.erpProductId));
+        });
+        return {
+          key,
+          row,
+          summary: summaryMap.get(key) || {},
+          applications: relatedApplications,
+          reviews: relatedReviews
+        };
+      }).sort((a, b) => {
+        const aTime = new Date(a.row.createdAt || a.row.updatedAt || 0).getTime();
+        const bTime = new Date(b.row.createdAt || b.row.updatedAt || 0).getTime();
+        return bTime - aTime;
+      });
+    }
+
+    function getFilteredSchedules() {
+      const keyword = asText($("#searchInput").value).toLowerCase();
+      const status = asText($("#statusFilter").value).toLowerCase();
+      return state.schedules.filter((schedule) => {
+        const row = schedule.row;
+        const haystack = [
+          getScheduleTitle(row),
+          row.region,
+          row.regions,
+          row.memberName,
+          row.applicantName,
+          row.memberMobile,
+          row.applicantMobile
+        ].map(asText).join(" ").toLowerCase();
+        const rowStatus = asText(row.applicationStatus || row.displayStatus || row.approvalStatus).toLowerCase();
+        return (!keyword || haystack.includes(keyword)) && (!status || rowStatus === status);
+      });
+    }
+
+    function getSelectedSchedule() {
+      return state.schedules.find((item) => item.key === state.selectedKey) || state.schedules[0] || null;
+    }
+
+    function profileFor(row = {}) {
+      const keys = [
+        asText(row.memberSeq),
+        asText(row.memberId),
+        normalizePhone(row.memberMobile),
+        normalizePhone(row.applicantMobile)
+      ].filter(Boolean);
+      return state.rows.profiles.find((profile) => {
+        const profileKeys = [
+          asText(profile.memberSeq),
+          asText(profile.memberId),
+          normalizePhone(profile.memberMobile)
+        ].filter(Boolean);
+        return keys.some((key) => profileKeys.includes(key));
+      }) || {};
+    }
+
+    function renderLoading() {
+      $("#scheduleList").innerHTML = `<div class="loading">데이터를 불러오는 중입니다.</div>`;
+      $("#detailGrid").innerHTML = `<div class="panel loading">데이터를 불러오는 중입니다.</div>`;
+      $("#summaryGrid").innerHTML = "";
+    }
+
+    function render() {
+      if (state.error) {
+        $("#scheduleList").innerHTML = `<div class="error">${escapeHtml(state.error)}</div>`;
+        $("#detailGrid").innerHTML = `<div class="panel error">${escapeHtml(state.error)}</div>`;
+        $("#summaryGrid").innerHTML = "";
+        return;
+      }
+      renderSummary();
+      renderScheduleList();
+      renderDetail();
+    }
+
+    function renderSummary() {
+      const today = formatDate(new Date().toISOString());
+      const todayApplications = [...state.rows.schedules, ...state.rows.applications].filter((row) => formatDate(row.createdAt) === today);
+      const metrics = [
+        ["생성 일정", state.rows.schedules.length],
+        ["참여 신청", state.rows.applications.length],
+        ["프로필 등록", state.rows.profiles.length],
+        ["후기", state.rows.reviews.filter((row) => asText(row.status).toLowerCase() !== "deleted").length],
+        ["오늘 신규", todayApplications.length]
+      ];
+      $("#summaryGrid").innerHTML = metrics.map(([label, value]) => `
+        <div class="metric">
+          <div class="metric-label">${escapeHtml(label)}</div>
+          <div class="metric-value">${escapeHtml(value)}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderScheduleList() {
+      const schedules = getFilteredSchedules();
+      if (!schedules.length) {
+        $("#scheduleList").innerHTML = `<div class="empty">조건에 맞는 일정이 없습니다.</div>`;
+        return;
+      }
+      if (!schedules.some((item) => item.key === state.selectedKey)) {
+        state.selectedKey = schedules[0].key;
+      }
+      $("#scheduleList").innerHTML = schedules.map((schedule) => {
+        const row = schedule.row;
+        const status = row.applicationStatus || row.displayStatus || row.approvalStatus;
+        const people = Number(row.applicantPeople || 1) + schedule.applications.reduce((sum, item) => sum + Number(item.applicantPeople || 1), 0);
+        return `
+          <button type="button" class="schedule-item ${schedule.key === state.selectedKey ? "active" : ""}" data-schedule-key="${escapeHtml(schedule.key)}">
+            <div class="schedule-title">${escapeHtml(getScheduleTitle(row))}</div>
+            <div class="schedule-meta">
+              <span>${escapeHtml(row.region || parseList(row.regions)[0] || "-")}</span>
+              <span>${escapeHtml(getScheduleDate(row))}</span>
+            </div>
+            <div class="schedule-meta">
+              <span class="badge ${escapeHtml(statusClass(status))}">${escapeHtml(statusLabel(status))}</span>
+              <span>참여 ${escapeHtml(people)}명</span>
+              <span>생성자 ${escapeHtml(row.applicantName || row.memberName || "-")}</span>
+            </div>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderDetail() {
+      const schedule = getSelectedSchedule();
+      if (!schedule) {
+        $("#detailGrid").innerHTML = `<div class="panel empty">선택할 일정이 없습니다.</div>`;
+        return;
+      }
+      const row = schedule.row;
+      const creatorProfile = profileFor(row);
+      $("#detailGrid").innerHTML = `
+        <article class="panel">
+          <div class="detail-head">
+            <div class="detail-title-row">
+              <div>
+                <h2 class="detail-title">${escapeHtml(getScheduleTitle(row))}</h2>
+                <div class="inline-meta" style="margin-top:8px;">
+                  <span>${escapeHtml(row.region || parseList(row.regions)[0] || "-")}</span>
+                  <span>${escapeHtml(getScheduleDate(row))}</span>
+                  <span class="badge ${escapeHtml(statusClass(row.applicationStatus || row.displayStatus || row.approvalStatus))}">${escapeHtml(statusLabel(row.applicationStatus || row.displayStatus || row.approvalStatus))}</span>
+                </div>
+              </div>
+              <span class="badge">scheduleId ${escapeHtml(row.scheduleId || "-")}</span>
+            </div>
+          </div>
+
+          <section class="section">
+            <h3 class="section-title">일정 정보</h3>
+            ${renderInfoGrid([
+              ["신청ID", row.applicationId],
+              ["상품ID", row.erpProductId],
+              ["행사ID", row.erpEventSeq],
+              ["가격", row.productPrice],
+              ["출발 희망", [row.departureDateFrom, row.departureDateTo].filter(Boolean).join(" ~ ")],
+              ["귀국 희망", [row.returnDateFrom, row.returnDateTo].filter(Boolean).join(" ~ ")],
+              ["여행요약", row.tripSummary],
+              ["업데이트", formatDateTime(row.updatedAt || row.createdAt)]
+            ])}
+          </section>
+
+          <section class="section">
+            <h3 class="section-title">생성자</h3>
+            <div class="split">
+              ${renderPersonCard(row, creatorProfile, "모임장")}
+              ${renderInfoGrid([
+                ["동반 인원", `${row.applicantPeople || 1}명`],
+                ["라운딩 스타일", parseList(row.applicantStyles).join(", ")],
+                ["희망 동반자", parseList(row.applicantPreferredMembers).join(", ")],
+                ["인사말", row.applicantGreeting]
+              ])}
+            </div>
+          </section>
+
+          <section class="section">
+            <h3 class="section-title">참여자 목록</h3>
+            ${renderParticipants(schedule)}
+          </section>
+
+          <section class="section">
+            <h3 class="section-title">후기</h3>
+            ${renderReviews(schedule.reviews)}
+          </section>
+        </article>
+      `;
+    }
+
+    function renderInfoGrid(items) {
+      return `
+        <div class="info-grid">
+          ${items.map(([label, value]) => `
+            <div class="info">
+              <div class="info-label">${escapeHtml(label)}</div>
+              <div class="info-value">${escapeHtml(asText(value) || "-")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderPersonCard(row, profile = {}, role = "참여자") {
+      const name = row.applicantName || row.memberName || profile.memberName || "-";
+      const phone = row.applicantMobile || row.memberMobile || profile.memberMobile || "";
+      const image = profile.profileImageUrl || "";
+      return `
+        <div class="person-card">
+          <div class="person-head">
+            <div>
+              <div class="person-name">${escapeHtml(name)}</div>
+              <div class="inline-meta" style="margin-top:4px;">
+                <span class="badge ${role === "모임장" ? "open" : ""}">${escapeHtml(role)}</span>
+                <span>${escapeHtml(formatPhone(phone))}</span>
+              </div>
+            </div>
+            ${image ? `<img class="profile-image" src="${escapeHtml(image)}" alt="">` : ""}
+          </div>
+          ${renderInfoGrid([
+            ["회원번호", row.memberSeq || profile.memberSeq],
+            ["아이디", row.memberId || profile.memberId],
+            ["성별", row.applicantGender || profile.gender],
+            ["출생연도", row.applicantBirthYear || profile.birthYear],
+            ["타수/레벨", row.applicantLevel || profile.level],
+            ["직업", row.applicantProfession || profile.profession],
+            ["여행스타일", parseList(profile.travelStyles).join(", ")],
+            ["이메일", row.memberEmail || profile.memberEmail]
+          ])}
+        </div>
+      `;
+    }
+
+    function renderParticipants(schedule) {
+      if (!schedule.applications.length) {
+        return `<div class="empty">아직 참여 신청자가 없습니다.</div>`;
+      }
+      return `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>신청일</th>
+                <th>이름</th>
+                <th>연락처</th>
+                <th>인원</th>
+                <th>성별/연령</th>
+                <th>타수/스타일</th>
+                <th>희망 동반자</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${schedule.applications.map((row) => `
+                <tr>
+                  <td class="nowrap">${escapeHtml(formatDateTime(row.createdAt))}</td>
+                  <td>${escapeHtml(row.applicantName || row.memberName || "-")}</td>
+                  <td class="nowrap">${escapeHtml(formatPhone(row.applicantMobile || row.memberMobile))}</td>
+                  <td>${escapeHtml(row.applicantPeople || 1)}명</td>
+                  <td>${escapeHtml([row.applicantGender, row.applicantAgeBand || row.applicantBirthYear].filter(Boolean).join(" / ") || "-")}</td>
+                  <td>${escapeHtml([row.applicantLevel, parseList(row.applicantStyles).join(", ")].filter(Boolean).join(" / ") || "-")}</td>
+                  <td>${escapeHtml(parseList(row.applicantPreferredMembers).join(", ") || "-")}</td>
+                  <td><span class="badge ${escapeHtml(statusClass(row.applicationStatus))}">${escapeHtml(statusLabel(row.applicationStatus))}</span></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderReviews(reviews) {
+      const visibleReviews = reviews.filter((row) => asText(row.status).toLowerCase() !== "deleted");
+      if (!visibleReviews.length) return `<div class="empty">등록된 후기가 없습니다.</div>`;
+      return `
+        <div class="review-list">
+          ${visibleReviews.map((row) => `
+            <div class="review-card">
+              <div class="inline-meta">
+                <span>${"★".repeat(Math.max(0, Math.min(5, Number(row.rating || 0))))}</span>
+                <span>${escapeHtml(row.memberName || "-")}</span>
+                <span>${escapeHtml(formatDate(row.createdAt))}</span>
+                <span>${escapeHtml(parseList(row.tags).join(", "))}</span>
+              </div>
+              <div class="review-text">${escapeHtml(row.reviewText || "")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function downloadSchedulesCsv() {
+      const rows = getFilteredSchedules().map((schedule) => {
+        const row = schedule.row;
+        return {
+          scheduleId: row.scheduleId || "",
+          applicationId: row.applicationId || "",
+          productName: getScheduleTitle(row),
+          region: row.region || parseList(row.regions)[0] || "",
+          date: getScheduleDate(row),
+          creator: row.applicantName || row.memberName || "",
+          creatorPhone: row.applicantMobile || row.memberMobile || "",
+          status: row.applicationStatus || row.displayStatus || row.approvalStatus || "",
+          participants: schedule.applications.length,
+          reviews: schedule.reviews.length
+        };
+      });
+      const headers = Object.keys(rows[0] || {
+        scheduleId: "",
+        applicationId: "",
+        productName: "",
+        region: "",
+        date: "",
+        creator: "",
+        creatorPhone: "",
+        status: "",
+        participants: "",
+        reviews: ""
+      });
+      const csv = [
+        headers.join(","),
+        ...rows.map((row) => headers.map((header) => `"${String(row[header] || "").replace(/"/g, '""')}"`).join(","))
+      ].join("\n");
+      const blob = new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `golfjoin-schedules-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.addEventListener("click", (event) => {
+      const item = event.target.closest("[data-schedule-key]");
+      if (!item) return;
+      state.selectedKey = item.dataset.scheduleKey;
+      renderScheduleList();
+      renderDetail();
+    });
+
+    $("#searchInput").addEventListener("input", () => {
+      renderScheduleList();
+      renderDetail();
+    });
+    $("#statusFilter").addEventListener("change", () => {
+      renderScheduleList();
+      renderDetail();
+    });
+    $("#reloadButton").addEventListener("click", loadDashboard);
+    $("#downloadButton").addEventListener("click", downloadSchedulesCsv);
+
+    loadDashboard();
+  </script>
+</body>
+</html>

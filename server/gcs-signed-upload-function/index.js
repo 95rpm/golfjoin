@@ -77,7 +77,7 @@ function buildObjectName(body, image) {
   const type = String(body.type || "");
   const fileName = safePathPart(image.fileName || `${image.role || "image"}.webp`);
   if (type === "join_profile_image") {
-    return `golfjoin_uploads/profiles/${safePathPart(body.profileId)}/${fileName}`;
+    return `golfjoin_uploads/photos/${safePathPart(body.profileId)}/${fileName}`;
   }
   return `golfjoin_uploads/reviews/${safePathPart(body.reviewId)}/${fileName}`;
 }

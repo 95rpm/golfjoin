@@ -14,7 +14,7 @@ gcloud functions deploy golfjoin-sign-gcs-upload \
   --entry-point=signGcsUpload \
   --trigger-http \
   --allow-unauthenticated \
-  '--set-env-vars=^|^GCS_BUCKET=golfjoin-bucket|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com,http://localhost:8000'
+  '--set-env-vars=^|^GCS_BUCKET=golfjoin-bucket|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com,http://localhost:8000,http://192.168.1.119:8000'
 ```
 
 After deployment, copy the function URL into `REVIEW_IMAGE_SIGN_ENDPOINT` in `golfjoin_main.html`.

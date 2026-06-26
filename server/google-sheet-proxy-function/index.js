@@ -1092,10 +1092,55 @@ async function readHomeBootstrapPart(key, reader) {
   }
 }
 
+async function readHomeBootstrapBatchDirect(params = {}) {
+  const target = buildSheetReadUrl({
+    action: "home_bootstrap",
+    sheet: "new_schedule_applications",
+    memberSeq: asText(params.memberSeq),
+    memberId: asText(params.memberId),
+    memberMobile: normalizePhone(params.memberMobile || params.phone),
+    newScheduleLimit: Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100),
+    joinApplicationLimit: Math.min(Math.max(Number(params.joinApplicationLimit || 50), 1), 100),
+    reviewLimit: Math.min(Math.max(Number(params.reviewLimit || 200), 1), 200),
+    wishLimit: Math.min(Math.max(Number(params.wishLimit || 200), 1), 200)
+  });
+  const response = await fetchWithTimeout(target, {
+    method: "GET",
+    headers: { "Accept": "application/json" },
+    redirect: "follow"
+  });
+  const text = await response.text();
+  if (!response.ok) throw createHttpError(`Home bootstrap batch failed: ${response.status}`, response.status);
+  const payload = JSON.parse(text || "{}");
+  if (
+    !payload
+    || !Array.isArray(payload.newSchedules)
+    || !Array.isArray(payload.joinApplications)
+    || !Array.isArray(payload.reviews)
+    || !Array.isArray(payload.wishes)
+  ) {
+    throw createHttpError("Home bootstrap batch payload is invalid", 502);
+  }
+  return {
+    newSchedules: payload.newSchedules.map(sanitizePublicRow),
+    joinApplications: payload.joinApplications.map(sanitizePublicRow),
+    reviews: payload.reviews.map(sanitizePublicRow),
+    wishes: payload.wishes.map(sanitizeJoinWishLookupRow),
+    warnings: []
+  };
+}
+
 async function proxyHomeBootstrap(params, res) {
   const memberSeq = asText(params?.memberSeq);
   const memberId = asText(params?.memberId);
   const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
+  try {
+    const payload = await readHomeBootstrapBatchDirect({ ...params, memberSeq, memberId, memberMobile });
+    res.status(200).json(payload);
+    return;
+  } catch (error) {
+    console.warn("Home bootstrap batch failed; falling back to parallel sheet reads.", error?.message || error);
+  }
   const parts = await Promise.all([
     readHomeBootstrapPart("newSchedules", () => readSheetRowsDirect({
       sheet: "new_schedule_applications",

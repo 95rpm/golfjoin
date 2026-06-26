@@ -304,6 +304,15 @@
       transform: translate(-50%, calc(100% + 80px)) !important;
     }
 
+    html.modal-open .join-create-floating-button,
+    body.modal-open .join-create-floating-button,
+    #secret-golf-join.modal-open .join-create-floating-button {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transform: translateY(80px) scale(.92) !important;
+    }
+
     #secret-golf-join,
     #secret-golf-join * {
       box-sizing: border-box;
@@ -686,8 +695,8 @@
       border-radius: 5px;
       background: #373A3C;
       color: #fff;
-      font-size: 14px;
-      font-weight: 800;
+      font-size: 18px;
+      font-weight: 700;
     }
     .field {
       display: flex;
@@ -3615,14 +3624,11 @@
       .calendar-sheet-body.desktop-date-selected {
         display: flex;
         flex-direction: column;
+        min-height: min(640px, calc(100vh - 124px));
         overflow: hidden;
       }
-      .calendar-sheet-body.desktop-date-selected:not(.desktop-calendar-expanded) .calendar-desktop-months {
+      .calendar-sheet-body.desktop-date-selected .calendar-desktop-months {
         display: none;
-      }
-      .calendar-sheet-body.desktop-date-selected.desktop-calendar-expanded .calendar-desktop-months {
-        flex: 0 0 auto;
-        overflow-y: auto;
       }
       .calendar-sheet-body.desktop-date-selected .calendar-desktop-selection {
         min-height: 0;
@@ -3633,8 +3639,47 @@
         background: #fff;
         overflow-x: hidden;
       }
-      .calendar-sheet-body.desktop-calendar-expanded .calendar-desktop-selected-header,
       .calendar-sheet-body.desktop-calendar-expanded .calendar-desktop-selected-week {
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .calendar-sheet-body.desktop-calendar-collapsing .calendar-desktop-selected-week {
+        max-height: 220px;
+        opacity: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .calendar-desktop-selected-week {
+        max-height: 220px;
+        opacity: 1;
+        transition: none;
+      }
+      .calendar-desktop-selected-months {
+        flex: 0 0 auto;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        pointer-events: none;
+        transform: translateY(-14px);
+        transition: max-height .34s cubic-bezier(.22, 1, .36, 1), opacity .24s ease, transform .34s cubic-bezier(.22, 1, .36, 1);
+        will-change: max-height, opacity, transform;
+      }
+      .calendar-sheet-body.desktop-calendar-expanded .calendar-desktop-selected-months {
+        max-height: 620px;
+        opacity: 1;
+        overflow: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+      .calendar-desktop-selected-months .calendar-month {
+        margin-bottom: 0;
+        padding-bottom: 12px;
+        border-bottom: 0;
+      }
+      .calendar-desktop-selected-months .calendar-month-title,
+      .calendar-desktop-selected-months .calendar-month > .calendar-grid {
         display: none;
       }
       .calendar-desktop-selected-header {
@@ -3685,7 +3730,7 @@
         transform: rotate(180deg);
       }
       .calendar-desktop-selected-panel {
-        min-height: 0;
+        min-height: 320px;
         min-width: 0;
         flex: 1 1 auto;
         overflow-y: auto;
@@ -3961,7 +4006,7 @@
       top: 0;
       z-index: 6;
       display: grid;
-      grid-template-columns: 40px minmax(0, 1fr) 40px;
+      grid-template-columns: minmax(92px, auto) minmax(0, 1fr) minmax(92px, auto);
       align-items: center;
       gap: 8px;
       font-size: 20px;
@@ -3977,14 +4022,21 @@
       min-width: 0;
     }
     .calendar-month-nav {
-      width: 36px;
+      width: auto;
+      min-width: 36px;
       height: 36px;
+      gap: 5px;
+      padding: 0 9px;
       border-radius: 999px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       color: var(--text);
       background: transparent;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
     }
     .calendar-month-nav:hover:not(:disabled) {
       background: #f1f5f9;
@@ -3996,6 +4048,10 @@
     .calendar-month-nav svg {
       width: 20px;
       height: 20px;
+    }
+    .calendar-month-nav-label {
+      display: inline-flex;
+      align-items: center;
     }
     .calendar-month-nav.prev {
       grid-column: 1;
@@ -4116,14 +4172,25 @@
     }
     .calendar-empty-schedule-copy {
       color: var(--text);
-      font-size: 18px;
-      font-weight: 800;
+      font-size: 20px;
+      font-weight: 700;
       line-height: 1.45;
       padding-right: 28px;
       margin-bottom: 18px;
     }
     .calendar-empty-schedule-action {
       width: 100%;
+    }
+    body > .calendar-sheet-overlay .calendar-empty-schedule-action,
+    body > .calendar-sheet-overlay .calendar-empty-schedule-sheet.open .calendar-empty-schedule-action {
+      background: var(--modal-bottom-primary-color);
+      border-color: var(--modal-bottom-primary-color);
+      color: #fff;
+    }
+    body > .calendar-sheet-overlay .calendar-empty-schedule-action:hover {
+      background: var(--modal-bottom-primary-color);
+      border-color: var(--modal-bottom-primary-color);
+      color: #fff;
     }
     .calendar-accordion {
       max-height: 0;
@@ -4301,6 +4368,18 @@
       object-fit: contain;
       pointer-events: none;
       user-select: none;
+    }
+    @media (min-width: 641px) {
+      .trust-card-image {
+        right: clamp(7px, calc(7px + (100vw - 641px) * 0.02872), 18px);
+        bottom: clamp(8px, calc(8px + (100vw - 641px) * 0.02611), 18px);
+        width: clamp(103px, calc(103px + (100vw - 641px) * 0.0705), 130px);
+      }
+    }
+    @media (min-width: 1025px) {
+      .trust-card-image {
+        width: 92px;
+      }
     }
     .trust-icon {
       display: inline-flex;
@@ -8956,7 +9035,7 @@
     }
     @media (min-width: 641px) {
       .join-mobile-bottom-nav.is-visible {
-        box-shadow: none;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
       }
 
       .modal-header,
@@ -12556,6 +12635,273 @@
       flex: 0 0 20px;
       color: currentColor;
     }
+    .detail-participant-status-card {
+      display: grid;
+      gap: 16px;
+    }
+    .detail-participant-status-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .detail-participant-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      padding: 7px 11px;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      background: #fff;
+      color: #4b5563;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .detail-participant-status-pill.deadline {
+      color: #f97316;
+    }
+    .detail-participant-status-pill.interest {
+      margin-left: auto;
+    }
+    .detail-participant-status-pill svg {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 15px;
+      stroke-width: 2.1;
+    }
+    .detail-participant-info-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 15px 0;
+      border-radius: 16px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .detail-participant-info-grid::after {
+      content: "";
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      top: 50%;
+      height: 1px;
+      background: #e5e7eb;
+      transform: translateY(-50%);
+    }
+    .detail-participant-info-cell {
+      min-width: 0;
+      padding: 0 18px;
+    }
+    .detail-participant-info-cell:nth-child(1),
+    .detail-participant-info-cell:nth-child(2) {
+      padding-bottom: 14px;
+    }
+    .detail-participant-info-cell:nth-child(3),
+    .detail-participant-info-cell:nth-child(4) {
+      padding-top: 14px;
+    }
+    .detail-participant-info-cell:nth-child(2),
+    .detail-participant-info-cell:nth-child(4) {
+      border-left: 1px solid #e5e7eb;
+    }
+    .detail-participant-info-label {
+      color: #848c94;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+    .detail-participant-info-value {
+      margin-top: 6px;
+      color: #2b2d33;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+    .detail-participant-info-value.status-open {
+      color: #2563eb;
+    }
+    .detail-participant-gender,
+    .detail-participant-match {
+      display: grid;
+      gap: 10px;
+      padding: 18px;
+      border: 0;
+      border-radius: 16px;
+      background: #fff;
+    }
+    .detail-participant-block-title,
+    .detail-participant-match-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 0;
+      border-bottom: 0;
+      color: #848c94;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .detail-participant-match-percent {
+      color: #126bff;
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .detail-participant-gender-row {
+      display: grid;
+      grid-template-columns: 50px minmax(0, 1fr) 50px;
+      gap: 20px;
+      align-items: center;
+    }
+    .detail-participant-gender-avatar {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      display: block;
+    }
+    .detail-participant-gender-center {
+      display: grid;
+      gap: 9px;
+      min-width: 0;
+    }
+    .detail-participant-gender-scale {
+      display: block;
+    }
+    .detail-participant-gender-summary {
+      color: #373a3c;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .detail-participant-gauge-track {
+      position: relative;
+      height: 8px;
+      border-radius: 999px;
+      background: #e8ebf0;
+      overflow: hidden;
+    }
+    .detail-participant-gauge-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--gauge-width, 0%);
+      min-width: var(--gauge-min-width, 0);
+      border-radius: inherit;
+      background: #5ba5ff;
+    }
+    .detail-participant-gender-fill-female {
+      left: var(--male-width, 0%);
+      width: var(--female-width, 0%);
+      min-width: var(--female-min-width, 0);
+      background: #ffb8df;
+      border-radius: var(--female-radius, 999px);
+    }
+    .detail-participant-gender .detail-participant-gauge-fill:not(.detail-participant-gender-fill-female) {
+      border-radius: var(--male-radius, 999px);
+    }
+    .detail-participant-match > .detail-participant-gauge-track {
+      margin-top: 8px;
+    }
+    .detail-participant-match-gauge {
+      position: relative;
+      padding-top: 27px;
+    }
+    .detail-participant-match-gauge .detail-participant-gauge-track {
+      margin-top: 0;
+    }
+    .detail-participant-match-summary {
+      position: absolute;
+      top: 0;
+      right: 0;
+      color: #007fff;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.3;
+      text-align: right;
+    }
+    .detail-participant-divider {
+      display: none;
+    }
+    .detail-participant-style-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .detail-participant-style-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 8px 13px;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      background: #fff;
+      color: #4b5563;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .detail-participant-style-chips.mobile {
+      display: none;
+    }
+    @media (min-width: 641px) {
+      .detail-participant-status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 30px;
+        padding: 6px 14px;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        background: #fff;
+        color: #4b5563;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+      }
+      .detail-participant-status-card {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .detail-participant-status-pills,
+      .detail-participant-status-card .detail-team,
+      .detail-participant-info-grid,
+      .detail-participant-divider,
+      .detail-participant-style-chips,
+      .detail-participant-info-bubble {
+        grid-column: 1 / -1;
+      }
+      .detail-participant-divider {
+        display: none;
+      }
+      .detail-participant-gender,
+      .detail-participant-match {
+        align-content: start;
+      }
+      .detail-participant-match-gauge {
+        margin-right: 0;
+        margin-left: 0;
+        padding-top: 7px;
+        padding-bottom: 27px;
+      }
+      .detail-participant-match-summary {
+        top: auto;
+        bottom: 0;
+      }
+    }
+    @media (max-width: 640px) {
+      .detail-participant-style-chips.desktop {
+        display: none;
+      }
+      .detail-participant-style-chips.mobile {
+        display: flex;
+        margin-top: 12px;
+      }
+    }
     .detail-benefit-card {
       overflow: hidden;
       border: 0;
@@ -12873,6 +13219,7 @@
       margin: 0;
       border-top: 0;
       padding-top: 0;
+      justify-content: center;
     }
     .detail-participant-status-card {
       position: relative;
@@ -12882,8 +13229,9 @@
     .detail-participant-info-bubble {
       --detail-participant-bubble-radius: 10px;
       position: absolute;
-      left: 22px;
-      bottom: -24px;
+      left: var(--detail-participant-bubble-left, 22px);
+      top: var(--detail-participant-bubble-top, auto);
+      bottom: auto;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -13621,12 +13969,15 @@
         font-size: 17px;
       }
       .trust-card {
-        min-height: 228px;
+        min-height: 154px;
         padding-right: 20px;
-        padding-bottom: 112px;
+        padding-bottom: 20px;
       }
       .trust-card-image {
-        width: 132px;
+        right: 12px;
+        top: 19px;
+        bottom: auto;
+        width: clamp(60px, calc(60px + (100vw - 320px) * 0.125), 100px);
       }
       .faq-question {
         font-size: 18px;
@@ -13683,15 +14034,28 @@
         border-bottom: 0;
       }
       .calendar-sheet-body.mobile-date-selected:not(.calendar-calendar-expanded) .calendar-mobile-months {
-        display: none;
+        flex: 0 0 auto;
+        height: 0;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        pointer-events: none;
+        transform: translateY(-14px);
       }
       .calendar-sheet-body.mobile-date-selected.calendar-calendar-expanded .calendar-mobile-months {
         flex: 0 0 auto;
         height: var(--calendar-expanded-month-height, auto);
-        max-height: none;
+        max-height: var(--calendar-expanded-month-height, 420px);
+        opacity: 1;
         overflow-y: auto;
         padding-bottom: 0;
         border-bottom: 0;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+      .calendar-sheet-body.mobile-date-selected .calendar-mobile-months {
+        transition: height .34s cubic-bezier(.22, 1, .36, 1), max-height .34s cubic-bezier(.22, 1, .36, 1), opacity .24s ease, transform .34s cubic-bezier(.22, 1, .36, 1);
+        will-change: height, max-height, opacity, transform;
       }
       .calendar-sheet-body.calendar-calendar-expanded .calendar-month.mobile-compact {
         border-bottom: 0;
@@ -13706,13 +14070,21 @@
         overflow-x: hidden;
       }
       .calendar-sheet-body.mobile-date-selected.calendar-calendar-expanded .calendar-mobile-selected-week {
-        display: none;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateY(-10px);
+        pointer-events: none;
       }
       .calendar-mobile-selected-week {
         flex: 0 0 auto;
+        max-height: 96px;
+        opacity: 1;
         padding: 0 0px;
         border-bottom: 0;
         background: #fff;
+        transform: translateY(0);
+        transition: none;
       }
       .calendar-mobile-selected-week .calendar-week {
         margin-top: 0;
@@ -13730,7 +14102,7 @@
         background: #fff;
         border-bottom: 1px solid var(--border);
         border-radius: 0 0 14px 14px;
-        box-shadow: none;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
       }
       .calendar-mobile-toggle svg {
         width: 18px;
@@ -15223,6 +15595,10 @@
         transform: translateX(-50%);
         pointer-events: none;
       }
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel.is-complete::after {
+        display: none;
+        content: none;
+      }
       #builderDatePopover.builder-date-popover,
       #builderFlexSheet.builder-flex-sheet {
         padding-top: 24px;
@@ -15231,6 +15607,9 @@
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-head,
       body > .participant-floating.sgj-portal-overlay .participant-sheet-header {
         padding-top: 24px;
+      }
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel.is-complete .detail-apply-head {
+        padding-top: 0;
       }
       .sgj-page .page-container {
         width: min(calc(100% - (var(--mobile-page-gutter) * 2)), var(--page-max-width));
@@ -18081,8 +18460,8 @@
       }
       #regionSearchModal .region-desktop-title {
         margin: 0 13px 12px;
-        font-size: 16px;
-        font-weight: 800;
+        font-size: 17px;
+        font-weight: 700;
       }
       #regionSearchModal .region-desktop-columns {
         grid-template-columns: minmax(126px, 0.8fr) minmax(180px, 1.25fr) minmax(150px, 1fr);
@@ -18624,6 +19003,7 @@
       body > #detailModal.sgj-portal-overlay.open .detail-participant-status-card .detail-team {
         display: flex !important;
         flex-wrap: nowrap !important;
+        justify-content: center !important;
         gap: 6px !important;
         margin: 0 !important;
         overflow: visible !important;
@@ -19065,7 +19445,7 @@
 
     .join-mobile-bottom-nav-list {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 2px;
       width: 100%;
       max-width: 540px;
@@ -19073,6 +19453,10 @@
       padding: 0;
       padding-left: 0;
       list-style: none;
+    }
+
+    .join-mobile-bottom-nav .join-pc-bottom-only {
+      display: block;
     }
 
     #secret-golf-join .join-mobile-bottom-nav-list {
@@ -19171,7 +19555,93 @@
       color: #fff;
     }
 
+    .join-create-floating-button {
+      display: none;
+    }
+
     @media (max-width: 640px) {
+      .join-create-floating-button {
+        position: fixed;
+        left: 20px;
+        top: calc(var(--join-mobile-visual-end, 100vh) - 20px - 56px);
+        z-index: 2147482501;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-start;
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
+        max-width: calc(100vw - 40px);
+        padding: 0 16px;
+        overflow: hidden;
+        border: 0;
+        border-radius: 999px;
+        background: #0c91f8;
+        color: #fff;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0) scale(1);
+        transform-origin: left center;
+        transition:
+          top .26s ease,
+          width .26s ease,
+          border-radius .26s ease,
+          box-shadow .26s ease,
+          transform .26s ease,
+          opacity .2s ease,
+          visibility .2s ease;
+        will-change: top, width, transform;
+      }
+
+      .join-create-floating-button.is-expanded {
+        top: calc(var(--join-mobile-visual-end, 100vh) - 72px - 20px - 56px);
+        width: 168px;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
+      }
+
+      .join-create-floating-button:active,
+      .join-create-floating-button:focus-visible {
+        transform: translateX(0) scale(.98);
+        outline: none;
+      }
+
+      .join-create-floating-button-icon {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        flex: 0 0 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .join-create-floating-button-icon svg {
+        width: 24px;
+        height: 24px;
+        display: block;
+      }
+
+      .join-create-floating-button-text {
+        min-width: 0;
+        margin-left: 9px;
+        overflow: hidden;
+        color: #fff;
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: 0;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateX(-10px);
+        transition: opacity .2s ease, transform .24s ease;
+      }
+
+      .join-create-floating-button.is-expanded .join-create-floating-button-text {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
       .region-search-back::before,
       .join-member-login-back::before {
         content: none !important;
@@ -23529,7 +23999,12 @@
         height: 72px;
         width: 100%;
         max-width: none;
+        grid-template-columns: repeat(4, 1fr);
         gap: 0;
+      }
+
+      .join-mobile-bottom-nav .join-pc-bottom-only {
+        display: none;
       }
 
       .join-mobile-bottom-nav button {
@@ -24414,18 +24889,25 @@
     </div>
   </section>
 
+  <button type="button" class="join-create-floating-button" id="joinCreateFloatingButton" onclick="openBuilderModalFromMain(this)" aria-label="새 모임 만들기">
+    <div class="join-create-floating-button-icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+    </div>
+    <div class="join-create-floating-button-text">새 모임 만들기</div>
+  </button>
+
   <div class="join-mobile-bottom-nav is-hidden" id="joinMobileBottomNav" role="navigation" aria-label="모바일 빠른 메뉴">
     <ul class="join-mobile-bottom-nav-list">
-      <li>
-        <button type="button" data-mobile-nav-key="search" onclick="handleJoinMobileNavSearch()" aria-label="검색">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 21-4.34-4.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle><circle class="search-active-cutout" cx="11" cy="11" r="6.1"></circle></svg>
-          <div class="join-mobile-bottom-nav-label">검색</div>
-        </button>
-      </li>
       <li>
         <button type="button" data-mobile-nav-key="my" onclick="handleJoinMyButtonClick()" aria-label="마이페이지" class="is-active">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
           <div class="join-mobile-bottom-nav-label">마이메뉴</div>
+        </button>
+      </li>
+      <li>
+        <button type="button" data-mobile-nav-key="search" onclick="handleJoinMobileNavSearch()" aria-label="검색">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 21-4.34-4.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle><circle class="search-active-cutout" cx="11" cy="11" r="6.1"></circle></svg>
+          <div class="join-mobile-bottom-nav-label">검색</div>
         </button>
       </li>
       <li>
@@ -24979,14 +25461,14 @@
             <path d="M19 12H5"></path>
           </svg>
         </button>
-        <div class="calendar-sheet-title" id="calendarSheetTitle">참여 가능한 일정</div>
+        <div class="calendar-sheet-title" id="calendarSheetTitle">참여 가능한 모임</div>
         <span class="modal-header-spacer" aria-hidden="true"></span>
       </div>
       <div class="calendar-sheet-body" id="calendarSheetBody"></div>
     </div>
     <div class="calendar-empty-schedule-sheet" id="calendarEmptyScheduleSheet" onclick="event.stopPropagation()">
       <button type="button" class="modal-close-icon calendar-empty-schedule-close" onclick="closeCalendarEmptyScheduleSheet()" aria-label="닫기"></button>
-      <div class="calendar-empty-schedule-copy">내가 먼저 일정을 만들어<br>멤버를 모집해보세요.</div>
+      <div class="calendar-empty-schedule-copy">이 날짜에는 아직 열린 모임이 없어요.<br>첫 모임을 만들어볼까요?</div>
       <button type="button" class="button primary large calendar-empty-schedule-action" onclick="openBuilderFromCalendarEmptyDate()">새 모임 만들기</button>
     </div>
   </div>
@@ -26408,6 +26890,7 @@
     let externalGolfJoinProductsLoading = false;
     let homeInitialExternalProductsLoading = false;
     let homeInitialExternalProductsLoadedOnce = false;
+    let homeBootstrapLoading = false;
     let googleSheetBuilderApplicationsLoading = false;
     let googleSheetBuilderApplicationsReadCompleted = false;
     let googleSheetBuilderApplicationsReadFailed = false;
@@ -26545,6 +27028,14 @@
     let joinActionLoadingMessageBase = "";
     let joinActionLoadingMessageDotIndex = 0;
     let homeInitialLoadingMessageBase = "상품 정보를 확인하고 있어요";
+    const homeInitialLoadingMessages = [
+      "상품 정보를 확인하고 있어요",
+      "참여 가능한 일정을 불러오고 있어요",
+      "함께 떠날 멤버 정보를 확인하고 있어요",
+      "예약 가능 시간을 계산하고 있어요",
+      "나에게 맞는 조인여행을 준비하고 있어요"
+    ];
+    let homeInitialLoadingMessageIndex = 0;
     let homeInitialLoadingMessageDotIndex = 0;
     const JOIN_ACTION_LOADING_MIN_VISIBLE_MS = 450;
     const JOIN_ACTION_LOADING_ICON_INTERVAL_MS = 400;
@@ -26654,6 +27145,7 @@
     function renderHomeInitialLoadingIcon() {
       const target = document.getElementById("homeInitialLoadingIcon");
       if (target) target.innerHTML = joinActionLoadingIcons[homeInitialLoadingIconIndex % joinActionLoadingIcons.length] || "";
+      homeInitialLoadingMessageBase = homeInitialLoadingMessages[Math.floor(homeInitialLoadingIconIndex / 4) % homeInitialLoadingMessages.length] || homeInitialLoadingMessages[0];
       homeInitialLoadingIconIndex += 1;
       renderAnimatedLoadingMessage("homeInitialLoadingMessage", homeInitialLoadingMessageBase, homeInitialLoadingMessageDotIndex);
       homeInitialLoadingMessageDotIndex = (homeInitialLoadingMessageDotIndex + 1) % JOIN_LOADING_DOT_SUFFIXES.length;
@@ -26678,7 +27170,10 @@
       document.body.classList.add("home-initial-loading", "modal-open");
       document.getElementById("secret-golf-join")?.classList.add("modal-open");
       box?.classList.add("has-message");
+      homeInitialLoadingMessageBase = homeInitialLoadingMessages[0] || homeInitialLoadingMessageBase;
       box?.setAttribute("aria-label", normalizeLoadingMessageBase(homeInitialLoadingMessageBase));
+      homeInitialLoadingIconIndex = 0;
+      homeInitialLoadingMessageIndex = 0;
       homeInitialLoadingMessageDotIndex = 0;
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
@@ -33261,6 +33756,11 @@
       openRegionSearchModal();
     }
 
+    function handleJoinMobileRecruitClick(trigger) {
+      setJoinMobileNavActive("recruit");
+      openBuilderModalFromMain(trigger);
+    }
+
     function handleJoinMobileKakaoClick() {
       setJoinMobileNavActive("kakao");
       openExternalLink("http://pf.kakao.com/_lRbYxj/chat");
@@ -33273,10 +33773,12 @@
 
     function setJoinMobileBottomNavVisible(visible, options = {}) {
       const nav = document.getElementById("joinMobileBottomNav");
+      const createButton = document.getElementById("joinCreateFloatingButton");
       scheduleJoinMobileVisualViewportVarsUpdate();
       const nextVisible = Boolean(visible) && (options.force || !hasOpenBlockingModal());
       nav?.classList.toggle("is-visible", nextVisible);
       nav?.classList.toggle("is-hidden", !nextVisible);
+      createButton?.classList.toggle("is-expanded", nextVisible);
     }
 
     function setJoinMobileNavActive(key) {
@@ -34658,6 +35160,18 @@
       const triggerTop = (headerRect?.bottom || bodyRect.top) + 12;
       const priceRect = price.getBoundingClientRect();
       if (priceRect.top > triggerTop || priceRect.bottom < triggerTop - 48) return;
+      const card = tooltip.closest(".detail-participant-status-card");
+      const team = card?.querySelector(".detail-team");
+      const firstSlot = team?.querySelector(".team-avatar-wrap, .team-empty");
+      if (card && team) {
+        const cardRect = card.getBoundingClientRect();
+        const teamRect = team.getBoundingClientRect();
+        const slotRect = firstSlot?.getBoundingClientRect();
+        const top = Math.max(0, teamRect.bottom - cardRect.top + 8);
+        const left = Math.max(12, (slotRect ? slotRect.left : teamRect.left) - cardRect.left);
+        tooltip.style.setProperty("--detail-participant-bubble-top", `${top}px`);
+        tooltip.style.setProperty("--detail-participant-bubble-left", `${left}px`);
+      }
       tooltip.dataset.shown = "true";
       tooltip.classList.add("is-visible");
       clearTimeout(detailParticipantTooltipTimer);
@@ -34942,7 +35456,7 @@
           <div class="detail-participant-status-title">함께 떠나는 멤버</div>
           <div class="detail-participant-status-card">
             <div class="detail-participant-summary">
-              <div class="detail-participant-count"><svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-users-icon lucide-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>${stats.count}명 참여중 <span class="detail-participant-meta-separator">·</span> ${stats.remaining}자리 남음</div>
+              <div class="detail-participant-count"><svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-users-icon lucide-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>${stats.count}명 참여중 <div class="detail-participant-meta-separator">·</div> ${stats.remaining}자리 남음</div>
               <div class="detail-participant-meta">
                 <div class="detail-participant-meta-item"><svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-chart-line-icon lucide-chart-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>평균나이 ${stats.averageAgeDecade}</div>
                 ${genderSummary ? `<div class="detail-participant-meta-separator">·</div><div class="detail-participant-meta-item">${genderSummary}</div>` : ""}
@@ -34950,6 +35464,291 @@
             </div>
             <div class="team-row detail-team">
               ${renderCardTeamSlots(join, false, 4, { allowEmptySlots: !options.disableEmptySlots })}
+            </div>
+            <div class="detail-participant-info-bubble">클릭하면 멤버 정보를 확인할 수 있어요</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function isDetailFemaleParticipantV2(participant = {}) {
+      const source = [participant.gender, participant.gif, participant.name].filter(Boolean).join(" ").toLowerCase();
+      return source.includes("여") || source.includes("female") || source.includes("woman");
+    }
+
+    function getDetailParticipantScoreValueV2(participant = {}) {
+      const source = String(participant.handicap || participant.level || "").trim();
+      const score = Number((source.match(/\d+/) || [])[0]);
+      if (score) return score;
+      if (/프로/.test(source)) return 72;
+      if (/싱글/.test(source)) return 79;
+      if (/보기/.test(source)) return 100;
+      if (/입문|초보/.test(source)) return 110;
+      return 0;
+    }
+
+    function getDetailParticipantAgeDecadeV2(participant = {}) {
+      const source = [participant.age, participant.ageDisplay, participant.ageDetail, participant.birthYear].filter(Boolean).join(" ");
+      const decadeMatch = String(source).match(/([3-8]\d)\s*대/);
+      if (decadeMatch) return Number(decadeMatch[1]);
+      const ageMatch = String(source).match(/(?:^|\D)([3-8]\d)(?:\D|$)/);
+      if (ageMatch) return Math.floor(Number(ageMatch[1]) / 10) * 10;
+      const birthYearMatch = String(source).match(/\b(19\d{2}|20\d{2})\b/);
+      if (birthYearMatch) {
+        const currentYear = new Date().getFullYear();
+        const age = currentYear - Number(birthYearMatch[1]) + 1;
+        return Math.floor(age / 10) * 10;
+      }
+      return null;
+    }
+
+    function formatDetailAverageHandicapV2(participants = []) {
+      const values = participants.map(getDetailParticipantScoreValueV2).filter(Boolean);
+      if (!values.length) return "확인중";
+      const average = Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+      return `${average}타`;
+    }
+
+    function formatDetailAverageAgeDecadeV2(participants = []) {
+      const ageDecades = participants
+        .map(getDetailParticipantAgeDecadeV2)
+        .filter((value) => Number.isFinite(value));
+      if (!ageDecades.length) return "확인중";
+      const average = ageDecades.reduce((sum, value) => sum + value, 0) / ageDecades.length;
+      return `${Math.round(average / 10) * 10}대`;
+    }
+
+    function getDetailInterestCountV2(join = {}, stats = {}) {
+      const explicit = Number(
+        join.interestCount
+        || join.viewingCount
+        || join.viewerCount
+        || join.viewCount
+        || join.wishCount
+        || join.recentViewCount
+        || 0
+      );
+      if (Number.isFinite(explicit) && explicit > 0) return Math.round(explicit);
+      const seed = hashStringToNumber([join.id, join.title, join.departureDate].filter(Boolean).join("|"));
+      return Math.max(1, Number(stats.count || 0) + 3 + (seed % 4));
+    }
+
+    function formatDetailDeadlineLabelV2(join = {}) {
+      const deadlineTimestamp = getJoinReservationDeadlineTimestamp(join);
+      const remaining = Number(deadlineTimestamp) - getJoinCountdownNowTimestamp();
+      if (!Number.isFinite(remaining) || remaining <= 0) return "마감 완료";
+      const totalHours = Math.ceil(remaining / 3600000);
+      const days = Math.floor(totalHours / 24);
+      const hours = totalHours % 24;
+      if (days > 0 && hours > 0) return `마감 ${days}일 ${hours}시간 전`;
+      if (days > 0) return `마감 ${days}일 전`;
+      return `마감 ${Math.max(1, hours)}시간 전`;
+    }
+
+    function getDetailTravelStyleMatchPercentV2(join = {}, participants = []) {
+      const explicit = Number(join.travelStyleMatchPercent || join.matchPercent || join.matchRate || 0);
+      if (Number.isFinite(explicit) && explicit > 0) return Math.max(1, Math.min(100, Math.round(explicit)));
+      const styleCount = new Set(participants.flatMap((participant) => participant.preferences || [])).size;
+      return Math.max(68, Math.min(94, 78 + Math.min(styleCount, 5) * 2 + (hashStringToNumber(join.id || join.title) % 7)));
+    }
+
+    function getDetailRoundStyleTagsV2(join = {}, participants = []) {
+      const sources = [
+        ...(Array.isArray(join.styles) ? join.styles : []),
+        ...(Array.isArray(join.memberPreferences) ? join.memberPreferences : []),
+        ...(Array.isArray(join.preferredMemberComposition) ? join.preferredMemberComposition : []),
+        ...participants.flatMap((participant) => participant.preferences || [])
+      ];
+      const tags = [...new Set(sources.map((tag) => String(tag || "").trim()).filter(Boolean))];
+      return (tags.length ? tags : ["즐겜", "매너중시", "초보환영"]).slice(0, 3);
+    }
+
+    function getDetailParticipantStats(confirmedParticipants = [], participantCapacity = JOIN_MAX_CAPACITY) {
+      const count = confirmedParticipants.length;
+      const capacity = Math.max(count, Number(participantCapacity || JOIN_MAX_CAPACITY) || JOIN_MAX_CAPACITY);
+      const remaining = Math.max(0, capacity - count);
+      const genderCounts = confirmedParticipants.reduce((acc, participant) => {
+        if (isDetailFemaleParticipantV2(participant)) acc.female += 1;
+        else acc.male += 1;
+        return acc;
+      }, { male: 0, female: 0 });
+      return {
+        count,
+        capacity,
+        remaining,
+        averageAgeDecade: formatDetailAverageAgeDecadeV2(confirmedParticipants),
+        averageHandicap: formatDetailAverageHandicapV2(confirmedParticipants),
+        male: genderCounts.male,
+        female: genderCounts.female
+      };
+    }
+
+    function renderDetailParticipantStatus(join, confirmedParticipants, participantCapacity, options = {}) {
+      const stats = getDetailParticipantStats(confirmedParticipants, participantCapacity);
+      const totalGenderCount = Math.max(1, stats.male + stats.female);
+      const malePercent = Math.max(0, Math.min(100, (stats.male / totalGenderCount) * 100));
+      const femalePercent = Math.max(0, Math.min(100 - malePercent, (stats.female / totalGenderCount) * 100));
+      const matchPercent = getDetailTravelStyleMatchPercentV2(join, confirmedParticipants);
+      const minimumDepartureCount = Math.min(stats.capacity, Math.max(1, Number(join.minimumDepartureCount || join.minDepartureCount || join.minParticipants || 4) || 4));
+      const styleTags = getDetailRoundStyleTagsV2(join, confirmedParticipants);
+      const interestCount = getDetailInterestCountV2(join, stats);
+      const deadlineLabel = formatDetailDeadlineLabelV2(join);
+      const minMaleWidth = stats.male > 0 ? "8px" : "0";
+      const minFemaleWidth = stats.female > 0 ? "8px" : "0";
+      const maleRadius = stats.male > 0 && stats.female > 0 ? "999px 0 0 999px" : "999px";
+      const femaleRadius = stats.male > 0 && stats.female > 0 ? "0 999px 999px 0" : "999px";
+      return `
+        <div class="detail-participant-status">
+          <div class="detail-participant-status-title">함께 떠나는 멤버</div>
+          <div class="detail-participant-status-card">
+            <div class="detail-participant-status-pills">
+              <div class="detail-participant-status-pill deadline">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alarm-clock-icon lucide-alarm-clock" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M6.38 18.7 4 21"/><path d="M17.64 18.67 20 21"/></svg>
+                <div>${escapeHtml(deadlineLabel)}</div>
+              </div>
+              <div class="detail-participant-status-pill interest">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                <div>${interestCount}명 관심중</div>
+              </div>
+            </div>
+            <div class="team-row detail-team">
+              ${renderCardTeamSlots(join, false, 4, { allowEmptySlots: !options.disableEmptySlots })}
+            </div>
+            <div class="detail-participant-info-grid">
+              <div class="detail-participant-info-cell">
+                <div class="detail-participant-info-label">현재인원</div>
+                <div class="detail-participant-info-value">${stats.count}명</div>
+              </div>
+              <div class="detail-participant-info-cell">
+                <div class="detail-participant-info-label">최소출발</div>
+                <div class="detail-participant-info-value">${minimumDepartureCount}명</div>
+              </div>
+              <div class="detail-participant-info-cell">
+                <div class="detail-participant-info-label">평균연령</div>
+                <div class="detail-participant-info-value">${escapeHtml(stats.averageAgeDecade)}</div>
+              </div>
+              <div class="detail-participant-info-cell">
+                <div class="detail-participant-info-label">평균핸디</div>
+                <div class="detail-participant-info-value">${escapeHtml(stats.averageHandicap)}</div>
+              </div>
+            </div>
+            <div class="detail-participant-gender">
+              <div class="detail-participant-block-title">성별구성</div>
+              <div class="detail-participant-gender-row">
+                <img class="detail-participant-gender-avatar" src="src/imports/icon_man.webp" alt="" loading="lazy" decoding="async">
+                <div class="detail-participant-gender-center">
+                  <div class="detail-participant-gender-scale">
+                    <div class="detail-participant-gauge-track" aria-hidden="true">
+                      <div class="detail-participant-gauge-fill" style="--gauge-width:${malePercent}%; --gauge-min-width:${minMaleWidth}; --male-radius:${maleRadius};"></div>
+                      <div class="detail-participant-gauge-fill detail-participant-gender-fill-female" style="--male-width:${malePercent}%; --female-width:${femalePercent}%; --female-min-width:${minFemaleWidth}; --female-radius:${femaleRadius};"></div>
+                    </div>
+                  </div>
+                  <div class="detail-participant-gender-summary">남성 ${stats.male}명 · 여성 ${stats.female}명</div>
+                </div>
+                <img class="detail-participant-gender-avatar" src="src/imports/icon_woman.webp" alt="" loading="lazy" decoding="async">
+              </div>
+            </div>
+            <div class="detail-participant-divider" aria-hidden="true"></div>
+            <div class="detail-participant-match">
+              <div class="detail-participant-match-head">
+                <div>여행 스타일이 잘 맞아요</div>
+              </div>
+              <div class="detail-participant-gauge-track" aria-hidden="true">
+                <div class="detail-participant-gauge-fill" style="--gauge-width:${matchPercent}%;"></div>
+              </div>
+              <div class="detail-participant-match-summary">${matchPercent}%</div>
+            </div>
+            <div class="detail-participant-style-chips">
+              ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
+            </div>
+            <div class="detail-participant-info-bubble">클릭하면 멤버 정보를 확인할 수 있어요</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDetailParticipantStatus(join, confirmedParticipants, participantCapacity, options = {}) {
+      const stats = getDetailParticipantStats(confirmedParticipants, participantCapacity);
+      const totalGenderCount = Math.max(1, stats.male + stats.female);
+      const malePercent = Math.max(0, Math.min(100, (stats.male / totalGenderCount) * 100));
+      const femalePercent = Math.max(0, Math.min(100 - malePercent, (stats.female / totalGenderCount) * 100));
+      const matchPercent = getDetailTravelStyleMatchPercentV2(join, confirmedParticipants);
+      const minimumDepartureCount = Math.min(stats.capacity, Math.max(1, Number(join.minimumDepartureCount || join.minDepartureCount || join.minParticipants || 4) || 4));
+      const styleTags = getDetailRoundStyleTagsV2(join, confirmedParticipants);
+      const interestCount = getDetailInterestCountV2(join, stats);
+      const deadlineLabel = formatDetailDeadlineLabelV2(join);
+      const minMaleWidth = stats.male > 0 ? "8px" : "0";
+      const minFemaleWidth = stats.female > 0 ? "8px" : "0";
+      const maleRadius = stats.male > 0 && stats.female > 0 ? "999px 0 0 999px" : "999px";
+      const femaleRadius = stats.male > 0 && stats.female > 0 ? "0 999px 999px 0" : "999px";
+      return `
+        <div class="detail-participant-status">
+          <div class="detail-participant-status-title">함께 떠나는 멤버</div>
+          <div class="detail-participant-status-card">
+            <div class="detail-participant-status-pills">
+              <div class="detail-participant-status-pill deadline">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-alarm-clock-icon lucide-alarm-clock" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M6.38 18.7 4 21"/><path d="M17.64 18.67 20 21"/></svg>
+                <div>${escapeHtml(deadlineLabel)}</div>
+              </div>
+              <div class="detail-participant-status-pill interest">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>
+                <div>${interestCount}명 관심중</div>
+              </div>
+            </div>
+            <div class="team-row detail-team">
+              ${renderCardTeamSlots(join, false, 4, { allowEmptySlots: !options.disableEmptySlots })}
+            </div>
+            <div class="detail-participant-info-grid">
+              <div class="detail-participant-info-cell">
+                <div class="detail-participant-info-label">현재인원</div>
+                <div class="detail-participant-info-value">${stats.count}명</div>
+              </div>
+              <div class="detail-participant-info-cell">
+                <div class="detail-participant-info-label">최소출발</div>
+                <div class="detail-participant-info-value">${minimumDepartureCount}명</div>
+              </div>
+              <div class="detail-participant-info-cell">
+                <div class="detail-participant-info-label">평균연령</div>
+                <div class="detail-participant-info-value">${escapeHtml(stats.averageAgeDecade)}</div>
+              </div>
+              <div class="detail-participant-info-cell">
+                <div class="detail-participant-info-label">평균핸디</div>
+                <div class="detail-participant-info-value">${escapeHtml(stats.averageHandicap)}</div>
+              </div>
+            </div>
+            <div class="detail-participant-gender">
+              <div class="detail-participant-block-title">성별구성</div>
+              <div class="detail-participant-gender-row">
+                <img class="detail-participant-gender-avatar" src="src/imports/icon_man.webp" alt="" loading="lazy" decoding="async">
+                <div class="detail-participant-gender-center">
+                  <div class="detail-participant-gender-scale">
+                    <div class="detail-participant-gauge-track" aria-hidden="true">
+                      <div class="detail-participant-gauge-fill" style="--gauge-width:${malePercent}%; --gauge-min-width:${minMaleWidth}; --male-radius:${maleRadius};"></div>
+                      <div class="detail-participant-gauge-fill detail-participant-gender-fill-female" style="--male-width:${malePercent}%; --female-width:${femalePercent}%; --female-min-width:${minFemaleWidth}; --female-radius:${femaleRadius};"></div>
+                    </div>
+                  </div>
+                  <div class="detail-participant-gender-summary">남성 ${stats.male}명 · 여성 ${stats.female}명</div>
+                </div>
+                <img class="detail-participant-gender-avatar" src="src/imports/icon_woman.webp" alt="" loading="lazy" decoding="async">
+              </div>
+            </div>
+            <div class="detail-participant-divider" aria-hidden="true"></div>
+            <div class="detail-participant-match">
+              <div class="detail-participant-match-head">
+                <div>여행스타일 적합도</div>
+              </div>
+              <div class="detail-participant-match-gauge">
+                <div class="detail-participant-match-summary">${matchPercent}%</div>
+                <div class="detail-participant-gauge-track" aria-hidden="true">
+                  <div class="detail-participant-gauge-fill" style="--gauge-width:${matchPercent}%;"></div>
+                </div>
+              </div>
+              <div class="detail-participant-style-chips mobile">
+                ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
+              </div>
+            </div>
+            <div class="detail-participant-style-chips desktop">
+              ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
             <div class="detail-participant-info-bubble">클릭하면 멤버 정보를 확인할 수 있어요</div>
           </div>
@@ -35343,6 +36142,10 @@
       const nextMonth = addMonths(calendarViewMonth, direction);
       if (getMonthKey(nextMonth) < getMonthKey(startMonth) || getMonthKey(nextMonth) > getMonthKey(endMonth)) return;
       calendarViewMonth = nextMonth;
+      if (isCalendarDesktopMode() && document.getElementById("calendarSheetBody")?.classList.contains("desktop-date-selected")) {
+        refreshCalendarDesktopSelectedMonth();
+        return;
+      }
       renderCalendarSheet();
     }
 
@@ -35683,7 +36486,7 @@
     function clearCalendarDesktopSelection() {
       const body = document.getElementById("calendarSheetBody");
       const selection = document.getElementById("calendarDesktopSelection");
-      body?.classList.remove("desktop-date-selected", "desktop-calendar-expanded");
+      body?.classList.remove("desktop-date-selected", "desktop-calendar-expanded", "desktop-calendar-collapsing");
       if (body) {
         delete body.dataset.desktopSelectedDate;
         delete body.dataset.desktopSelectedMonth;
@@ -35748,7 +36551,14 @@
     function toggleDesktopCalendarArea() {
       const body = document.getElementById("calendarSheetBody");
       if (!body) return;
-      body.classList.toggle("desktop-calendar-expanded");
+      const willOpen = !body.classList.contains("desktop-calendar-expanded");
+      window.clearTimeout(body._calendarDesktopCollapseTimer);
+      body.classList.remove("desktop-calendar-collapsing");
+      if (willOpen) {
+        body.classList.add("desktop-calendar-expanded");
+      } else {
+        body.classList.remove("desktop-calendar-expanded");
+      }
       body.scrollTop = 0;
     }
 
@@ -35786,22 +36596,68 @@
       return true;
     }
 
+    function renderCalendarDesktopSelectedMonth() {
+      const { startMonth, endMonth } = getCalendarMonthBounds();
+      clampCalendarViewMonth(startMonth, endMonth);
+      return renderCalendarMonth(calendarViewMonth, getJoinEventsByDate(), {
+        showMonthNav: true,
+        forceSixWeeks: true,
+        startMonth,
+        endMonth
+      });
+    }
+
+    function renderCalendarDesktopSelectedHeader() {
+      const { startMonth, endMonth } = getCalendarMonthBounds();
+      const year = calendarViewMonth.getFullYear();
+      const month = calendarViewMonth.getMonth();
+      const monthKey = getMonthKey(calendarViewMonth);
+      const isPrevDisabled = monthKey <= getMonthKey(startMonth);
+      const isNextDisabled = monthKey >= getMonthKey(endMonth);
+      return `
+        <div class="calendar-month-title">
+          <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="calendar-month-nav-label">이전 달</div>
+          </button>
+          <div class="calendar-month-label">${year}년 ${month + 1}월</div>
+          <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
+            <div class="calendar-month-nav-label">다음 달</div>
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="calendar-grid">${renderCalendarWeekdayLabels()}</div>
+      `;
+    }
+
+    function refreshCalendarDesktopSelectedMonth() {
+      const body = document.getElementById("calendarSheetBody");
+      if (!body) return;
+      const header = body.querySelector(".calendar-desktop-selected-header");
+      const months = document.getElementById("calendarDesktopSelectedMonths");
+      if (header) header.innerHTML = renderCalendarDesktopSelectedHeader();
+      if (months) months.innerHTML = renderCalendarDesktopSelectedMonth();
+    }
+
     function openCalendarDesktopSelection(monthKey, dateKey, events) {
       const body = document.getElementById("calendarSheetBody");
       const selection = document.getElementById("calendarDesktopSelection");
       const week = document.getElementById(`calendarWeek-${monthKey}`);
       if (!body || !selection || !week) return false;
-      const section = week.closest(".calendar-month");
-      const monthTitle = section?.querySelector(".calendar-month-title")?.outerHTML || "";
+      window.clearTimeout(body._calendarDesktopCollapseTimer);
+      body.classList.remove("desktop-calendar-collapsing");
+      calendarViewMonth = new Date(`${dateKey.slice(0, 7)}-01T00:00:00`);
       body.dataset.desktopSelectedDate = dateKey;
       body.dataset.desktopSelectedMonth = monthKey;
       selection.innerHTML = `
         <div class="calendar-desktop-selected-header">
-          ${monthTitle}
-          <div class="calendar-grid">${renderCalendarWeekdayLabels()}</div>
+          ${renderCalendarDesktopSelectedHeader()}
         </div>
         <div class="calendar-desktop-selected-week">
           <div class="calendar-week">${week.innerHTML}</div>
+        </div>
+        <div class="calendar-desktop-selected-months" id="calendarDesktopSelectedMonths">
+          ${renderCalendarDesktopSelectedMonth()}
         </div>
         <button type="button" class="calendar-desktop-toggle" onclick="toggleDesktopCalendarArea()" aria-label="캘린더 영역 열기 또는 닫기">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -35816,7 +36672,7 @@
         </div>
       `;
       body.classList.add("desktop-date-selected");
-      body.classList.remove("desktop-calendar-expanded");
+      body.classList.remove("desktop-calendar-expanded", "desktop-calendar-collapsing");
       body.scrollTop = 0;
       return true;
     }
@@ -35871,14 +36727,16 @@
           <div class="calendar-month-title">
             <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="calendar-month-nav-label">이전 달</div>
             </button>
-            <span class="calendar-month-label">${year}년 ${month + 1}월</span>
+            <div class="calendar-month-label">${year}년 ${month + 1}월</div>
             <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
+              <div class="calendar-month-nav-label">다음 달</div>
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </div>
         `
-        : `<div class="calendar-month-title"><span class="calendar-month-label">${formatCalendarMonthTitle(monthDate)}</span></div>`;
+        : `<div class="calendar-month-title"><div class="calendar-month-label">${formatCalendarMonthTitle(monthDate)}</div></div>`;
 
       labels.push(renderCalendarWeekdayLabels());
 
@@ -35965,7 +36823,7 @@
       body.onscroll = null;
       body.scrollTop = 0;
       body.classList.add("is-loading-products");
-      body.classList.remove("mobile-date-selected", "calendar-calendar-expanded", "desktop-date-selected", "desktop-calendar-expanded");
+      body.classList.remove("mobile-date-selected", "calendar-calendar-expanded", "desktop-date-selected", "desktop-calendar-expanded", "desktop-calendar-collapsing");
       delete body.dataset.mobileSelectedDate;
       delete body.dataset.mobileSelectedMonth;
       delete body.dataset.desktopSelectedDate;
@@ -36028,7 +36886,7 @@
       body.innerHTML = months.join("");
       body.classList.toggle("is-loading-products", isJoinProductCardsLoading());
       body.scrollTop = 0;
-      body.classList.remove("mobile-date-selected", "calendar-calendar-expanded", "desktop-date-selected", "desktop-calendar-expanded");
+      body.classList.remove("mobile-date-selected", "calendar-calendar-expanded", "desktop-date-selected", "desktop-calendar-expanded", "desktop-calendar-collapsing");
       delete body.dataset.mobileSelectedDate;
       delete body.dataset.mobileSelectedMonth;
       delete body.dataset.desktopSelectedDate;
@@ -43882,7 +44740,10 @@
     }
 
     function shouldShowHomeInitialLoading() {
-      return Boolean(homeInitialExternalProductsLoading && !homeInitialExternalProductsLoadedOnce);
+      return Boolean(
+        (homeInitialExternalProductsLoading && !homeInitialExternalProductsLoadedOnce)
+        || homeBootstrapLoading
+      );
     }
 
     function isMdPickProductsLoading() {
@@ -46977,25 +47838,16 @@
       hydrateJoinReviewsFromLocalCache();
       hydrateOverseasJoinsWithSecretProducts();
       homeInitialExternalProductsLoading = true;
+      homeBootstrapLoading = true;
       renderHomeInitialLoading();
-      try {
-        await ensureExternalGolfJoinProductsLoaded();
-      } finally {
+      const externalProductsPromise = ensureExternalGolfJoinProductsLoaded().catch((error) => {
+        console.warn("Failed to load external golf join products during home init.", error);
+      }).finally(() => {
         homeInitialExternalProductsLoading = false;
         homeInitialExternalProductsLoadedOnce = true;
-      }
-      renderJoins();
-      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      scheduleHomeSlideDotsRefresh();
-      window.refreshInitialJoinSlideDots?.();
-      const params = new URLSearchParams(location.search);
-      const afterLogin = params.get("afterLogin");
-      const shouldDelayInitialLoadingClose = ["my-menu", "my-drawer", "builder", "apply", "detail-wish", "profile-manage", "kakao-profile"].includes(afterLogin)
-        || Boolean(getJoinExternalDeepLinkTarget());
-      if (!shouldDelayInitialLoadingClose) {
-        closeHomeInitialLoading();
-      }
-      hydrateHomeBootstrapFromGoogleSheet().catch((error) => {
+        renderHomeInitialLoading();
+      });
+      const bootstrapPromise = hydrateHomeBootstrapFromGoogleSheet().catch((error) => {
         console.warn("Failed to load home bootstrap data. Falling back to individual sheet reads.", error);
         return Promise.all([
           hydrateBuilderApplicationJoinsFromGoogleSheet(),
@@ -47019,14 +47871,26 @@
         await resumeJoinExternalDeepLink();
         await resumeJoinKakaoProfileAfterLogin();
       }).finally(() => {
-        closeHomeInitialLoading();
+        homeBootstrapLoading = false;
+        renderJoins();
+        renderHomeInitialLoading();
       });
+      await externalProductsPromise;
+      renderJoins();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      scheduleHomeSlideDotsRefresh();
+      window.refreshInitialJoinSlideDots?.();
+      const params = new URLSearchParams(location.search);
+      const afterLogin = params.get("afterLogin");
+      await bootstrapPromise;
+      closeHomeInitialLoading();
     }
 
     initializeGolfJoinHome().catch((error) => {
       console.warn("Failed to initialize golf join home.", error);
       homeInitialExternalProductsLoading = false;
       homeInitialExternalProductsLoadedOnce = true;
+      homeBootstrapLoading = false;
       renderJoins();
       Promise.resolve()
         .then(() => resumeJoinMyMenuAfterLogin())

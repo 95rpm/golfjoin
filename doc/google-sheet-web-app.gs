@@ -311,6 +311,10 @@ function doGet(e) {
   const params = (e && e.parameter) || {};
   setupGolfJoinSheets();
 
+  if (String(params.action || "").toLowerCase() === "home_bootstrap") {
+    return jsonOutput_(readHomeBootstrapPayload_(params));
+  }
+
   const sheetName = resolveReadSheetName_(params.sheet);
   const shouldRefreshSummary = !sheetName || sheetName === SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY || params.refreshSummary === "true";
   if (shouldRefreshSummary) {
@@ -1155,6 +1159,45 @@ function filterRowsForRequest_(rows, params) {
 
   const limit = parsePositiveInteger_(params.limit);
   return limit ? filtered.slice(0, limit) : filtered;
+}
+
+function readHomeBootstrapPayload_(params) {
+  const newScheduleLimit = Math.min(Math.max(parsePositiveInteger_(params.newScheduleLimit) || 100, 1), 100);
+  const joinApplicationLimit = Math.min(Math.max(parsePositiveInteger_(params.joinApplicationLimit) || 50, 1), 100);
+  const reviewLimit = Math.min(Math.max(parsePositiveInteger_(params.reviewLimit) || 200, 1), 200);
+  const wishLimit = Math.min(Math.max(parsePositiveInteger_(params.wishLimit) || 200, 1), 200);
+  const memberSeq = String(params.memberSeq || "").trim();
+  const memberId = String(params.memberId || "").trim();
+  const memberMobile = normalizePhone_(params.memberMobile || params.phone || "");
+  const canReadWishes = memberMobile && (memberSeq || memberId);
+
+  return {
+    ok: true,
+    updatedAt: new Date().toISOString(),
+    newSchedules: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS), {
+      source: "new_schedule_builder",
+      limit: newScheduleLimit
+    }).map(normalizeRowForJson_),
+    joinApplications: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_APPLICATIONS), {
+      source: "join_apply",
+      limit: joinApplicationLimit
+    }).map(normalizeRowForJson_),
+    reviews: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_REVIEWS), {
+      source: "join_review",
+      status: "visible",
+      limit: reviewLimit
+    }).map(normalizeRowForJson_),
+    wishes: canReadWishes
+      ? filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_WISHES), {
+        source: "join_wish",
+        status: "active",
+        memberSeq: memberSeq,
+        memberId: memberId,
+        memberMobile: memberMobile,
+        limit: wishLimit
+      }).map(normalizeRowForJson_)
+      : []
+  };
 }
 
 function normalizePhone_(value) {

@@ -5,7 +5,8 @@ const { Storage } = require("@google-cloud/storage");
 
 const storage = new Storage();
 const BUCKET_NAME = process.env.GCS_BUCKET || "golfjoin-bucket";
-const SIGNED_URL_TTL_MS = Number(process.env.SIGNED_URL_TTL_MS || 10 * 60 * 1000);
+const SIGNED_URL_TTL_MS = Math.min(Number(process.env.SIGNED_URL_TTL_MS || 10 * 60 * 1000), 15 * 60 * 1000);
+const UPLOAD_TOKEN = String(process.env.UPLOAD_TOKEN || "").trim();
 const ALLOWED_ORIGINS = String(process.env.ALLOWED_ORIGINS || "https://m.secret-tour.com,https://www.secret-tour.com")
   .split(",")
   .map((origin) => origin.trim())
@@ -35,6 +36,14 @@ function getAllowedOrigin(origin = "") {
   return ALLOWED_ORIGINS.includes(origin) ? origin : "";
 }
 
+function getHeader(req, name) {
+  return String(req.headers[name.toLowerCase()] || "").trim();
+}
+
+function isUploadRequestAuthorized(req) {
+  return !UPLOAD_TOKEN || getHeader(req, "x-golfjoin-upload-token") === UPLOAD_TOKEN;
+}
+
 function setCorsHeaders(req, res) {
   const origin = getAllowedOrigin(req.headers.origin || "");
   if (origin) {
@@ -42,7 +51,7 @@ function setCorsHeaders(req, res) {
   }
   res.set("Vary", "Origin");
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
+  res.set("Access-Control-Allow-Headers", "Content-Type, X-Golfjoin-Upload-Token");
   res.set("Access-Control-Max-Age", "3600");
 }
 
@@ -128,6 +137,10 @@ exports.signGcsUpload = async (req, res) => {
 
   if (ALLOWED_ORIGINS.length && !getAllowedOrigin(req.headers.origin || "")) {
     res.status(403).json({ error: "Origin not allowed" });
+    return;
+  }
+  if (!isUploadRequestAuthorized(req)) {
+    res.status(403).json({ error: "Upload token is required" });
     return;
   }
 

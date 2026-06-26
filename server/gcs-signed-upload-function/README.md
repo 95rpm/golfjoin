@@ -13,6 +13,7 @@ The function enforces these server-side limits:
 - Profile images: 1 item, 200KB max after browser resize
 - Review images: 6 items max, 2MB max per resized image
 - Object names are generated on the server with UUIDs; browser-provided file names are not used as GCS object names.
+- If `UPLOAD_TOKEN` is configured, URL signing requires the `X-Golfjoin-Upload-Token` request header.
 
 ## Deploy
 
@@ -25,7 +26,7 @@ gcloud functions deploy golfjoin-sign-gcs-upload \
   --entry-point=signGcsUpload \
   --trigger-http \
   --allow-unauthenticated \
-  '--set-env-vars=^|^GCS_BUCKET=golfjoin-bucket|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com,http://localhost:8000,http://192.168.1.119:8000'
+  '--set-env-vars=^|^GCS_BUCKET=golfjoin-bucket|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com,http://localhost:8000,http://192.168.1.119:8000|UPLOAD_TOKEN=REPLACE_WITH_UPLOAD_TOKEN'
 ```
 
 For production, remove local test origins:
@@ -39,7 +40,7 @@ gcloud functions deploy golfjoin-sign-gcs-upload \
   --entry-point=signGcsUpload \
   --trigger-http \
   --allow-unauthenticated \
-  '--set-env-vars=^|^GCS_BUCKET=golfjoin-bucket|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com'
+  '--set-env-vars=^|^GCS_BUCKET=golfjoin-bucket|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com|UPLOAD_TOKEN=REPLACE_WITH_UPLOAD_TOKEN'
 ```
 
 After deployment, copy the function URL into `REVIEW_IMAGE_SIGN_ENDPOINT` in `golfjoin_main.html`.

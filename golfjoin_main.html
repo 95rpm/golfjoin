@@ -2817,6 +2817,7 @@
       transform: scale(var(--dot-scale, .65));
       transition: background .3s ease-out, opacity .3s ease-out, transform .3s ease-out;
       pointer-events: auto;
+      cursor: pointer;
     }
     .join-slide-dot.active {
       background: #313437;
@@ -4280,7 +4281,26 @@
     .trust-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .trust-card { padding: 22px 20px; }
     .trust-card {
+      position: relative;
+      min-height: 216px;
+      padding-bottom: 112px;
+      overflow: hidden;
       box-shadow: none;
+    }
+    .trust-card > :not(.trust-card-image) {
+      position: relative;
+      z-index: 1;
+    }
+    .trust-card-image {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: min(46%, 122px);
+      height: auto;
+      display: block;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
     }
     .trust-icon {
       display: inline-flex;
@@ -6845,6 +6865,16 @@
     body > #joinActionLoadingOverlay .join-action-loading-box {
       position: relative !important;
       z-index: 2147483647 !important;
+      width: auto !important;
+      min-width: 160px !important;
+      height: auto !important;
+      min-height: 88px !important;
+      padding: 18px 20px 16px !important;
+      gap: 10px !important;
+    }
+    body > #joinActionLoadingOverlay .join-action-loading-message {
+      display: block !important;
+      min-height: 19px;
     }
     html.home-initial-loading,
     body.home-initial-loading {
@@ -6868,6 +6898,14 @@
       opacity: 1;
       pointer-events: auto;
     }
+    .home-initial-loading-overlay .join-action-loading-box {
+      width: auto;
+      min-width: 160px;
+      height: auto;
+      min-height: 88px;
+      padding: 18px 20px 16px;
+      gap: 10px;
+    }
     .join-action-loading-box {
       width: 70px;
       height: 70px;
@@ -6875,8 +6913,10 @@
       background: rgba(255, 255, 255, .85);
       box-shadow: 0 18px 44px rgba(15, 23, 42, .18);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 0;
       color: #111827;
     }
     .join-action-loading-box.has-message {
@@ -6885,7 +6925,6 @@
       height: auto;
       min-height: 88px;
       padding: 18px 20px 16px;
-      flex-direction: column;
       gap: 10px;
     }
     .join-action-loading-icon {
@@ -6902,7 +6941,8 @@
     }
     .join-action-loading-message {
       display: none;
-      max-width: 220px;
+      width: max-content;
+      max-width: 240px;
       color: #111827;
       font-size: 14px;
       font-weight: 700;
@@ -6910,8 +6950,18 @@
       text-align: center;
       white-space: normal;
     }
+    .join-action-loading-message-dots {
+      display: inline-block;
+      width: 1.2em;
+      text-align: left;
+      white-space: pre;
+    }
     .join-action-loading-box.has-message .join-action-loading-message {
       display: block;
+    }
+    .home-initial-loading-overlay .join-action-loading-message {
+      display: block;
+      min-height: 19px;
     }
     button[data-join-loading-locked="true"] {
       pointer-events: none;
@@ -7774,7 +7824,7 @@
     .region-search-field {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 5px;
       padding: 12px 18px 10px;
       border-bottom: 1px solid #d1d5db;
     }
@@ -11461,6 +11511,7 @@
     }
     .detail-content-sheet {
       position: relative;
+      padding-bottom: 180px;
     }
     .detail-slider-pagination {
       position: absolute;
@@ -11799,7 +11850,7 @@
     }
     .detail-anchor-tabs {
       position: sticky;
-      top: -22px;
+      top: 0;
       z-index: 2;
       display: none;
       gap: 20px;
@@ -11987,6 +12038,9 @@
       grid-column: 2;
       grid-row: 1 / span 2;
       align-self: center;
+    }
+    .detail-review-thumb-wrap:has(.detail-review-thumb[src=""]) {
+      display: none;
     }
     .detail-review-thumb {
       width: 76px;
@@ -13566,6 +13620,14 @@
       .trust-card-copy {
         font-size: 17px;
       }
+      .trust-card {
+        min-height: 228px;
+        padding-right: 20px;
+        padding-bottom: 112px;
+      }
+      .trust-card-image {
+        width: 132px;
+      }
       .faq-question {
         font-size: 18px;
       }
@@ -14580,13 +14642,13 @@
     }
     .sgj-page .chip.active,
     .sgj-page .detail-content-tab.active {
-      background: var(--blue);
-      border-color: var(--blue);
+      background: #0c91f8;
+      border-color: #0c91f8;
       color: #fff;
     }
     .sgj-page .detail-content-tab.active {
-      background: #9aa5bf;
-      border-color: #9aa5bf;
+      background: #0c91f8;
+      border-color: #0c91f8;
     }
     .sgj-page .join-grid {
       display: grid;
@@ -17240,23 +17302,23 @@
     }
     #regionSearchModal .region-search-shell.has-region-query .region-search-field input {
       flex: 0 1 auto;
-      width: min(var(--region-search-input-width), calc(100% - 32px));
-      max-width: calc(100% - 32px);
+      width: min(var(--region-search-input-width), calc(100% - 35px));
+      max-width: calc(100% - 35px);
     }
     #regionSearchModal .region-search-clear-input {
-      width: 20px;
-      height: 20px;
-      flex: 0 0 20px;
-      color: #6b7280;
-      background: #e5e7eb;
+      width: 23px;
+      height: 23px;
+      flex: 0 0 23px;
+      color: #272727;
+      background: #eeeeee;
     }
     #regionSearchModal .region-search-clear-input:hover {
       color: #373a3c;
       background: #d9dee5;
     }
     #regionSearchModal .region-search-clear-input svg {
-      width: 12px;
-      height: 12px;
+      width: 16px;
+      height: 16px;
     }
     #regionSearchModal .region-search-field .mobile-search-icon {
       width: 22px;
@@ -23242,6 +23304,10 @@
       line-height: 1.45;
       text-align: left;
     }
+    .join-member-signup-form[data-step="6"] + .join-member-login-status:empty {
+      display: none;
+      min-height: 0;
+    }
 
     .join-member-find-links {
       display: flex;
@@ -23909,8 +23975,9 @@
 </head>
 <body class="home-initial-loading modal-open">
   <div class="home-initial-loading-overlay open" id="homeInitialLoadingOverlay" aria-hidden="false">
-    <div class="join-action-loading-box" role="status" aria-live="polite" aria-label="상품 불러오는 중">
+    <div class="join-action-loading-box has-message" role="status" aria-live="polite" aria-label="상품 정보를 확인하고 있어요">
       <div class="join-action-loading-icon" id="homeInitialLoadingIcon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tickets-plane-icon lucide-tickets-plane"><path d="M10.5 17h1.227a2 2 0 0 0 1.345-.52L18 12"></path><path d="m12 13.5 3.794.506"></path><path d="m3.173 8.18 11-5a2 2 0 0 1 2.647.993L18.56 8"></path><path d="M6 10V8"></path><path d="M6 14v1"></path><path d="M6 19v2"></path><rect x="2" y="8" width="20" height="13" rx="2"></rect></svg></div>
+      <div class="join-action-loading-message" id="homeInitialLoadingMessage">상품 정보를 확인하고 있어요</div>
     </div>
   </div>
   <div id="secret-golf-join" class="sgj-page">
@@ -23935,8 +24002,8 @@
               <path class="hero-calendar-cta-shape"></path>
             </svg>
             <div class="hero-calendar-copy">
-              <div class="hero-calendar-button-text">참여 가능한 일정보기</div>
-              <div class="hero-calendar-button-desc">날짜별 모집중인 모임을 확인하세요</div>
+              <div class="hero-calendar-button-text">모집 중인 조인 확인하기</div>
+              <div class="hero-calendar-button-desc">원하는 날짜에 함께할 멤버를 찾아보세요</div>
             </div>
             <div class="hero-calendar-thumb-stack" aria-hidden="true">
               <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt=""></div>
@@ -24286,10 +24353,10 @@
     <div class="page-container">
       <div class="section-title" style="text-align:center;">안심하고 가볍게 참여하세요.</div>
       <div class="trust-grid" style="margin-top:24px;">
-        <div class="trust-card"><div class="trust-icon">1</div><div class="trust-card-title">참여자를 미리 확인하세요</div><div class="trust-card-copy">성별부터 스타일까지 한눈에</div></div>
-        <div class="trust-card"><div class="trust-icon">2</div><div class="trust-card-title">담당자가 끝까지 책임집니다</div><div class="trust-card-copy">출발 전후 빠른 응대와 안심 안내</div></div>
-        <div class="trust-card"><div class="trust-icon">3</div><div class="trust-card-title">회원이라 더 특별한 혜택</div><div class="trust-card-copy">특가부터 단체 프로그램까지 연결</div></div>
-        <div class="trust-card"><div class="trust-icon">4</div><div class="trust-card-title">가볍게 묻고 편하게 참여</div><div class="trust-card-copy">매너 있는 분들과 즐거운 일정</div></div>
+        <div class="trust-card"><div class="trust-icon">1</div><div class="trust-card-title">참여자를 미리 확인하세요</div><div class="trust-card-copy">성별부터 스타일까지 한눈에</div><img class="trust-card-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/trust_card_img1.webp" alt="" loading="lazy" decoding="async" aria-hidden="true"></div>
+        <div class="trust-card"><div class="trust-icon">2</div><div class="trust-card-title">담당자가 끝까지 책임집니다</div><div class="trust-card-copy">출발 전후 빠른 응대와 안심 안내</div><img class="trust-card-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/trust_card_img2.webp" alt="" loading="lazy" decoding="async" aria-hidden="true"></div>
+        <div class="trust-card"><div class="trust-icon">3</div><div class="trust-card-title">회원이라 더 특별한 혜택</div><div class="trust-card-copy">특가부터 단체 프로그램까지 연결</div><img class="trust-card-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/trust_card_img3.webp" alt="" loading="lazy" decoding="async" aria-hidden="true"></div>
+        <div class="trust-card"><div class="trust-icon">4</div><div class="trust-card-title">가볍게 묻고 편하게 참여</div><div class="trust-card-copy">매너 있는 분들과 즐거운 일정</div><img class="trust-card-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/trust_card_img4.webp" alt="" loading="lazy" decoding="async" aria-hidden="true"></div>
       </div>
     </div>
   </section>
@@ -25066,35 +25133,35 @@
               <div class="apply-preference-title">라운딩 스타일</div>
               <div class="apply-preference-copy">나와 잘 맞는 조인을 위해 최대 3개만 골라주세요.</div>
               <div class="apply-chip-group" data-chip-group="global-style" data-multi="true" data-max="3">
-                <button type="button" class="apply-chip" data-value="매너중시">매너중시 🤝</button>
-                <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 😊</button>
-                <button type="button" class="apply-chip" data-value="조용히집중">조용히집중 🎯</button>
-                <button type="button" class="apply-chip" data-value="사진도좋아요">사진도좋아요 📷</button>
-                <button type="button" class="apply-chip" data-value="진행빠른편">진행빠른편 ⚡</button>
-                <button type="button" class="apply-chip" data-value="초보배려">초보배려 🌱</button>
-                <button type="button" class="apply-chip" data-value="대화좋아요">대화좋아요 💬</button>
-                <button type="button" class="apply-chip" data-value="분위기메이커">분위기메이커 🌤️</button>
-                <button type="button" class="apply-chip" data-value="시간약속중요">시간약속중요 ⏱️</button>
-                <button type="button" class="apply-chip" data-value="편안한라운딩">편안한라운딩 🍃</button>
+                <button type="button" class="apply-chip" data-value="매너중시">매너중시 &#x1F91D;</button>
+                <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 &#x1F60A;</button>
+                <button type="button" class="apply-chip" data-value="조용히집중">조용히집중 &#x1F3AF;</button>
+                <button type="button" class="apply-chip" data-value="사진도좋아요">사진도좋아요 &#x1F4F7;</button>
+                <button type="button" class="apply-chip" data-value="진행빠른편">진행빠른편 &#x26A1;</button>
+                <button type="button" class="apply-chip" data-value="초보배려">초보배려 &#x1F331;</button>
+                <button type="button" class="apply-chip" data-value="대화좋아요">대화좋아요 &#x1F4AC;</button>
+                <button type="button" class="apply-chip" data-value="분위기메이커">분위기메이커 &#x1F324;&#xFE0F;</button>
+                <button type="button" class="apply-chip" data-value="시간약속중요">시간약속중요 &#x23F1;&#xFE0F;</button>
+                <button type="button" class="apply-chip" data-value="편안한라운딩">편안한라운딩 &#x1F343;</button>
               </div>
             </div>
             <div class="field full">
               <div class="apply-preference-title">선호 멤버 구성</div>
               <div class="apply-preference-copy">맞춤형 조인 노출 조건에 반영돼요.</div>
               <div class="apply-chip-group" data-chip-group="global-member-preference" data-multi="true" data-max="3">
-                <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 🎉</button>
-                <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 👥</button>
-                <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 🎂</button>
-                <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 ⛳</button>
+                <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 &#x1F389;</button>
+                <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 &#x1F465;</button>
+                <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 &#x1F382;</button>
+                <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 &#x26F3;</button>
               </div>
             </div>
             <div class="field full">
               <div class="apply-preference-title">한 줄 인사</div>
               <div class="apply-template-row">
-                <button type="button" class="apply-template" onclick="setApplyGreeting('반갑습니다. 즐거운 라운딩 기대합니다.')">반갑습니다 😊</button>
-                <button type="button" class="apply-template" onclick="setApplyGreeting('매너 있게 편안히 치겠습니다.')">매너 있게 🤝</button>
-                <button type="button" class="apply-template" onclick="setApplyGreeting('잘 부탁해요.')">잘 부탁해요 🙏</button>
-                <button type="button" class="apply-template" onclick="setApplyGreeting('즐겁고 기분 좋은 하루 만들어요.')">기분 좋은 하루 🌤️</button>
+                <button type="button" class="apply-template" onclick="setApplyGreeting('반갑습니다. 즐거운 라운딩 기대합니다.')">반갑습니다 &#x1F60A;</button>
+                <button type="button" class="apply-template" onclick="setApplyGreeting('매너 있게 편안히 치겠습니다.')">매너 있게 &#x1F91D;</button>
+                <button type="button" class="apply-template" onclick="setApplyGreeting('잘 부탁해요.')">잘 부탁해요 &#x1F64F;</button>
+                <button type="button" class="apply-template" onclick="setApplyGreeting('즐겁고 기분 좋은 하루 만들어요.')">기분 좋은 하루 &#x1F324;&#xFE0F;</button>
               </div>
               <textarea id="globalApplyGreeting" maxlength="80" placeholder="예: 오랜만의 조인이라 설레네요. 잘 부탁드립니다." oninput="updateApplyProgressive()">잘 부탁드립니다.</textarea>
             </div>
@@ -25391,7 +25458,7 @@
           <button type="button" class="detail-anchor-chip" data-anchor-target="includes" onclick="scrollDetailSection('includes')">포함·불포함</button>
           <button type="button" class="detail-anchor-chip" data-anchor-target="schedule" onclick="scrollDetailSection('schedule')">일정표</button>
           <button type="button" class="detail-anchor-chip" data-anchor-target="place" onclick="scrollDetailSection('place')">시설소개</button>
-          <button type="button" class="detail-anchor-chip" data-anchor-target="review" onclick="scrollDetailSection('review')">여행후기</button>
+          
         </div>
         <div class="detail-anchor-tabs-spacer" aria-hidden="true" style="height: 0px;"></div>
         
@@ -25577,91 +25644,6 @@
         </div>
       
         
-        <div class="detail-section" data-detail-section="review">
-          <div class="detail-section-heading">여행후기</div>
-          
-        <div class="detail-review-carousel" data-review-carousel="" data-review-count="3" data-review-infinite="true" onscroll="handleDetailReviewScroll(this)" data-review-initialized="true" style="">
-          
-        <div class="detail-review-card" data-review-clone="true" aria-hidden="true">
-          <div>
-            <div class="detail-review-head">
-              <div class="detail-review-stars" aria-label="별점 5점"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg></div>
-              <div class="detail-review-time">5일 전</div>
-              <div class="detail-review-author">김*훈</div>
-            </div>
-            <div class="detail-review-text">모르는 분들과 함께하는 조인 일정은 처음이라 걱정했는데 진행 안내가 좋았고, 라운드와 현지 이동도 부담이 적었습니다.</div>
-          </div>
-          <div class="detail-review-thumb-wrap">
-            <img class="detail-review-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 후기 이미지">
-            <div class="detail-review-more">10+</div>
-          </div>
-        </div>
-      
-        <div class="detail-review-card">
-          <div>
-            <div class="detail-review-head">
-              <div class="detail-review-stars" aria-label="별점 5점"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg></div>
-              <div class="detail-review-time">1일 전</div>
-              <div class="detail-review-author">이*아</div>
-            </div>
-            <div class="detail-review-text">해외 조인은 처음이었는데 항공과 리조트 안내가 잘 정리되어 있어 좋았습니다. 코스 풍경도 좋아서 다음에도 다시 이용하고 싶습니다.</div>
-          </div>
-          <div class="detail-review-thumb-wrap">
-            <img class="detail-review-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 후기 이미지">
-            <div class="detail-review-more">6+</div>
-          </div>
-        </div>
-      
-        <div class="detail-review-card">
-          <div>
-            <div class="detail-review-head">
-              <div class="detail-review-stars" aria-label="별점 5점"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg></div>
-              <div class="detail-review-time">3일 전</div>
-              <div class="detail-review-author">박*정</div>
-            </div>
-            <div class="detail-review-text">괌 리조트 숙소가 편했고 동선 이동도 좋았습니다. 오전 라운드 후 쉬는 시간이 넉넉해서 일행과 함께하기 좋았습니다.</div>
-          </div>
-          <div class="detail-review-thumb-wrap">
-            <img class="detail-review-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/20190227_085648.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 후기 이미지">
-            <div class="detail-review-more">8+</div>
-          </div>
-        </div>
-      
-        <div class="detail-review-card">
-          <div>
-            <div class="detail-review-head">
-              <div class="detail-review-stars" aria-label="별점 5점"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg></div>
-              <div class="detail-review-time">5일 전</div>
-              <div class="detail-review-author">김*훈</div>
-            </div>
-            <div class="detail-review-text">모르는 분들과 함께하는 조인 일정은 처음이라 걱정했는데 진행 안내가 좋았고, 라운드와 현지 이동도 부담이 적었습니다.</div>
-          </div>
-          <div class="detail-review-thumb-wrap">
-            <img class="detail-review-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 후기 이미지">
-            <div class="detail-review-more">10+</div>
-          </div>
-        </div>
-      
-        <div class="detail-review-card" data-review-clone="true" aria-hidden="true">
-          <div>
-            <div class="detail-review-head">
-              <div class="detail-review-stars" aria-label="별점 5점"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" color="#ffbf00" aria-hidden="true"><path d="M11.439 2.999a.626.626 0 0 1 1.122 0l2.51 5.087a.626.626 0 0 0 .472.342l5.614.816a.626.626 0 0 1 .347 1.067l-4.063 3.96a.625.625 0 0 0-.18.554l.96 5.592a.626.626 0 0 1-.908.66l-5.022-2.64a.626.626 0 0 0-.582 0l-5.022 2.64a.626.626 0 0 1-.908-.66l.96-5.592a.626.626 0 0 0-.18-.553l-4.063-3.96a.626.626 0 0 1 .347-1.068l5.614-.816a.626.626 0 0 0 .471-.342L11.44 3Z"></path></svg></div>
-              <div class="detail-review-time">1일 전</div>
-              <div class="detail-review-author">이*아</div>
-            </div>
-            <div class="detail-review-text">해외 조인은 처음이었는데 항공과 리조트 안내가 잘 정리되어 있어 좋았습니다. 코스 풍경도 좋아서 다음에도 다시 이용하고 싶습니다.</div>
-          </div>
-          <div class="detail-review-thumb-wrap">
-            <img class="detail-review-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 후기 이미지">
-            <div class="detail-review-more">6+</div>
-          </div>
-        </div>
-      
-        </div>
-      
-        </div>
-      
-        
         <div class="detail-section">
           <div class="detail-section-heading">외교부 해외여행 안전정보</div>
           <a class="detail-safety-link" href="https://www.0404.go.kr/ntnSafetyInfo/list" target="_blank" rel="noopener">
@@ -25704,8 +25686,9 @@
           <div class="region-search-field">
             <input id="regionSearchInput" type="text" placeholder="국가 또는 도시명을 검색해보세요" oninput="handleRegionSearchInput(this.value)" onkeydown="if(event.key === 'Enter') { event.preventDefault(); performRegionProductSearch(); }">
             <button type="button" class="region-search-clear-input" onclick="clearRegionSearchInput()" aria-label="검색어 삭제">
-              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x" aria-hidden="true">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
               </svg>
             </button>
             <svg class="mobile-search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -26382,6 +26365,7 @@
     let currentMdPickCountryKey = "";
     let currentDetailSlideIndex = 0;
     let detailParticipantTooltipTimer = null;
+    let detailAnchorForcedActiveTimer = null;
     let globalApplyWaitlistApproved = false;
     let currentAgreementDetailKey = null;
     let waitlistConfirmAction = null;
@@ -26558,8 +26542,13 @@
     let joinActionLoadingOpenedAt = 0;
     let homeInitialLoadingIconTimer = null;
     let homeInitialLoadingIconIndex = 0;
+    let joinActionLoadingMessageBase = "";
+    let joinActionLoadingMessageDotIndex = 0;
+    let homeInitialLoadingMessageBase = "상품 정보를 확인하고 있어요";
+    let homeInitialLoadingMessageDotIndex = 0;
     const JOIN_ACTION_LOADING_MIN_VISIBLE_MS = 450;
     const JOIN_ACTION_LOADING_ICON_INTERVAL_MS = 400;
+    const JOIN_LOADING_DOT_SUFFIXES = ["", ".", "..", "..."];
     let joinActionLoadingMinVisibleMs = JOIN_ACTION_LOADING_MIN_VISIBLE_MS;
     let lastJoinAsyncClickButton = null;
     const joinActionLoadingIcons = [
@@ -26575,15 +26564,15 @@
     let activeBuilderPopoverFlexOpen = false;
     let builderPopoverFlexSnapshot = null;
     let activeBuilderPopoverTrigger = null;
-    function getTodayMonthState() {
-      const today = getTodayDate();
+    function getBuilderInitialMonthState() {
+      const firstAvailableDate = new Date(`${getBuilderMinDepartureISO()}T00:00:00`);
       return {
-        viewYear: today.getFullYear(),
-        viewMonth: today.getMonth()
+        viewYear: firstAvailableDate.getFullYear(),
+        viewMonth: firstAvailableDate.getMonth()
       };
     }
     const builderState = {
-      ...getTodayMonthState(),
+      ...getBuilderInitialMonthState(),
       startDay: null,
       endDay: null,
       startBefore: 0,
@@ -26656,23 +26645,41 @@
 
     function renderJoinActionLoadingIcon() {
       const target = document.getElementById("joinActionLoadingIcon");
-      if (!target) return;
-      target.innerHTML = joinActionLoadingIcons[joinActionLoadingIconIndex % joinActionLoadingIcons.length] || "";
+      if (target) target.innerHTML = joinActionLoadingIcons[joinActionLoadingIconIndex % joinActionLoadingIcons.length] || "";
       joinActionLoadingIconIndex += 1;
+      renderAnimatedLoadingMessage("joinActionLoadingMessage", joinActionLoadingMessageBase, joinActionLoadingMessageDotIndex);
+      joinActionLoadingMessageDotIndex = (joinActionLoadingMessageDotIndex + 1) % JOIN_LOADING_DOT_SUFFIXES.length;
     }
 
     function renderHomeInitialLoadingIcon() {
       const target = document.getElementById("homeInitialLoadingIcon");
-      if (!target) return;
-      target.innerHTML = joinActionLoadingIcons[homeInitialLoadingIconIndex % joinActionLoadingIcons.length] || "";
+      if (target) target.innerHTML = joinActionLoadingIcons[homeInitialLoadingIconIndex % joinActionLoadingIcons.length] || "";
       homeInitialLoadingIconIndex += 1;
+      renderAnimatedLoadingMessage("homeInitialLoadingMessage", homeInitialLoadingMessageBase, homeInitialLoadingMessageDotIndex);
+      homeInitialLoadingMessageDotIndex = (homeInitialLoadingMessageDotIndex + 1) % JOIN_LOADING_DOT_SUFFIXES.length;
+    }
+
+    function normalizeLoadingMessageBase(message = "") {
+      return String(message || "").trim().replace(/[.。…]+$/g, "");
+    }
+
+    function renderAnimatedLoadingMessage(elementId, baseMessage = "", dotIndex = 0) {
+      const target = document.getElementById(elementId);
+      const base = normalizeLoadingMessageBase(baseMessage);
+      if (!target || !base) return;
+      const suffix = JOIN_LOADING_DOT_SUFFIXES[dotIndex % JOIN_LOADING_DOT_SUFFIXES.length] || "";
+      target.innerHTML = `${escapeHtml(base)}<span class="join-action-loading-message-dots" aria-hidden="true">${escapeHtml(suffix)}</span>`;
     }
 
     function openHomeInitialLoading() {
       const overlay = document.getElementById("homeInitialLoadingOverlay");
+      const box = overlay?.querySelector(".join-action-loading-box");
       document.documentElement.classList.add("home-initial-loading", "modal-open");
       document.body.classList.add("home-initial-loading", "modal-open");
       document.getElementById("secret-golf-join")?.classList.add("modal-open");
+      box?.classList.add("has-message");
+      box?.setAttribute("aria-label", normalizeLoadingMessageBase(homeInitialLoadingMessageBase));
+      homeInitialLoadingMessageDotIndex = 0;
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
       renderHomeInitialLoadingIcon();
@@ -26696,6 +26703,7 @@
         clearInterval(homeInitialLoadingIconTimer);
         homeInitialLoadingIconTimer = null;
       }
+      homeInitialLoadingMessageDotIndex = 0;
     }
 
     function openJoinActionLoading(message = "", options = {}) {
@@ -26708,22 +26716,25 @@
         Number.isFinite(minVisibleMs) ? minVisibleMs : JOIN_ACTION_LOADING_MIN_VISIBLE_MS
       );
       document.body.appendChild(overlay);
+      const box = overlay.querySelector(".join-action-loading-box");
+      const messageEl = document.getElementById("joinActionLoadingMessage");
+      box?.style.setProperty("z-index", "2147483647", "important");
+      const cleanMessage = normalizeLoadingMessageBase(message);
+      joinActionLoadingMessageBase = cleanMessage;
+      joinActionLoadingMessageDotIndex = 0;
+      if (messageEl) {
+        renderAnimatedLoadingMessage("joinActionLoadingMessage", cleanMessage, joinActionLoadingMessageDotIndex);
+      }
+      joinActionLoadingMessageDotIndex = (joinActionLoadingMessageDotIndex + 1) % JOIN_LOADING_DOT_SUFFIXES.length;
+      box?.classList.toggle("has-message", Boolean(cleanMessage));
+      box?.setAttribute("aria-label", cleanMessage || "처리 중");
+      joinActionLoadingOpenedAt = Date.now();
+      renderJoinActionLoadingIcon();
       overlay.style.setProperty("display", "flex", "important");
       overlay.style.setProperty("visibility", "visible", "important");
       overlay.style.setProperty("opacity", "1", "important");
       overlay.style.setProperty("pointer-events", "auto", "important");
       overlay.style.setProperty("z-index", "2147483647", "important");
-      const box = overlay.querySelector(".join-action-loading-box");
-      const messageEl = document.getElementById("joinActionLoadingMessage");
-      box?.style.setProperty("z-index", "2147483647", "important");
-      const cleanMessage = String(message || "").trim();
-      if (messageEl) {
-        messageEl.textContent = cleanMessage;
-      }
-      box?.classList.toggle("has-message", Boolean(cleanMessage));
-      box?.setAttribute("aria-label", cleanMessage || "처리 중");
-      joinActionLoadingOpenedAt = Date.now();
-      renderJoinActionLoadingIcon();
       overlay.classList.add("open");
       overlay.setAttribute("aria-hidden", "false");
       setWidgetModalOpen(true);
@@ -26752,6 +26763,8 @@
       box?.classList.remove("has-message");
       box?.setAttribute("aria-label", "처리 중");
       if (messageEl) messageEl.textContent = "";
+      joinActionLoadingMessageBase = "";
+      joinActionLoadingMessageDotIndex = 0;
       setWidgetModalOpen(hasOpenBlockingModal());
       if (joinActionLoadingTimer) {
         clearInterval(joinActionLoadingTimer);
@@ -26784,12 +26797,39 @@
       }
     }
 
+    function getJoinActionLoadingMessage(actionName = "") {
+      const messages = {
+        submitJoinMemberKakaoLogin: "카카오 로그인을 확인하고 있어요",
+        submitJoinMemberFindId: "아이디를 찾고 있어요",
+        submitJoinMemberFindPw: "비밀번호 재설정을 확인하고 있어요",
+        submitJoinMemberResetPassword: "새 비밀번호를 변경하고 있어요",
+        submitJoinMemberSignup: "회원가입을 진행하고 있어요",
+        openJoinMyDrawer: "내 모임을 확인하고 있어요",
+        openJoinMyMenu: "내 모임을 확인하고 있어요",
+        handleJoinMyWishClick: "찜한 상품을 확인하고 있어요",
+        handleJoinWishRemove: "찜한 상품에서 삭제하고 있어요",
+        handleJoinMyLogout: "로그아웃하고 있어요",
+        showMdPickDetailProduct: "상품 정보를 확인하고 있어요",
+        openBuilderProductDetailModal: "상품 정보를 확인하고 있어요",
+        openGlobalApply: "참여 정보를 확인하고 있어요",
+        submitGlobalApply: "참여 신청을 접수하고 있어요",
+        openMdPickProductDetail: "상품 정보를 확인하고 있어요",
+        handleDetailWish: "찜한 상품에 담고 있어요",
+        copyDetailShareUrl: "공유 링크를 만들고 있어요",
+        handleDetailShare: "공유할 내용을 열고 있어요"
+      };
+      return messages[actionName] || "잠시만 기다려 주세요";
+    }
+
     function wrapJoinAsyncFunction(original) {
       if (typeof original !== "function" || original.__joinLoadingWrapped) return original;
       const wrapped = function(...args) {
         if (wrapped.__joinActionRunning) return undefined;
         wrapped.__joinActionRunning = true;
-        return runJoinActionLoading(() => original.apply(this, args)).finally(() => {
+        return runJoinActionLoading(
+          () => original.apply(this, args),
+          { message: getJoinActionLoadingMessage(original.name) }
+        ).finally(() => {
           wrapped.__joinActionRunning = false;
         });
       };
@@ -26834,6 +26874,7 @@
     const JOIN_TEMP_ADMIN_LOGIN_KEY = "joinTempAdminLogin";
     const JOIN_SESSION_MEMBER_KEY = "joinSessionMember";
     const JOIN_LOGOUT_MARKER_KEY = "joinMemberLoggedOutCookieData";
+    const JOIN_KAKAO_JS_KEY = "3925751273a92614723fe138c525f646";
 
     function getRenderedCookieDataString() {
       const html = document.documentElement?.innerHTML || "";
@@ -26920,6 +26961,7 @@
         birthYear: member.birthYear || "",
         profession: member.profession || "",
         level: member.level || "",
+        travelStyles: member.travelStyles || member.styles || "",
         isSessionMember: true
       };
       try {
@@ -26992,7 +27034,23 @@
       return `https://www.secret-tour.com/member/join_pay?redirect=${encodeURIComponent(redirectUrl.toString())}`;
     }
 
+    function getJoinSafeReturnUrl(returnUrl = "") {
+      const rawReturnUrl = String(returnUrl || "").trim();
+      if (!rawReturnUrl) return "";
+      try {
+        const url = new URL(rawReturnUrl, location.origin);
+        const allowedHosts = new Set([location.hostname, "www.secret-tour.com", "m.secret-tour.com", "secret-tour.com"].filter(Boolean));
+        if (!["http:", "https:"].includes(url.protocol)) return "";
+        if (!allowedHosts.has(url.hostname)) return "";
+        return url.toString();
+      } catch (error) {
+        return "";
+      }
+    }
+
     function getJoinLoginRedirectTarget() {
+      const returnUrl = getJoinSafeReturnUrl(joinMyMenuState.pendingLoginParams?.returnUrl || "");
+      if (returnUrl) return returnUrl;
       return buildJoinAfterLoginPageUrl(
         joinMyMenuState.pendingAfterLogin || "my-menu",
         joinMyMenuState.pendingLoginParams || {}
@@ -27027,7 +27085,8 @@
         birthYear: profile.birthYear || member.birthYear || "",
         birthday: profile.birthYear || member.birthday || "",
         profession: profile.profession || member.profession || "",
-        level: profile.level || member.level || ""
+        level: profile.level || member.level || "",
+        travelStyles: profile.travelStyles || member.travelStyles || member.styles || ""
       });
       rememberJoinMemberProfileLocally(sessionMember, profile);
       setJoinMemberLoginStatus("");
@@ -27153,11 +27212,13 @@
     }
 
     function markPendingJoinKakaoProfile(kakaoResponse = {}, authObj = {}) {
+      const kakaoPhone = normalizeJoinMemberPhone(kakaoResponse?.kakao_account?.phone_number || "");
       joinMyMenuState.pendingKakaoSignup = {
         kakaoId: kakaoResponse?.id || "",
         name: kakaoResponse?.kakao_account?.name || "",
         nickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || "",
         email: kakaoResponse?.kakao_account?.email || "",
+        phone: kakaoPhone,
         channel: "KAKAO",
         accessToken: authObj?.access_token || ""
       };
@@ -27168,6 +27229,7 @@
           name: kakaoResponse?.kakao_account?.name || "",
           nickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || "",
           email: kakaoResponse?.kakao_account?.email || "",
+          phone: kakaoPhone,
           returnUrl: getJoinKakaoProfileReturnUrl()
         }));
       } catch (error) {
@@ -27179,12 +27241,13 @@
       const kakaoId = String(kakaoResponse?.id || "").trim();
       if (!kakaoId) return false;
       const erpMember = options.member || {};
+      const kakaoPhone = normalizeJoinMemberPhone(kakaoResponse?.kakao_account?.phone_number || "");
       const member = {
         memberSeq: erpMember.memberSeq || "",
         memberId: erpMember.memberId || kakaoId,
         memberName: erpMember.memberName || kakaoResponse?.kakao_account?.name || "",
         memberChannel: "KAKAO",
-        memberMobile: erpMember.memberMobile || "",
+        memberMobile: erpMember.memberMobile || kakaoPhone,
         memberEmail: erpMember.memberEmail || kakaoResponse?.kakao_account?.email || "",
         kakaoId,
         kakaoNickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || ""
@@ -27198,6 +27261,22 @@
       return true;
     }
 
+    function openLocalKakaoProfileRequiredForm(kakaoResponse = {}, authObj = {}) {
+      markPendingJoinKakaoProfile(kakaoResponse, authObj);
+      const kakaoPhone = normalizeJoinMemberPhone(kakaoResponse?.kakao_account?.phone_number || "");
+      openJoinMemberRequiredProfileForm({
+        memberSeq: "",
+        memberId: String(kakaoResponse?.id || "").trim(),
+        memberName: kakaoResponse?.kakao_account?.name || "",
+        memberChannel: "KAKAO",
+        memberMobile: kakaoPhone,
+        memberEmail: kakaoResponse?.kakao_account?.email || "",
+        kakaoId: String(kakaoResponse?.id || "").trim(),
+        kakaoNickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || ""
+      }, joinMyMenuState.pendingAfterLogin || "my-menu", joinMyMenuState.pendingLoginParams || {});
+      setJoinMemberLoginStatus("");
+    }
+
     async function submitJoinMemberKakaoLogin() {
       if (joinMyMenuState.loginRedirecting) return;
       joinMyMenuState.loginRedirecting = true;
@@ -27206,13 +27285,25 @@
         const KakaoSdk = await ensureJoinKakaoSdk();
         if (!KakaoSdk) throw new Error("Kakao SDK unavailable");
         if (!KakaoSdk.isInitialized?.()) {
-          KakaoSdk.init("3925751273a92614723fe138c525f646");
+          KakaoSdk.init(JOIN_KAKAO_JS_KEY);
         }
         KakaoSdk.Auth.login({
           success(authObj) {
             KakaoSdk.API.request({
               url: "/v2/user/me",
               success(res) {
+                if (isJoinLocalDevHost()) {
+                  continueWithExistingKakaoProfileIfReady(res).then((continued) => {
+                    joinMyMenuState.loginRedirecting = false;
+                    if (continued) return;
+                    openLocalKakaoProfileRequiredForm(res, authObj);
+                  }).catch((profileError) => {
+                    joinMyMenuState.loginRedirecting = false;
+                    console.warn("Existing Kakao profile lookup failed.", profileError);
+                    openLocalKakaoProfileRequiredForm(res, authObj);
+                  });
+                  return;
+                }
                 postJoinMemberLoginForm("/member/getMemberExternalLoginCheck.json", {
                   externalId: res?.id || "",
                   externalNickname: res?.properties?.nickname || res?.kakao_account?.profile?.nickname || "",
@@ -27333,9 +27424,15 @@
 
     function continueAfterJoinMemberLogin(afterLogin = "my-menu") {
       joinMyMenuState.loginRedirecting = false;
+      const params = joinMyMenuState.pendingLoginParams || {};
+      const returnUrl = getJoinSafeReturnUrl(params.returnUrl || "");
+      if (returnUrl) {
+        location.href = returnUrl;
+        return;
+      }
       closeJoinMemberLoginModal();
       if (afterLogin === "builder") {
-        openModal("builderModal");
+        continueBuilderAfterLogin(params);
         return;
       }
       if (afterLogin === "apply") {
@@ -27352,8 +27449,18 @@
         openJoinMyDrawer();
         return;
       }
-      setJoinMobileNavActive("my");
-      openJoinMyMenu();
+      if (afterLogin === "detail-wish") {
+        continueDetailWishAfterLogin(params);
+        return;
+      }
+      if (afterLogin === "profile-manage") {
+        openJoinProfileManageModal();
+        return;
+      }
+      if (afterLogin === "my-menu") {
+        setJoinMobileNavActive("my");
+        openJoinMyMenu();
+      }
     }
 
     function handleJoinMemberLoginBack() {
@@ -27408,6 +27515,7 @@
       setJoinMemberLoginStatus("");
       requestAnimationFrame(() => document.getElementById("joinMemberLoginId")?.focus());
     }
+    window.openJoinMemberEmailForm = openJoinMemberEmailForm;
 
     function closeJoinMemberEmailForm() {
       const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
@@ -27748,6 +27856,7 @@
       if (submit) submit.hidden = nextStep !== 6;
       nav?.classList.toggle("has-prev", profileRequired ? nextStep > 3 && nextStep !== 5 && nextStep < 6 : nextStep > minStep && nextStep !== 5 && nextStep < 6);
       nav?.toggleAttribute("hidden", nextStep === 4 || nextStep === 7);
+      if (nextStep === 6) setJoinMemberLoginStatus("");
       updateJoinMemberSignupNavState();
     }
 
@@ -27863,6 +27972,9 @@
       const submit = form.querySelector("[data-signup-submit]");
       if (next) next.disabled = step < 6 && !complete;
       if (submit) submit.disabled = Boolean(joinMyMenuState.loginRedirecting) || (step === 6 && !complete);
+      if (step === 6 && complete && document.getElementById("joinMemberLoginStatus")?.textContent.includes("라운딩 스타일")) {
+        setJoinMemberLoginStatus("");
+      }
     }
 
     function validateJoinMemberSignupStep(step = getJoinMemberSignupStep()) {
@@ -28252,6 +28364,8 @@
       return {};
     }
 
+    const joinMemberProfileLookupPromises = new Map();
+
     function clearRememberedJoinMemberProfile(member = {}) {
       try {
         const store = JSON.parse(localStorage.getItem("joinMemberProfiles") || "{}");
@@ -28299,28 +28413,35 @@
     }
 
     function normalizeJoinMemberProfileRow(row = {}) {
-      const mobile = normalizeJoinMemberPhone(row.memberMobile || row.mobile || row.phone || "");
+      const mobile = normalizeJoinMemberPhone(
+        row.memberMobile
+        || getNestedValue(row, "member.memberMobile")
+        || row.mobile
+        || row.phone
+        || ""
+      );
+      const profile = row.profile || {};
       return {
         profileId: row.profileId || "",
         submittedAt: row.submittedAt || "",
-        memberSeq: row.memberSeq || "",
-        memberId: row.memberId || "",
-        memberName: row.memberName || row.name || "",
-        memberChannel: row.memberChannel || "",
+        memberSeq: row.memberSeq || getNestedValue(row, "member.memberSeq") || "",
+        memberId: row.memberId || getNestedValue(row, "member.memberId") || getNestedValue(row, "kakao.kakaoId") || "",
+        memberName: row.memberName || getNestedValue(row, "member.memberName") || row.name || "",
+        memberChannel: row.memberChannel || getNestedValue(row, "member.memberChannel") || "",
         memberMobile: mobile,
-        memberEmail: row.memberEmail || row.email || "",
-        name: row.memberName || row.name || "",
-        gender: normalizeJoinMemberGender(row.gender || ""),
-        birthYear: row.birthYear || "",
-        birthday: row.birthYear || "",
-        profession: row.profession || "",
-        level: row.level || "",
-        travelStyles: row.travelStyles || row.styles || "",
-        profileImageUrl: row.profileImageUrl || row.imageUrl || "",
-        profileThumbnailUrl: row.profileThumbnailUrl || row.thumbnailUrl || row.profileImageUrl || row.imageUrl || "",
-        profileImageObjectName: row.profileImageObjectName || row.objectName || "",
-        profileImageMimeType: row.profileImageMimeType || row.photoMimeType || "",
-        profileImageSize: row.profileImageSize || row.photoSize || "",
+        memberEmail: row.memberEmail || getNestedValue(row, "member.memberEmail") || row.email || "",
+        name: row.memberName || getNestedValue(row, "member.memberName") || row.name || "",
+        gender: normalizeJoinMemberGender(row.gender || profile.gender || ""),
+        birthYear: row.birthYear || profile.birthYear || "",
+        birthday: row.birthYear || profile.birthYear || "",
+        profession: row.profession || profile.profession || "",
+        level: row.level || profile.level || "",
+        travelStyles: row.travelStyles || row.styles || profile.travelStyles || profile.styles || "",
+        profileImageUrl: row.profileImageUrl || profile.profileImageUrl || row.imageUrl || "",
+        profileThumbnailUrl: row.profileThumbnailUrl || profile.profileThumbnailUrl || row.thumbnailUrl || row.profileImageUrl || profile.profileImageUrl || row.imageUrl || "",
+        profileImageObjectName: row.profileImageObjectName || profile.profileImageObjectName || row.objectName || "",
+        profileImageMimeType: row.profileImageMimeType || profile.profileImageMimeType || row.photoMimeType || "",
+        profileImageSize: row.profileImageSize || profile.profileImageSize || row.photoSize || "",
         updatedAt: row.updatedAt || row.submittedAt || ""
       };
     }
@@ -28330,21 +28451,22 @@
       const memberSeq = String(member.memberSeq || "").trim();
       const memberId = String(member.memberId || "").trim();
       const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
-      if (!memberSeq && !memberId && !memberMobile) return {};
+      const memberEmail = String(member.memberEmail || member.email || "").trim();
+      const kakaoId = String(member.kakaoId || "").trim();
+      if (!memberSeq && !memberId && !memberMobile && !memberEmail && !kakaoId) return {};
+      const lookupKey = [memberSeq, memberId, memberMobile, memberEmail, kakaoId].filter(Boolean).join("|");
+      if (joinMemberProfileLookupPromises.has(lookupKey)) {
+        return joinMemberProfileLookupPromises.get(lookupKey);
+      }
+      const lookupPromise = (async () => {
       try {
-        const params = {
-          sheet: "join_member_profiles",
-          source: "join_member_profile",
-          limit: "1"
-        };
-        if (memberSeq) {
-          params.memberSeq = memberSeq;
-        } else if (memberId) {
-          params.memberId = memberId;
-        } else {
-          params.memberMobile = memberMobile;
-        }
-        const rows = await fetchGolfJoinSheetRows(params, "Member profile");
+        const rows = getGolfJoinSheetActionRows(await postGolfJoinSheetAction("member_profile_lookup", {
+          memberSeq,
+          memberId,
+          memberMobile,
+          memberEmail,
+          kakaoId
+        }, "Member profile"));
         const profile = normalizeJoinMemberProfileRow(rows[0] || {});
         if (profile.gender || profile.birthYear || profile.profession || profile.level || profile.travelStyles || profile.profileImageUrl || profile.profileThumbnailUrl) {
           rememberJoinMemberProfileLocally(member, profile);
@@ -28354,6 +28476,11 @@
         console.warn("Failed to load join member profile from Google Sheet.", error);
       }
       return {};
+      })().finally(() => {
+        joinMemberProfileLookupPromises.delete(lookupKey);
+      });
+      joinMemberProfileLookupPromises.set(lookupKey, lookupPromise);
+      return lookupPromise;
     }
 
     function mergeJoinMemberWithProfile(member = {}, profile = {}) {
@@ -28417,6 +28544,9 @@
       }
       const sheetProfile = await fetchJoinMemberProfileFromGoogleSheet(member);
       if (options.refresh && !isJoinMemberProfileComplete(sheetProfile)) {
+        if (isJoinMemberProfileComplete(cached)) {
+          return mergeJoinMemberWithProfile(member, cached);
+        }
         clearRememberedJoinMemberProfile(member);
         return mergeJoinMemberWithProfile(stripJoinMemberProfileFields(member), sheetProfile);
       }
@@ -28540,7 +28670,7 @@
       joinMyMenuState.pendingProfileMember = null;
       closeJoinMemberLoginModal();
       if (afterLogin === "builder") {
-        openModal("builderModal", { skipProfileCheck: true });
+        continueBuilderAfterLogin(params, { skipProfileCheck: true });
         return;
       }
       if (afterLogin === "apply") {
@@ -28556,6 +28686,14 @@
       if (afterLogin === "my-drawer") {
         setJoinMobileNavActive("my");
         openJoinMyDrawer();
+        return;
+      }
+      if (afterLogin === "detail-wish") {
+        continueDetailWishAfterLogin(params, { skipProfileCheck: true });
+        return;
+      }
+      if (afterLogin === "profile-manage") {
+        openJoinProfileManageModal();
         return;
       }
       if (afterLogin === "my-menu") {
@@ -28699,7 +28837,7 @@
       const email = document.getElementById("joinMemberFindIdEmail")?.value.trim() || "";
       const mobileParts = splitJoinMemberMobile(document.getElementById("joinMemberFindIdMobile")?.value || "");
       joinMyMenuState.loginRedirecting = true;
-      setJoinMemberLoginStatus("아이디를 확인하고 있습니다.");
+      setJoinMemberLoginStatus("아이디를 확인하고 있어요.");
       try {
         const result = await postJoinMemberForm("/member/getMemberFindId.json", {
           email,
@@ -28746,7 +28884,7 @@
       const custNm = document.getElementById("joinMemberFindPwName")?.value.trim() || "";
       const mobileParts = splitJoinMemberMobile(document.getElementById("joinMemberFindPwMobile")?.value || "");
       joinMyMenuState.loginRedirecting = true;
-      setJoinMemberLoginStatus("비밀번호 재설정 정보를 확인하고 있습니다.");
+      setJoinMemberLoginStatus("비밀번호 재설정 정보를 확인하고 있어요.");
       try {
         const result = await postJoinMemberForm("/member/getMemberFindPw.json", {
           custId,
@@ -28792,7 +28930,7 @@
         return;
       }
       joinMyMenuState.loginRedirecting = true;
-      setJoinMemberLoginStatus("비밀번호를 변경하고 있습니다.");
+      setJoinMemberLoginStatus("새 비밀번호를 변경하고 있어요.");
       try {
         const result = await postJoinMemberForm("/member/updateMemberPw.json", {
           custSeq: token.custSeq,
@@ -28810,7 +28948,7 @@
         if (loginId) loginId.value = token.loginId || joinMyMenuState.foundMemberId || "";
         if (loginPassword) loginPassword.value = "";
         joinMyMenuState.resetPasswordToken = null;
-        setJoinMemberLoginStatus("비밀번호가 변경되었습니다. 새 비밀번호로 로그인해 주세요.");
+        setJoinMemberLoginStatus("비밀번호가 변경되었어요. 새 비밀번호로 로그인해 주세요.");
         requestAnimationFrame(() => loginPassword?.focus());
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
@@ -28992,7 +29130,7 @@
         }
         try {
           joinMyMenuState.loginRedirecting = true;
-          setJoinMemberLoginStatus("카카오 회원가입을 처리 중입니다.");
+          setJoinMemberLoginStatus("카카오 회원가입을 진행하고 있어요.");
           if (!canUseSecretTourMemberApi()) {
             console.warn("Kakao ERP signup skipped outside secret-tour.com.", location.origin);
             const memberForSheet = getJoinMemberFromKakaoSignupData(data);
@@ -29053,20 +29191,26 @@
         }
         const payload = buildJoinMemberProfilePayload(member);
         await saveJoinMemberProfileToGoogleSheet(payload);
-        rememberJoinMemberProfileLocally(member, {
+        const savedProfile = normalizeJoinMemberProfileRow({
+          ...payload.member,
           ...payload.profile,
+          profileId: payload.profileId,
+          submittedAt: payload.submittedAt,
           name: payload.member?.memberName || member.memberName || "",
           mobile: payload.member?.memberMobile || member.memberMobile || "",
           phone: payload.member?.memberMobile || member.memberMobile || "",
           email: payload.member?.memberEmail || member.memberEmail || ""
         });
+        rememberJoinMemberProfileLocally(member, savedProfile);
         clearJoinPendingKakaoProfile();
         joinMyMenuState.loginRedirecting = false;
+        const updatedMember = mergeJoinMemberWithProfile(member, savedProfile);
+        joinMyMenuState.memberPromise = Promise.resolve(updatedMember);
         if (profileRequired) {
-          continueAfterJoinMemberProfileSave(mergeJoinMemberWithProfile(member, payload.profile || {}));
+          continueAfterJoinMemberProfileSave(updatedMember);
           return;
         }
-        finishJoinMemberSignupAndContinue(member, payload.profile || {});
+        finishJoinMemberSignupAndContinue(member, savedProfile);
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
         console.warn("Kakao profile save failed.", error);
@@ -29154,14 +29298,14 @@
       };
       try {
         joinMyMenuState.loginRedirecting = true;
-        setJoinMemberLoginStatus("회원가입 정보를 확인 중입니다.");
+        setJoinMemberLoginStatus("회원가입 정보를 확인하고 있어요.");
         const duplicateMessage = await checkJoinMemberSignupDuplicates(data);
         if (duplicateMessage) {
           joinMyMenuState.loginRedirecting = false;
           setJoinMemberLoginStatus(duplicateMessage);
           return;
         }
-        setJoinMemberLoginStatus("회원가입을 처리 중입니다.");
+        setJoinMemberLoginStatus("회원가입을 진행하고 있어요.");
         const result = await postJoinMemberForm("/member/saveMember.json", buildJoinMemberSavePayload(data));
         if ((result?.message || "") !== "SUCCESS") {
           throw createJoinMemberApiError(summarizeJoinMemberApiResponse(result) || "회원가입 저장에 실패했습니다.", {
@@ -29179,7 +29323,7 @@
         const signupProfile = getJoinSignupProfileSnapshot(signupMember);
         rememberJoinMemberProfileLocally(signupMember, signupProfile);
         await saveJoinMemberProfileToGoogleSheet(buildJoinMemberProfilePayload(signupMember));
-        setJoinMemberLoginStatus("가입이 완료되었습니다. 로그인 처리 중입니다.");
+        setJoinMemberLoginStatus("가입이 완료되었어요. 로그인하고 있어요.");
         joinMyMenuState.loginRedirecting = false;
         try {
           const loginResult = await postJoinMemberForm("/member/getMemberLoginCheck.json", {
@@ -29198,7 +29342,7 @@
         const loginIdInput = document.getElementById("joinMemberLoginId");
         if (loginIdInput) loginIdInput.value = custId;
         syncAllJoinMemberFloatingFields();
-        setJoinMemberLoginStatus("가입이 완료되었습니다. 아이디로 로그인해 주세요.");
+        setJoinMemberLoginStatus("가입이 완료되었어요. 아이디로 로그인해 주세요.");
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
         console.warn("Email signup failed.", error);
@@ -29258,9 +29402,11 @@
         setJoinMemberLoginStatus("로그인 처리 중 오류가 발생했습니다.");
       });
     }
+    window.submitJoinMemberEmailLogin = submitJoinMemberEmailLogin;
 
     function normalizeJoinMemberPhone(value) {
       const digits = String(value || "").replace(/\D/g, "");
+      if (/^82(1[016789]\d{8})$/.test(digits)) return `0${digits.slice(2)}`;
       if (/^1[016789]\d{8}$/.test(digits)) return `0${digits}`;
       return digits;
     }
@@ -29432,17 +29578,17 @@
     async function openJoinMyDrawer() {
       const cachedMember = getJoinCachedCurrentMember();
       if (!cachedMember) {
-        redirectToJoinLogin("my-menu");
+        redirectToJoinLogin("my-drawer");
         return;
       }
       if (!isJoinMemberProfileComplete(cachedMember)) {
         const member = await getJoinCurrentMember({ refresh: true });
         if (!member) {
-          redirectToJoinLogin("my-menu");
+          redirectToJoinLogin("my-drawer");
           return;
         }
         if (!isJoinMemberProfileComplete(member)) {
-          openJoinMemberRequiredProfileForm(member, "my-menu");
+          openJoinMemberRequiredProfileForm(member, "my-drawer");
           return;
         }
         showJoinMyDrawer(member);
@@ -30010,21 +30156,13 @@
       googleSheetJoinWishesLoading = true;
       googleSheetJoinWishesReadFailed = false;
       try {
-        const params = {
-          sheet: "join_wishes",
-          source: "join_wish",
-          status: "active",
-          limit: "200"
-        };
         const normalizedMember = getJoinMemberWithCachedProfile(member);
-        if (normalizedMember.memberSeq) {
-          params.memberSeq = normalizedMember.memberSeq;
-        } else if (normalizedMember.memberId) {
-          params.memberId = normalizedMember.memberId;
-        } else {
-          params.memberMobile = normalizeJoinMemberPhone(normalizedMember.memberMobile || normalizedMember.mobile || normalizedMember.phone || "");
-        }
-        const rows = await fetchGolfJoinSheetRows(params, "Join wishes");
+        const rows = getGolfJoinSheetActionRows(await postGolfJoinSheetAction("join_wishes_lookup", {
+          memberSeq: normalizedMember.memberSeq || "",
+          memberId: normalizedMember.memberId || "",
+          memberMobile: normalizeJoinMemberPhone(normalizedMember.memberMobile || normalizedMember.mobile || normalizedMember.phone || ""),
+          limit: 200
+        }, "Join wishes"));
         const sheetItems = rows.map(normalizeJoinWishSheetRow).filter((item) => item.status !== "deleted");
         const merged = mergeJoinWishProducts(getJoinWishProducts(), sheetItems);
         saveJoinWishProducts(merged);
@@ -30039,6 +30177,55 @@
         return getJoinWishProducts();
       } finally {
         googleSheetJoinWishesLoading = false;
+      }
+    }
+
+    function applyJoinWishesFromGoogleSheetRows(rows = []) {
+      const sheetItems = rows.map(normalizeJoinWishSheetRow).filter((item) => item.status !== "deleted");
+      const merged = mergeJoinWishProducts(getJoinWishProducts(), sheetItems);
+      saveJoinWishProducts(merged);
+      writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, rows);
+      googleSheetJoinWishesReadCompleted = true;
+      googleSheetJoinWishesReadFailed = false;
+      return merged;
+    }
+
+    async function hydrateHomeBootstrapFromGoogleSheet() {
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return { ok: false };
+      const member = getJoinCachedCurrentMember();
+      const normalizedMember = member ? getJoinMemberWithCachedProfile(member) : {};
+      googleSheetBuilderApplicationsLoading = true;
+      googleSheetJoinApplicationsLoading = true;
+      googleSheetJoinWishesLoading = Boolean(getJoinWishMemberKey(member));
+      googleSheetBuilderApplicationsReadFailed = false;
+      googleSheetJoinApplicationsReadFailed = false;
+      googleSheetJoinWishesReadFailed = false;
+      renderJoins();
+      const payload = {
+        memberSeq: normalizedMember.memberSeq || "",
+        memberId: normalizedMember.memberId || "",
+        memberMobile: normalizeJoinMemberPhone(normalizedMember.memberMobile || normalizedMember.mobile || normalizedMember.phone || ""),
+        newScheduleLimit: 100,
+        joinApplicationLimit: 50,
+        reviewLimit: 200,
+        wishLimit: 200
+      };
+      try {
+        const data = await postGolfJoinSheetAction("home_bootstrap", payload, "Home bootstrap");
+        applyHomeBootstrapRows(data || {});
+        return { ok: true, data };
+      } catch (error) {
+        googleSheetBuilderApplicationsLoading = false;
+        googleSheetJoinApplicationsLoading = false;
+        googleSheetJoinWishesLoading = false;
+        googleSheetBuilderApplicationsReadCompleted = true;
+        googleSheetJoinApplicationsReadCompleted = true;
+        googleSheetJoinWishesReadCompleted = true;
+        googleSheetBuilderApplicationsReadFailed = true;
+        googleSheetJoinApplicationsReadFailed = true;
+        googleSheetJoinWishesReadFailed = true;
+        renderJoins();
+        throw error;
       }
     }
 
@@ -30223,6 +30410,17 @@
       return Boolean(
         join?.isBuilderApplicationJoin
         || String(join?.id || "").startsWith(BUILDER_APPLICATION_JOIN_PREFIX)
+        || getNestedValue(join?.sheetApplication || {}, "source") === "new_schedule_builder"
+      );
+    }
+
+    function isJoinScheduleLikeForDetail(join = {}) {
+      return Boolean(
+        isJoinMyBuilderApplicationJoin(join)
+        || join?.scheduleId
+        || join?.sourceApplicationId
+        || getNestedValue(join?.sheetApplication || {}, "scheduleId")
+        || getNestedValue(join?.sheetApplication || {}, "applicationId")
         || getNestedValue(join?.sheetApplication || {}, "source") === "new_schedule_builder"
       );
     }
@@ -30476,26 +30674,26 @@
       const join = source.join || source || {};
       const seed = getJoinMyReservationProductSeed(join.id || "");
       const joinId = join.id || source.joinId || "";
-      const title = join.title || source.title || "다녀온 조인 일정";
+      const title = join.title || source.title || "";
       const submittedReview = getJoinMySubmittedReview(joinId, title) || getJoinMySubmittedReviewForProduct(join);
       return {
         joinId,
         hideImage: true,
         title,
-        meta: `${formatJoinMyDateRange(join.id ? join : source)} · ${seed.regionText || source.countryRegion || join.region || "태국 후아힌"}`,
-        countryRegion: seed.regionText || source.countryRegion || join.region || "태국 후아힌",
-        departureDate: join.departureDate || source.departureDate || "2026-05-08",
-        returnDate: join.returnDate || source.returnDate || "2026-05-11",
-        region: join.region || source.region || "후아힌",
-        image: join.image || source.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg",
+        meta: `${formatJoinMyDateRange(join.id ? join : source)} · ${seed.regionText || source.countryRegion || join.region || ""}`,
+        countryRegion: seed.regionText || source.countryRegion || join.region || "",
+        departureDate: join.departureDate || source.departureDate || "",
+        returnDate: join.returnDate || source.returnDate || "",
+        region: join.region || source.region || "",
+        image: join.image || source.image || "",
         status: "여행완료",
         statusClass: "gray",
         scheduleGroup: "completed",
         hideParticipants: true,
         detailHideParticipants: true,
         submittedReview,
-        currentCount: seed.confirmedParticipants.length || source.currentCount || 4,
-        targetCount: seed.targetCount || source.targetCount || 4,
+        currentCount: seed.confirmedParticipants.length || source.currentCount || 0,
+        targetCount: seed.targetCount || source.targetCount || 0,
         flightPack: seed.hasFlight || source.flightPack,
         flightInfo: seed.flightInfo || source.flightInfo || "",
         price: join.price ? `${formatPrice(join.price)}원~` : source.price || "",
@@ -30509,7 +30707,7 @@
     function getJoinMyCompletedReservations(member = {}) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const completedFromApplications = Array.from(joinApplicationPayloadMemory.values())
+      return Array.from(joinApplicationPayloadMemory.values())
         .map(normalizeJoinApplyPayload)
         .filter((application) => isJoinMyJoinApplicationForMember(application, member))
         .map((application) => {
@@ -30521,28 +30719,6 @@
           const endDate = new Date(`${item.returnDate || item.departureDate}T00:00:00`);
           return !Number.isNaN(endDate.getTime()) && endDate < today;
         });
-      if (completedFromApplications.length) return completedFromApplications;
-      const mdPickReviewProduct = (() => {
-        try {
-          return getBuilderProductSource().find((product) => getProductGroupKey(product) === "good-30001104") || null;
-        } catch (error) {
-          return null;
-        }
-      })();
-      return [buildJoinMyCompletedReservationItem(mdPickReviewProduct || {
-        id: "good-30001104",
-        goodSeq: "30001104",
-        erpProductId: "30001104",
-        title: "태국 우돈타니 로얄크릭 3박5일 로얄크릭",
-        countryRegion: "태국 우돈타니",
-        region: "우돈타니",
-        departureDate: "2026-05-08",
-        returnDate: "2026-05-12",
-        image: "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg",
-        price: 259000,
-        currentCount: 4,
-        targetCount: 4
-      })];
     }
 
     function getJoinMyScheduleSheetStatus(item = {}) {
@@ -30596,7 +30772,12 @@
       const createdJoins = joins.filter((join) => isJoinMyCreatedScheduleForMember(join, member));
       const sheetCreatedJoins = createdJoins.filter((join) => join.builderApplicationSource === "sheet");
       const shouldUseSheetCreatedJoins = googleSheetBuilderApplicationsLoading || (googleSheetBuilderApplicationsReadCompleted && !googleSheetBuilderApplicationsReadFailed);
-      const visibleCreatedJoins = shouldUseSheetCreatedJoins ? sheetCreatedJoins : createdJoins;
+      const visibleCreatedJoins = shouldUseSheetCreatedJoins
+        ? [
+          ...sheetCreatedJoins,
+          ...createdJoins.filter((join) => join.builderApplicationSource !== "sheet")
+        ]
+        : createdJoins;
       const createdItems = visibleCreatedJoins
         .filter((join, index, list) => {
           const key = getJoinMyCreatedScheduleKey(join);
@@ -30604,9 +30785,7 @@
         })
         .sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")))
         .map(buildJoinMyCreatedReservationItem);
-      const joinedSourceApplications = GOLFJOIN_SHEET_API_ENDPOINT && !googleSheetJoinApplicationsReadCompleted && !googleSheetJoinApplicationsReadFailed
-        ? []
-        : Array.from(joinApplicationPayloadMemory.values());
+      const joinedSourceApplications = Array.from(joinApplicationPayloadMemory.values());
       const joinedItems = joinedSourceApplications
         .map(normalizeJoinApplyPayload)
         .filter((application) => String(getNestedValue(application, "join.id") || "").trim())
@@ -31008,7 +31187,7 @@
           selectedRegionSearchName = region;
           performRegionProductSearch();
         }
-      }, { minVisibleMs: 500 });
+      }, { message: "추천 여행지를 불러오고 있어요", minVisibleMs: 500 });
     }
 
     function renderJoinMyEmptyRecommendations(tabKey = "") {
@@ -32345,7 +32524,7 @@
     async function openJoinProfileManageModal() {
       const cached = getJoinCachedCurrentMember();
       if (!cached) {
-        redirectToJoinLogin("my-menu");
+        redirectToJoinLogin("profile-manage");
         return;
       }
       const overlay = ensureJoinProfileManageModal();
@@ -32659,7 +32838,7 @@
       event.preventDefault();
       const member = getJoinCachedCurrentMember();
       if (!member) {
-        redirectToJoinLogin("my-menu");
+        redirectToJoinLogin("profile-manage");
         return;
       }
       const validation = validateJoinProfileManageForm();
@@ -32673,7 +32852,7 @@
       const saveButton = document.getElementById("joinProfileManageSave");
       saveButton?.setAttribute("disabled", "disabled");
       openJoinActionLoading("", { minVisibleMs: 450 });
-      setJoinProfileManageStatus("저장 중입니다.");
+      setJoinProfileManageStatus("프로필을 저장하고 있어요.");
       try {
         const payload = buildJoinProfileManagePayload(member, null);
         const image = joinProfileManageSelectedFile
@@ -33185,44 +33364,106 @@
       }, { passive: true });
     }
 
-    function resumeJoinMyMenuAfterLogin() {
+    async function resumeJoinMyMenuAfterLogin() {
       const params = new URLSearchParams(location.search);
       const afterLogin = params.get("afterLogin");
-      if (!["my-menu", "my-drawer", "builder", "apply"].includes(afterLogin)) return;
+      if (!["my-menu", "my-drawer", "builder", "apply", "detail-wish", "profile-manage", "return-url"].includes(afterLogin)) return false;
       const applyJoinId = params.get("applyJoinId") || "";
+      const wishJoinId = params.get("wishJoinId") || "";
+      const builderAction = params.get("builderAction") || "";
+      const builderProductId = params.get("builderProductId") || "";
+      const productGroupKey = params.get("productGroupKey") || "";
+      const countryKey = params.get("countryKey") || "";
+      const returnUrl = getJoinSafeReturnUrl(params.get("returnUrl") || "");
       params.delete("afterLogin");
       params.delete("applyJoinId");
+      params.delete("wishJoinId");
+      params.delete("builderAction");
+      params.delete("builderProductId");
+      params.delete("productGroupKey");
+      params.delete("countryKey");
+      params.delete("returnUrl");
       const cleanQuery = params.toString();
       const cleanUrl = `${location.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${location.hash || ""}`;
       history.replaceState(null, "", cleanUrl);
-      if (!getJoinLoginState().isLogin) return;
+      if (!getJoinLoginState().isLogin) return false;
+      if (afterLogin === "return-url" && returnUrl) {
+        location.href = returnUrl;
+        return true;
+      }
+      if (afterLogin === "detail-wish") {
+        await continueDetailWishAfterLogin(wishJoinId ? { wishJoinId } : {});
+        return true;
+      }
+      if (afterLogin === "profile-manage") {
+        await openJoinProfileManageModal();
+        return true;
+      }
       if (afterLogin === "builder") {
-        openModal("builderModal");
-        return;
+        await continueBuilderAfterLogin({ builderAction, builderProductId, productGroupKey, countryKey });
+        return true;
       }
       if (afterLogin === "apply") {
         if (applyJoinId) currentDetailJoinId = applyJoinId;
         openGlobalApply();
-        return;
+        return true;
       }
       handleJoinMyButtonClick();
+      return true;
+    }
+
+    function getJoinExternalDeepLinkTarget() {
+      const params = new URLSearchParams(location.search);
+      const openTarget = (params.get("golfjoinOpen") || params.get("joinOpen") || "").trim().toLowerCase();
+      if (["my", "my-menu", "my-reservation", "my-reservations", "reservations"].includes(openTarget)) {
+        return "my-menu";
+      }
+      const hashTarget = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim().toLowerCase();
+      if (["golfjoin-my", "golfjoin-my-menu", "golfjoin-my-reservation", "golfjoin-my-reservations"].includes(hashTarget)) {
+        return "my-menu";
+      }
+      return "";
+    }
+
+    function clearJoinExternalDeepLinkTarget() {
+      const params = new URLSearchParams(location.search);
+      params.delete("golfjoinOpen");
+      params.delete("joinOpen");
+      const hashTarget = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim().toLowerCase();
+      const shouldClearHash = ["golfjoin-my", "golfjoin-my-menu", "golfjoin-my-reservation", "golfjoin-my-reservations"].includes(hashTarget);
+      const cleanQuery = params.toString();
+      const cleanUrl = `${location.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${shouldClearHash ? "" : (location.hash || "")}`;
+      history.replaceState(null, "", cleanUrl);
+    }
+
+    async function resumeJoinExternalDeepLink() {
+      const target = getJoinExternalDeepLinkTarget();
+      if (!target) return false;
+      clearJoinExternalDeepLinkTarget();
+      if (target === "my-menu") {
+        setJoinMobileNavActive("my");
+        if (!requireJoinLogin("my-menu")) return true;
+        await openJoinMyMenu();
+        return true;
+      }
+      return false;
     }
 
     async function resumeJoinKakaoProfileAfterLogin() {
       const params = new URLSearchParams(location.search);
       const requested = params.get("afterLogin") === "kakao-profile";
       const pending = getJoinPendingKakaoProfile();
-      if (!requested) return;
+      if (!requested) return false;
       params.delete("afterLogin");
       const cleanQuery = params.toString();
       const cleanUrl = `${location.pathname}${cleanQuery ? `?${cleanQuery}` : ""}${location.hash || ""}`;
       history.replaceState(null, "", cleanUrl);
-      if (!getJoinLoginState().isLogin || !pending.kakaoId) return;
+      if (!getJoinLoginState().isLogin || !pending.kakaoId) return false;
       const member = await getJoinCurrentMember({ refresh: true });
       if (member && isJoinMemberProfileComplete(member)) {
         clearJoinPendingKakaoProfile();
         continueAfterJoinMemberLogin(joinMyMenuState.pendingAfterLogin || "my-menu");
-        return;
+        return true;
       }
       const continued = await continueWithExistingKakaoProfileIfReady({
         id: pending.kakaoId,
@@ -33233,8 +33474,9 @@
           profile: { nickname: pending.nickname || "" }
         }
       });
-      if (continued) return;
+      if (continued) return true;
       openJoinMemberKakaoProfileForm(member || {});
+      return true;
     }
 
     function startHeroSlider() {
@@ -33918,7 +34160,6 @@
     }
 
     function getSheetDetailReviews(join) {
-      const slides = getDetailSlides(join);
       const keys = getJoinReviewProductKeys(join);
       return Array.from(joinReviewPayloadMemory.values())
         .map(normalizeJoinReviewPayload)
@@ -33943,7 +34184,7 @@
           text: review.review.text || "",
           product: review.product.productName || join.title,
           author: maskJoinReviewAuthor(review.member.memberName),
-          image: review.review.thumbnailUrl || review.review.imageUrl || slides[0],
+          image: review.review.thumbnailUrl || review.review.imageUrl || "",
           count: review.review.images?.length > 1 ? `${review.review.images.length}+` : (review.review.imageUrl ? "1" : ""),
           source: "sheet"
         }))
@@ -33951,38 +34192,7 @@
     }
 
     function getDetailReviews(join) {
-      const slides = getDetailSlides(join);
-      const baseReview = {
-        stars: "★★★★★",
-        time: "5일 전",
-        text: "모르는 분들과 함께하는 조인 일정은 처음이라 걱정했는데 진행 안내가 좋았고, 라운드와 현지 이동도 부담이 적었습니다.",
-        product: join.title,
-        author: "김*훈",
-        image: slides[0],
-        count: "10+"
-      };
-      return [
-        ...getSheetDetailReviews(join),
-        baseReview,
-        {
-          stars: "★★★★★",
-          time: "3일 전",
-          text: "괌 리조트 숙소가 편했고 동선 이동도 좋았습니다. 오전 라운드 후 쉬는 시간이 넉넉해서 일행과 함께하기 좋았습니다.",
-          product: join.title,
-          author: "박*정",
-          image: slides[1] || slides[0],
-          count: "8+"
-        },
-        {
-          stars: "★★★★★",
-          time: "1일 전",
-          text: "해외 조인은 처음이었는데 항공과 리조트 안내가 잘 정리되어 있어 좋았습니다. 코스 풍경도 좋아서 다음에도 다시 이용하고 싶습니다.",
-          product: join.title,
-          author: "이*아",
-          image: slides[2] || slides[0],
-          count: "6+"
-        }
-      ];
+      return getSheetDetailReviews(join);
     }
 
     function renderDetailReviewStars(review) {
@@ -34284,26 +34494,30 @@
       if (!body || !tabs) return 0;
       const isMobile = window.matchMedia("(max-width: 640px)").matches;
       const tabHeight = tabs.offsetHeight || 0;
-      if (!isMobile) return tabHeight;
       const bodyRect = body.getBoundingClientRect();
       const tabsRect = tabs.getBoundingClientRect();
       const isFixed = tabs.classList.contains("is-mobile-fixed") || getComputedStyle(tabs).position === "fixed";
       if (isFixed && tabsRect.height) {
         return Math.max(0, tabsRect.bottom - bodyRect.top);
       }
+      if (!isMobile) {
+        const styles = getComputedStyle(tabs);
+        const stickyTop = styles.position === "sticky" ? (Number.parseFloat(styles.top) || 0) : 0;
+        return Math.max(0, tabHeight + stickyTop);
+      }
       return 56 + tabHeight;
-    }
-
-    function getDetailSectionMarginStart(section) {
-      if (!section) return 0;
-      const marginTop = Number.parseFloat(getComputedStyle(section).marginTop) || 0;
-      return section.offsetTop - marginTop;
     }
 
     function getDetailSectionMarginRectTop(section) {
       if (!section) return Number.POSITIVE_INFINITY;
-      const marginTop = Number.parseFloat(getComputedStyle(section).marginTop) || 0;
-      return section.getBoundingClientRect().top - marginTop;
+      return section.getBoundingClientRect().top;
+    }
+
+    function getDetailSectionTargetScrollTop(body, section, stickyOffset) {
+      if (!body || !section) return 0;
+      const bodyTop = body.getBoundingClientRect().top;
+      const sectionTop = getDetailSectionMarginRectTop(section);
+      return Math.max(0, body.scrollTop + sectionTop - bodyTop - stickyOffset);
     }
 
     function getDetailAnchorActivationLine(body, tabs) {
@@ -34328,6 +34542,7 @@
       const tabs = body?.querySelector(".detail-anchor-tabs");
       if (!body || !target) return;
 
+      clearTimeout(detailAnchorForcedActiveTimer);
       if (tabs) {
         tabs.dataset.pinnedVisible = "true";
         tabs.dataset.forcedActive = sectionName;
@@ -34345,13 +34560,12 @@
       tabs?.classList.add("is-visible");
       const stickyOffset = getDetailAnchorScrollOffset(body, tabs);
       body.scrollTo({
-        top: getDetailSectionMarginStart(target) - stickyOffset,
+        top: getDetailSectionTargetScrollTop(body, target, stickyOffset),
         behavior: "smooth"
       });
-      window.setTimeout(() => {
-        if (tabs?.dataset.forcedActive === sectionName) delete tabs.dataset.forcedActive;
+      detailAnchorForcedActiveTimer = window.setTimeout(() => {
         updateDetailAnchorTabs();
-      }, 360);
+      }, 900);
     }
 
     function updateDetailAnchorTabs() {
@@ -37290,17 +37504,62 @@
       return true;
     }
 
+    function getSelectedBuilderApplyStyles() {
+      return Array.from(document.querySelectorAll('[data-chip-group="builder-style"] .apply-chip.active'))
+        .map((chip) => chip.dataset.value || chip.textContent.trim())
+        .filter(Boolean);
+    }
+
+    function validateBuilderApplyStyleSelection() {
+      if (getSelectedBuilderApplyStyles().length) return true;
+      scrollApplyChipGroupIntoView("builder-style");
+      openBuilderAlert("라운딩 스타일을 하나 이상 선택해 주세요.");
+      return false;
+    }
+
+    function parseBuilderStorageRegionParts(value = "") {
+      const parts = String(value || "").split(",").map((part) => part.trim()).filter(Boolean);
+      return {
+        region: parts[0] || "",
+        country: parts.length >= 2 ? parts.slice(1).join(", ") : ""
+      };
+    }
+
+    function getBuilderStorageRegionText(regions = [], fallbackRegion = "") {
+      const source = Array.isArray(regions) && regions.length ? regions : (fallbackRegion ? [fallbackRegion] : []);
+      return source.map((region) => parseBuilderStorageRegionParts(region).region || region).filter(Boolean).join(", ");
+    }
+
+    function getBuilderStorageCountryText(regions = [], fallbackRegion = "") {
+      const source = Array.isArray(regions) && regions.length ? regions : (fallbackRegion ? [fallbackRegion] : []);
+      return Array.from(new Set(source.map((region) => parseBuilderStorageRegionParts(region).country).filter(Boolean))).join(", ");
+    }
+
+    function inferBuilderCountryFromRegion(regionName = "") {
+      const target = String(regionName || "").split(",").map((part) => part.trim()).filter(Boolean)[0] || "";
+      if (!target) return "";
+      for (const category of (regionTree || [])) {
+        for (const country of (category.countries || [])) {
+          if (target === country.name) return country.name;
+          if ((country.cities || []).some((city) => city === target || regionLabel(city, country.name) === regionName)) {
+            return country.name;
+          }
+        }
+      }
+      return "";
+    }
+
     async function getBuilderApplyPayload() {
       const memberProfile = await getJoinApplyMemberProfile();
-      const name = memberProfile.name || document.getElementById("builderApplyName")?.value.trim() || "";
-      const birthYear = memberProfile.birthYear || document.getElementById("builderApplyBirthYear")?.value.trim() || "";
-      const gender = memberProfile.gender || document.querySelector('[data-chip-group="builder-gender"] .apply-chip.active')?.dataset.value || "";
-      const phone = memberProfile.phone || document.getElementById("builderApplyPhone")?.value.trim() || "";
-      const profession = memberProfile.profession || document.getElementById("builderApplyProfession")?.value.trim() || "";
+      const name = document.getElementById("builderApplyName")?.value.trim() || memberProfile.name || "";
+      const birthYear = document.getElementById("builderApplyBirthYear")?.value.trim() || memberProfile.birthYear || "";
+      const gender = document.querySelector('[data-chip-group="builder-gender"] .apply-chip.active')?.dataset.value || memberProfile.gender || "";
+      const phone = normalizeJoinMemberPhone(document.getElementById("builderApplyPhone")?.value.trim() || memberProfile.phone || "");
+      const profession = document.getElementById("builderApplyProfession")?.value.trim() || memberProfile.profession || "";
       const people = getCompanionPeople("builder");
       const companions = getCompanionPayload("builder");
       const level = memberProfile.level || "";
-      const styles = Array.from(document.querySelectorAll('[data-chip-group="builder-style"] .apply-chip.active')).map((chip) => chip.dataset.value || chip.textContent.trim());
+      const styles = getSelectedBuilderApplyStyles();
       const memberPreferences = Array.from(document.querySelectorAll('[data-chip-group="builder-member-preference"] .apply-chip.active')).map((chip) => chip.dataset.value || chip.textContent.trim());
       const greeting = document.getElementById("builderApplyGreeting")?.value.trim() || "";
       const requiredAgreed = true;
@@ -37324,6 +37583,20 @@
       const productStartSummary = useProductFixedDates ? formatDetailDateWithDay(productDepartureDate) : "";
       const productEndSummary = useProductFixedDates ? formatDetailDateWithDay(productReturnDate) : "";
       const productTripSummary = useProductFixedDates ? formatTripDuration(selectedProduct) : "";
+      const productTypeName = getDetailProductType(selectedProduct);
+      const productPackType = productTypeName === "항공팩" ? "air" : "golf";
+      const tripCountry = getBuilderStorageCountryText(builderState.regions, builderState.region)
+        || builderState.country
+        || selectedProduct.country
+        || inferBuilderCountryFromRegion(builderState.region)
+        || inferBuilderCountryFromRegion(selectedProduct.region)
+        || "";
+      const tripRegion = getBuilderStorageRegionText(builderState.regions, builderState.region)
+        || selectedProduct.region
+        || selectedProduct.area
+        || selectedProduct.city
+        || "";
+      const tripProductName = builderState.productName || selectedProduct.title || selectedProduct.productName || selectedProduct.goodName || "";
 
       return {
         applicationId,
@@ -37336,7 +37609,7 @@
           memberId: memberProfile.member?.memberId || "",
           memberName: memberProfile.member?.memberName || name,
           memberChannel: memberProfile.member?.memberChannel || "",
-          memberMobile: memberProfile.member?.memberMobile || phone,
+          memberMobile: normalizeJoinMemberPhone(memberProfile.member?.memberMobile || phone),
           memberEmail: memberProfile.member?.memberEmail || ""
         },
         applicant: {
@@ -37355,12 +37628,14 @@
           greeting
         },
         trip: {
-          region: builderState.region || (builderState.regions || []).join(", "),
-          regions: builderState.regions || [],
+          country: tripCountry,
+          region: tripRegion,
           productId: builderState.productId || selectedProductReference.id || "",
           erpProductId: selectedProductReference.id || builderState.productId || "",
           erpEventSeq: selectedProductReference.eventSeq || "",
-          productName: builderState.productName || "",
+          productName: tripProductName,
+          packType: productPackType,
+          packTypeName: productTypeName,
           productPrice: Number(selectedProduct?.price) || 0,
           startSummary: productStartSummary || document.getElementById("builderStartSummary")?.textContent.trim() || "",
           endSummary: productEndSummary || document.getElementById("builderEndSummary")?.textContent.trim() || "",
@@ -37395,8 +37670,7 @@
         return false;
       }
       if (!Array.isArray(payload.applicant.styles) || !payload.applicant.styles.length) {
-        scrollApplyChipGroupIntoView("builder-style");
-        openBuilderAlert("라운딩 스타일을 하나 이상 선택해 주세요.");
+        validateBuilderApplyStyleSelection();
         return false;
       }
       return true;
@@ -37407,15 +37681,50 @@
         console.warn("GOLFJOIN_SHEET_API_ENDPOINT is empty. Payload was not sent.", payload);
         return { skipped: true };
       }
-      const response = await fetch(GOLFJOIN_SHEET_API_ENDPOINT, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) throw new Error(`${label} save failed: ${response.status}`);
-      return response.json().catch(() => ({ ok: true }));
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+      let response;
+      try {
+        response = await fetch(GOLFJOIN_SHEET_API_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+      } catch (error) {
+        console.error(`${label} request failed`, {
+          name: error?.name || "",
+          message: error?.message || "",
+          endpoint: GOLFJOIN_SHEET_API_ENDPOINT
+        });
+        throw error;
+      } finally {
+        clearTimeout(timeout);
+      }
+      const text = await response.text();
+      if (!response.ok) {
+        console.error(`${label} save failed`, {
+          status: response.status,
+          body: text.slice(0, 1000)
+        });
+        const error = new Error(`${label} save failed: ${response.status}`);
+        error.status = response.status;
+        error.responseBody = text;
+        try {
+          const parsed = JSON.parse(text || "{}");
+          error.serverMessage = parsed.error || parsed.message || "";
+        } catch (parseError) {
+          error.serverMessage = text.slice(0, 200);
+        }
+        throw error;
+      }
+      try {
+        return text ? JSON.parse(text) : { ok: true };
+      } catch (error) {
+        return { ok: true, raw: text };
+      }
     }
 
     async function fetchGolfJoinSheetRows(params = {}, label = "Golfjoin sheet rows") {
@@ -37428,6 +37737,25 @@
       if (!response.ok) throw new Error(`${label} load failed: ${response.status}`);
       const data = await response.json();
       return Array.isArray(data) ? data : (data.items || data.rows || data.applications || data.reviews || []);
+    }
+
+    async function postGolfJoinSheetAction(action, payload = {}, label = "Golfjoin sheet action") {
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
+      const url = new URL(GOLFJOIN_SHEET_API_ENDPOINT);
+      url.searchParams.set("action", action);
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(`${label} failed: ${response.status}`);
+      const data = await response.json();
+      return data;
+    }
+
+    function getGolfJoinSheetActionRows(data = {}) {
+      return Array.isArray(data) ? data : (data.items || data.rows || []);
     }
 
     async function saveBuilderApplyToGoogleSheet(payload) {
@@ -37480,12 +37808,16 @@
           departureDate: join.departureDate || "",
           returnDate: join.returnDate || "",
           category: join.category || "",
+          country: join.country || join.countryName || "",
+          countryRegion: join.countryRegion || join.location || "",
           region: join.region || "",
           airport: join.airport || ""
         },
         join: {
           id: join.id || "",
           title: join.title || "",
+          country: join.country || join.countryName || "",
+          countryRegion: join.countryRegion || join.location || "",
           region: join.region || "",
           category: join.category || "",
           departureDate: join.departureDate || "",
@@ -37719,8 +38051,12 @@
           limit: "50"
         }, "Join applications");
         writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows);
+        const rememberedApplications = Array.from(joinApplicationPayloadMemory.values())
+          .map(normalizeJoinApplyPayload)
+          .filter((payload) => String(payload.source || "") !== "join_apply");
         joinApplicationPayloadMemory.clear();
         rows.map(normalizeJoinApplyPayload).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+        rememberedApplications.forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
         googleSheetJoinApplicationsReadCompleted = true;
         googleSheetJoinApplicationsReadFailed = false;
         renderJoins();
@@ -37734,6 +38070,19 @@
         googleSheetJoinApplicationsLoading = false;
         renderJoins();
       }
+    }
+
+    function applyJoinApplicationsFromGoogleSheetRows(rows = []) {
+      writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows);
+      const rememberedApplications = Array.from(joinApplicationPayloadMemory.values())
+        .map(normalizeJoinApplyPayload)
+        .filter((payload) => String(payload.source || "") !== "join_apply");
+      joinApplicationPayloadMemory.clear();
+      rows.map(normalizeJoinApplyPayload).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+      rememberedApplications.forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+      googleSheetJoinApplicationsReadCompleted = true;
+      googleSheetJoinApplicationsReadFailed = false;
+      return rows;
     }
 
     async function hydrateJoinReviewsFromGoogleSheet() {
@@ -37759,6 +38108,18 @@
         console.warn("Failed to load join reviews from Google Sheet. Add matching join_reviews reads to the Apps Script doGet endpoint.", error);
         return [];
       }
+    }
+
+    function applyJoinReviewsFromGoogleSheetRows(rows = []) {
+      writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY, rows);
+      const normalizedRows = rows.map(normalizeJoinReviewPayload);
+      pruneJoinMyReviewStoreByServerReviews(normalizedRows);
+      joinReviewPayloadMemory.clear();
+      normalizedRows.forEach((payload) => rememberJoinReviewPayload(payload));
+      if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinData) {
+        renderDetailContent(currentDetailJoinData);
+      }
+      return rows;
     }
 
     function buildGoogleSheetRecordId(prefix, ...parts) {
@@ -38115,6 +38476,37 @@
       }
     }
 
+    function applyBuilderApplicationsFromGoogleSheetRows(rows = []) {
+      writeGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, rows);
+      rows.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
+      googleSheetBuilderApplicationsReadCompleted = true;
+      googleSheetBuilderApplicationsReadFailed = false;
+      return rows;
+    }
+
+    function applyHomeBootstrapRows(data = {}) {
+      const newSchedules = Array.isArray(data.newSchedules) ? data.newSchedules : [];
+      const joinApplications = Array.isArray(data.joinApplications) ? data.joinApplications : [];
+      const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+      const wishes = Array.isArray(data.wishes) ? data.wishes : [];
+      googleSheetBuilderApplicationsLoading = false;
+      googleSheetJoinApplicationsLoading = false;
+      googleSheetJoinWishesLoading = false;
+      applyBuilderApplicationsFromGoogleSheetRows(newSchedules);
+      applyJoinApplicationsFromGoogleSheetRows(joinApplications);
+      applyJoinReviewsFromGoogleSheetRows(reviews);
+      applyJoinWishesFromGoogleSheetRows(wishes);
+      if (Array.isArray(data.warnings) && data.warnings.length) {
+        console.warn("Home bootstrap completed with warnings.", data.warnings);
+      }
+      renderJoins();
+      refreshDetailWishButtons();
+      if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+        renderJoinMyWishMenu();
+      }
+      return data;
+    }
+
     async function hydrateBuilderApplicationJoinsFromGoogleSheet() {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
       googleSheetBuilderApplicationsLoading = true;
@@ -38144,22 +38536,28 @@
     }
 
     async function submitBuilderApply() {
-      const payload = await getBuilderApplyPayload();
-      if (!validateBuilderApplyPayload(payload)) return false;
-
+      if (!validateBuilderApplyStyleSelection()) return false;
       const next = document.getElementById("builderNextButton");
       const previousText = next?.textContent || "";
-      if (next) {
-        next.disabled = true;
-      }
       try {
-        await saveBuilderApplyToGoogleSheet(payload);
-        upsertBuilderApplicationJoin(payload, { persist: true });
+        const result = await runJoinActionLoading(async () => {
+          const payload = await getBuilderApplyPayload();
+          if (!validateBuilderApplyPayload(payload)) return { ok: false };
+          await saveBuilderApplyToGoogleSheet(payload);
+          upsertBuilderApplicationJoin(payload, { persist: true });
+          return { ok: true };
+        }, {
+          button: next,
+          message: "모임을 생성 중이에요."
+        });
+        if (!result?.ok) return false;
         setBuilderStep(4);
         return true;
       } catch (error) {
         console.error("Failed to save builder apply payload.", error);
-        alert("신청 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        const rawErrorMessage = error?.serverMessage || error?.message || "";
+        const detailMessage = rawErrorMessage ? `\n\n오류: ${rawErrorMessage}` : "";
+        openBuilderAlert(`신청 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.${detailMessage}`);
         return false;
       } finally {
         if (next && builderStep === 3) {
@@ -38334,6 +38732,7 @@
       }
       setBuilderStep(builderStep + 1);
     }
+    window.nextBuilderStep = nextBuilderStep;
 
     function prevBuilderStep() {
       if (builderStep <= 1) return;
@@ -38351,7 +38750,7 @@
       activeBuilderPopoverFlexOpen = false;
       builderPopoverFlexSnapshot = null;
       Object.assign(builderState, {
-        ...getTodayMonthState(),
+        ...getBuilderInitialMonthState(),
         startDay: null,
         endDay: null,
         startBefore: 0,
@@ -38424,6 +38823,78 @@
       document.getElementById("builderProductDetail")?.classList.remove("open");
     }
 
+    function findBuilderProductById(productId = "") {
+      const targetId = String(productId || "").trim();
+      if (!targetId) return null;
+      if (currentDetailJoinData?.id === targetId) return currentDetailJoinData;
+      return getBuilderProductSource().find((item) => item.id === targetId)
+        || (externalGolfJoinProducts || []).find((item) => item.id === targetId)
+        || null;
+    }
+
+    function getCurrentBuilderLoginParams(builderAction = "") {
+      const productId = currentDetailJoinData?.id || currentDetailJoinId || "";
+      return {
+        builderAction,
+        builderProductId: productId,
+        productGroupKey: currentMdPickProductGroupKey || (currentDetailJoinData ? getProductGroupKey(currentDetailJoinData) : ""),
+        countryKey: currentMdPickCountryKey || ""
+      };
+    }
+
+    async function continueBuilderAfterLogin(params = {}, options = {}) {
+      const shouldShowLoading = options.showLoading !== false && !isJoinActionLoadingOpen();
+      if (shouldShowLoading) openJoinActionLoading("신청 정보를 확인하고 있어요");
+      try {
+        const builderAction = params.builderAction || "";
+        if (builderAction === "mdpick-recruit") {
+          const product = findBuilderProductById(params.builderProductId || params.productId);
+          const productGroupKey = params.productGroupKey || (product ? getProductGroupKey(product) : currentMdPickProductGroupKey);
+          const countryKey = params.countryKey || currentMdPickCountryKey;
+          if (product && productGroupKey) {
+            if (document.getElementById("detailModal")?.classList.contains("open")) {
+              closeModal("detailModal");
+            }
+            await openMdPickBuilderWithCurrentDate(productGroupKey, countryKey, product, { skipProfileCheck: Boolean(options.skipProfileCheck) });
+            return true;
+          }
+        }
+        if (builderAction === "builder-product") {
+          const product = findBuilderProductById(params.builderProductId || params.productId);
+          if (product) {
+            builderState.productId = product.id || "";
+            builderState.productName = product.title || "";
+            builderState.region = product.region || builderState.region || "";
+            builderState.regions = product.region ? [product.region] : builderState.regions;
+            builderState.dateConstraintRegions = product.region ? [product.region] : builderState.dateConstraintRegions;
+            if (product.departureDate) {
+              const date = new Date(`${product.departureDate}T00:00:00`);
+              builderState.viewYear = date.getFullYear();
+              builderState.viewMonth = date.getMonth();
+              builderState.startDay = getBuilderDayOffsetFromISO(product.departureDate, builderState.viewYear, builderState.viewMonth);
+              builderState.endDay = getBuilderDayOffsetFromISO(product.returnDate || product.departureDate, builderState.viewYear, builderState.viewMonth);
+            }
+            if (document.getElementById("detailModal")?.classList.contains("open")) {
+              closeModal("detailModal");
+            }
+            const opened = await openModal("builderModal", { preserveBuilderState: true, skipProfileCheck: Boolean(options.skipProfileCheck) });
+            if (opened) {
+              renderBuilderCalendar();
+              updateBuilderRegionDisplay();
+              updateBuilderSummary();
+              updateBuilderApplySummary();
+              setBuilderStep(3);
+              suppressBuilderNextUntil = Date.now() + 500;
+            }
+            return opened;
+          }
+        }
+        return openModal("builderModal", { skipProfileCheck: Boolean(options.skipProfileCheck) });
+      } finally {
+        if (shouldShowLoading) await closeJoinActionLoading();
+      }
+    }
+
     async function openModal(id, options = {}) {
       if (id === "builderModal" && !requireJoinLogin("builder")) return false;
       if (id === "builderModal" && !options.skipProfileCheck) {
@@ -38450,6 +38921,7 @@
       }
       return true;
     }
+    window.openModal = openModal;
 
     function elevateBuilderProductDetailModal() {
       const overlay = portalOverlayToBody("detailModal");
@@ -38459,7 +38931,10 @@
     }
 
     async function openBuilderModalFromMain(trigger) {
-      return runJoinActionLoading(() => openModal("builderModal"), { button: trigger });
+      return runJoinActionLoading(
+        () => openModal("builderModal"),
+        { button: trigger, message: "조인모임 신청을 시작하고 있어요" }
+      );
     }
 
     function resetDetailModalScroll() {
@@ -38543,6 +39018,7 @@
         restoreJoinMyMenuAfterDetail(detailReturnContext);
       }
     }
+    window.closeModal = closeModal;
 
     function openMdPickRegionSearchModal(event) {
       event?.stopPropagation?.();
@@ -40328,7 +40804,7 @@
         : String(query || "").trim();
       area.innerHTML = `
         <div class="builder-region-product-head">
-          <div class="builder-region-product-count${isLoading ? " is-loading skeleton-glass-shimmer" : ""}"><div>${isLoading ? "상품 불러오는 중" : `${products.length}개 상품`}${productDateLabel && !isCompactProductView ? `<span class="builder-region-product-date-context"> · ${productDateLabel}</span>` : ""}</div></div>
+          <div class="builder-region-product-count${isLoading ? " is-loading skeleton-glass-shimmer" : ""}"><div>${isLoading ? "상품을 확인하고 있어요" : `${products.length}개 상품`}${productDateLabel && !isCompactProductView ? `<span class="builder-region-product-date-context"> · ${productDateLabel}</span>` : ""}</div></div>
           <div class="builder-region-product-sort${regionProductSortMenuOpen ? " open" : ""}" aria-label="상품 정렬">
             <select onchange="setBuilderProductSort(this.value)">
               <option value="recommended" ${regionProductSort === "recommended" ? "selected" : ""}>추천순</option>
@@ -40351,13 +40827,13 @@
           <div class="builder-region-product-list">
             ${products.map(renderBuilderRegionProductCard).join("")}
           </div>
-        ` : `<div class="builder-region-product-empty${isLoading ? " is-loading skeleton-glass-shimmer" : ""}"><div>${isLoading ? "Secret Tour product API에서 상품을 불러오고 있습니다." : `${targetLabel || "선택 조건"}${productDateLabel ? ` · ${productDateLabel}` : ""}에 맞는 상품이 없습니다.`}</div></div>`}
+        ` : `<div class="builder-region-product-empty${isLoading ? " is-loading skeleton-glass-shimmer" : ""}"><div>${isLoading ? "상품을 확인하고 있어요" : `${targetLabel || "선택 조건"}${productDateLabel ? ` · ${productDateLabel}` : ""}에 맞는 상품이 없습니다.`}</div></div>`}
       `;
     }
 
     function selectBuilderProduct(productId) {
       const product = getBuilderRegionProducts(document.getElementById("builderRegionSearchInput")?.value || "").find((item) => item.id === productId)
-        || (currentDetailMode === "builderProduct" && currentDetailJoinData?.id === productId ? currentDetailJoinData : null);
+        || findBuilderProductById(productId);
       if (!product) return false;
       builderState.productId = product.id;
       builderState.productName = product.title;
@@ -40845,7 +41321,7 @@
       const context = canvas.getContext("2d");
       if (!context) return;
       context.font = `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`;
-      const width = Math.ceil(context.measureText(text).width) + 2;
+      const width = Math.ceil(context.measureText(text).width) + 10;
       field.style.setProperty("--region-search-input-width", `${Math.max(12, width)}px`);
     }
 
@@ -42491,7 +42967,7 @@
     }
 
     function getConfirmedParticipants(join) {
-      return join.participants.filter((participant) => participant.status === "confirmed");
+      return (Array.isArray(join?.participants) ? join.participants : []).filter((participant) => participant.status === "confirmed");
     }
 
     function getParticipantGenderFlowClass(gender) {
@@ -42836,7 +43312,7 @@
     }
 
     function getJoinReviewCount(join) {
-      return Number(join.reviewCount || 0) + getSheetDetailReviews(join).length;
+      return getSheetDetailReviews(join).length;
     }
 
     function sortByDeparture(items) {
@@ -42994,7 +43470,7 @@
     }
 
     function renderSlideDots(key) {
-      return `<div class="join-slide-dots" data-slide-dots="${key}" aria-hidden="true"></div>`;
+      return `<div class="join-slide-dots" data-slide-dots="${key}" data-dot-click="handleHomeSlideDotClick" aria-hidden="true"></div>`;
     }
 
     function getFallbackSlideDotPageCount(key, dots) {
@@ -43087,7 +43563,7 @@
               const activeClass = dot.isActive ? " active" : "";
               const dotStyle = `--dot-scale:${dot.scale}; --dot-opacity:${dot.opacity};`;
               if (dotClickHandler) {
-                return `<div class="join-slide-dot-slot"><button type="button" class="join-slide-dot${activeClass}" data-dot-index="${dot.index}" style="${dotStyle}" onclick="${dotClickHandler}(${dot.index})" aria-label="${dot.index + 1}번 보기"></button></div>`;
+                return `<div class="join-slide-dot-slot"><button type="button" class="join-slide-dot${activeClass}" data-dot-index="${dot.index}" style="${dotStyle}" onclick="${dotClickHandler}(${dot.index}, event)" aria-label="${dot.index + 1}번 보기"></button></div>`;
               }
               return `<div class="join-slide-dot-slot"><div class="join-slide-dot${activeClass}" data-dot-index="${dot.index}" style="${dotStyle}"></div></div>`;
             }).join("")}
@@ -43133,6 +43609,48 @@
       updateSlideDots(key, currentIndex, cardCount, isScrollable && cardCount > 1);
     }
 
+    function scrollHomeDotContainerToIndex(key, container, index, afterScroll) {
+      if (!container) return;
+      const cards = Array.from(container.querySelectorAll(".join-card:not([data-quick-carousel-clone='true'])"));
+      if (!cards.length) return;
+      const targetIndex = Math.min(cards.length - 1, Math.max(0, Number(index) || 0));
+      const target = cards[targetIndex];
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const left = container.scrollLeft + targetRect.left - containerRect.left;
+      updateSlideDots(key, targetIndex, cards.length, cards.length > 1);
+      container.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+      window.setTimeout(() => {
+        if (typeof afterScroll === "function") afterScroll();
+      }, 280);
+    }
+
+    function handleHomeSlideDotClick(index, event) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      const dots = event?.currentTarget?.closest("[data-slide-dots]");
+      const key = dots?.dataset.slideDots || "";
+      if (key === "mdpick-country") {
+        const country = MD_PICK_COUNTRIES[Math.min(MD_PICK_COUNTRIES.length - 1, Math.max(0, Number(index) || 0))];
+        if (country) selectMdPickCountry(country.key);
+        return;
+      }
+      if (key === "mdpick-theme") {
+        const themes = getVisibleMdPickThemes();
+        const theme = themes[Math.min(themes.length - 1, Math.max(0, Number(index) || 0))];
+        if (theme) setMdPickTheme(theme.key);
+        return;
+      }
+      if (key === "custom") {
+        scrollHomeDotContainerToIndex(key, getActiveCustomJoinPanel(), index, updateCustomSectionControls);
+        return;
+      }
+      if (isBestJoinSectionKey(key)) {
+        const grid = document.querySelector(`#join-section-${key} .join-grid`);
+        scrollHomeDotContainerToIndex(key, grid, index, () => updateBestSectionControls(key));
+      }
+    }
+
     function updateMdPickCountryDots() {
       updateSlideDots("mdpick-country", getMdPickCountryIndex(), MD_PICK_COUNTRIES.length, isMobileSlideDotsViewport());
     }
@@ -43164,6 +43682,44 @@
       updateSlideDots("mdpick-theme", activeIndex, themes.length, isMobileSlideDotsViewport());
     }
     window.updateMdPickThemeDots = updateMdPickThemeDots;
+
+    function getNextMdPickThemeKey() {
+      const themes = getVisibleMdPickThemes();
+      if (themes.length <= 1) return "";
+      const activeIndex = themes.findIndex((theme) => theme.key === mdPickActiveThemeKey);
+      const nextIndex = ((activeIndex >= 0 ? activeIndex : 0) + 1) % themes.length;
+      return themes[nextIndex]?.key || "";
+    }
+
+    function stopMdPickThemeAutoSlide() {
+      if (mdPickThemeAutoTimer) clearInterval(mdPickThemeAutoTimer);
+      mdPickThemeAutoTimer = null;
+    }
+
+    function advanceMdPickThemeAuto() {
+      const section = document.getElementById("join-section-mdpick-theme");
+      if (!section?.querySelector(".join-mdpick-theme-card")) {
+        stopMdPickThemeAutoSlide();
+        return;
+      }
+      const nextThemeKey = getNextMdPickThemeKey();
+      if (nextThemeKey) setMdPickTheme(nextThemeKey);
+    }
+
+    function startMdPickThemeAutoSlide(options = {}) {
+      const section = document.getElementById("join-section-mdpick-theme");
+      if (!section?.querySelector(".join-mdpick-theme-card")) {
+        stopMdPickThemeAutoSlide();
+        return;
+      }
+      if (getVisibleMdPickThemes().length <= 1) {
+        stopMdPickThemeAutoSlide();
+        return;
+      }
+      if (mdPickThemeAutoTimer && !options.reset) return;
+      stopMdPickThemeAutoSlide();
+      mdPickThemeAutoTimer = setInterval(advanceMdPickThemeAuto, MD_PICK_THEME_AUTO_INTERVAL_MS);
+    }
 
     function updateMdPickSlideDots() {
       updateMdPickCountryDots();
@@ -43358,8 +43914,8 @@
         <section class="join-product-section layout-overseas layout-loading" id="join-section-loading" aria-label="상품 로딩">
           <div class="join-product-section-head">
             <div class="join-product-section-copy">
-              <div class="join-product-section-title">상품 정보를 불러오는 중</div>
-              <p class="join-product-section-desc">구글시트와 ERP 상품 정보를 확인하고 있습니다.</p>
+              <div class="join-product-section-title">상품 정보를 확인하고 있어요</div>
+              <p class="join-product-section-desc">상품 정보를 확인하고 있어요.</p>
             </div>
           </div>
           <div class="join-grid">
@@ -43857,6 +44413,8 @@
     let mdPickSuppressCardClick = false;
     let mdPickListAnimating = false;
     let mdPickActiveThemeKey = "relax";
+    let mdPickThemeAutoTimer = null;
+    const MD_PICK_THEME_AUTO_INTERVAL_MS = 5000;
     const mdPickPreloadedImages = new Set();
     const MD_PICK_COUNTRIES = [
       { key: "thailand", name: "태국", tokens: ["태국", "방콕", "파타야", "치앙마이", "후아힌"] },
@@ -44041,12 +44599,32 @@
     function setMdPickTheme(themeKey) {
       if (!MD_PICK_THEMES.some((theme) => theme.key === themeKey)) return;
       mdPickActiveThemeKey = themeKey;
+      const themeSection = document.getElementById("join-section-mdpick-theme");
+      const themeSectionHtml = renderMdPickThemeSection();
+      if (themeSection && themeSectionHtml) {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = themeSectionHtml.trim();
+        const next = wrapper.firstElementChild;
+        if (next) themeSection.replaceWith(next);
+        updateJoinSectionNavFixed();
+        requestAnimationFrame(updateMdPickSlideDots);
+        startMdPickThemeAutoSlide({ reset: true });
+        return;
+      }
+      if (themeSection && !themeSectionHtml) {
+        themeSection.remove();
+        updateJoinSectionNavFixed();
+        requestAnimationFrame(updateMdPickSlideDots);
+        startMdPickThemeAutoSlide({ reset: true });
+        return;
+      }
       const mdPickSection = document.getElementById("joinMdPickSection");
       if (mdPickSection) {
         mdPickSection.innerHTML = renderMdPickSection();
         updateJoinSectionNavVisibility(getHomeJoinSections(), Boolean(mdPickSection.innerHTML));
         updateJoinSectionNavFixed();
         requestAnimationFrame(updateMdPickSlideDots);
+        startMdPickThemeAutoSlide({ reset: true });
       }
     }
     window.setMdPickTheme = setMdPickTheme;
@@ -44199,14 +44777,14 @@
       return true;
     }
 
-    async function openMdPickBuilderWithCurrentDate(productGroupKey, countryKey, product) {
+    async function openMdPickBuilderWithCurrentDate(productGroupKey, countryKey, product, options = {}) {
       setupMdPickBuilderState(productGroupKey, countryKey, {
         product: product || currentDetailJoinData,
         useProductDates: true,
         selectProduct: true,
         recruitDirectMode: true
       });
-      const opened = await openModal("builderModal", { preserveBuilderState: true });
+      const opened = await openModal("builderModal", { preserveBuilderState: true, skipProfileCheck: Boolean(options.skipProfileCheck) });
       if (!opened) return false;
       setBuilderStep(3);
       return true;
@@ -44452,7 +45030,7 @@
       const items = getMdPickRepresentativeProducts(country);
       return items.length
         ? `<div class="join-mdpick-list" ontouchstart="handleMdPickListTouchStart(event)" ontouchmove="handleMdPickListTouchMove(event)" ontouchend="handleMdPickListTouchEnd(event)">${items.map(renderMdPickCard).join("")}</div>`
-        : `<div class="join-mdpick-empty">추천 가능한 상품을 불러오는 중입니다.</div>`;
+        : `<div class="join-mdpick-empty">추천 가능한 상품을 확인하고 있어요.</div>`;
     }
 
     function renderMdPickCountry(country) {
@@ -44766,6 +45344,7 @@
       setupCustomThemeRailScrollSync();
       ensureJoinReservationCountdownTimer();
       scheduleHomeSlideDotsRefresh();
+      startMdPickThemeAutoSlide();
       scheduleMdPickImagePreload();
       updateJoinSectionNavFixed();
     }
@@ -45143,7 +45722,7 @@
     function renderDetailContent(join, options = {}) {
       if (!join) return;
       const isBuilderMode = options.mode === "builder";
-      const hideParticipants = Boolean(options.hideParticipants);
+      const hideParticipants = Boolean(options.hideParticipants) || !isJoinScheduleLikeForDetail(join);
       const disableEmptySlots = options.disableEmptySlots !== false;
       const confirmedParticipants = getConfirmedParticipants(join);
       const participantCapacity = getCardTeamCapacity(join);
@@ -45232,6 +45811,7 @@
       detailBody.onwheel = () => {
         const tabs = detailBody.querySelector(".detail-anchor-tabs");
         const scheduleNav = detailBody.querySelector(".detail-schedule-day-nav");
+        clearTimeout(detailAnchorForcedActiveTimer);
         if (tabs) {
           delete tabs.dataset.forcedActive;
           delete tabs.dataset.pinnedVisible;
@@ -45241,6 +45821,7 @@
       detailBody.ontouchstart = () => {
         const tabs = detailBody.querySelector(".detail-anchor-tabs");
         const scheduleNav = detailBody.querySelector(".detail-schedule-day-nav");
+        clearTimeout(detailAnchorForcedActiveTimer);
         if (tabs) {
           delete tabs.dataset.forcedActive;
           delete tabs.dataset.pinnedVisible;
@@ -45385,10 +45966,32 @@
       });
     }
 
-    async function handleDetailWish() {
+    function restoreDetailModalForLoginAction(joinId = "") {
+      const targetId = String(joinId || currentDetailJoinId || "").trim();
+      if (!targetId) return false;
+      const isDetailOpen = document.getElementById("detailModal")?.classList.contains("open");
+      if (isDetailOpen && currentDetailJoinId === targetId) return true;
+      const join = joins.find((item) => item.id === targetId);
+      if (!join) return false;
+      openDetail(targetId);
+      return true;
+    }
+
+    async function continueDetailWishAfterLogin(params = {}, options = {}) {
+      const wishJoinId = params.wishJoinId || params.joinId || currentDetailJoinId || "";
+      restoreDetailModalForLoginAction(wishJoinId);
+      if (!options.skipProfileCheck) {
+        const member = await ensureJoinMemberProfileReady("detail-wish", wishJoinId ? { wishJoinId } : {});
+        if (!member) return;
+      }
+      await handleDetailWish({ skipLogin: true });
+    }
+
+    async function handleDetailWish(options = {}) {
       const member = getJoinCachedCurrentMember();
       if (!getJoinWishMemberKey(member)) {
-        redirectToJoinLogin("my-menu");
+        const joinId = currentDetailJoinId || currentDetailJoinData?.id || "";
+        redirectToJoinLogin("detail-wish", joinId ? { wishJoinId: joinId } : {});
         return;
       }
       const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
@@ -45400,7 +46003,16 @@
       }
       const alreadyWished = isJoinProductWished(join);
       if (alreadyWished) {
-        alert(wishType === "join_schedule" ? "이미 찜한 조인 일정입니다." : "이미 찜한 상품입니다.");
+        const snapshot = createJoinWishProductSnapshot(join);
+        const targetKey = getJoinWishTargetKey(snapshot);
+        try {
+          if (wishType === "product") await postDetailGoodsWish(goodSeq || targetKey);
+        } catch (error) {
+          console.warn("Secret Tour wish toggle request failed.", error);
+        }
+        removeJoinWishProduct(targetKey, wishType);
+        refreshDetailWishButtons();
+        alert(wishType === "join_schedule" ? "찜한 조인 일정에서 삭제되었습니다." : "찜한 상품에서 삭제되었습니다.");
         return;
       }
       addJoinWishProduct(join);
@@ -45702,20 +46314,33 @@
         const groupKey = currentMdPickProductGroupKey;
         const countryKey = currentMdPickCountryKey;
         const product = currentDetailJoinData;
-        openJoinActionLoading();
+        const loginParams = getCurrentBuilderLoginParams("mdpick-recruit");
+        openJoinActionLoading("신청 정보를 확인하고 있어요");
         try {
+          const member = await ensureJoinMemberProfileReady("builder", loginParams);
+          if (!member) return;
           closeModal("detailModal");
-          await openMdPickBuilderWithCurrentDate(groupKey, countryKey, product);
+          await openMdPickBuilderWithCurrentDate(groupKey, countryKey, product, { skipProfileCheck: true });
         } finally {
           await closeJoinActionLoading();
         }
         return;
       }
       if (currentDetailMode === "builderProduct") {
-        if (!selectBuilderProduct(currentDetailJoinId)) return;
-        closeModal("detailModal");
-        setBuilderStep(3);
-        suppressBuilderNextUntil = Date.now() + 500;
+        const loginParams = getCurrentBuilderLoginParams("builder-product");
+        openJoinActionLoading("신청 정보를 확인하고 있어요");
+        try {
+          const member = await ensureJoinMemberProfileReady("builder", loginParams);
+          if (!member) return;
+          if (!selectBuilderProduct(currentDetailJoinId)) return;
+          closeModal("detailModal");
+          const opened = await openModal("builderModal", { preserveBuilderState: true, skipProfileCheck: true });
+          if (!opened) return;
+          setBuilderStep(3);
+          suppressBuilderNextUntil = Date.now() + 500;
+        } finally {
+          await closeJoinActionLoading();
+        }
         return;
       }
       if (currentDetailMode === "builder") {
@@ -46146,14 +46771,19 @@
     submitJoinMemberFindPw = wrapJoinAsyncFunction(submitJoinMemberFindPw);
     submitJoinMemberResetPassword = wrapJoinAsyncFunction(submitJoinMemberResetPassword);
     submitJoinMemberSignup = wrapJoinAsyncFunction(submitJoinMemberSignup);
+    window.submitJoinMemberEmailLogin = submitJoinMemberEmailLogin;
     window.submitJoinMemberSignup = submitJoinMemberSignup;
+    window.openJoinMemberEmailForm = openJoinMemberEmailForm;
     openJoinMyDrawer = wrapJoinAsyncFunction(openJoinMyDrawer);
     handleJoinMyWishClick = wrapJoinAsyncFunction(handleJoinMyWishClick);
     handleJoinWishRemove = wrapJoinAsyncFunction(handleJoinWishRemove);
     handleJoinMyLogout = wrapJoinAsyncFunction(handleJoinMyLogout);
     openJoinMyMenu = wrapJoinAsyncFunction(openJoinMyMenu);
     showMdPickDetailProduct = wrapJoinAsyncFunction(showMdPickDetailProduct);
-    nextBuilderStep = wrapJoinAsyncFunction(nextBuilderStep);
+    window.nextBuilderStep = nextBuilderStep;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.__golfjoinMainReady = true;
     openBuilderProductDetailModal = wrapJoinAsyncFunction(openBuilderProductDetailModal);
     openGlobalApply = wrapJoinAsyncFunction(openGlobalApply);
     submitGlobalApply = wrapJoinAsyncFunction(submitGlobalApply);
@@ -46346,12 +46976,6 @@
       hydrateJoinApplicationsFromLocalCache();
       hydrateJoinReviewsFromLocalCache();
       hydrateOverseasJoinsWithSecretProducts();
-      hydrateJoinWishesFromGoogleSheet().then(() => {
-        refreshDetailWishButtons();
-        if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
-          renderJoinMyWishMenu();
-        }
-      });
       homeInitialExternalProductsLoading = true;
       renderHomeInitialLoading();
       try {
@@ -46364,18 +46988,38 @@
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       scheduleHomeSlideDotsRefresh();
       window.refreshInitialJoinSlideDots?.();
-      closeHomeInitialLoading();
-      Promise.all([
-        hydrateBuilderApplicationJoinsFromGoogleSheet(),
-        hydrateJoinApplicationsFromGoogleSheet(),
-        hydrateJoinReviewsFromGoogleSheet()
-      ]).then(() => {
+      const params = new URLSearchParams(location.search);
+      const afterLogin = params.get("afterLogin");
+      const shouldDelayInitialLoadingClose = ["my-menu", "my-drawer", "builder", "apply", "detail-wish", "profile-manage", "kakao-profile"].includes(afterLogin)
+        || Boolean(getJoinExternalDeepLinkTarget());
+      if (!shouldDelayInitialLoadingClose) {
+        closeHomeInitialLoading();
+      }
+      hydrateHomeBootstrapFromGoogleSheet().catch((error) => {
+        console.warn("Failed to load home bootstrap data. Falling back to individual sheet reads.", error);
+        return Promise.all([
+          hydrateBuilderApplicationJoinsFromGoogleSheet(),
+          hydrateJoinApplicationsFromGoogleSheet(),
+          hydrateJoinReviewsFromGoogleSheet(),
+          hydrateJoinWishesFromGoogleSheet()
+        ]);
+      }).then(async () => {
         renderJoins();
-        resumeJoinMyMenuAfterLogin();
-        resumeJoinKakaoProfileAfterLogin();
-      }).catch((error) => {
+        refreshDetailWishButtons();
+        if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+          renderJoinMyWishMenu();
+        }
+        await resumeJoinMyMenuAfterLogin();
+        await resumeJoinExternalDeepLink();
+        await resumeJoinKakaoProfileAfterLogin();
+      }).catch(async (error) => {
         console.warn("Failed to hydrate join sheet data.", error);
         renderJoins();
+        await resumeJoinMyMenuAfterLogin();
+        await resumeJoinExternalDeepLink();
+        await resumeJoinKakaoProfileAfterLogin();
+      }).finally(() => {
+        closeHomeInitialLoading();
       });
     }
 
@@ -46384,7 +47028,10 @@
       homeInitialExternalProductsLoading = false;
       homeInitialExternalProductsLoadedOnce = true;
       renderJoins();
-      closeHomeInitialLoading();
+      Promise.resolve()
+        .then(() => resumeJoinMyMenuAfterLogin())
+        .then(() => resumeJoinExternalDeepLink())
+        .finally(() => closeHomeInitialLoading());
     });
   </script>
 
@@ -46592,108 +47239,9 @@
           </section>
           <section class="join-my-section" data-join-my-section="completed" hidden="">
             <div class="join-my-reservation-title">내가 다녀온 일정</div>
-            
-        <article class="join-my-card">
-          <div class="join-my-card-thumb">
-            <img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg" alt="후아힌 블랙마운틴 조인" loading="lazy" decoding="async">
-            <div class="join-my-card-thumb-badge">후아힌</div>
-          </div>
-          <div class="join-my-card-content">
-            <div class="join-my-card-head">
-              <div>
-                <div class="join-my-card-dday">D+40</div>
-                <div class="join-my-card-title">후아힌 블랙마운틴 조인</div>
-              </div>
-              <div class="join-my-status-pill gray">여행완료</div>
-            </div>
-            <div class="join-my-card-detail-list">
-        <div class="join-my-card-detail-row">
-          <div class="join-my-card-detail-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="11" r="2.5" stroke="currentColor"></circle></svg></div>
-          <div class="join-my-card-detail-copy">
-            <div class="join-my-card-detail-label">여행지</div>
-            <div class="join-my-card-detail-value">태국 후아힌</div>
-          </div>
-        </div>
-      
-        <div class="join-my-card-detail-row">
-          <div class="join-my-card-detail-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor"></rect><path d="M8 2v4M16 2v4M3 10h18" stroke="currentColor" stroke-linecap="round"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" stroke="currentColor" stroke-linecap="round"></path></svg></div>
-          <div class="join-my-card-detail-copy">
-            <div class="join-my-card-detail-label">여행기간</div>
-            <div class="join-my-card-detail-value">2026.05.08(금) ~ 2026.05.11(월)</div>
-          </div>
-        </div>
-      
-        <div class="join-my-card-detail-row participants">
-          <div class="join-my-card-detail-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="9" cy="7" r="4" stroke="currentColor"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
-          <div class="join-my-card-detail-copy">
-            <div class="join-my-card-detail-label">참여현황</div>
-            <div class="join-my-card-detail-value">
-        <div class="join-my-participant-status">
-          <div class="join-my-participant-panel">
-            <div class="join-my-participant-panel-head">
-              <div class="join-my-participant-panel-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="9" cy="7" r="4" stroke="currentColor"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-              </div>
-              <div class="join-my-participant-panel-title">참여현황</div>
-            </div>
-            <div class="join-my-participant-main">
-              <div class="join-my-participant-icons-box">
-                <div class="join-my-card-participants"><div class="join-my-card-participant-slot">
-        <div class="join-my-empty-slot" aria-label="빈 인원 슬롯">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-        </div>
-      </div></div>
-              </div>
-              <div class="join-my-participant-counts">
-                <div class="join-my-participant-count">
-                  <div class="join-my-participant-count-label">현재인원</div>
-                  <div class="join-my-participant-count-value">0명</div>
-                </div>
-                <div class="join-my-participant-count">
-                  <div class="join-my-participant-count-label">남은자리</div>
-                  <div class="join-my-participant-count-value">0자리</div>
-                </div>
-              </div>
-            </div>
-            <div class="join-my-participant-summary">
-              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">인원구성</div><div class="join-my-participant-pill-value">확인중</div></div>
-              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">평균타수</div><div class="join-my-participant-pill-value">확인중</div></div>
-              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">평균연령</div><div class="join-my-participant-pill-value">확인중</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-          </div>
-        </div>
-      </div>
-            <div class="join-my-card-info">
-              
-                <div class="join-my-info-chip">
-                  <div class="join-my-info-chip-label">후기</div>
-                  <div class="join-my-info-chip-value">작성 가능</div>
-                </div>
-              
-                <div class="join-my-info-chip">
-                  <div class="join-my-info-chip-label">동반자</div>
-                  <div class="join-my-info-chip-value">4명</div>
-                </div>
-              
-                <div class="join-my-info-chip">
-                  <div class="join-my-info-chip-label">추천</div>
-                  <div class="join-my-info-chip-value">유사 일정 보기</div>
-                </div>
-              
-            </div>
-            <div class="join-my-card-actions">
-              <button type="button" class="primary" onclick="void 0">후기 쓰기</button><button type="button" class="" onclick="void 0">다시 가기</button><button type="button" class="" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">문의하기</button>
-            </div>
-          </div>
-        </article>
-      
+            <div class="join-my-state">아직 다녀온 모임이 없어요.</div>
           </section>
+
         </div>
       </div>
     </div>
@@ -46735,7 +47283,7 @@
               <div class="builder-weekday">일</div><div class="builder-weekday">월</div><div class="builder-weekday">화</div><div class="builder-weekday">수</div><div class="builder-weekday">목</div><div class="builder-weekday">금</div><div class="builder-weekday">토</div>
             </div>
             <div class="builder-calendar-grid" id="builderCalendar"><div class="builder-calendar-week"><button type="button" class="builder-day muted unavailable sunday" data-builder-day-offset="0" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">31</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="1" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">1</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="2" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">2</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="3" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">3</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="4" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">4</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="5" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">5</div></button><button type="button" class="builder-day unavailable saturday" data-builder-day-offset="6" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">6</div></button></div><div class="builder-calendar-week"><button type="button" class="builder-day unavailable sunday" data-builder-day-offset="7" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">7</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="8" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">8</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="9" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">9</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="10" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">10</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="11" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">11</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="12" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">12</div></button><button type="button" class="builder-day unavailable saturday" data-builder-day-offset="13" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">13</div></button></div><div class="builder-calendar-week"><button type="button" class="builder-day unavailable sunday" data-builder-day-offset="14" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">14</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="15" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">15</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="16" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">16</div></button><button type="button" class="builder-day unavailable today" data-builder-day-offset="17" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">17</div><div class="builder-day-today-label">TODAY</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="18" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">18</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="19" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">19</div></button><button type="button" class="builder-day unavailable saturday" data-builder-day-offset="20" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">20</div></button></div><div class="builder-calendar-week"><button type="button" class="builder-day unavailable sunday" data-builder-day-offset="21" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">21</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="22" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">22</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="23" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">23</div></button><button type="button" class="builder-day flex flex-single linked start" data-builder-day-offset="24" onclick="openBuilderDatePopover('start', this)" style="margin-right: 0px !important;"><div class="builder-day-number">24</div><div class="builder-day-label">출발</div></button><button type="button" class="builder-day range" data-builder-day-offset="25" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">25</div></button><button type="button" class="builder-day range" data-builder-day-offset="26" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">26</div></button><button type="button" class="builder-day saturday flex flex-single linked end" data-builder-day-offset="27" onclick="openBuilderDatePopover('end', this)" style="margin-right: 0px !important;" data-hover-bound="true"><div class="builder-day-number">27</div><div class="builder-day-label">도착</div></button></div><div class="builder-calendar-week"><button type="button" class="builder-day unavailable sunday" data-builder-day-offset="28" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">28</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="29" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">29</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="30" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">30</div></button><button type="button" class="builder-day muted unavailable" data-builder-day-offset="31" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">1</div></button><button type="button" class="builder-day muted unavailable" data-builder-day-offset="32" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">2</div></button><button type="button" class="builder-day muted unavailable" data-builder-day-offset="33" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">3</div></button><button type="button" class="builder-day muted unavailable saturday" data-builder-day-offset="34" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">4</div></button></div></div>
-            <div class="builder-calendar-loading" id="builderCalendarLoading" role="status" aria-live="polite">가능한 출발일을 불러오는 중입니다</div>
+            <div class="builder-calendar-loading" id="builderCalendarLoading" role="status" aria-live="polite">가능한 출발일을 확인하고 있어요</div>
             <div class="builder-date-popover" id="builderDatePopover">
               <div class="builder-date-popover-title" id="builderDatePopoverTitle">
         <div class="builder-date-title-row">
@@ -46790,7 +47338,7 @@
                 <div class="region-search-field builder-region-search-field">
                   <input id="builderRegionSearchInput" type="search" placeholder="국가 또는 도시명을 검색해보세요" oninput="handleBuilderRegionSearchInput(this.value)">
                   <button type="button" class="region-search-clear-input" onclick="clearBuilderRegionSearchInput()" aria-label="검색어 지우기">
-                    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
                   </button>
                   <svg class="mobile-search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
                 </div>
@@ -47045,35 +47593,35 @@
                   <div class="apply-preference-title">라운딩 스타일</div>
                   <div class="apply-preference-copy">나와 잘 맞는 조인을 위해 최대 3개만 골라주세요.</div>
                   <div class="apply-chip-group" data-chip-group="builder-style" data-multi="true" data-max="3">
-                    <button type="button" class="apply-chip" data-value="매너중시">매너중시 🤝</button>
-                    <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 😊</button>
-                    <button type="button" class="apply-chip" data-value="조용히집중">조용히집중 🎯</button>
-                    <button type="button" class="apply-chip" data-value="사진도좋아요">사진도좋아요 📷</button>
-                    <button type="button" class="apply-chip" data-value="진행빠른편">진행빠른편 ⚡</button>
-                    <button type="button" class="apply-chip" data-value="초보배려">초보배려 🌱</button>
-                    <button type="button" class="apply-chip" data-value="대화좋아요">대화좋아요 💬</button>
-                    <button type="button" class="apply-chip" data-value="분위기메이커">분위기메이커 🌤️</button>
-                    <button type="button" class="apply-chip" data-value="시간약속중요">시간약속중요 ⏱️</button>
-                    <button type="button" class="apply-chip" data-value="편안한라운딩">편안한라운딩 🍃</button>
+                    <button type="button" class="apply-chip" data-value="매너중시">매너중시 &#x1F91D;</button>
+                    <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 &#x1F60A;</button>
+                    <button type="button" class="apply-chip" data-value="조용히집중">조용히집중 &#x1F3AF;</button>
+                    <button type="button" class="apply-chip" data-value="사진도좋아요">사진도좋아요 &#x1F4F7;</button>
+                    <button type="button" class="apply-chip" data-value="진행빠른편">진행빠른편 &#x26A1;</button>
+                    <button type="button" class="apply-chip" data-value="초보배려">초보배려 &#x1F331;</button>
+                    <button type="button" class="apply-chip" data-value="대화좋아요">대화좋아요 &#x1F4AC;</button>
+                    <button type="button" class="apply-chip" data-value="분위기메이커">분위기메이커 &#x1F324;&#xFE0F;</button>
+                    <button type="button" class="apply-chip" data-value="시간약속중요">시간약속중요 &#x23F1;&#xFE0F;</button>
+                    <button type="button" class="apply-chip" data-value="편안한라운딩">편안한라운딩 &#x1F343;</button>
                   </div>
                 </div>
                 <div class="field full">
                   <div class="apply-preference-title">선호 멤버 구성</div>
                   <div class="apply-preference-copy">맞춤형 조인 노출 조건에 반영돼요.</div>
                   <div class="apply-chip-group" data-chip-group="builder-member-preference" data-multi="true" data-max="3">
-                    <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 🎉</button>
-                    <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 👥</button>
-                    <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 🎂</button>
-                    <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 ⛳</button>
+                    <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 &#x1F389;</button>
+                    <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 &#x1F465;</button>
+                    <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 &#x1F382;</button>
+                    <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 &#x26F3;</button>
                   </div>
                 </div>
                 <div class="field full">
                   <div class="apply-preference-title">한 줄 인사</div>
                   <div class="apply-template-row">
-                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('반갑습니다. 즐거운 라운딩 기대합니다.')">반갑습니다 😊</button>
-                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('매너 있게 편안히 치겠습니다.')">매너 있게 🤝</button>
-                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('잘 부탁해요.')">잘 부탁해요 🙏</button>
-                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('즐겁고 기분 좋은 하루 만들어요.')">기분 좋은 하루 🌤️</button>
+                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('반갑습니다. 즐거운 라운딩 기대합니다.')">반갑습니다 &#x1F60A;</button>
+                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('매너 있게 편안히 치겠습니다.')">매너 있게 &#x1F91D;</button>
+                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('잘 부탁해요.')">잘 부탁해요 &#x1F64F;</button>
+                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('즐겁고 기분 좋은 하루 만들어요.')">기분 좋은 하루 &#x1F324;&#xFE0F;</button>
                   </div>
                   <textarea id="builderApplyGreeting" maxlength="80" placeholder="예: 오랜만의 조인이라 설레네요. 잘 부탁드립니다.">잘 부탁드립니다.</textarea>
                 </div>

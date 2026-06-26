@@ -172,6 +172,11 @@ const MAX_POST_BYTES = Number(process.env.MAX_POST_BYTES || 128 * 1024);
 const SECRET_TOUR_PUBLIC_ORIGIN = "https://www.secret-tour.com";
 const MAX_SECRET_TOUR_HTML_BYTES = Number(process.env.MAX_SECRET_TOUR_HTML_BYTES || 1024 * 1024 * 2);
 const EXTERNAL_FETCH_TIMEOUT_MS = Number(process.env.EXTERNAL_FETCH_TIMEOUT_MS || 15000);
+const HOME_BOOTSTRAP_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_CACHE_TTL_MS || 60_000);
+const HOME_BOOTSTRAP_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_STALE_TTL_MS || 10 * 60_000);
+const HOME_BOOTSTRAP_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_CACHE_MAX_KEYS || 100);
+const HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS || 2_500);
+const homeBootstrapCache = new Map();
 
 function getAllowedOrigin(origin = "") {
   if (!origin) return "";
@@ -1130,17 +1135,61 @@ async function readHomeBootstrapBatchDirect(params = {}) {
   };
 }
 
-async function proxyHomeBootstrap(params, res) {
-  const memberSeq = asText(params?.memberSeq);
-  const memberId = asText(params?.memberId);
-  const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
+function createHomeBootstrapCacheKey(params = {}) {
+  return [
+    asText(params.memberSeq),
+    asText(params.memberId),
+    normalizePhone(params.memberMobile || params.phone),
+    Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100),
+    Math.min(Math.max(Number(params.joinApplicationLimit || 50), 1), 100),
+    Math.min(Math.max(Number(params.reviewLimit || 200), 1), 200),
+    Math.min(Math.max(Number(params.wishLimit || 200), 1), 200)
+  ].join("|");
+}
+
+function cloneHomeBootstrapPayload(payload = {}) {
+  return {
+    newSchedules: Array.isArray(payload.newSchedules) ? payload.newSchedules : [],
+    joinApplications: Array.isArray(payload.joinApplications) ? payload.joinApplications : [],
+    reviews: Array.isArray(payload.reviews) ? payload.reviews : [],
+    wishes: Array.isArray(payload.wishes) ? payload.wishes : [],
+    warnings: Array.isArray(payload.warnings) ? [...payload.warnings] : [],
+    cache: payload.cache || undefined
+  };
+}
+
+function getHomeBootstrapCacheEntry(cacheKey) {
+  const entry = homeBootstrapCache.get(cacheKey);
+  if (!entry?.payload) return null;
+  const ageMs = Date.now() - entry.updatedAt;
+  if (ageMs > HOME_BOOTSTRAP_STALE_TTL_MS) {
+    homeBootstrapCache.delete(cacheKey);
+    return null;
+  }
+  return { ...entry, ageMs };
+}
+
+function setHomeBootstrapCacheEntry(cacheKey, payload) {
+  if (homeBootstrapCache.size >= HOME_BOOTSTRAP_CACHE_MAX_KEYS && !homeBootstrapCache.has(cacheKey)) {
+    const oldestKey = homeBootstrapCache.keys().next().value;
+    if (oldestKey) homeBootstrapCache.delete(oldestKey);
+  }
+  homeBootstrapCache.set(cacheKey, {
+    payload: cloneHomeBootstrapPayload(payload),
+    updatedAt: Date.now(),
+    refreshing: null
+  });
+}
+
+async function readHomeBootstrapUncached(params = {}) {
   try {
-    const payload = await readHomeBootstrapBatchDirect({ ...params, memberSeq, memberId, memberMobile });
-    res.status(200).json(payload);
-    return;
+    return await readHomeBootstrapBatchDirect(params);
   } catch (error) {
     console.warn("Home bootstrap batch failed; falling back to parallel sheet reads.", error?.message || error);
   }
+  const memberSeq = asText(params?.memberSeq);
+  const memberId = asText(params?.memberId);
+  const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
   const parts = await Promise.all([
     readHomeBootstrapPart("newSchedules", () => readSheetRowsDirect({
       sheet: "new_schedule_applications",
@@ -1168,7 +1217,7 @@ async function proxyHomeBootstrap(params, res) {
       return rows.map(sanitizeJoinWishLookupRow);
     })
   ]);
-  const payload = parts.reduce((object, part) => {
+  return parts.reduce((object, part) => {
     object[part.key] = part.rows;
     if (part.warning) object.warnings.push({ key: part.key, message: part.warning });
     return object;
@@ -1179,7 +1228,72 @@ async function proxyHomeBootstrap(params, res) {
     wishes: [],
     warnings: []
   });
-  res.status(200).json(payload);
+}
+
+function refreshHomeBootstrapCache(cacheKey, params = {}) {
+  const existing = homeBootstrapCache.get(cacheKey);
+  if (existing?.refreshing) return existing.refreshing;
+  const refreshing = readHomeBootstrapUncached(params)
+    .then((payload) => {
+      setHomeBootstrapCacheEntry(cacheKey, payload);
+      return payload;
+    })
+    .catch((error) => {
+      console.warn("Home bootstrap cache refresh failed.", error?.message || error);
+      return null;
+    })
+    .finally(() => {
+      const entry = homeBootstrapCache.get(cacheKey);
+      if (entry) entry.refreshing = null;
+    });
+  if (existing) {
+    existing.refreshing = refreshing;
+  } else {
+    homeBootstrapCache.set(cacheKey, { payload: null, updatedAt: 0, refreshing });
+  }
+  return refreshing;
+}
+
+async function proxyHomeBootstrap(params, res) {
+  const cacheKey = createHomeBootstrapCacheKey(params);
+  const cached = getHomeBootstrapCacheEntry(cacheKey);
+  if (cached && cached.ageMs <= HOME_BOOTSTRAP_CACHE_TTL_MS) {
+    res.status(200).json({
+      ...cloneHomeBootstrapPayload(cached.payload),
+      cache: { status: "hit", ageMs: cached.ageMs }
+    });
+    return;
+  }
+  if (cached) {
+    refreshHomeBootstrapCache(cacheKey, params);
+    res.status(200).json({
+      ...cloneHomeBootstrapPayload(cached.payload),
+      warnings: [
+        ...(cached.payload.warnings || []),
+        { key: "cache", message: "Returned stale home bootstrap cache while refreshing." }
+      ],
+      cache: { status: "stale", ageMs: cached.ageMs }
+    });
+    return;
+  }
+  const refresh = refreshHomeBootstrapCache(cacheKey, params);
+  const timeout = new Promise((resolve) => {
+    setTimeout(() => resolve(null), HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS);
+  });
+  const payload = await Promise.race([refresh, timeout]);
+  if (payload) {
+    res.status(200).json({
+      ...cloneHomeBootstrapPayload(payload),
+      cache: { status: "miss", ageMs: 0 }
+    });
+    return;
+  }
+  const fallback = await refresh;
+  if (!fallback) throw createHttpError("Home bootstrap failed", 502);
+  res.status(200).json({
+    ...cloneHomeBootstrapPayload(fallback),
+    cache: { status: "miss-slow", ageMs: 0 }
+  });
 }
 
 function assertDigits(value, field) {

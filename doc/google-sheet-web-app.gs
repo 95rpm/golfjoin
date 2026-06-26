@@ -33,17 +33,24 @@ const SHEET_HEADERS = {
     "applicantStyles",
     "applicantPreferredMembers",
     "applicantGreeting",
+    "country",
     "region",
-    "regions",
     "erpProductId",
     "erpEventSeq",
     "productName",
     "productPrice",
+    "packType",
+    "packTypeName",
     "tripSummary",
     "departureDateFrom",
     "departureDateTo",
     "returnDateFrom",
     "returnDateTo",
+    "participantStatus",
+    "quoteStatus",
+    "depositStatus",
+    "balanceStatus",
+    "refundStatus",
     "requiredAgreed",
     "marketingAgreed",
     "approvalStatus",
@@ -72,6 +79,7 @@ const SHEET_HEADERS = {
     "departureDate",
     "returnDate",
     "category",
+    "country",
     "region",
     "airport",
     "applicantName",
@@ -86,6 +94,11 @@ const SHEET_HEADERS = {
     "applicantStyles",
     "applicantPreferredMembers",
     "applicantGreeting",
+    "participantStatus",
+    "quoteStatus",
+    "depositStatus",
+    "balanceStatus",
+    "refundStatus",
     "applicationStatus",
     "requiredAgreed",
     "marketingAgreed",
@@ -137,6 +150,7 @@ const SHEET_HEADERS = {
     "productName",
     "departureDate",
     "returnDate",
+    "country",
     "region",
     "rating",
     "tags",
@@ -170,6 +184,7 @@ const SHEET_HEADERS = {
     "departureDate",
     "returnDate",
     "category",
+    "country",
     "region",
     "imageUrl",
     "price",
@@ -181,6 +196,7 @@ const SHEET_HEADERS = {
     "scheduleId",
     "sourceApplicationId",
     "title",
+    "country",
     "region",
     "departureSummary",
     "returnSummary",
@@ -230,9 +246,34 @@ const TEXT_FORMAT_HEADERS = [
   "participantPhones"
 ];
 
+const PHONE_VALUE_HEADERS = [
+  "memberMobile",
+  "applicantMobile",
+  "creatorPhone"
+];
+
+const KNOWN_COUNTRY_NAMES = [
+  "한국",
+  "일본",
+  "중국",
+  "베트남",
+  "태국",
+  "라오스",
+  "대만",
+  "말레이시아",
+  "인도네시아",
+  "필리핀",
+  "사이판",
+  "괌"
+];
+
 function doPost(e) {
   const payload = JSON.parse((e && e.postData && e.postData.contents) || "{}");
   setupGolfJoinSheets();
+
+  if (String(payload.action || "").toLowerCase() === "admin_status_update") {
+    return handleAdminStatusUpdate_(payload);
+  }
 
   const source = payload.source || "new_schedule_builder";
   const sheetName = source === "join_apply"
@@ -318,7 +359,7 @@ function getOrCreateSheet_(sheetName) {
 function writeSheetRow_(sheetName, headers, row, payload) {
   const sheet = getOrCreateSheet_(sheetName);
   if (String(payload.action || "").toLowerCase() !== "upsert") {
-    sheet.appendRow(row);
+    appendSheetRow_(sheet, headers, row);
     return { action: "append", row: sheet.getLastRow() };
   }
 
@@ -326,13 +367,13 @@ function writeSheetRow_(sheetName, headers, row, payload) {
   const keyValue = String(payload.keyValue || "").trim();
   const keyIndex = headers.indexOf(keyField);
   if (!keyField || !keyValue || keyIndex === -1) {
-    sheet.appendRow(row);
+    appendSheetRow_(sheet, headers, row);
     return { action: "append", row: sheet.getLastRow(), reason: "missing_upsert_key" };
   }
 
   const existingRowNumber = findSheetRowByKey_(sheet, keyIndex + 1, keyValue);
   if (!existingRowNumber) {
-    sheet.appendRow(row);
+    appendSheetRow_(sheet, headers, row);
     return { action: "insert", row: sheet.getLastRow() };
   }
 
@@ -341,8 +382,75 @@ function writeSheetRow_(sheetName, headers, row, payload) {
     const existingCreatedAt = sheet.getRange(existingRowNumber, createdAtIndex + 1).getValue();
     if (existingCreatedAt) row[createdAtIndex] = existingCreatedAt;
   }
-  sheet.getRange(existingRowNumber, 1, 1, headers.length).setValues([row]);
+  writeSheetRowValues_(sheet, headers, existingRowNumber, row);
   return { action: "update", row: existingRowNumber };
+}
+
+function handleAdminStatusUpdate_(payload) {
+  const sheetName = resolveReadSheetName_(payload.sheet);
+  const allowedSheets = [SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS, SHEET_NAMES.JOIN_APPLICATIONS];
+  if (allowedSheets.indexOf(sheetName) === -1) {
+    return jsonOutput_({ ok: false, error: "sheet_not_allowed" });
+  }
+  const keyField = String(payload.keyField || "applicationId").trim();
+  const keyValue = String(payload.keyValue || "").trim();
+  const fields = payload.fields || {};
+  const allowedFields = {
+    participantStatus: true,
+    quoteStatus: true,
+    depositStatus: true,
+    balanceStatus: true,
+    refundStatus: true,
+    applicationStatus: true,
+    adminMemo: true
+  };
+  const headers = SHEET_HEADERS[sheetName];
+  const keyIndex = headers.indexOf(keyField);
+  if (!keyValue || keyIndex === -1) {
+    return jsonOutput_({ ok: false, error: "missing_key" });
+  }
+  const sheet = getOrCreateSheet_(sheetName);
+  const rowNumber = findSheetRowByKey_(sheet, keyIndex + 1, keyValue);
+  if (!rowNumber) {
+    return jsonOutput_({ ok: false, error: "row_not_found" });
+  }
+
+  LockService.getScriptLock().waitLock(30000);
+  try {
+    Object.keys(fields).forEach(function (field) {
+      if (!allowedFields[field]) return;
+      const columnIndex = headers.indexOf(field);
+      if (columnIndex === -1) return;
+      sheet.getRange(rowNumber, columnIndex + 1).setValue(fields[field]);
+    });
+    const updatedAtIndex = headers.indexOf("updatedAt");
+    if (updatedAtIndex !== -1) {
+      sheet.getRange(rowNumber, updatedAtIndex + 1).setValue(new Date().toISOString());
+    }
+    if (!payload.skipSummaryRefresh) {
+      refreshScheduleParticipantSummary_();
+    }
+  } finally {
+    LockService.getScriptLock().releaseLock();
+  }
+
+  return jsonOutput_({
+    ok: true,
+    sheet: sheetName,
+    row: rowNumber,
+    keyField: keyField,
+    keyValue: keyValue
+  });
+}
+
+function appendSheetRow_(sheet, headers, row) {
+  const rowNumber = sheet.getLastRow() + 1;
+  writeSheetRowValues_(sheet, headers, rowNumber, row);
+}
+
+function writeSheetRowValues_(sheet, headers, rowNumber, row) {
+  applyTextColumnFormatsForRow_(sheet, headers, rowNumber);
+  sheet.getRange(rowNumber, 1, 1, headers.length).setValues([row]);
 }
 
 function findSheetRowByKey_(sheet, keyColumn, keyValue) {
@@ -394,6 +502,14 @@ function applyTextColumnFormats_(sheet, headers) {
   });
 }
 
+function applyTextColumnFormatsForRow_(sheet, headers, rowNumber) {
+  TEXT_FORMAT_HEADERS.forEach(function (header) {
+    const columnIndex = headers.indexOf(header);
+    if (columnIndex === -1) return;
+    sheet.getRange(rowNumber, columnIndex + 1).setNumberFormat("@");
+  });
+}
+
 function migrateSheetToHeaders_(sheet, headers, mapper) {
   const values = sheet.getDataRange().getValues();
   if (!values.length) {
@@ -423,6 +539,8 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
   const createdAt = row.createdAt || row.submittedAt || new Date().toISOString();
   const applicationId = row.applicationId || buildId_("nsa", createdAt, row.applicantMobile || row.phone || row.creatorPhone || rowIndex + 1);
   const scheduleId = row.scheduleId || buildId_("sch", applicationId);
+  if (header === "country") return row.country || normalizeCountryName_(row.region) || normalizeCountryName_(row.regions);
+  if (header === "region") return normalizeRegionName_(row.region);
   const aliases = {
     applicationId: applicationId,
     scheduleId: scheduleId,
@@ -456,6 +574,8 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
 
 
 function mapLegacyGenericRow_(row, header) {
+  if (header === "country") return row.country || normalizeCountryName_(row.region);
+  if (header === "region") return normalizeRegionName_(row.region);
   const aliases = {
     createdAt: row.createdAt || row.submittedAt,
     applicantName: row.applicantName || row.name || row.creatorName,
@@ -484,6 +604,12 @@ function mapLegacyGenericRow_(row, header) {
 }
 
 function getPayloadColumnValue_(payload, header, sheetName) {
+  const value = getRawPayloadColumnValue_(payload, header, sheetName);
+  if (PHONE_VALUE_HEADERS.indexOf(header) !== -1) return normalizePhone_(value);
+  return value;
+}
+
+function getRawPayloadColumnValue_(payload, header, sheetName) {
   if (sheetName === SHEET_NAMES.JOIN_APPLICATIONS) {
     return getJoinApplicationValue_(payload, header);
   }
@@ -527,17 +653,24 @@ function getNewScheduleApplicationValue_(payload, header) {
     applicantStyles: join_(value_(payload, "applicant.styles")),
     applicantPreferredMembers: join_(value_(payload, "applicant.preferredMemberComposition") || value_(payload, "applicant.memberPreferences")),
     applicantGreeting: value_(payload, "applicant.greeting"),
-    region: value_(payload, "trip.region"),
-    regions: join_(value_(payload, "trip.regions")),
+    country: value_(payload, "trip.country") || normalizeCountryName_(value_(payload, "trip.region")) || normalizeCountryList_(value_(payload, "trip.regions")),
+    region: normalizeRegionName_(value_(payload, "trip.region")),
     erpProductId: value_(payload, "trip.erpProductId") || value_(payload, "trip.productId"),
     erpEventSeq: value_(payload, "trip.erpEventSeq") || value_(payload, "trip.eventSeq"),
     productName: value_(payload, "trip.productName"),
     productPrice: value_(payload, "trip.productPrice") || payload.productPrice || payload.price,
+    packType: value_(payload, "trip.packType") || payload.packType,
+    packTypeName: value_(payload, "trip.packTypeName") || payload.packTypeName,
     tripSummary: value_(payload, "trip.tripSummary"),
     departureDateFrom: value_(payload, "trip.flexibleDays.startBefore") || firstListValue_(value_(payload, "trip.departureDates")) || value_(payload, "trip.startSummary"),
     departureDateTo: value_(payload, "trip.flexibleDays.startAfter") || lastListValue_(value_(payload, "trip.departureDates")) || value_(payload, "trip.startSummary"),
     returnDateFrom: value_(payload, "trip.flexibleDays.endBefore") || firstListValue_(value_(payload, "trip.returnDates")) || value_(payload, "trip.endSummary"),
     returnDateTo: value_(payload, "trip.flexibleDays.endAfter") || lastListValue_(value_(payload, "trip.returnDates")) || value_(payload, "trip.endSummary"),
+    participantStatus: payload.participantStatus || value_(payload, "payment.participantStatus") || "신청",
+    quoteStatus: payload.quoteStatus || value_(payload, "payment.quoteStatus") || "",
+    depositStatus: payload.depositStatus || value_(payload, "payment.depositStatus") || "",
+    balanceStatus: payload.balanceStatus || value_(payload, "payment.balanceStatus") || "",
+    refundStatus: payload.refundStatus || value_(payload, "payment.refundStatus") || "",
     requiredAgreed: value_(payload, "agreements.required"),
     marketingAgreed: value_(payload, "agreements.marketing"),
     approvalStatus: payload.approvalStatus || "pending",
@@ -572,7 +705,8 @@ function getJoinApplicationValue_(payload, header) {
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
     category: value_(payload, "product.category") || payload.category,
-    region: value_(payload, "product.region") || payload.region,
+    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.region") || payload.region),
+    region: normalizeRegionName_(value_(payload, "product.region") || payload.region),
     airport: value_(payload, "product.airport") || payload.airport,
     applicantName: value_(payload, "applicant.name"),
     applicantGender: value_(payload, "applicant.gender"),
@@ -586,6 +720,11 @@ function getJoinApplicationValue_(payload, header) {
     applicantStyles: join_(value_(payload, "applicant.styles")),
     applicantPreferredMembers: join_(value_(payload, "applicant.preferredMemberComposition") || value_(payload, "applicant.memberPreferences")),
     applicantGreeting: value_(payload, "applicant.greeting"),
+    participantStatus: payload.participantStatus || value_(payload, "payment.participantStatus") || "신청",
+    quoteStatus: payload.quoteStatus || value_(payload, "payment.quoteStatus") || "",
+    depositStatus: payload.depositStatus || value_(payload, "payment.depositStatus") || "",
+    balanceStatus: payload.balanceStatus || value_(payload, "payment.balanceStatus") || "",
+    refundStatus: payload.refundStatus || value_(payload, "payment.refundStatus") || "",
     applicationStatus: payload.applicationStatus || payload.status || "confirmed",
     requiredAgreed: value_(payload, "agreements.required"),
     marketingAgreed: value_(payload, "agreements.marketing"),
@@ -650,7 +789,8 @@ function getJoinReviewValue_(payload, header) {
     productName: value_(payload, "product.productName") || payload.productName,
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
-    region: value_(payload, "product.region") || payload.region,
+    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.region") || payload.region),
+    region: normalizeRegionName_(value_(payload, "product.region") || payload.region),
     rating: payload.rating || value_(payload, "review.rating"),
     tags: join_(payload.tags || value_(payload, "review.tags")),
     reviewText: payload.reviewText || value_(payload, "review.text"),
@@ -691,7 +831,8 @@ function getJoinWishValue_(payload, header) {
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
     category: value_(payload, "product.category") || payload.category,
-    region: value_(payload, "product.region") || payload.region,
+    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.region") || payload.region),
+    region: normalizeRegionName_(value_(payload, "product.region") || payload.region),
     imageUrl: value_(payload, "product.imageUrl") || payload.imageUrl,
     price: value_(payload, "product.price") || payload.price,
     status: payload.status || "active",
@@ -745,7 +886,8 @@ function refreshScheduleParticipantSummary_() {
       scheduleId: scheduleId,
       sourceApplicationId: schedule.applicationId,
       title: schedule.productName || `${schedule.region || "새일정"} 맞춤 조인`,
-      region: schedule.region,
+      country: schedule.country || normalizeCountryName_(schedule.region),
+      region: normalizeRegionName_(schedule.region),
       departureSummary: dateRangeSummary_(schedule.departureDateFrom, schedule.departureDateTo),
       returnSummary: dateRangeSummary_(schedule.returnDateFrom, schedule.returnDateTo),
       tripSummary: schedule.tripSummary,
@@ -853,6 +995,46 @@ function value_(object, path) {
 
 function join_(value) {
   return Array.isArray(value) ? value.join(", ") : value || "";
+}
+
+function normalizeRegionName_(value) {
+  const parts = String(value || "").split(",").map(function (item) { return item.trim(); }).filter(Boolean);
+  if (parts.length >= 2) return parts[0] || "";
+  const text = parts[0] || "";
+  const country = getKnownCountryName_(text);
+  return country && text !== country ? text.replace(country, "").trim() || text : text;
+}
+
+function normalizeCountryName_(value) {
+  const parts = String(value || "").split(",").map(function (item) { return item.trim(); }).filter(Boolean);
+  return parts.length >= 2 ? parts.slice(1).join(", ") : getKnownCountryName_(parts[0] || "");
+}
+
+function getKnownCountryName_(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return KNOWN_COUNTRY_NAMES.find(function (country) {
+    return text === country || text.indexOf(country + " ") === 0;
+  }) || "";
+}
+
+function normalizeCountryList_(value) {
+  const seen = {};
+  return (Array.isArray(value) ? value : String(value || "").split("|"))
+    .map(normalizeCountryName_)
+    .filter(function (item) {
+      if (!item || seen[item]) return false;
+      seen[item] = true;
+      return true;
+    })
+    .join(", ");
+}
+
+function normalizeRegionList_(value) {
+  return (Array.isArray(value) ? value : String(value || "").split("|"))
+    .map(normalizeRegionName_)
+    .filter(Boolean)
+    .join(", ");
 }
 
 function firstListValue_(value) {

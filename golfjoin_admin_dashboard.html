@@ -6,594 +6,1697 @@
   <title>골프조인 운영 대시보드</title>
   <style>
     :root {
-      --bg: #f4f6f8;
+      --bg: #f8fafc;
       --panel: #ffffff;
-      --line: #dfe5ec;
-      --line-soft: #edf1f5;
-      --text: #1f262d;
-      --muted: #697480;
-      --soft: #8c98a4;
-      --brand: #1273e4;
-      --brand-soft: #eaf3ff;
-      --green: #14895f;
-      --green-soft: #e8f6ef;
-      --orange: #b76400;
-      --orange-soft: #fff3df;
-      --red: #cc3340;
-      --red-soft: #ffecef;
-      --shadow: 0 14px 32px rgba(28, 39, 54, .08);
+      --surface-soft: #f8fafc;
+      --surface-muted: #eff6ff;
+      --text: #373A3C;
+      --muted: #5d6b82;
+      --soft: #a3a3a3;
+      --line: #dbe4ee;
+      --line-soft: #edf2f7;
+      --primary: #54abff;
+      --primary-dark: #373A3C;
+      --primary-soft: #eff6ff;
+      --green: #16a34a;
+      --green-soft: #dcfce7;
+      --red: #dc2626;
+      --red-soft: #fee2e2;
+      --shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+      --font-family-sgj: "Pretendard", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", Arial, sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
+      min-width: 1180px;
       background: var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      font-family: var(--font-family-sgj);
       letter-spacing: 0;
     }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    [hidden] { display: none !important; }
 
-    button,
-    input,
-    select {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .app {
+    .login-screen {
       min-height: 100vh;
       display: grid;
-      grid-template-rows: auto 1fr;
+      place-items: center;
+      padding: 40px;
+      background: var(--bg);
+    }
+    .login-card {
+      width: min(420px, 100%);
+      display: grid;
+      gap: 16px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .login-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .login-field { display: grid; gap: 8px; }
+    .login-field label {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .login-field input,
+    .toolbar input,
+    .toolbar select {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 0 12px;
+      font-size: 14px;
+      font-weight: 500;
+      outline: none;
+    }
+    .login-field input:focus,
+    .toolbar input:focus,
+    .toolbar select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(84, 171, 255, 0.16);
+    }
+    .toolbar select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 38px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235d6b82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 18px 18px;
+    }
+    .login-error {
+      min-height: 20px;
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.5;
     }
 
-    .topbar {
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      transition: grid-template-columns 0.18s ease;
+    }
+    .app-shell:has(.sidebar:hover) {
+      grid-template-columns: 236px minmax(0, 1fr);
+    }
+    .sidebar {
       position: sticky;
       top: 0;
-      z-index: 20;
+      height: 100vh;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, .94);
-      backdrop-filter: blur(10px);
+      flex-direction: column;
+      gap: 22px;
+      padding: 22px 16px;
+      border-right: 1px solid var(--line);
+      background: var(--panel);
+      overflow: hidden;
+      transition: box-shadow 0.18s ease;
     }
-
+    .sidebar:hover {
+      box-shadow: 10px 0 30px rgba(15, 23, 42, 0.08);
+    }
     .brand {
-      min-width: 0;
+      padding: 4px 6px 14px;
+      border-bottom: 1px solid var(--line-soft);
     }
-
     .brand-title {
       margin: 0;
-      font-size: 22px;
+      color: var(--text);
+      font-size: 18px;
       font-weight: 800;
-      line-height: 1.25;
+      line-height: 1.3;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.14s ease;
     }
-
-    .brand-sub {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
+    .sidebar:hover .brand-title {
+      opacity: 1;
     }
-
-    .top-actions {
+    .nav {
+      display: grid;
+      gap: 6px;
+    }
+    .nav-button {
+      width: 100%;
+      min-height: 42px;
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .last-updated {
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
       color: var(--muted);
-      font-size: 12px;
+      padding: 0 12px;
+      text-align: left;
+      font-size: 18px;
+      font-weight: 700;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    }
+    .nav-button.active,
+    .nav-button:hover {
+      border-color: var(--line);
+      background: var(--primary-soft);
+      color: var(--text);
+    }
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
+      color: currentColor;
+    }
+    .nav-label {
+      max-width: 140px;
+      white-space: nowrap;
+      opacity: 1;
+      overflow: hidden;
+      visibility: visible;
+      transition: opacity 0.16s ease, visibility 0s linear 0s;
+    }
+    .sidebar:not(:hover) .nav-label {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.12s ease, visibility 0s linear 0.12s;
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      display: grid;
+      gap: 8px;
+    }
+    .sidebar-footer .button {
+      width: 100%;
+      height: auto;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 12px;
+      font-size: 18px;
+      font-weight: 700;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .sidebar-footer .button:hover {
+      border-color: var(--line);
+      background: var(--primary-soft);
+      color: var(--text);
+      filter: none;
+    }
+    .sidebar-footer svg {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 24px;
+    }
+    .main {
+      min-width: 0;
+      padding: 24px 28px 36px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .page-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+    .page-sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .button {
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 0 14px;
+      font-size: 14px;
       font-weight: 700;
     }
+    .button.primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .button.ghost {
+      background: var(--surface-soft);
+      color: var(--muted);
+    }
+    .button:hover { filter: brightness(0.98); }
 
-    .button {
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric {
+      position: relative;
+      min-height: 92px;
+      display: grid;
+      align-content: center;
+      gap: 8px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .metric-label {
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .metric-value {
+      color: var(--text);
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .metric.actionable {
+      cursor: pointer;
+      transition: background 0.18s ease;
+    }
+    .metric.actionable:hover,
+    .metric.actionable.active {
+      background: var(--primary-soft);
+    }
+    .metric-new-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 38px;
-      padding: 0 14px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--text);
-      font-weight: 800;
-    }
-
-    .button.primary {
-      border-color: var(--brand);
-      background: var(--brand);
+      min-width: 38px;
+      height: 22px;
+      border-radius: 999px;
+      background: var(--red);
       color: #fff;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
     }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 390px minmax(0, 1fr);
-      gap: 18px;
-      padding: 18px 24px 28px;
+    .metric-arrow {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      width: 22px;
+      height: 22px;
+      color: var(--muted);
     }
-
-    .sidebar,
-    .detail {
-      min-width: 0;
+    .metric.actionable:hover .metric-arrow,
+    .metric.actionable.active .metric-arrow {
+      color: var(--primary-dark);
     }
 
     .panel {
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 8px;
       background: var(--panel);
       box-shadow: var(--shadow);
+      overflow: hidden;
     }
-
-    .summary-grid {
+    .toolbar {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .metric {
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #fff;
-    }
-
-    .metric-label {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .metric-value {
-      margin-top: 8px;
-      font-size: 26px;
-      font-weight: 900;
-      line-height: 1;
-    }
-
-    .filters {
-      padding: 14px;
-      display: grid;
+      grid-template-columns: minmax(260px, 1fr) 150px;
       gap: 10px;
-      border-bottom: 1px solid var(--line-soft);
-    }
-
-    .field {
-      display: grid;
-      gap: 6px;
-    }
-
-    .field label {
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .field input,
-    .field select {
-      width: 100%;
-      min-height: 38px;
-      padding: 0 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--text);
-      outline: none;
-      font-weight: 700;
-    }
-
-    .field input:focus,
-    .field select:focus {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 3px rgba(18, 115, 228, .12);
-    }
-
-    .schedule-list {
-      max-height: calc(100vh - 255px);
-      overflow: auto;
-    }
-
-    .schedule-item {
-      width: 100%;
-      display: grid;
-      gap: 8px;
+      align-items: center;
       padding: 14px;
-      border: 0;
       border-bottom: 1px solid var(--line-soft);
-      background: #fff;
-      color: inherit;
-      text-align: left;
+      background: var(--surface-soft);
     }
-
-    .schedule-item:hover {
-      background: #f8fbff;
+    .toolbar.compact {
+      grid-template-columns: minmax(260px, 1fr) auto;
     }
-
-    .schedule-item.active {
-      background: var(--brand-soft);
-      box-shadow: inset 4px 0 0 var(--brand);
+    #packFilter {
+      display: none;
     }
-
-    .schedule-title {
-      font-size: 15px;
-      font-weight: 900;
-      line-height: 1.35;
-      word-break: keep-all;
-    }
-
-    .schedule-meta,
-    .inline-meta {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      flex-wrap: wrap;
+    .last-updated {
       color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 23px;
-      padding: 0 8px;
-      border-radius: 999px;
-      background: #eef2f6;
-      color: #48525d;
-      font-size: 12px;
-      font-weight: 900;
+      font-size: 13px;
+      font-weight: 600;
       white-space: nowrap;
+      text-align: right;
+      justify-self: end;
+      margin-top: 8px;
     }
-
-    .badge.open,
-    .badge.visible,
-    .badge.active {
-      background: var(--green-soft);
-      color: var(--green);
-    }
-
-    .badge.pending {
-      background: var(--orange-soft);
-      color: var(--orange);
-    }
-
-    .badge.cancelled,
-    .badge.deleted,
-    .badge.hidden {
-      background: var(--red-soft);
-      color: var(--red);
-    }
-
-    .detail-grid {
-      display: grid;
-      gap: 18px;
-    }
-
-    .detail-head {
-      padding: 20px;
-    }
-
-    .detail-title-row {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .detail-title {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 900;
-      line-height: 1.28;
-      word-break: keep-all;
-    }
-
-    .section {
-      padding: 18px;
-    }
-
-    .section + .section {
-      border-top: 1px solid var(--line-soft);
-    }
-
-    .section-title {
-      margin: 0 0 12px;
-      font-size: 16px;
-      font-weight: 900;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .info {
-      min-width: 0;
-      padding: 12px;
-      border: 1px solid var(--line-soft);
-      border-radius: 8px;
-      background: #fbfcfe;
-    }
-
-    .info-label {
-      color: var(--soft);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .info-value {
-      margin-top: 6px;
-      font-size: 14px;
-      font-weight: 800;
-      line-height: 1.35;
-      word-break: break-word;
-    }
-
-    .split {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 14px;
-    }
-
-    .person-card {
-      display: grid;
-      gap: 10px;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #fff;
-    }
-
-    .person-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .person-name {
-      font-size: 16px;
-      font-weight: 900;
-    }
-
     .table-wrap {
       overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 10px;
+      max-height: calc(100vh - 300px);
     }
-
     table {
       width: 100%;
+      min-width: 1320px;
       border-collapse: collapse;
-      min-width: 760px;
-      background: #fff;
     }
-
-    th,
-    td {
-      padding: 11px 12px;
+    th, td {
       border-bottom: 1px solid var(--line-soft);
+      padding: 12px 10px;
       text-align: left;
-      vertical-align: top;
-      font-size: 13px;
-      line-height: 1.45;
+      vertical-align: middle;
+      white-space: nowrap;
     }
-
     th {
       position: sticky;
       top: 0;
       z-index: 1;
-      background: #f8fafc;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 900;
-      white-space: nowrap;
+      background: #f3f8ff;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 600;
     }
-
     td {
-      font-weight: 700;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 500;
     }
-
-    tr:last-child td {
-      border-bottom: 0;
+    th:first-child,
+    td:first-child {
+      padding-left: 20px;
     }
-
-    .empty,
-    .error {
-      padding: 28px 18px;
-      color: var(--muted);
+    tbody tr:hover { background: var(--surface-soft); }
+    .product-cell {
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    tr[data-schedule-key]:not(.participant-accordion-row) {
+      cursor: pointer;
+    }
+    .customer-table {
+      min-width: 1200px;
+      table-layout: fixed;
+    }
+    .customer-table th:nth-child(1),
+    .customer-table td:nth-child(1) {
+      width: 9%;
+    }
+    .customer-table th:nth-child(2),
+    .customer-table td:nth-child(2) {
+      width: 14%;
+    }
+    .customer-table th:nth-child(3),
+    .customer-table td:nth-child(3) {
+      width: 7%;
       text-align: center;
-      font-weight: 800;
     }
-
-    .error {
-      color: var(--red);
+    .customer-table th:nth-child(4),
+    .customer-table td:nth-child(4) {
+      width: 9%;
+      text-align: center;
     }
-
-    .loading {
+    .customer-table th:nth-child(5),
+    .customer-table td:nth-child(5) {
+      width: 7%;
+      text-align: center;
+    }
+    .customer-table th:nth-child(6),
+    .customer-table td:nth-child(6) {
+      width: 11%;
+      text-align: center;
+    }
+    .customer-table th:nth-child(7),
+    .customer-table td:nth-child(7) {
+      width: 13%;
+    }
+    .customer-table th:nth-child(8),
+    .customer-table td:nth-child(8) {
+      width: 13%;
+    }
+    .customer-table th:nth-child(9),
+    .customer-table td:nth-child(9) {
+      width: 13%;
+    }
+    .customer-table th:nth-child(10),
+    .customer-table td:nth-child(10) {
+      width: 12%;
+      text-align: center;
+    }
+    .customer-table td:nth-child(7),
+    .customer-table td:nth-child(8),
+    .customer-table td:nth-child(9) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    tr.customer-row-expanded > td {
+      border-bottom-color: transparent;
+      background: var(--surface-soft);
+    }
+    .customer-travel-actions {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+    .customer-travel-actions .payment-summary {
+      line-height: 28px;
+    }
+    .customer-travel-accordion-row > td {
+      padding: 0;
+      background: transparent;
+      border-bottom: 1px solid var(--line);
+    }
+    .customer-travel-panel {
       display: grid;
-      place-items: center;
-      min-height: 280px;
-      color: var(--muted);
-      font-weight: 900;
+      gap: 12px;
+      padding: 16px 18px 18px;
     }
-
-    .profile-image {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 1px solid var(--line);
-      background: #eef2f6;
-    }
-
-    .review-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .review-card {
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
+    .customer-travel-table-wrap {
+      overflow-x: auto;
+      border: 1px solid #dadada;
+      border-radius: 8px;
       background: #fff;
     }
-
-    .review-text {
-      margin-top: 8px;
-      color: #3c444c;
+    .customer-travel-table {
+      width: 100%;
+      min-width: 1180px;
+      table-layout: fixed;
+    }
+    .customer-travel-table th {
+      position: static;
+      top: auto;
+      z-index: auto;
+      background: #f3f8ff;
+      color: #373a3c;
+    }
+    .customer-travel-table td {
+      background: #fff;
+    }
+    .customer-travel-table tbody tr:hover td {
+      background: var(--surface-soft);
+    }
+    .customer-travel-table th:nth-child(1),
+    .customer-travel-table td:nth-child(1),
+    .customer-travel-table th:nth-child(2),
+    .customer-travel-table td:nth-child(2) {
+      width: 76px;
+      text-align: center;
+    }
+    .customer-travel-table th:nth-child(3),
+    .customer-travel-table td:nth-child(3),
+    .customer-travel-table th:nth-child(4),
+    .customer-travel-table td:nth-child(4) {
+      width: 92px;
+    }
+    .customer-travel-table th:nth-child(5),
+    .customer-travel-table td:nth-child(5) {
+      width: 310px;
+      text-align: left;
+    }
+    .customer-travel-table th:nth-child(6),
+    .customer-travel-table td:nth-child(6),
+    .customer-travel-table th:nth-child(9),
+    .customer-travel-table td:nth-child(9) {
+      width: 82px;
+      text-align: center;
+    }
+    .customer-travel-table th:nth-child(7),
+    .customer-travel-table td:nth-child(7),
+    .customer-travel-table th:nth-child(8),
+    .customer-travel-table td:nth-child(8) {
+      width: 116px;
+    }
+    .customer-travel-table th:nth-child(10),
+    .customer-travel-table td:nth-child(10) {
+      width: 132px;
+      text-align: left;
+    }
+    .customer-travel-table td:nth-child(10) .participant-gender-icons {
+      justify-content: flex-start;
+    }
+    .row-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .customer-travel-count-cell .row-actions {
+      justify-content: center;
+    }
+    .row-button {
+      height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 0 8px;
       font-size: 14px;
       font-weight: 700;
-      line-height: 1.55;
-      word-break: break-word;
     }
-
-    .muted {
+    .row-button.primary {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      height: 24px;
+      border-radius: 999px;
+      padding: 0 9px;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .badge.air {
+      background: var(--primary-soft);
+      color: #1f6fb3;
+    }
+    .badge.golf {
+      background: var(--green-soft);
+      color: #1db26a;
+    }
+    .badge.status-open {
+      background: var(--primary-soft);
+      color: #1f6fb3;
+    }
+    .badge.status-closed,
+    .badge.status-confirmed {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+    .badge.status-cancelled {
+      background: var(--red-soft);
+      color: var(--red);
+    }
+    .empty,
+    .error {
+      padding: 30px;
       color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
     }
+    .empty.loading-state {
+      min-height: 140px;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+    }
+    .loading-spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid var(--line);
+      border-top-color: var(--primary);
+      border-radius: 999px;
+      animation: dashboard-spin 0.8s linear infinite;
+    }
+    @keyframes dashboard-spin {
+      to { transform: rotate(360deg); }
+    }
+    .error { color: var(--red); }
 
-    .nowrap {
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: rgba(15, 23, 42, 0.28);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 30;
+      width: min(560px, 100vw);
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      box-shadow: -12px 0 40px rgba(15, 23, 42, 0.14);
+      transform: translateX(100%);
+      transition: transform 0.2s ease;
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 22px;
+      border-bottom: 1px solid var(--line-soft);
+      background: var(--surface-soft);
+    }
+    .drawer-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .drawer-sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .drawer-close {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text);
+      line-height: 1;
+    }
+    .drawer-close svg {
+      width: 24px;
+      height: 24px;
+    }
+    .drawer-body {
+      overflow: auto;
+      padding: 20px 22px 28px;
+    }
+    .drawer-section {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .section-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .schedule-day,
+    .info-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .participant-table-wrap {
+      overflow-x: auto;
+      border: 1px solid #dadada;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+    tr.schedule-row-expanded > td {
+      border-bottom-color: transparent;
+    }
+    .participant-accordion-row > td {
+      padding: 0;
+      background: transparent;
+      border-bottom: 1px solid var(--line);
+    }
+    .participant-accordion-panel {
+      display: grid;
+      gap: 12px;
+      padding: 16px 18px 18px;
+    }
+    .participant-table {
+      width: 100%;
+      min-width: 1280px;
+      table-layout: fixed;
+    }
+    .participant-table th,
+    .participant-table td {
+      padding: 12px 8px;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: normal;
+    }
+    .participant-table th {
+      position: static;
+      top: auto;
+      z-index: auto;
+      background: #f3f8ff;
+      color: #373a3c;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .participant-table td {
+      background: #fff;
+      border-bottom-color: #e3efe9;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .participant-table tbody tr:hover td {
+      background: var(--surface-soft);
+    }
+    .participant-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+    .participant-table th:first-child,
+    .participant-table td:first-child {
+      padding-left: 6px;
+      padding-right: 6px;
+    }
+    .participant-table th:nth-child(1),
+    .participant-table td:nth-child(1) {
+      width: 58px;
+    }
+    .participant-table th:nth-child(2),
+    .participant-table td:nth-child(2) {
+      width: 76px;
+    }
+    .participant-table th:nth-child(3),
+    .participant-table td:nth-child(3) {
+      width: 136px;
+    }
+    .participant-table th:nth-child(4),
+    .participant-table td:nth-child(4) {
+      width: 76px;
+    }
+    .participant-table th:nth-child(5),
+    .participant-table td:nth-child(5) {
+      width: 70px;
+    }
+    .participant-table th:nth-child(6),
+    .participant-table td:nth-child(6) {
+      width: 98px;
+    }
+    .participant-table th:nth-child(7),
+    .participant-table td:nth-child(7) {
+      width: 76px;
+    }
+    .participant-table th:nth-child(8),
+    .participant-table td:nth-child(8) {
+      width: 136px;
+    }
+    .participant-table th:nth-child(9),
+    .participant-table td:nth-child(9) {
+      width: 166px;
+    }
+    .participant-table th:nth-child(10),
+    .participant-table td:nth-child(10) {
+      width: 166px;
+    }
+    .participant-table th:nth-child(11),
+    .participant-table td:nth-child(11) {
+      width: 166px;
+    }
+    .participant-table th:nth-child(12),
+    .participant-table td:nth-child(12) {
+      width: 156px;
+    }
+    .participant-table th:nth-child(1),
+    .participant-table td:nth-child(1),
+    .participant-table th:nth-child(4),
+    .participant-table td:nth-child(4),
+    .participant-table th:nth-child(5),
+    .participant-table td:nth-child(5),
+    .participant-table th:nth-child(6),
+    .participant-table td:nth-child(6),
+    .participant-table th:nth-child(7),
+    .participant-table td:nth-child(7) {
+      text-align: center;
+    }
+    .participant-table th:nth-child(8),
+    .participant-table td:nth-child(8) {
+      text-align: left;
+    }
+    .participant-role-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 54px;
+      height: 24px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-size: 14px;
+      font-weight: 700;
       white-space: nowrap;
     }
-
-    @media (max-width: 1100px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-
-      .schedule-list {
-        max-height: 420px;
-      }
-
-      .summary-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+    .participant-role-badge.creator {
+      background: var(--green-soft);
+      color: var(--green);
     }
-
-    @media (max-width: 720px) {
-      .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-        padding: 16px;
-      }
-
-      .layout {
-        padding: 12px;
-      }
-
-      .summary-grid,
-      .info-grid,
-      .split {
-        grid-template-columns: 1fr;
-      }
-
-      .detail-title {
-        font-size: 20px;
-      }
+    .participant-name-cell {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+    }
+    .participant-name-main {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .payment-summary {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.45;
+      white-space: nowrap;
+    }
+    .schedule-people-icons {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .participant-people-cell {
+      justify-content: center;
+      gap: 6px;
+    }
+    .participant-gender-icons {
+      justify-content: flex-start;
+    }
+    .schedule-people-icon {
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: #edf1f5;
+      color: #9aa5b1;
+    }
+    .schedule-people-icon.filled {
+      background: #1db26a;
+      color: #fff;
+    }
+    .schedule-people-icon.filled.male {
+      background: #2f80ed;
+    }
+    .schedule-people-icon.filled.female {
+      background: #f472b6;
+    }
+    .schedule-people-icon svg {
+      width: 15px;
+      height: 15px;
+      stroke-width: 2.2;
+    }
+    .schedule-date-cell {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .schedule-date-weekday {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .schedule-created-at {
+      font-size: 15px;
+    }
+    .schedule-table th:nth-child(1),
+    .schedule-table td:nth-child(1) {
+      width: 75px;
+      padding-right: 8px;
+    }
+    .consultation-table {
+      min-width: 1480px;
+      table-layout: fixed;
+    }
+    .consultation-table th,
+    .consultation-table td {
+      padding-left: 20px;
+      padding-right: 20px;
+    }
+    .consultation-table th:nth-child(1),
+    .consultation-table td:nth-child(1) {
+      width: 160px;
+    }
+    .consultation-table th:nth-child(2),
+    .consultation-table td:nth-child(2) {
+      width: 64px;
+    }
+    .consultation-table th:nth-child(3),
+    .consultation-table td:nth-child(3) {
+      width: 70px;
+    }
+    .consultation-table th:nth-child(4),
+    .consultation-table td:nth-child(4) {
+      width: 140px;
+    }
+    .consultation-table th:nth-child(5),
+    .consultation-table td:nth-child(5) {
+      width: 62px;
+    }
+    .consultation-table th:nth-child(6),
+    .consultation-table td:nth-child(6) {
+      width: 58px;
+    }
+    .consultation-table th:nth-child(7),
+    .consultation-table td:nth-child(7) {
+      width: 280px;
+    }
+    .consultation-table th:nth-child(8),
+    .consultation-table td:nth-child(8) {
+      width: 78px;
+    }
+    .consultation-table th:nth-child(9),
+    .consultation-table td:nth-child(9),
+    .consultation-table th:nth-child(10),
+    .consultation-table td:nth-child(10) {
+      width: 116px;
+    }
+    .consultation-table th:nth-child(11),
+    .consultation-table td:nth-child(11) {
+      width: 62px;
+    }
+    .consultation-table th:nth-child(12),
+    .consultation-table td:nth-child(12) {
+      width: 126px;
+    }
+    .consultation-table th:nth-child(13),
+    .consultation-table td:nth-child(13) {
+      width: 90px;
+    }
+    .consultation-table .participant-role-badge {
+      min-width: 54px;
+      height: 24px;
+      padding: 0 9px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .participant-status-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .participant-status-cell {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .participant-status-badge {
+      min-width: 64px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #d7dde3;
+      border-radius: 999px;
+      background: #f7f8fa;
+      color: #68727d;
+      padding: 0 9px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: default;
+      pointer-events: none;
+      user-select: none;
+    }
+    .participant-status-badge.is-complete {
+      border-color: #1db26a;
+      background: #1db26a;
+      color: #fff;
+    }
+    .participant-status-badge.is-warning {
+      border-color: #ffb020;
+      background: #ffb020;
+      color: #fff;
+    }
+    .participant-status-badge.is-danger {
+      border-color: #e5484d;
+      background: #e5484d;
+      color: #fff;
+    }
+    button.participant-status-badge {
+      cursor: pointer;
+    }
+    button.participant-status-badge:disabled {
+      cursor: progress;
+      opacity: 0.72;
+    }
+    .participant-status-action {
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .participant-status-action:disabled {
+      cursor: progress;
+      opacity: 0.72;
+    }
+    .quote-complete-button {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      color: var(--text);
+      padding: 0 10px;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .quote-complete-button.completed {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+    .quote-complete-button svg {
+      width: 15px;
+      height: 15px;
+    }
+    .confirm-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.32);
+    }
+    .confirm-backdrop.open {
+      display: grid;
+    }
+    .confirm-dialog {
+      width: min(420px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+      padding: 22px;
+    }
+    .confirm-title {
+      margin: 0;
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .confirm-message {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+    .confirm-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .info-item {
+      min-height: 64px;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+      padding: 10px 12px;
+      background: var(--surface-soft);
+    }
+    .info-label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .info-value {
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+    .list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+    .list li {
+      position: relative;
+      padding-left: 14px;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.55;
+    }
+    .list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--primary);
+    }
+    .schedule-day {
+      display: grid;
+      gap: 8px;
+      padding: 14px;
+      background: var(--surface-soft);
+    }
+    .schedule-day-title {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .schedule-day-meta {
+      font-size: 15px;
+      font-weight: 600;
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
+  <section class="login-screen" id="loginScreen">
+    <form class="login-card" id="loginForm">
+      <div>
+        <h1 class="login-title">골프조인 대시보드</h1>
+      </div>
+      <div class="login-field">
+        <label for="adminIdInput">아이디</label>
+        <input id="adminIdInput" type="text" autocomplete="username" placeholder="관리자 아이디">
+      </div>
+      <div class="login-field">
+        <label for="adminPasswordInput">비밀번호</label>
+        <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="관리자 비밀번호">
+      </div>
+      <button class="button primary" type="submit">로그인</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+  </section>
+
+  <section class="app-shell" id="app" hidden>
+    <aside class="sidebar">
       <div class="brand">
-        <h1 class="brand-title">골프조인 운영 대시보드</h1>
-        <div class="brand-sub">구글시트 저장 데이터를 운영 조회용으로 묶어서 표시합니다.</div>
+        <h1 class="brand-title">골프조인 대시보드</h1>
       </div>
-      <div class="top-actions">
-        <div class="last-updated" id="lastUpdated">-</div>
-        <button type="button" class="button" id="reloadButton">새로고침</button>
-        <button type="button" class="button primary" id="downloadButton">CSV 다운로드</button>
+      <nav class="nav" aria-label="대시보드 메뉴">
+        <button class="nav-button active" type="button" data-menu="schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-calendar-check-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="m16 20 2 2 4-4"/></svg><span class="nav-label">일정 관리</span></button>
+        <button class="nav-button" type="button" data-menu="participant-management"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-users-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg><span class="nav-label">고객 관리</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="button ghost" type="button" id="reloadButton" aria-label="새로고침"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg><span class="nav-label">새로고침</span></button>
+        <button class="button ghost" type="button" id="logoutButton" aria-label="로그아웃"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg><span class="nav-label">로그아웃</span></button>
       </div>
-    </header>
+    </aside>
 
-    <main class="layout">
-      <aside class="sidebar panel">
-        <div class="filters">
-          <div class="field">
-            <label for="searchInput">검색</label>
-            <input id="searchInput" type="search" placeholder="일정명, 지역, 이름, 휴대폰">
-          </div>
-          <div class="field">
-            <label for="statusFilter">상태</label>
-            <select id="statusFilter">
-              <option value="">전체 상태</option>
-              <option value="open">모집중</option>
-              <option value="pending">승인대기</option>
-              <option value="closed">마감</option>
-              <option value="cancelled">취소</option>
-            </select>
-          </div>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h2 class="page-title" id="pageTitle">일정 관리</h2>
+          <div class="page-sub">항공팩, 골프팩 일정별 참여자와 상품 상세 정보를 확인합니다.</div>
         </div>
-        <div class="schedule-list" id="scheduleList">
-          <div class="loading">데이터를 불러오는 중입니다.</div>
+        <div class="top-actions">
+          <div class="last-updated" id="lastUpdated">-</div>
         </div>
-      </aside>
+      </header>
 
-      <section class="detail">
-        <div class="summary-grid" id="summaryGrid"></div>
-        <div class="detail-grid" id="detailGrid">
-          <div class="panel loading">왼쪽에서 일정을 선택하세요.</div>
+      <section class="metrics" id="metrics"></section>
+
+      <section class="panel">
+        <div class="toolbar">
+          <input id="searchInput" type="search" placeholder="상품명, 지역, 생성자, 참여자 검색">
+          <select id="packFilter">
+            <option value="">전체 팩</option>
+            <option value="air">항공팩</option>
+            <option value="golf">골프팩</option>
+          </select>
+          <select id="statusFilter">
+            <option value="">전체 상태</option>
+            <option value="open">모집중</option>
+            <option value="closed">마감</option>
+            <option value="confirmed">출발확정</option>
+            <option value="cancelled">취소</option>
+          </select>
         </div>
+        <div class="table-wrap" id="tableWrap"></div>
       </section>
     </main>
+  </section>
+
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <h2 class="drawer-title" id="drawerTitle">상세 정보</h2>
+        <div class="drawer-sub" id="drawerSub"></div>
+      </div>
+      <button class="drawer-close" type="button" id="drawerClose" aria-label="닫기"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+  </aside>
+
+  <div class="confirm-backdrop" id="confirmBackdrop" aria-hidden="true">
+    <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <h2 class="confirm-title" id="confirmTitle">작업 확인</h2>
+      <div class="confirm-message" id="confirmMessage"></div>
+      <div class="confirm-actions">
+        <button class="participant-status-action" type="button" id="confirmCancelButton">취소</button>
+        <button class="participant-status-action" type="button" id="confirmOkButton">확인</button>
+      </div>
+    </div>
   </div>
 
+  <script src="web/golf-join-products-data.js"></script>
   <script>
-    "use strict";
-
-    const SHEET_API_ENDPOINT = window.GOLFJOIN_SHEET_API_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
-    const SHEETS = {
-      schedules: "new_schedule_applications",
-      applications: "join_applications",
-      profiles: "join_member_profiles",
-      reviews: "join_reviews",
-      wishes: "join_wishes",
-      summary: "schedule_participant_summary"
-    };
-
-    const state = {
-      rows: {
-        schedules: [],
-        applications: [],
-        profiles: [],
-        reviews: [],
-        wishes: [],
-        summary: []
-      },
-      schedules: [],
-      selectedKey: "",
-      loading: false,
-      error: ""
-    };
-
+    const SHEET_API_ENDPOINT = "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
+    const ADMIN_AUTH_SESSION_KEY = "golfjoinAdminAuth";
+    const DASHBOARD_AUTO_REFRESH_MS = 5 * 60 * 1000;
     const $ = (selector) => document.querySelector(selector);
-
-    function escapeHtml(value) {
-      return String(value == null ? "" : value).replace(/[&<>"']/g, (char) => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      }[char]));
-    }
+    const products = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items) ? window.SECRET_GOLF_JOIN_PRODUCTS.items : [];
+    const SECRET_TOUR_FLIGHT_SCHEDULE_URL = "/goods/add/flight_schedule";
+    const secretTourGoodsDetailCache = new Map();
+    let dashboardAutoRefreshTimer = null;
+    const state = {
+      rawRows: [],
+      schedules: [],
+      memberProfiles: [],
+      error: "",
+      loading: false,
+      currentMenu: "schedules",
+      currentSchedulePanel: "schedules",
+      expandedParticipantKey: "",
+      expandedCustomerKey: ""
+    };
 
     function asText(value) {
-      return String(value == null ? "" : value).trim();
+      return value === undefined || value === null ? "" : String(value).trim();
+    }
+
+    function escapeHtml(value) {
+      return asText(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function parseList(value) {
+      if (Array.isArray(value)) return value.map(asText).filter(Boolean);
+      const text = asText(value);
+      if (!text) return [];
+      try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) return parsed.map(asText).filter(Boolean);
+      } catch (error) {}
+      return text.split(",").map(asText).filter(Boolean);
+    }
+
+    function cleanSecretTourDetailText(value) {
+      return String(value || "")
+        .replace(/\u00a0/g, " ")
+        .replace(/\s+/g, " ")
+        .replace(/^[\s\-]+/, "")
+        .trim();
+    }
+
+    function secretTourDateToISO(value) {
+      const text = String(value || "").replace(/\D/g, "");
+      if (text.length !== 8) return "";
+      return `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}`;
+    }
+
+    function parseSecretTourProductReference(value, eventSeqValue = "") {
+      const raw = String(value || "").trim();
+      const explicitEventSeq = String(eventSeqValue || "").trim();
+      const compositeMatch = /^(?:secret-tour|erp)-(\d+)-(\d+)$/i.exec(raw);
+      if (compositeMatch) {
+        return {
+          id: raw,
+          goodSeq: compositeMatch[1],
+          eventSeq: compositeMatch[2]
+        };
+      }
+      const goodSeq = /^\d+$/.test(raw) ? raw : "";
+      return {
+        id: raw,
+        goodSeq,
+        eventSeq: explicitEventSeq
+      };
+    }
+
+    function getSecretTourProductReference(row = {}, product = {}) {
+      const parsed = parseSecretTourProductReference(
+        product.erpProductId || product.productId || product.id || product.goodSeq || getNestedValue(row, "product.goodSeq") || getNestedValue(row, "trip.erpProductId") || row.erpProductId || row.productId || row.goodSeq,
+        product.erpEventSeq || product.eventSeq || getNestedValue(row, "product.eventSeq") || getNestedValue(row, "trip.erpEventSeq") || row.erpEventSeq || row.eventSeq
+      );
+      return {
+        goodSeq: String(product.goodSeq || getNestedValue(row, "product.goodSeq") || row.goodSeq || parsed.goodSeq || "").trim(),
+        eventSeq: String(product.eventSeq || getNestedValue(row, "product.eventSeq") || row.eventSeq || parsed.eventSeq || "").trim(),
+        goodTransportSeq: String(product.goodTransportSeq || getNestedValue(row, "product.goodTransportSeq") || row.goodTransportSeq || "").trim(),
+        startDay: String(product.startDay || getNestedValue(row, "product.startDay") || row.startDay || product.departureDate || row.departureDate || row.startDate || "").trim(),
+        endDay: String(product.endDay || getNestedValue(row, "product.endDay") || row.endDay || product.returnDate || row.returnDate || row.endDate || "").trim()
+      };
+    }
+
+    function buildSecretTourGoodsViewUrl(reference) {
+      const params = new URLSearchParams({
+        goodSeq: String(reference?.goodSeq || ""),
+        eventSeq: String(reference?.eventSeq || "")
+      });
+      return `/goods/goods_view?${params.toString()}`;
+    }
+
+    function buildSecretTourGoodsDetailProxyUrl(reference) {
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "secret_tour_goods_detail");
+      url.searchParams.set("goodSeq", String(reference?.goodSeq || ""));
+      url.searchParams.set("eventSeq", String(reference?.eventSeq || ""));
+      return url.toString();
+    }
+
+    function buildSecretTourFlightScheduleUrl(reference) {
+      const params = new URLSearchParams({
+        eventSeq: String(reference?.eventSeq || ""),
+        goodTransportSeq: String(reference?.goodTransportSeq || ""),
+        startDay: String(reference?.startDay || "").replace(/\D/g, ""),
+        endDay: String(reference?.endDay || "").replace(/\D/g, "")
+      });
+      return `${SECRET_TOUR_FLIGHT_SCHEDULE_URL}?${params.toString()}`;
+    }
+
+    function buildSecretTourFlightScheduleProxyUrl(reference) {
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "secret_tour_flight_schedule");
+      url.searchParams.set("eventSeq", String(reference?.eventSeq || ""));
+      url.searchParams.set("goodTransportSeq", String(reference?.goodTransportSeq || ""));
+      url.searchParams.set("startDay", String(reference?.startDay || "").replace(/\D/g, ""));
+      url.searchParams.set("endDay", String(reference?.endDay || "").replace(/\D/g, ""));
+      return url.toString();
+    }
+
+    function getSecretTourDetailList(container) {
+      if (!container) return [];
+      const nodes = [...container.querySelectorAll("p, li")];
+      const values = (nodes.length ? nodes : [container])
+        .map((node) => cleanSecretTourDetailText(node.textContent))
+        .filter(Boolean);
+      return [...new Set(values)];
+    }
+
+    function getSecretTourDetailBoxMap(doc) {
+      const mobileBoxes = [...doc.querySelectorAll(".detail_box")].map((box) => ({
+        title: cleanSecretTourDetailText(box.querySelector(".dbox_title")?.textContent),
+        content: box.querySelector(".dbox_content_row")
+      }));
+      const pcNoteBoxes = [...doc.querySelectorAll(".data_note_item")].map((box) => ({
+        title: cleanSecretTourDetailText(box.querySelector(".note_title")?.textContent),
+        content: box.querySelector(".data_note_cont, .data_note_content_row")
+      }));
+      const pcVerticalBoxes = [...doc.querySelectorAll(".getdata_vertical_item")].map((box) => ({
+        title: cleanSecretTourDetailText(box.querySelector(".getdata_vertical_title")?.textContent),
+        content: box.querySelector(".data_rendar_zone, .data_note_cont, .dbox_content_row")
+      }));
+      return [...mobileBoxes, ...pcNoteBoxes, ...pcVerticalBoxes].filter((box) => box.title && box.content);
+    }
+
+    function findSecretTourDetailBox(boxes, titleParts, fallbackIndex = -1) {
+      const matched = boxes.find((box) => titleParts.some((part) => box.title.includes(part)));
+      return matched?.content || boxes[fallbackIndex]?.content || null;
+    }
+
+    function parseSecretTourMeals(text) {
+      const raw = cleanSecretTourDetailText(text);
+      if (!raw) return [];
+      const labelMap = { "아침": "조식", "점심": "중식", "저녁": "석식" };
+      const labelPattern = /(조식|중식|석식|아침|점심|저녁)\s*[:：]?\s*([^|]+?)(?=\s*(?:조식|중식|석식|아침|점심|저녁|$|\|))/g;
+      const matched = [...raw.matchAll(labelPattern)]
+        .map((match) => ({
+          label: labelMap[match[1]] || match[1],
+          menu: cleanSecretTourDetailText(match[2])
+        }))
+        .filter((meal) => meal.label || meal.menu);
+      if (matched.length) return matched;
+      return raw
+        .split(/\s*\|\s*/)
+        .map((part) => {
+          const [label, ...rest] = part.split(/\s*[:：]\s*/);
+          const menu = cleanSecretTourDetailText(rest.join(":"));
+          return { label: cleanSecretTourDetailText(label), menu };
+        })
+        .filter((meal) => meal.label || meal.menu);
+    }
+
+    function applySecretTourScheduleExtra(extra, label, value) {
+      const cleanLabel = cleanSecretTourDetailText(label);
+      const cleanValue = cleanSecretTourDetailText(value);
+      if (!cleanLabel || !cleanValue) return;
+      if ((cleanLabel.includes("숙소") || cleanLabel.includes("호텔")) && !extra.hotel) {
+        extra.hotel = cleanValue;
+      }
+      if (cleanLabel.includes("식사") || cleanLabel.includes("조식") || cleanLabel.includes("중식") || cleanLabel.includes("석식")) {
+        const meals = parseSecretTourMeals(cleanValue);
+        if (meals.length) extra.meals = meals;
+      }
+    }
+
+    function parseSecretTourScheduleExtra(item) {
+      const extra = {};
+      item.querySelectorAll(".elsedata_tb tr, .elsedata_item, .schedule_info_row, .timeline_info_row").forEach((row, rowIndex) => {
+        const cells = [...row.children].map((cell) => cleanSecretTourDetailText(cell.textContent)).filter(Boolean);
+        const label = cleanSecretTourDetailText(row.querySelector(".elsedata_label, .schedule_info_label, .timeline_info_label, th")?.textContent) || cells[0] || "";
+        const value = cleanSecretTourDetailText(row.querySelector(".elsedata_value, .schedule_info_value, .timeline_info_value, td")?.textContent) || cells.slice(1).join(" ");
+        const hadHotel = Boolean(extra.hotel);
+        const hadMeals = Boolean(extra.meals?.length);
+        applySecretTourScheduleExtra(extra, label, value);
+        if (row.closest(".elsedata_tb")) {
+          if (!hadHotel && !extra.hotel && rowIndex === 0 && value) extra.hotel = value;
+          if (!hadMeals && !extra.meals?.length && rowIndex === 1 && value) {
+            const meals = parseSecretTourMeals(value);
+            if (meals.length) extra.meals = meals;
+          }
+        }
+      });
+      return extra;
+    }
+
+    function formatSecretTourScheduleTitleDate(value) {
+      const text = cleanSecretTourDetailText(value);
+      const match = /(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})\s*\(([^)]+)\)/.exec(text);
+      if (!match) return text;
+      return `${Number(match[2])}/${String(Number(match[3])).padStart(2, "0")}(${match[4].trim()})`;
+    }
+
+    function parseSecretTourSchedule(doc) {
+      return [...doc.querySelectorAll(".timeline_item, .timeline_vitem")].map((item, index) => {
+        const day = cleanSecretTourDetailText(item.querySelector(".timeline_bar_bullet, .timeline_title_main")?.textContent) || `${index + 1}일차`;
+        const dateText = formatSecretTourScheduleTitleDate(item.querySelector(".timeline_title_sub")?.textContent);
+        const points = [...item.querySelectorAll(".scheduleBox li")]
+          .map((node) => cleanSecretTourDetailText(node.textContent))
+          .filter(Boolean);
+        const extra = parseSecretTourScheduleExtra(item);
+        const rawText = cleanSecretTourDetailText(item.textContent);
+        return {
+          day,
+          dateText,
+          points,
+          content: points.join(", "),
+          rawText,
+          hotel: extra.hotel || "",
+          meals: extra.meals || []
+        };
+      }).filter((item) => item.points.length || item.content || item.rawText || item.hotel || item.meals.length);
+    }
+
+    function decodeSecretTourJsString(value) {
+      return String(value || "")
+        .replace(/\\'/g, "'")
+        .replace(/\\"/g, "\"")
+        .replace(/\\n/g, "\n")
+        .replace(/\\\\/g, "\\")
+        .trim();
+    }
+
+    function parseSecretTourGoodsViewScript(doc) {
+      const scriptText = [...doc.scripts]
+        .map((script) => script.textContent || "")
+        .find((text) => text.includes("const oGoodsView") || text.includes("oGoodsView")) || "";
+      if (!scriptText) return {};
+      const readString = (key) => {
+        const match = new RegExp(`${key}\\s*:\\s*(['"])([\\s\\S]*?)\\1`).exec(scriptText);
+        return match ? decodeSecretTourJsString(match[2]) : "";
+      };
+      const readFirstString = (...keys) => {
+        for (const key of keys) {
+          const value = readString(key);
+          if (value) return value;
+        }
+        return "";
+      };
+      return {
+        eventNm: readString("eventNm"),
+        goodTransportSeq: readFirstString("goodTransportSeq", "transportSeq", "goodAirSeq", "airSeq", "flightSeq"),
+        startDay: readString("startDay"),
+        endDay: readString("endDay")
+      };
+    }
+
+    function parseSecretTourSummaryFlightItems(doc) {
+      const rows = [...doc.querySelectorAll(".detail_summary_tb tr")];
+      const scheduleRow = rows.find((row) => cleanSecretTourDetailText(row.querySelector(".detail_summary_label, th")?.textContent).includes("일정"));
+      const data = scheduleRow?.querySelector(".detail_summary_data, td");
+      if (!data) return [];
+      const html = data.innerHTML
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/(?:div|p|span|em)>/gi, " ")
+        .replace(/<[^>]+>/g, " ");
+      const text = cleanSecretTourDetailText(html.replace(/\n/g, " \n "));
+      if (!text) return [];
+      const airline = text.match(/항공\s*[:：]\s*([^\n\[]+)/)?.[1]?.trim() || "";
+      const createItem = (label, pattern) => {
+        const match = pattern.exec(text);
+        if (!match) return null;
+        return cleanSecretTourDetailText([label, airline, match[1], match[2], match[3]].filter(Boolean).join(" "));
+      };
+      return [
+        createItem("출발", /\[출발정보\]\s*([0-9./-]+\([^)]+\)\s*[0-9:.]+)\s*([0-9./-]+\([^)]+\)\s*[0-9:.]+)\s*([A-Z0-9]{2}\s?\d{3,4})/),
+        createItem("도착", /\[도착정보\]\s*([0-9./-]+\([^)]+\)\s*[0-9:.]+)\s*([0-9./-]+\([^)]+\)\s*[0-9:.]+)\s*([A-Z0-9]{2}\s?\d{3,4})/)
+      ].filter(Boolean);
+    }
+
+    function parseSecretTourGoodsDetailHtml(html) {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const setData = parseSecretTourGoodsViewScript(doc);
+      const boxes = getSecretTourDetailBoxMap(doc);
+      return {
+        ...setData,
+        includes: getSecretTourDetailList(findSecretTourDetailBox(boxes, ["포함"], 0)),
+        excludes: getSecretTourDetailList(findSecretTourDetailBox(boxes, ["불포함"], 1)),
+        notes: getSecretTourDetailList(findSecretTourDetailBox(boxes, ["참고"], 2)),
+        flightScheduleItems: parseSecretTourSummaryFlightItems(doc),
+        schedule: parseSecretTourSchedule(doc)
+      };
+    }
+
+    function parseSecretTourFlightScheduleHtml(html) {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const rowItems = [...doc.querySelectorAll("tr")].map((row) => {
+        return [...row.querySelectorAll("th, td")]
+          .map((cell) => cleanSecretTourDetailText(cell.textContent))
+          .filter(Boolean)
+          .join(" ");
+      }).filter(Boolean);
+      const listItems = [...doc.querySelectorAll("li, p, div")].map((node) => {
+        if (node.children.length) return "";
+        return cleanSecretTourDetailText(node.textContent);
+      }).filter(Boolean);
+      return [...new Set(rowItems.length ? rowItems : listItems)].slice(0, 12);
+    }
+
+    async function loadSecretTourFlightSchedule(reference) {
+      if (!reference?.eventSeq || !reference?.goodTransportSeq) return [];
+      const auth = getAdminAuth();
+      const response = await fetch(buildSecretTourFlightScheduleProxyUrl(reference), {
+        method: "GET",
+        headers: { "X-Golfjoin-Admin-Token": auth.token || "" },
+        cache: "no-store"
+      });
+      if (!response.ok) throw new Error(`Secret Tour flight schedule failed: ${response.status}`);
+      return parseSecretTourFlightScheduleHtml(await response.text());
+    }
+
+    async function loadSecretTourGoodsDetail(row = {}, product = {}) {
+      const reference = getSecretTourProductReference(row, product);
+      if (!reference.goodSeq || !reference.eventSeq) return {};
+      const cacheKey = `${reference.goodSeq}:${reference.eventSeq}`;
+      if (secretTourGoodsDetailCache.has(cacheKey)) return secretTourGoodsDetailCache.get(cacheKey);
+      const auth = getAdminAuth();
+      const detailPromise = fetch(buildSecretTourGoodsDetailProxyUrl(reference), {
+        method: "GET",
+        headers: { "X-Golfjoin-Admin-Token": auth.token || "" },
+        cache: "no-store"
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error(`Secret Tour detail failed: ${response.status}`);
+          return response.text();
+        })
+        .then(parseSecretTourGoodsDetailHtml)
+        .then(async (detail) => {
+          const detailReference = {
+            ...reference,
+            goodTransportSeq: detail.goodTransportSeq || reference.goodTransportSeq,
+            startDay: detail.startDay || reference.startDay,
+            endDay: detail.endDay || reference.endDay
+          };
+          if (detail.flightScheduleItems?.length) return detail;
+          try {
+            const flightScheduleItems = await loadSecretTourFlightSchedule(detailReference);
+            return { ...detail, flightScheduleItems };
+          } catch (error) {
+            console.warn(error);
+            return detail;
+          }
+        })
+        .catch((error) => {
+          console.warn(error);
+          return { loadError: true };
+        });
+      secretTourGoodsDetailCache.set(cacheKey, detailPromise);
+      return detailPromise;
+    }
+
+    function getNestedValue(source = {}, path = "") {
+      return String(path).split(".").reduce((value, key) => {
+        if (value == null || typeof value !== "object") return "";
+        return value[key];
+      }, source);
+    }
+
+    function firstText(...values) {
+      return values.map(asText).find(Boolean) || "";
     }
 
     function normalizePhone(value) {
@@ -608,19 +1711,6 @@
       return asText(value) || "-";
     }
 
-    function parseList(value) {
-      if (Array.isArray(value)) return value.map(asText).filter(Boolean);
-      const text = asText(value);
-      if (!text) return [];
-      try {
-        const parsed = JSON.parse(text);
-        if (Array.isArray(parsed)) return parsed.map(asText).filter(Boolean);
-      } catch (error) {
-        // Comma-separated values are used in sheet cells.
-      }
-      return text.split(",").map(asText).filter(Boolean);
-    }
-
     function formatDate(value) {
       const text = asText(value);
       if (!text) return "-";
@@ -630,291 +1720,1875 @@
     }
 
     function formatDateTime(value) {
+      const date = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(date.getTime())) return asText(value) || "-";
+      const dateText = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+      const timeText = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+      return `${dateText} ${timeText}`;
+    }
+
+    function parseDateTime(value) {
       const text = asText(value);
-      if (!text) return "-";
+      if (!text) return null;
       const date = new Date(text);
-      if (Number.isNaN(date.getTime())) return text;
-      return `${formatDate(date.toISOString())} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+      if (!Number.isNaN(date.getTime())) return date;
+      const match = text.match(/(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})(?:\D+(\d{1,2}):(\d{1,2}))?/);
+      if (!match) return null;
+      const parsed = new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4] || 0),
+        Number(match[5] || 0)
+      );
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
     }
 
-    function statusLabel(value) {
-      const status = asText(value).toLowerCase();
-      return ({
-        open: "모집중",
-        active: "활성",
-        pending: "대기",
-        visible: "노출",
-        hidden: "숨김",
-        closed: "마감",
-        cancelled: "취소",
-        deleted: "삭제"
-      })[status] || asText(value) || "-";
+    function formatScheduleCreatedDateTime(row = {}) {
+      const date = parseDateTime(firstText(row.createdAt, row.submittedAt, row.updatedAt));
+      if (!date) return "-";
+      const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+      const dateText = `${String(date.getFullYear()).slice(2)}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+      const timeText = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+      return `${dateText}(${weekdays[date.getDay()]}) ${timeText}`;
     }
 
-    function statusClass(value) {
-      return asText(value).toLowerCase() || "default";
+    function formatScheduleFullDateTime(value) {
+      const date = parseDateTime(value);
+      if (!date) return "-";
+      const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+      const dateText = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+      const timeText = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+      return `${dateText}(${weekdays[date.getDay()]}) ${timeText}`;
     }
 
-    function getMemberKey(row = {}) {
-      return asText(row.memberSeq) || asText(row.memberId) || normalizePhone(row.memberMobile || row.applicantMobile);
+    function renderScheduleDateCell(value) {
+      const date = parseScheduleDate(value);
+      if (!date) return escapeHtml(formatDate(value));
+      const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+      return `
+        <span class="schedule-date-cell">
+          <span>${escapeHtml(formatDate(value))}</span>
+          <span class="schedule-date-weekday">${escapeHtml(weekdays[date.getDay()])}</span>
+        </span>
+      `;
     }
 
-    function getScheduleKey(row = {}) {
-      return asText(row.scheduleId) || asText(row.applicationId) || asText(row.targetScheduleId) || asText(row.targetApplicationId);
+    function parseScheduleDate(value) {
+      const text = asText(value);
+      if (!text) return null;
+      const isoMatch = text.match(/(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})/);
+      if (isoMatch) {
+        const date = new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
+        return Number.isNaN(date.getTime()) ? null : date;
+      }
+      const date = new Date(text);
+      return Number.isNaN(date.getTime()) ? null : date;
     }
 
-    function getScheduleTitle(row = {}) {
-      return asText(row.productName) || asText(row.title) || asText(row.tripSummary) || "상품 미지정 새 일정";
+    function formatTripNightsDays(startValue, endValue) {
+      const start = parseScheduleDate(startValue);
+      const end = parseScheduleDate(endValue);
+      if (!start || !end) return "";
+      const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+      const nights = Math.round((endDay - startDay) / 86400000);
+      if (!Number.isFinite(nights) || nights < 0) return "";
+      return `${nights}박${nights + 1}일`;
     }
 
-    function getScheduleDate(row = {}) {
-      const departure = asText(row.departureDateFrom) || asText(row.departureDate) || asText(row.departureSummary);
-      const end = asText(row.returnDateFrom) || asText(row.returnDate) || asText(row.returnSummary);
-      if (departure && end && departure !== end) return `${formatDate(departure)} - ${formatDate(end)}`;
-      return formatDate(departure || end);
+    function extractTripSummaryPeriod(row = {}, product = {}) {
+      const text = firstText(
+        getNestedValue(row, "trip.tripSummary"),
+        row.tripSummary,
+        getNestedValue(row, "product.tripSummary"),
+        product.tripSummary,
+        product.summary
+      );
+      const match = text.match(/(\d+)\s*박\s*(\d+)\s*일/);
+      return match ? `${match[1]}박${match[2]}일` : "";
+    }
+
+    function calculateAge(birthYear) {
+      const year = Number(String(birthYear || "").replace(/\D/g, "").slice(0, 4));
+      if (!year || year < 1900) return "";
+      return String(new Date().getFullYear() - year);
+    }
+
+    function formatPrice(value) {
+      const number = Number(String(value || "").replace(/[^0-9.-]/g, ""));
+      if (!Number.isFinite(number) || number <= 0) return asText(value) || "-";
+      return `${number.toLocaleString("ko-KR")}원`;
+    }
+
+    function getAdminAuth() {
+      try {
+        return JSON.parse(sessionStorage.getItem(ADMIN_AUTH_SESSION_KEY) || "{}");
+      } catch (error) {
+        Object.assign(participant, previousFields);
+        renderMetrics();
+        renderTable();
+        return {};
+      }
+    }
+
+    function setAdminAuth(token, expiresAt) {
+      sessionStorage.setItem(ADMIN_AUTH_SESSION_KEY, JSON.stringify({ token, expiresAt }));
+    }
+
+    function clearAdminAuth() {
+      sessionStorage.removeItem(ADMIN_AUTH_SESSION_KEY);
+    }
+
+    async function loginAdmin(loginId, loginPassword) {
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "admin_login");
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ loginId, loginPassword })
+      });
+      if (!response.ok) throw new Error("아이디 또는 비밀번호가 올바르지 않습니다.");
+      const data = await response.json();
+      if (!data.token) throw new Error("관리자 세션 토큰을 발급받지 못했습니다.");
+      setAdminAuth(data.token, Date.now() + Number(data.expiresIn || 3600) * 1000);
     }
 
     async function fetchSheet(sheet, params = {}) {
+      const auth = getAdminAuth();
+      if (!auth.token) throw new Error("관리자 로그인이 필요합니다.");
+      if (auth.expiresAt && Number(auth.expiresAt) <= Date.now()) {
+        clearAdminAuth();
+        throw new Error("로그인이 만료되었습니다. 다시 로그인해 주세요.");
+      }
       const url = new URL(SHEET_API_ENDPOINT);
       url.searchParams.set("sheet", sheet);
       url.searchParams.set("limit", params.limit || "1000");
+      url.searchParams.set("admin", "1");
       if (params.refreshSummary) url.searchParams.set("refreshSummary", "true");
-      const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
-      if (!response.ok) throw new Error(`${sheet} load failed: ${response.status}`);
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        cache: "no-store",
+        headers: { "X-Golfjoin-Admin-Token": auth.token }
+      });
+      if (response.status === 401 || response.status === 403) clearAdminAuth();
+      if (!response.ok) throw new Error(`${sheet} 로드 실패: ${response.status}`);
       const data = await response.json();
       return Array.isArray(data) ? data : (data.rows || data.items || []);
     }
 
-    async function loadDashboard() {
-      state.loading = true;
-      state.error = "";
-      renderLoading();
-      try {
-        const [schedules, applications, profiles, reviews, wishes, summary] = await Promise.all([
-          fetchSheet(SHEETS.schedules, { limit: "1000" }),
-          fetchSheet(SHEETS.applications, { limit: "1000" }),
-          fetchSheet(SHEETS.profiles, { limit: "1000" }),
-          fetchSheet(SHEETS.reviews, { limit: "1000" }),
-          fetchSheet(SHEETS.wishes, { limit: "1000" }),
-          fetchSheet(SHEETS.summary, { limit: "1000", refreshSummary: true })
-        ]);
-        state.rows = { schedules, applications, profiles, reviews, wishes, summary };
-        state.schedules = buildSchedules();
-        state.selectedKey = state.schedules[0]?.key || "";
-        $("#lastUpdated").textContent = `최근 갱신 ${formatDateTime(new Date().toISOString())}`;
-      } catch (error) {
-        console.error(error);
-        state.error = error.message || "데이터 로드 실패";
-      } finally {
-        state.loading = false;
-        render();
+    async function fetchAdminRows() {
+      const [builderRows, joinRows, profileRows] = await Promise.all([
+        fetchSheet("new_schedule_applications", { limit: "1000", refreshSummary: true }),
+        fetchSheet("join_applications", { limit: "1000" }),
+        fetchSheet("join_member_profiles", { limit: "1000" })
+      ]);
+      return { builderRows, joinRows, profileRows };
+    }
+
+    function getScheduleKey(row = {}, options = {}) {
+      if (options.preferTarget) {
+        return asText(row.targetScheduleId) || asText(row.targetApplicationId) || asText(row.scheduleId) || asText(row.applicationId);
       }
+      return asText(row.scheduleId) || asText(row.applicationId) || asText(row.targetScheduleId) || asText(row.targetApplicationId);
     }
 
-    function buildSchedules() {
-      const summaryMap = new Map(state.rows.summary.map((row) => [getScheduleKey(row), row]));
-      return state.rows.schedules.map((row, index) => {
+    function getParticipantRole(row = {}) {
+      const source = [
+        row.source,
+        row.sheet,
+        row.sheetName,
+        row.type,
+        row.applicationType,
+        row.recordType
+      ].map(asText).join(" ").toLowerCase();
+      if (source.includes("new_schedule") || source.includes("builder") || source.includes("creator")) return "creator";
+      if (asText(row.creatorName) || asText(row.creatorPhone) || asText(row.creatorLevel)) return "creator";
+      if (asText(row.targetScheduleId) || asText(row.targetApplicationId)) return "participant";
+      return "participant";
+    }
+
+    function getParticipantRoleLabel(row = {}) {
+      return getParticipantRole(row) === "creator" ? "생성자" : "참여자";
+    }
+
+    function getTitle(row = {}) {
+      return firstText(
+        getNestedValue(row, "trip.productName"),
+        getNestedValue(row, "product.productName"),
+        getNestedValue(row, "join.title"),
+        row.productName,
+        row.joinTitle,
+        row.title,
+        row.tripSummary
+      ) || "상품명 없음";
+    }
+
+    function normalizeRegionName(value) {
+      return String(value || "").split(",").map((part) => part.trim()).filter(Boolean)[0] || "";
+    }
+
+    function getRegion(row = {}) {
+      const region = firstText(
+        getNestedValue(row, "trip.region"),
+        getNestedValue(row, "product.region"),
+        getNestedValue(row, "join.region"),
+        row.region,
+        parseList(row.regions)[0]
+      );
+      return normalizeRegionName(region) || "-";
+    }
+
+    function getCountry(row = {}, product = {}) {
+      const savedCountry = firstText(
+        getNestedValue(row, "trip.country"),
+        getNestedValue(row, "product.country"),
+        getNestedValue(row, "join.country"),
+        row.country,
+        product.country
+      );
+      if (savedCountry) return savedCountry;
+      const title = `${getTitle(row)} ${getRegion(row)} ${asText(product.region)} ${asText(product.category)}`;
+      const countries = ["한국", "일본", "중국", "베트남", "태국", "라오스", "대만", "말레이시아", "인도네시아", "필리핀"];
+      return countries.find((country) => title.includes(country)) || (asText(product.category) === "국내" ? "한국" : "-");
+    }
+
+    function getPackType(row = {}, product = {}) {
+      const savedType = asText(
+        getNestedValue(row, "trip.packType")
+        || row.packType
+        || getNestedValue(row, "product.packType")
+        || product.packType
+      ).toLowerCase();
+      if (savedType === "air" || savedType === "항공팩") return "air";
+      if (savedType === "golf" || savedType === "골프팩") return "golf";
+      const savedTypeName = asText(
+        getNestedValue(row, "trip.packTypeName")
+        || row.packTypeName
+        || getNestedValue(row, "product.packTypeName")
+        || product.packTypeName
+      );
+      if (savedTypeName.includes("항공")) return "air";
+      if (savedTypeName.includes("골프")) return "golf";
+      const text = `${getTitle(row)} ${asText(row.tripSummary)} ${asText(product.title)} ${asText(product.badge)} ${asText(product.airport)}`;
+      if (/항공|항공권|인천|김해|부산|출발/i.test(text)) return "air";
+      return "golf";
+    }
+
+    function getPackLabel(packType) {
+      return packType === "air" ? "항공팩" : "골프팩";
+    }
+
+    function getDeparture(row = {}, product = {}) {
+      return firstText(
+        getNestedValue(row, "trip.departureDate"),
+        getNestedValue(row, "product.departureDate"),
+        getNestedValue(row, "join.departureDate"),
+        parseList(getNestedValue(row, "trip.departureDates"))[0],
+        row.departureDateFrom,
+        row.departureDate,
+        product.departureDate
+      );
+    }
+
+    function getReturn(row = {}, product = {}) {
+      return firstText(
+        getNestedValue(row, "trip.returnDate"),
+        getNestedValue(row, "product.returnDate"),
+        getNestedValue(row, "join.returnDate"),
+        parseList(getNestedValue(row, "trip.returnDates"))[0],
+        row.returnDateFrom,
+        row.returnDate,
+        product.returnDate
+      );
+    }
+
+    function getPeriod(row = {}, product = {}) {
+      const start = getDeparture(row, product);
+      const end = getReturn(row, product);
+      return extractTripSummaryPeriod(row, product) || formatTripNightsDays(start, end) || asText(product.date) || formatDate(start);
+    }
+
+    function getParticipantName(row = {}) {
+      return firstText(
+        getNestedValue(row, "applicant.name"),
+        getNestedValue(row, "member.memberName"),
+        row.applicantName,
+        row.creatorName,
+        row.memberName,
+        row.name,
+        row.userName
+      ) || "-";
+    }
+
+    function getParticipantPhone(row = {}) {
+      return firstText(
+        getNestedValue(row, "applicant.phone"),
+        getNestedValue(row, "member.memberMobile"),
+        row.applicantMobile,
+        row.creatorPhone,
+        row.memberMobile,
+        row.memberPhone,
+        row.phoneNumber,
+        row.mobile,
+        row.phone
+      );
+    }
+
+    function getParticipantGender(row = {}) {
+      return firstText(
+        getNestedValue(row, "applicant.gender"),
+        getNestedValue(row, "profile.gender"),
+        row.applicantGender,
+        row.creatorGender,
+        row.gender
+      );
+    }
+
+    function getParticipantBirthYear(row = {}) {
+      return firstText(
+        getNestedValue(row, "applicant.birthYear"),
+        getNestedValue(row, "profile.birthYear"),
+        row.applicantBirthYear,
+        row.creatorBirthYear,
+        row.birthYear,
+        row.birth,
+        row.birthday,
+        row.birthDate
+      );
+    }
+
+    function getParticipantHandicap(row = {}) {
+      return firstText(
+        getNestedValue(row, "applicant.level"),
+        getNestedValue(row, "profile.level"),
+        row.applicantLevel,
+        row.creatorLevel,
+        row.handicap,
+        row.handy,
+        row.level
+      );
+    }
+
+    function parseCompanionItems(value) {
+      if (Array.isArray(value)) return value.filter(Boolean);
+      const text = asText(value);
+      if (!text) return [];
+      try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        if (parsed && typeof parsed === "object") return [parsed];
+      } catch (error) {}
+      return parseList(text).map((gender) => ({ gender }));
+    }
+
+    function getParticipantCompanionItems(row = {}) {
+      return parseCompanionItems(
+        getNestedValue(row, "applicant.companions")
+        || row.applicantCompanions
+        || row.creatorCompanions
+        || row.companions
+      );
+    }
+
+    function getParticipantPeopleCount(row = {}) {
+      const value = firstText(
+        getNestedValue(row, "applicant.people"),
+        row.applicantPeople,
+        row.creatorPeople,
+        row.people
+      );
+      const count = Number(String(value || "").replace(/\D/g, ""));
+      return Number.isFinite(count) && count > 0 ? count : 1;
+    }
+
+    function formatCompanionGenderSummary(items = []) {
+      const counts = items.reduce((map, item) => {
+        const gender = asText(item?.gender || item?.sex || item);
+        if (!gender) return map;
+        map.set(gender, (map.get(gender) || 0) + 1);
+        return map;
+      }, new Map());
+      return Array.from(counts.entries()).map(([gender, count]) => `${gender} ${count}명`).join(", ");
+    }
+
+    function formatParticipantCompanionSummary(row = {}, companionRows = []) {
+      const companions = [
+        ...getParticipantCompanionItems(row),
+        ...companionRows.map((item) => ({ gender: getParticipantGender(item) }))
+      ];
+      const people = Math.max(getParticipantPeopleCount(row), companions.length + 1);
+      if (people <= 1 && !companions.length) return "";
+      const companionCount = Math.max(people - 1, companions.length);
+      const genderSummary = formatCompanionGenderSummary(companions);
+      return `총 ${people}명 · 동반자 ${genderSummary || `${companionCount}명`}`;
+    }
+
+    function isCompanionOnlyParticipant(row = {}) {
+      const type = firstText(row.participantType, row.type, row.recordType).toLowerCase();
+      const name = getParticipantName(row);
+      return type === "companion" || /^동반자\d*$/i.test(name);
+    }
+
+    function isCompanionOnlyParticipant(row = {}) {
+      const type = firstText(row.participantType, row.type, row.recordType).toLowerCase();
+      const name = getParticipantName(row);
+      return type === "companion"
+        || /companion/i.test(type)
+        || /^동반자\s*\d*$/i.test(name)
+        || /동반자/.test(firstText(row.role, row.roleLabel, row.participantRole));
+    }
+
+    function findProduct(row = {}) {
+      const erpProductId = firstText(
+        getNestedValue(row, "trip.erpProductId"),
+        getNestedValue(row, "trip.productId"),
+        getNestedValue(row, "product.erpProductId"),
+        getNestedValue(row, "product.goodSeq"),
+        row.erpProductId,
+        row.productId,
+        row.goodSeq
+      );
+      const erpEventSeq = firstText(
+        getNestedValue(row, "trip.erpEventSeq"),
+        getNestedValue(row, "product.erpEventSeq"),
+        getNestedValue(row, "product.eventSeq"),
+        row.erpEventSeq,
+        row.eventSeq
+      );
+      const title = getTitle(row);
+      return products.find((product) => erpProductId && (
+        asText(product.id) === erpProductId ||
+        asText(product.goodSeq) === erpProductId ||
+        asText(product.erpProductId) === erpProductId
+      ) && (!erpEventSeq || asText(product.eventSeq) === erpEventSeq || asText(product.erpEventSeq) === erpEventSeq))
+        || products.find((product) => erpProductId && (asText(product.goodSeq) === erpProductId || asText(product.erpProductId) === erpProductId))
+        || products.find((product) => title && asText(product.title) === title)
+        || {};
+    }
+
+    function buildSchedules(builderRows, joinRows = []) {
+      const map = new Map();
+      builderRows.forEach((row, index) => {
         const key = getScheduleKey(row) || `schedule-${index}`;
-        const relatedApplications = state.rows.applications.filter((item) => {
-          const targetScheduleId = asText(item.targetScheduleId);
-          const targetApplicationId = asText(item.targetApplicationId);
-          return (targetScheduleId && targetScheduleId === asText(row.scheduleId))
-            || (targetApplicationId && targetApplicationId === asText(row.applicationId));
-        });
-        const relatedReviews = state.rows.reviews.filter((item) => {
-          return asText(item.targetScheduleId) === asText(row.scheduleId)
-            || asText(item.targetApplicationId) === asText(row.applicationId)
-            || (asText(item.erpProductId) && asText(item.erpProductId) === asText(row.erpProductId));
-        });
-        return {
-          key,
-          row,
-          summary: summaryMap.get(key) || {},
-          applications: relatedApplications,
-          reviews: relatedReviews
-        };
-      }).sort((a, b) => {
-        const aTime = new Date(a.row.createdAt || a.row.updatedAt || 0).getTime();
-        const bTime = new Date(b.row.createdAt || b.row.updatedAt || 0).getTime();
-        return bTime - aTime;
+        if (!map.has(key)) {
+          const product = findProduct(row);
+          map.set(key, {
+            key,
+            row,
+            product,
+            participants: [],
+            packType: getPackType(row, product)
+          });
+        }
+        map.get(key).participants.push(row);
       });
+      joinRows.forEach((row) => {
+        const key = getScheduleKey(row, { preferTarget: true });
+        if (key && map.has(key)) {
+          map.get(key).participants.push(row);
+          return;
+        }
+        const fallbackKey = getScheduleKey(row);
+        if (!fallbackKey || map.has(fallbackKey)) return;
+        const product = findProduct(row);
+        map.set(fallbackKey, {
+          key: fallbackKey,
+          row,
+          product,
+          participants: [row],
+          packType: getPackType(row, product)
+        });
+      });
+      return [...map.values()];
     }
 
-    function getFilteredSchedules() {
+    function filterSchedules() {
       const keyword = asText($("#searchInput").value).toLowerCase();
-      const status = asText($("#statusFilter").value).toLowerCase();
+      const status = $("#statusFilter").value;
       return state.schedules.filter((schedule) => {
         const row = schedule.row;
         const haystack = [
-          getScheduleTitle(row),
-          row.region,
-          row.regions,
-          row.memberName,
-          row.applicantName,
-          row.memberMobile,
-          row.applicantMobile
-        ].map(asText).join(" ").toLowerCase();
-        const rowStatus = asText(row.applicationStatus || row.displayStatus || row.approvalStatus).toLowerCase();
-        return (!keyword || haystack.includes(keyword)) && (!status || rowStatus === status);
+          getTitle(row),
+          getCountry(row, schedule.product),
+          getRegion(row),
+          getParticipantName(row),
+          schedule.participants.map(getParticipantName).join(" ")
+        ].join(" ").toLowerCase();
+        return (!keyword || haystack.includes(keyword))
+          && (!status || getScheduleFilterStatus(schedule) === status);
       });
     }
 
-    function getSelectedSchedule() {
-      return state.schedules.find((item) => item.key === state.selectedKey) || state.schedules[0] || null;
+    function getScheduleFilterStatus(schedule = {}) {
+      const operationStatus = getScheduleOperationStatus(schedule);
+      if (operationStatus === "취소") return "cancelled";
+      if (operationStatus === "출발확정") return "confirmed";
+      if (operationStatus === "마감") return "closed";
+      return "open";
     }
 
-    function profileFor(row = {}) {
-      const keys = [
-        asText(row.memberSeq),
-        asText(row.memberId),
-        normalizePhone(row.memberMobile),
-        normalizePhone(row.applicantMobile)
-      ].filter(Boolean);
-      return state.rows.profiles.find((profile) => {
-        const profileKeys = [
-          asText(profile.memberSeq),
-          asText(profile.memberId),
-          normalizePhone(profile.memberMobile)
-        ].filter(Boolean);
-        return keys.some((key) => profileKeys.includes(key));
-      }) || {};
+    function getScheduleStatusText(schedule = {}) {
+      const row = schedule.row || {};
+      return [
+        row.applicationStatus,
+        row.status,
+        row.scheduleStatus,
+        row.displayStatus,
+        row.approvalStatus
+      ].map(asText).join(" ").toLowerCase();
     }
 
-    function renderLoading() {
-      $("#scheduleList").innerHTML = `<div class="loading">데이터를 불러오는 중입니다.</div>`;
-      $("#detailGrid").innerHTML = `<div class="panel loading">데이터를 불러오는 중입니다.</div>`;
-      $("#summaryGrid").innerHTML = "";
+    function isScheduleCancelled(schedule = {}) {
+      return /(cancel|cancelled|canceled|취소|deleted|hidden|삭제|숨김)/i.test(getScheduleStatusText(schedule));
     }
 
-    function render() {
-      if (state.error) {
-        $("#scheduleList").innerHTML = `<div class="error">${escapeHtml(state.error)}</div>`;
-        $("#detailGrid").innerHTML = `<div class="panel error">${escapeHtml(state.error)}</div>`;
-        $("#summaryGrid").innerHTML = "";
+    function isScheduleClosed(schedule = {}) {
+      if (isScheduleCancelled(schedule)) return false;
+      const statusText = getScheduleStatusText(schedule);
+      if (/(closed|full|마감|모집완료)/i.test(statusText)) return true;
+      const row = schedule.row || {};
+      const people = schedule.participants.length;
+      const capacity = Number(row.maxPeople || row.capacity || schedule.product.emptySlots || 0);
+      return capacity > 0 && people >= capacity;
+    }
+
+    function isScheduleOpen(schedule = {}) {
+      return !isScheduleCancelled(schedule) && !isScheduleClosed(schedule);
+    }
+
+    function getScheduleCapacity(schedule = {}) {
+      const row = schedule.row || {};
+      return Number(row.maxPeople || row.capacity || schedule.product.maxCapacity || 4) || 4;
+    }
+
+    function isParticipantBalancePaid(row = {}) {
+      const status = asText(row.balanceStatus).toLowerCase();
+      return /paid|confirmed|complete|완료|확인|입금/.test(status);
+    }
+
+    function isParticipantDepositPaid(row = {}) {
+      const status = asText(row.depositStatus).toLowerCase();
+      return /paid|confirmed|complete|완료|확인|입금/.test(status) || isParticipantBalancePaid(row);
+    }
+
+    function getSchedulePaymentCounts(schedule = {}) {
+      const participants = getParticipantDisplayRows(schedule.participants || []);
+      const getPeople = (item) => getParticipantPeopleTotal(item.row, item.companions);
+      return {
+        total: participants.reduce((sum, item) => sum + getPeople(item), 0),
+        deposit: participants.reduce((sum, item) => sum + (isParticipantDepositPaid(item.row) ? getPeople(item) : 0), 0),
+        balance: participants.reduce((sum, item) => sum + (isParticipantBalancePaid(item.row) ? getPeople(item) : 0), 0)
+      };
+    }
+
+    function isScheduleDepartureConfirmed(schedule = {}) {
+      if (isScheduleCancelled(schedule)) return false;
+      const statusText = getScheduleStatusText(schedule);
+      if (/(departure|confirmed|출발확정)/i.test(statusText)) return true;
+      const capacity = getScheduleCapacity(schedule);
+      const counts = getSchedulePaymentCounts(schedule);
+      return counts.total >= capacity && counts.balance >= capacity;
+    }
+
+    function getScheduleOperationStatus(schedule = {}) {
+      if (isScheduleCancelled(schedule)) return "취소";
+      if (isScheduleDepartureConfirmed(schedule)) return "출발확정";
+      if (isScheduleClosed(schedule)) return "마감";
+      return "모집중";
+    }
+
+    function getScheduleStatusClass(status) {
+      if (status === "취소") return "status-cancelled";
+      if (status === "출발확정") return "status-confirmed";
+      if (status === "마감") return "status-closed";
+      return "status-open";
+    }
+
+    function formatSchedulePaymentSummary(schedule = {}) {
+      const counts = getSchedulePaymentCounts(schedule);
+      const total = counts.total || getScheduleCapacity(schedule);
+      return `예약금 ${counts.deposit}/${total} · 잔금 ${counts.balance}/${total}`;
+    }
+
+    function renderSchedulePaymentCell(schedule = {}, type = "deposit") {
+      const counts = getSchedulePaymentCounts(schedule);
+      const total = counts.total || getScheduleCapacity(schedule);
+      const paid = type === "balance" ? counts.balance : counts.deposit;
+      if (total > 0 && paid >= total) {
+        return '<span class="badge status-confirmed">입금완료</span>';
+      }
+      return `<span class="payment-summary">${escapeHtml(`${paid}/${total}`)}</span>`;
+    }
+
+    function isTodaySchedule(schedule = {}) {
+      const row = schedule.row || {};
+      const date = parseScheduleDate(firstText(row.createdAt, row.submittedAt, row.updatedAt));
+      if (!date) return false;
+      const today = new Date();
+      return date.getFullYear() === today.getFullYear()
+        && date.getMonth() === today.getMonth()
+        && date.getDate() === today.getDate();
+    }
+
+    async function loadDashboard() {
+      if (state.loading) return;
+      state.loading = true;
+      state.error = "";
+      renderTable();
+      try {
+        const { builderRows, joinRows, profileRows } = await fetchAdminRows();
+        state.rawRows = [...builderRows, ...joinRows];
+        state.schedules = buildSchedules(builderRows, joinRows);
+        state.memberProfiles = buildMemberProfiles(profileRows);
+        $("#lastUpdated").textContent = `최근 갱신 ${formatDateTime(new Date())} · 5분마다 자동 새로고침`;
+      } catch (error) {
+        state.error = error.message || "데이터 로드 실패";
+        if (!getAdminAuth().token) showLogin("로그인이 만료되었거나 인증에 실패했습니다.");
+        Object.assign(participant, previousFields);
+        renderMetrics();
+        renderTable();
+      } finally {
+        state.loading = false;
+        renderMetrics();
+        renderTable();
+      }
+    }
+
+    function startDashboardAutoRefresh() {
+      stopDashboardAutoRefresh();
+      dashboardAutoRefreshTimer = window.setInterval(() => {
+        if (!getAdminAuth().token || state.loading) return;
+        loadDashboard();
+      }, DASHBOARD_AUTO_REFRESH_MS);
+    }
+
+    function stopDashboardAutoRefresh() {
+      if (!dashboardAutoRefreshTimer) return;
+      window.clearInterval(dashboardAutoRefreshTimer);
+      dashboardAutoRefreshTimer = null;
+    }
+
+    function renderMetrics() {
+      if (state.currentMenu === "participant-management") {
+        const total = state.memberProfiles.length;
+        const active = countActiveCustomers();
+        const items = [
+          ["전체", total],
+          ["참여중", active]
+        ];
+        $("#metrics").innerHTML = items.map(([label, value]) => `
+          <div class="metric">
+            <div class="metric-label">${escapeHtml(label)}</div>
+            <div class="metric-value">${escapeHtml(value)}</div>
+          </div>
+        `).join("");
         return;
       }
-      renderSummary();
-      renderScheduleList();
-      renderDetail();
-    }
-
-    function renderSummary() {
-      const today = formatDate(new Date().toISOString());
-      const todayApplications = [...state.rows.schedules, ...state.rows.applications].filter((row) => formatDate(row.createdAt) === today);
-      const metrics = [
-        ["생성 일정", state.rows.schedules.length],
-        ["참여 신청", state.rows.applications.length],
-        ["프로필 등록", state.rows.profiles.length],
-        ["후기", state.rows.reviews.filter((row) => asText(row.status).toLowerCase() !== "deleted").length],
-        ["오늘 신규", todayApplications.length]
+      const newToday = state.schedules.filter(isTodaySchedule).length;
+      const openCount = state.schedules.filter((schedule) => getScheduleFilterStatus(schedule) === "open").length;
+      const confirmedCount = state.schedules.filter((schedule) => getScheduleFilterStatus(schedule) === "confirmed").length;
+      const closedCount = state.schedules.filter((schedule) => getScheduleFilterStatus(schedule) === "closed").length;
+      const cancelledCount = state.schedules.filter((schedule) => getScheduleFilterStatus(schedule) === "cancelled").length;
+      const consultationCount = getConsultationApplicants({ useKeyword: false }).length;
+      const items = [
+        ["신규일정", newToday],
+        ["모집중", openCount],
+        ["출발확정", confirmedCount],
+        ["마감", closedCount],
+        ["취소", cancelledCount],
+        ["상담 대기", consultationCount, "consultation"]
       ];
-      $("#summaryGrid").innerHTML = metrics.map(([label, value]) => `
-        <div class="metric">
+      items[0][2] = "open";
+      items[1][2] = "open";
+      items[2][2] = "confirmed";
+      items[3][2] = "closed";
+      items[4][2] = "cancelled";
+      const currentStatus = $("#statusFilter")?.value || "";
+      $("#metrics").innerHTML = items.map(([label, value, action]) => {
+        const isActive = action === "consultation"
+          ? state.currentSchedulePanel === "consultation"
+          : state.currentSchedulePanel !== "consultation" && currentStatus === action;
+        return `
+        <div class="metric actionable${isActive ? " active" : ""}" data-metric-action="${escapeHtml(action)}">
+          ${action === "consultation" && Number(value) > 0 ? '<span class="metric-new-badge">NEW</span>' : ""}
           <div class="metric-label">${escapeHtml(label)}</div>
           <div class="metric-value">${escapeHtml(value)}</div>
+          ${action === "consultation" ? '<svg xmlns="http://www.w3.org/2000/svg" class="metric-arrow lucide lucide-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>' : ""}
         </div>
-      `).join("");
+      `; }).join("");
     }
 
-    function renderScheduleList() {
-      const schedules = getFilteredSchedules();
-      if (!schedules.length) {
-        $("#scheduleList").innerHTML = `<div class="empty">조건에 맞는 일정이 없습니다.</div>`;
+    function renderTable() {
+      const tableWrap = $("#tableWrap");
+      syncMenuToolbar();
+      if (state.loading) {
+        tableWrap.innerHTML = '<div class="empty loading-state"><span class="loading-spinner" aria-hidden="true"></span><span>데이터를 불러오는 중입니다.</span></div>';
         return;
       }
-      if (!schedules.some((item) => item.key === state.selectedKey)) {
-        state.selectedKey = schedules[0].key;
+      if (state.error) {
+        tableWrap.innerHTML = `<div class="error">${escapeHtml(state.error)}</div>`;
+        return;
       }
-      $("#scheduleList").innerHTML = schedules.map((schedule) => {
-        const row = schedule.row;
-        const status = row.applicationStatus || row.displayStatus || row.approvalStatus;
-        const people = Number(row.applicantPeople || 1) + schedule.applications.reduce((sum, item) => sum + Number(item.applicantPeople || 1), 0);
+      if (state.currentMenu === "participant-management") {
+        renderMemberProfileTable();
+        return;
+      }
+      if (state.currentSchedulePanel === "consultation") {
+        renderConsultationApplicantsTable();
+        return;
+      }
+      const rows = filterSchedules();
+      if (!rows.length) {
+        tableWrap.innerHTML = '<div class="empty">표시할 일정이 없습니다.</div>';
+        return;
+      }
+      tableWrap.innerHTML = `
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>생성일</th>
+              <th>상태</th>
+              <th>구분</th>
+              <th>국가</th>
+              <th>지역</th>
+              <th>상품명</th>
+              <th>기간</th>
+              <th>출발일</th>
+              <th>도착일</th>
+              <th>인원</th>
+              <th>생성자</th>
+              <th>입금현황</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((schedule) => renderScheduleRow(schedule)).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function syncMenuToolbar() {
+      const isParticipantMenu = state.currentMenu === "participant-management";
+      const isConsultationPanel = state.currentMenu === "schedules" && state.currentSchedulePanel === "consultation";
+      $(".toolbar").classList.toggle("compact", isParticipantMenu || isConsultationPanel);
+      $("#searchInput").placeholder = isParticipantMenu
+        ? "고객명, 핸드폰 번호, 전문분야, 라운드스타일 검색"
+        : isConsultationPanel
+          ? "이름, 연락처, 지역, 상품명 검색"
+          : "상품명, 지역, 생성자, 참여자 검색";
+      $("#statusFilter").hidden = isParticipantMenu || isConsultationPanel;
+    }
+
+    function getConsultationApplicants(options = {}) {
+      const keyword = options.useKeyword === false ? "" : asText($("#searchInput")?.value).toLowerCase();
+      return state.schedules.flatMap((schedule) => {
+        return getParticipantDisplayRows(schedule.participants || []).map((participant) => ({
+          schedule,
+          row: participant.row,
+          index: participant.index,
+          companions: participant.companions,
+          roleLabel: getParticipantRoleLabel(participant.row),
+          createdAt: firstText(participant.row.createdAt, participant.row.submittedAt, participant.row.updatedAt)
+        }));
+      }).filter((item) => {
+        if (normalizeQuoteStatus(item.row.quoteStatus) === "sent") return false;
+        const haystack = [
+          item.roleLabel,
+          getParticipantName(item.row),
+          formatPhone(getParticipantPhone(item.row)),
+          getCountry(item.schedule.row, item.schedule.product),
+          getRegion(item.schedule.row),
+          getTitle(item.schedule.row)
+        ].join(" ").toLowerCase();
+        return !keyword || haystack.includes(keyword);
+      }).sort((a, b) => {
+        return getTimeValue(b.createdAt) - getTimeValue(a.createdAt);
+      });
+    }
+
+    function getTimeValue(value) {
+      const date = new Date(value || 0);
+      return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+    }
+
+    function renderConsultationApplicantsTable() {
+      const rows = getConsultationApplicants();
+      const tableWrap = $("#tableWrap");
+      if (!rows.length) {
+        tableWrap.innerHTML = '<div class="empty">상담 대기 신청자가 없습니다.</div>';
+        return;
+      }
+      tableWrap.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>이름</th>
+              <th>연락처</th>
+              <th>국가</th>
+              <th>지역</th>
+              <th>상품명</th>
+              <th>신청시간</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((item) => renderConsultationApplicantRow(item)).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderConsultationApplicantRow(item) {
+      const schedule = item.schedule;
+      const row = item.row;
+      return `
+        <tr data-schedule-key="${escapeHtml(schedule.key)}" data-participant-index="${escapeHtml(item.index)}">
+          <td><span class="participant-role-badge ${escapeHtml(getParticipantRole(row))}">${escapeHtml(item.roleLabel)}</span></td>
+          <td>${escapeHtml(getParticipantName(row))}</td>
+          <td>${escapeHtml(formatPhone(getParticipantPhone(row)))}</td>
+          <td>${escapeHtml(getCountry(schedule.row, schedule.product))}</td>
+          <td>${escapeHtml(getRegion(schedule.row))}</td>
+          <td class="product-cell">${escapeHtml(getTitle(schedule.row))}</td>
+          <td>${escapeHtml(formatDate(item.createdAt))}</td>
+          <td>
+            <button class="quote-complete-button" type="button" data-action="quote-complete">
+              견적완료
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    function renderConsultationApplicantsTable() {
+      const rows = getConsultationApplicants();
+      const tableWrap = $("#tableWrap");
+      if (!rows.length) {
+        tableWrap.innerHTML = '<div class="empty">상담 대기 신청자가 없습니다.</div>';
+        return;
+      }
+      tableWrap.innerHTML = `
+        <table class="consultation-table">
+          <thead>
+            <tr>
+              <th>신청시간</th>
+              <th>구분</th>
+              <th>이름</th>
+              <th>연락처</th>
+              <th>성별</th>
+              <th>나이</th>
+              <th>상품명</th>
+              <th>기간</th>
+              <th>출발일</th>
+              <th>도착일</th>
+              <th>인원</th>
+              <th>성별구성</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((item) => renderConsultationApplicantRow(item)).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderConsultationApplicantRow(item) {
+      const schedule = item.schedule;
+      const row = item.row;
+      const product = schedule.product || {};
+      const birthYear = getParticipantBirthYear(row);
+      const age = calculateAge(birthYear);
+      return `
+        <tr data-schedule-key="${escapeHtml(schedule.key)}" data-participant-index="${escapeHtml(item.index)}">
+          <td><span class="schedule-created-at">${escapeHtml(formatScheduleFullDateTime(item.createdAt))}</span></td>
+          <td><span class="participant-role-badge ${escapeHtml(getParticipantRole(row))}">${escapeHtml(item.roleLabel)}</span></td>
+          <td>${escapeHtml(getParticipantName(row))}</td>
+          <td>${escapeHtml(formatPhone(getParticipantPhone(row)))}</td>
+          <td>${escapeHtml(getParticipantGender(row) || "-")}</td>
+          <td>${escapeHtml(age ? `${age}세` : "-")}</td>
+          <td class="product-cell">${escapeHtml(getTitle(schedule.row))}</td>
+          <td>${escapeHtml(getPeriod(schedule.row, product))}</td>
+          <td>${renderScheduleDateCell(getDeparture(schedule.row, product))}</td>
+          <td>${renderScheduleDateCell(getReturn(schedule.row, product))}</td>
+          <td>${escapeHtml(`${getParticipantPeopleTotal(row, item.companions)}명`)}</td>
+          <td>${renderParticipantGenderIcons(row, item.companions)}</td>
+          <td>
+            <button class="quote-complete-button" type="button" data-action="quote-complete">견적완료</button>
+          </td>
+        </tr>
+      `;
+    }
+
+    function renderScheduleRow(schedule) {
+      const row = schedule.row;
+      const product = schedule.product;
+      const country = getCountry(row, product);
+      const operationStatus = getScheduleOperationStatus(schedule);
+      const isParticipantsExpanded = state.expandedParticipantKey === schedule.key;
+      return `
+        <tr class="${isParticipantsExpanded ? "schedule-row-expanded" : ""}" data-schedule-key="${escapeHtml(schedule.key)}">
+          <td><span class="schedule-created-at">${escapeHtml(formatScheduleCreatedDateTime(row))}</span></td>
+          <td><span class="badge ${escapeHtml(getScheduleStatusClass(operationStatus))}">${escapeHtml(operationStatus)}</span></td>
+          <td><span class="badge ${schedule.packType === "air" ? "air" : "golf"}">${escapeHtml(getPackLabel(schedule.packType))}</span></td>
+          <td>${escapeHtml(country)}</td>
+          <td>${escapeHtml(getRegion(row))}</td>
+          <td class="product-cell">${escapeHtml(getTitle(row))}</td>
+          <td>${escapeHtml(getPeriod(row, product))}</td>
+          <td>${renderScheduleDateCell(getDeparture(row, product))}</td>
+          <td>${renderScheduleDateCell(getReturn(row, product))}</td>
+          <td>${renderSchedulePeopleIcons(schedule)}</td>
+          <td>${escapeHtml(getParticipantName(row))}</td>
+          <td>${renderSchedulePaymentCell(schedule, "deposit")}</td>
+          <td>${renderSchedulePaymentCell(schedule, "balance")}</td>
+          <td>
+            <div class="row-actions customer-travel-actions">
+              <button class="row-button" type="button" data-action="participants" data-key="${escapeHtml(schedule.key)}">${isParticipantsExpanded ? "멤버닫기" : "멤버보기"}</button>
+              <button class="row-button" type="button" data-action="product" data-key="${escapeHtml(schedule.key)}">상품보기</button>
+            </div>
+          </td>
+        </tr>
+        ${isParticipantsExpanded ? renderParticipantAccordionRow(schedule) : ""}
+      `;
+    }
+
+    function normalizeParticipantGenderType(value) {
+      const text = asText(value).toLowerCase();
+      if (/여|female|woman|f\b/.test(text)) return "female";
+      if (/남|male|man|m\b/.test(text)) return "male";
+      return "";
+    }
+
+    function getSchedulePeopleGenderSlots(schedule = {}) {
+      const slots = [];
+      (schedule.participants || []).forEach((row) => {
+        slots.push(normalizeParticipantGenderType(getParticipantGender(row)));
+        getParticipantCompanionItems(row).forEach((companion) => {
+          slots.push(normalizeParticipantGenderType(companion?.gender || companion?.sex || companion));
+        });
+      });
+      return slots.slice(0, 4);
+    }
+
+    function renderSchedulePeopleIcons(schedule = {}) {
+      const total = 4;
+      const genderSlots = getSchedulePeopleGenderSlots(schedule);
+      const fallbackFilled = Math.max(0, Math.min(total, Number(schedule.participants?.length) || 0));
+      const filled = Math.max(genderSlots.length, fallbackFilled);
+      const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      return `
+        <div class="schedule-people-icons" aria-label="${escapeHtml(`${filled}/${total}명`)}" title="${escapeHtml(`${filled}/${total}명`)}">
+          ${Array.from({ length: total }, (_, index) => {
+            const genderClass = genderSlots[index] || "";
+            return `<span class="schedule-people-icon${index < filled ? ` filled${genderClass ? ` ${genderClass}` : ""}` : ""}">${icon}</span>`;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function getParticipantGenderSlots(row = {}, companionRows = []) {
+      const slots = [
+        normalizeParticipantGenderType(getParticipantGender(row)),
+        ...getParticipantCompanionItems(row).map((companion) => normalizeParticipantGenderType(companion?.gender || companion?.sex || companion)),
+        ...companionRows.map((item) => normalizeParticipantGenderType(getParticipantGender(item)))
+      ];
+      const total = Math.max(getParticipantPeopleCount(row), slots.length, 1);
+      while (slots.length < total) slots.push("");
+      return slots;
+    }
+
+    function getParticipantPeopleTotal(row = {}, companionRows = []) {
+      const genderSlots = getParticipantGenderSlots(row, companionRows);
+      return Math.max(1, Math.min(4, Math.max(getParticipantPeopleCount(row), genderSlots.length)));
+    }
+
+    function renderParticipantGenderIcons(row = {}, companionRows = []) {
+      const genderSlots = getParticipantGenderSlots(row, companionRows);
+      const total = getParticipantPeopleTotal(row, companionRows);
+      const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+      return `
+        <div class="schedule-people-icons participant-people-cell participant-gender-icons" aria-label="${escapeHtml(`${total}명 성별`)}" title="${escapeHtml(`${total}명 성별`)}">
+          ${Array.from({ length: total }, (_, index) => {
+            const genderClass = genderSlots[index] || "";
+            return `<span class="schedule-people-icon filled${genderClass ? ` ${genderClass}` : ""}">${icon}</span>`;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderParticipantAccordionRow(schedule) {
+      return `
+        <tr class="participant-accordion-row" data-participant-accordion-for="${escapeHtml(schedule.key)}">
+          <td colspan="14">
+            <div class="participant-accordion-panel">
+              ${renderParticipantTable(schedule)}
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function buildMemberProfiles(profileRows = []) {
+      const latestByKey = new Map();
+      profileRows.forEach((row, index) => {
+        const profile = {
+          ...row,
+          __index: index
+        };
+        const key = normalizePhone(getProfilePhone(profile))
+          || asText(profile.memberSeq)
+          || asText(profile.memberId)
+          || asText(profile.profileId)
+          || `profile-${index}`;
+        const previous = latestByKey.get(key);
+        if (!previous || getProfileSortTime(profile) >= getProfileSortTime(previous)) {
+          latestByKey.set(key, profile);
+        }
+      });
+      return [...latestByKey.values()].sort((a, b) => getProfileSortTime(b) - getProfileSortTime(a));
+    }
+
+    function getProfileSortTime(profile = {}) {
+      const date = new Date(firstText(profile.updatedAt, profile.createdAt, profile.termsAgreedAt));
+      if (!Number.isNaN(date.getTime())) return date.getTime();
+      return Number(profile.__index || 0);
+    }
+
+    function getProfileName(profile = {}) {
+      return firstText(profile.memberName, profile.name, getNestedValue(profile, "member.memberName"));
+    }
+
+    function getProfilePhone(profile = {}) {
+      return firstText(profile.memberMobile, profile.mobile, profile.phone, getNestedValue(profile, "member.memberMobile"));
+    }
+
+    function getProfileGender(profile = {}) {
+      return firstText(profile.gender, profile.memberGender, getNestedValue(profile, "profile.gender"));
+    }
+
+    function getProfileBirthDate(profile = {}) {
+      return firstText(profile.birthDate, profile.birthday, profile.birthYear, getNestedValue(profile, "profile.birthDate"), getNestedValue(profile, "profile.birthYear"));
+    }
+
+    function getProfileAge(profile = {}) {
+      return calculateAge(getProfileBirthDate(profile));
+    }
+
+    function getProfileHandicap(profile = {}) {
+      return firstText(profile.level, profile.handicap, profile.handy, getNestedValue(profile, "profile.level"));
+    }
+
+    function getProfileProfession(profile = {}) {
+      return firstText(profile.profession, profile.specialty, profile.interests, getNestedValue(profile, "profile.profession"));
+    }
+
+    function getProfileRoundStyle(profile = {}) {
+      return parseList(firstText(profile.travelStyles, profile.roundStyle, profile.roundingStyle, profile.styles, getNestedValue(profile, "profile.travelStyles"))).join(", ");
+    }
+
+    function getProfileRegisteredDate(profile = {}) {
+      return firstText(profile.createdAt, profile.termsAgreedAt, profile.updatedAt);
+    }
+
+    function filterMemberProfiles() {
+      const keyword = $("#searchInput").value.trim().toLowerCase();
+      return state.memberProfiles.filter((profile) => {
+        const haystack = [
+          getProfileName(profile),
+          formatPhone(getProfilePhone(profile)),
+          normalizePhone(getProfilePhone(profile)),
+          getProfileGender(profile),
+          getProfileBirthDate(profile),
+          formatDate(getProfileRegisteredDate(profile)),
+          getProfileHandicap(profile),
+          getProfileProfession(profile),
+          getProfileRoundStyle(profile)
+        ].join(" ").toLowerCase();
+        return !keyword || haystack.includes(keyword);
+      });
+    }
+
+    function countActiveCustomers() {
+      const activeKeys = new Set();
+      state.schedules.forEach((schedule) => {
+        (schedule.participants || []).forEach((row) => {
+          if (isScheduleCancelled(schedule)) return;
+          const key = normalizePhone(getParticipantPhone(row)) || asText(row.memberSeq) || asText(row.memberId);
+          if (key) activeKeys.add(key);
+        });
+      });
+      return state.memberProfiles.filter((profile) => {
+        const key = normalizePhone(getProfilePhone(profile)) || asText(profile.memberSeq) || asText(profile.memberId);
+        return key && activeKeys.has(key);
+      }).length;
+    }
+
+    function getCustomerKey(profile = {}) {
+      return normalizePhone(getProfilePhone(profile))
+        || asText(profile.memberSeq)
+        || asText(profile.memberId)
+        || asText(profile.profileId)
+        || asText(profile.__index);
+    }
+
+    function isSameCustomer(profile = {}, participant = {}) {
+      const profilePhone = normalizePhone(getProfilePhone(profile));
+      const participantPhone = normalizePhone(getParticipantPhone(participant));
+      if (profilePhone && participantPhone && profilePhone === participantPhone) return true;
+      const profileSeq = asText(profile.memberSeq);
+      const participantSeq = asText(participant.memberSeq);
+      if (profileSeq && participantSeq && profileSeq === participantSeq) return true;
+      const profileId = asText(profile.memberId);
+      const participantId = asText(participant.memberId);
+      return Boolean(profileId && participantId && profileId === participantId);
+    }
+
+    function getCustomerTravelRows(profile = {}) {
+      return state.schedules.flatMap((schedule) => {
+        return getParticipantDisplayRows(schedule.participants || [])
+          .filter((item) => isSameCustomer(profile, item.row))
+          .map((item) => ({
+            schedule,
+            row: item.row,
+            companions: item.companions
+          }));
+      }).sort((a, b) => getTimeValue(getDeparture(b.schedule.row, b.schedule.product)) - getTimeValue(getDeparture(a.schedule.row, a.schedule.product)));
+    }
+
+    function renderMemberProfileTable() {
+      const rows = filterMemberProfiles();
+      const tableWrap = $("#tableWrap");
+      if (!rows.length) {
+        tableWrap.innerHTML = '<div class="empty">표시할 고객이 없습니다.</div>';
+        return;
+      }
+      tableWrap.innerHTML = `
+        <table class="customer-table">
+          <thead>
+            <tr>
+              <th>이름</th>
+              <th>핸드폰 번호</th>
+              <th>성별</th>
+              <th>생년월일</th>
+              <th>나이</th>
+              <th>등록일</th>
+              <th>핸디</th>
+              <th>전문분야</th>
+              <th>라운드스타일</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((profile) => renderMemberProfileRow(profile)).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderMemberProfileTable() {
+      const rows = filterMemberProfiles();
+      const tableWrap = $("#tableWrap");
+      if (!rows.length) {
+        tableWrap.innerHTML = '<div class="empty">표시할 고객이 없습니다.</div>';
+        return;
+      }
+      tableWrap.innerHTML = `
+        <table class="customer-table">
+          <thead>
+            <tr>
+              <th>이름</th>
+              <th>핸드폰 번호</th>
+              <th>성별</th>
+              <th>생년월일</th>
+              <th>나이</th>
+              <th>등록일</th>
+              <th>핸디</th>
+              <th>전문분야</th>
+              <th>라운드스타일</th>
+              <th>여행목록</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((profile) => renderMemberProfileRow(profile)).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderMemberProfileRow(profile = {}) {
+      const customerKey = getCustomerKey(profile);
+      const isExpanded = state.expandedCustomerKey === customerKey;
+      const travels = getCustomerTravelRows(profile);
+      return `
+        <tr class="${isExpanded ? "customer-row-expanded" : ""}" data-customer-key="${escapeHtml(customerKey)}">
+          <td>${escapeHtml(getProfileName(profile) || "-")}</td>
+          <td>${escapeHtml(formatPhone(getProfilePhone(profile)))}</td>
+          <td>${escapeHtml(getProfileGender(profile) || "-")}</td>
+          <td>${escapeHtml(getProfileBirthDate(profile) || "-")}</td>
+          <td>${escapeHtml(getProfileAge(profile) ? `${getProfileAge(profile)}세` : "-")}</td>
+          <td>${escapeHtml(formatDate(getProfileRegisteredDate(profile)))}</td>
+          <td>${escapeHtml(getProfileHandicap(profile) || "-")}</td>
+          <td>${escapeHtml(getProfileProfession(profile) || "-")}</td>
+          <td>${escapeHtml(getProfileRoundStyle(profile) || "-")}</td>
+          <td class="customer-travel-count-cell">
+            <div class="row-actions">
+              <span class="payment-summary">${escapeHtml(`${travels.length}건`)}</span>
+              <button class="row-button" type="button" data-action="customer-travels" data-customer-key="${escapeHtml(customerKey)}">${isExpanded ? "닫기" : "보기"}</button>
+            </div>
+          </td>
+        </tr>
+        ${isExpanded ? renderCustomerTravelAccordionRow(travels) : ""}
+      `;
+    }
+
+    function renderCustomerTravelAccordionRow(travels = []) {
+      return `
+        <tr class="customer-travel-accordion-row">
+          <td colspan="10">
+            <div class="customer-travel-panel">
+              ${travels.length ? renderCustomerTravelTable(travels) : '<div class="empty">진행중이거나 다녀온 여행이 없습니다.</div>'}
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function renderCustomerTravelTable(travels = []) {
+      return `
+        <div class="customer-travel-table-wrap">
+          <table class="customer-travel-table">
+            <thead>
+              <tr>
+                <th>상태</th>
+                <th>구분</th>
+                <th>국가</th>
+                <th>지역</th>
+                <th>상품명</th>
+                <th>기간</th>
+                <th>출발일</th>
+                <th>도착일</th>
+                <th>인원</th>
+                <th>성별구성</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${travels.map((item) => renderCustomerTravelRow(item)).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderCustomerTravelRow(item = {}) {
+      const schedule = item.schedule || {};
+      const row = schedule.row || {};
+      const product = schedule.product || {};
+      const operationStatus = getScheduleOperationStatus(schedule);
+      return `
+        <tr>
+          <td><span class="badge ${escapeHtml(getScheduleStatusClass(operationStatus))}">${escapeHtml(operationStatus)}</span></td>
+          <td><span class="badge ${schedule.packType === "air" ? "air" : "golf"}">${escapeHtml(getPackLabel(schedule.packType))}</span></td>
+          <td>${escapeHtml(getCountry(row, product))}</td>
+          <td>${escapeHtml(getRegion(row))}</td>
+          <td class="product-cell">${escapeHtml(getTitle(row))}</td>
+          <td>${escapeHtml(getPeriod(row, product))}</td>
+          <td>${renderScheduleDateCell(getDeparture(row, product))}</td>
+          <td>${renderScheduleDateCell(getReturn(row, product))}</td>
+          <td>${escapeHtml(`${getParticipantPeopleTotal(item.row, item.companions)}명`)}</td>
+          <td>${renderParticipantGenderIcons(item.row, item.companions)}</td>
+        </tr>
+      `;
+    }
+
+    function findSchedule(key) {
+      return state.schedules.find((schedule) => schedule.key === key);
+    }
+
+    function getParticipantSheetName(row = {}) {
+      return getParticipantRole(row) === "creator" ? "new_schedule_applications" : "join_applications";
+    }
+
+    function getParticipantApplicationId(row = {}) {
+      return asText(row.applicationId || row.joinApplyId);
+    }
+
+    function getParticipantStatusFromPayment(fields = {}) {
+      if (fields.refundStatus === "paid") return "환불완료";
+      if (fields.refundStatus === "requested") return "취소";
+      if (fields.balanceStatus === "paid") return "잔금완료";
+      if (fields.depositStatus === "paid") return "예약금완료";
+      if (fields.depositStatus === "requested") return "예약금요청";
+      if (fields.quoteStatus === "sent") return "견적완료";
+      return "신청";
+    }
+
+    function getStatusActionLabel(fieldName, value) {
+      if (fieldName === "quoteStatus" && value === "sent") return "견적완료";
+      if (fieldName === "depositStatus" && value === "paid") return "예약금 입금확인";
+      if (fieldName === "balanceStatus" && value === "paid") return "잔금 입금확인";
+      if (fieldName === "refundStatus" && value === "requested") return "취소";
+      if (fieldName === "refundStatus" && value === "paid") return "환불";
+      if (fieldName === "refundStatus" && !value) return "취소/환불 해제";
+      return "상태 변경";
+    }
+
+    function openConfirmDialog({ title = "작업 확인", message = "", okText = "확인", cancelText = "취소" } = {}) {
+      const backdrop = $("#confirmBackdrop");
+      if (!backdrop) return Promise.resolve(window.confirm(message || title));
+      $("#confirmTitle").textContent = title;
+      $("#confirmMessage").textContent = message;
+      $("#confirmOkButton").textContent = okText;
+      $("#confirmCancelButton").textContent = cancelText;
+      backdrop.classList.add("open");
+      backdrop.setAttribute("aria-hidden", "false");
+      return new Promise((resolve) => {
+        const cleanup = (result) => {
+          backdrop.classList.remove("open");
+          backdrop.setAttribute("aria-hidden", "true");
+          $("#confirmOkButton").removeEventListener("click", onOk);
+          $("#confirmCancelButton").removeEventListener("click", onCancel);
+          backdrop.removeEventListener("click", onBackdrop);
+          document.removeEventListener("keydown", onKeydown);
+          resolve(result);
+        };
+        const onOk = () => cleanup(true);
+        const onCancel = () => cleanup(false);
+        const onBackdrop = (event) => {
+          if (event.target === backdrop) cleanup(false);
+        };
+        const onKeydown = (event) => {
+          if (event.key === "Escape") cleanup(false);
+        };
+        $("#confirmOkButton").addEventListener("click", onOk);
+        $("#confirmCancelButton").addEventListener("click", onCancel);
+        backdrop.addEventListener("click", onBackdrop);
+        document.addEventListener("keydown", onKeydown);
+        $("#confirmOkButton").focus();
+      });
+    }
+
+    async function saveParticipantStatus(button) {
+      const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
+      if (!rowElement) return;
+      const schedule = findSchedule(rowElement.dataset.scheduleKey);
+      const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
+      if (!participant) return;
+      const applicationId = getParticipantApplicationId(participant);
+      if (!applicationId) {
+        alert("참여자 저장 키를 찾을 수 없습니다.");
+        return;
+      }
+      const fieldName = button.dataset.statusField;
+      if (!fieldName) return;
+      const fieldValue = button.dataset.statusValue || "";
+      const actionLabel = getStatusActionLabel(fieldName, fieldValue);
+      const confirmed = await openConfirmDialog({
+        title: actionLabel,
+        message: `${getParticipantName(participant) || "참여자"}님의 상태를 '${actionLabel}' 처리할까요?`,
+        okText: actionLabel
+      });
+      if (!confirmed) return;
+      const fields = {
+        [fieldName]: fieldValue
+      };
+      fields.participantStatus = getParticipantStatusFromPayment({ ...participant, ...fields });
+      const previousFields = {
+        [fieldName]: participant[fieldName],
+        participantStatus: participant.participantStatus,
+        updatedAt: participant.updatedAt
+      };
+      button.disabled = true;
+      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      renderMetrics();
+      renderTable();
+      try {
+        const auth = getAdminAuth();
+        const url = new URL(SHEET_API_ENDPOINT);
+        url.searchParams.set("action", "admin_status_update");
+        const response = await fetch(url.toString(), {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Golfjoin-Admin-Token": auth.token || ""
+          },
+          body: JSON.stringify({
+            sheet: getParticipantSheetName(participant),
+            keyField: "applicationId",
+            keyValue: applicationId,
+            fields,
+            skipSummaryRefresh: true
+          })
+        });
+        if (!response.ok) throw new Error(`저장 실패: ${response.status}`);
+        const result = await response.json();
+        if (!result.ok) throw new Error(result.error || "저장에 실패했습니다.");
+        Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+        renderMetrics();
+        renderTable();
+      } catch (error) {
+        alert(error.message || "저장에 실패했습니다.");
+      } finally {
+        Object.assign(participant, previousFields);
+        renderMetrics();
+        if (state.currentSchedulePanel === "consultation") renderTable();
+        button.disabled = false;
+      }
+    }
+
+    function renderCheckIcon() {
+      return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+    }
+
+    async function saveQuoteComplete(button) {
+      const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
+      if (!rowElement) return;
+      const schedule = findSchedule(rowElement.dataset.scheduleKey);
+      const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
+      if (!participant) return;
+      const applicationId = getParticipantApplicationId(participant);
+      if (!applicationId) {
+        alert("참여자 저장 키를 찾을 수 없습니다.");
+        return;
+      }
+      button.disabled = true;
+      const confirmed = await openConfirmDialog({
+        title: "견적완료",
+        message: `${getParticipantName(participant) || "참여자"}님의 상태를 '견적완료'로 처리할까요?`,
+        okText: "견적완료"
+      });
+      if (!confirmed) return;
+      const confirmedDuplicate = true || await openConfirmDialog({
+        title: "견적완료",
+        message: `${getParticipantName(participant) || "참여자"}님의 상태를 '견적완료'로 처리할까요?`,
+        okText: "견적완료"
+      });
+      if (!confirmed) return;
+      const fields = {
+        quoteStatus: "sent",
+        participantStatus: "견적완료"
+      };
+      const previousFields = {
+        quoteStatus: participant.quoteStatus,
+        participantStatus: participant.participantStatus,
+        updatedAt: participant.updatedAt
+      };
+      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      button.classList.add("completed");
+      button.innerHTML = `${renderCheckIcon()}<span>완료</span>`;
+      renderMetrics();
+      if (state.currentSchedulePanel === "consultation") renderTable();
+      try {
+        const fields = {
+          quoteStatus: "sent",
+          participantStatus: "견적완료"
+        };
+        const auth = getAdminAuth();
+        const url = new URL(SHEET_API_ENDPOINT);
+        url.searchParams.set("action", "admin_status_update");
+        const response = await fetch(url.toString(), {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Golfjoin-Admin-Token": auth.token || ""
+          },
+          body: JSON.stringify({
+            sheet: getParticipantSheetName(participant),
+            keyField: "applicationId",
+            keyValue: applicationId,
+            fields,
+            skipSummaryRefresh: true
+          })
+        });
+        if (!response.ok) throw new Error(`저장 실패: ${response.status}`);
+        const result = await response.json();
+        if (!result.ok) throw new Error(result.error || "저장에 실패했습니다.");
+        Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+        button.classList.add("completed");
+        button.innerHTML = `${renderCheckIcon()}<span>완료</span>`;
+        renderMetrics();
+        setTimeout(() => {
+          if (state.currentSchedulePanel === "consultation") renderTable();
+        }, 700);
+      } catch (error) {
+        alert(error.message || "저장에 실패했습니다.");
+        button.disabled = false;
+      }
+    }
+
+    function openDrawer(title, sub, body, options = {}) {
+      $("#drawerTitle").textContent = title;
+      $("#drawerSub").textContent = sub || "";
+      $("#drawerBody").innerHTML = body;
+      const drawer = $("#drawer");
+      drawer.classList.add("open");
+      drawer.setAttribute("aria-hidden", "false");
+      $("#drawerBackdrop").classList.add("open");
+    }
+
+    function closeDrawer() {
+      const drawer = $("#drawer");
+      drawer.classList.remove("open");
+      drawer.setAttribute("aria-hidden", "true");
+      $("#drawerBackdrop").classList.remove("open");
+    }
+
+    function renderParticipantTable(schedule) {
+      const participants = getParticipantDisplayRows(schedule.participants || []);
+      return `
+        <div class="participant-table-wrap">
+          <table class="participant-table">
+            <thead>
+              <tr>
+                <th>구분</th>
+                <th>이름</th>
+                <th>핸드폰번호</th>
+                <th>성별</th>
+                <th>나이</th>
+                <th>핸디</th>
+                <th>인원</th>
+                <th>성별구성</th>
+                <th>견적</th>
+                <th>예약금</th>
+                <th>잔금</th>
+                <th>취소/환불</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${participants.map((item) => renderParticipantRow(item.row, schedule.key, item.index, item.companions)).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function getParticipantDisplayRows(participants = []) {
+      const rows = [];
+      const groupMap = new Map();
+      participants.forEach((row, index) => {
+        const groupKey = firstText(row.companionGroup, row.groupId, row.applicationId, row.joinApplyId);
+        if (groupKey && groupMap.has(groupKey)) {
+          groupMap.get(groupKey).companions.push(row);
+          return;
+        }
+        if (isCompanionOnlyParticipant(row)) {
+          if (groupKey && groupMap.has(groupKey)) {
+            groupMap.get(groupKey).companions.push(row);
+            return;
+          }
+          const previous = rows[rows.length - 1];
+          const samePhone = previous && normalizePhone(getParticipantPhone(previous.row)) === normalizePhone(getParticipantPhone(row));
+          if (previous && (!groupKey || samePhone)) {
+            previous.companions.push(row);
+            return;
+          }
+        }
+        const item = { row, index, companions: [] };
+        rows.push(item);
+        if (groupKey) groupMap.set(groupKey, item);
+      });
+      return rows;
+    }
+
+    function renderParticipantRow(row, scheduleKey, index, companionRows = []) {
+      const birthYear = getParticipantBirthYear(row);
+      const age = calculateAge(birthYear);
+      const role = getParticipantRole(row);
+      const roleLabel = getParticipantRoleLabel(row);
+      return `
+        <tr data-schedule-key="${escapeHtml(scheduleKey)}" data-participant-index="${escapeHtml(index)}">
+          <td><span class="participant-role-badge ${role}">${escapeHtml(roleLabel)}</span></td>
+          <td>
+            <div class="participant-name-cell">
+              <div class="participant-name-main">${escapeHtml(getParticipantName(row))}</div>
+            </div>
+          </td>
+          <td>${escapeHtml(formatPhone(getParticipantPhone(row)))}</td>
+          <td>${escapeHtml(getParticipantGender(row) || "-")}</td>
+          <td>${escapeHtml(age ? `${age}세` : "-")}</td>
+          <td>${escapeHtml(getParticipantHandicap(row) || "-")}</td>
+          <td>${escapeHtml(`${getParticipantPeopleTotal(row, companionRows)}명`)}</td>
+          <td>${renderParticipantGenderIcons(row, companionRows)}</td>
+          <td>${renderParticipantQuoteBadge(row)}</td>
+          <td>${renderParticipantPaidBadge("depositStatus", row.depositStatus)}</td>
+          <td>${renderParticipantPaidBadge("balanceStatus", row.balanceStatus)}</td>
+          <td>${renderParticipantRefundBadges(row.refundStatus)}</td>
+        </tr>
+      `;
+    }
+
+    function normalizePaymentStatus(value) {
+      const text = asText(value).toLowerCase();
+      if (/paid|confirmed|complete|완료|확인|입금/.test(text)) return "paid";
+      if (/request|progress|진행|요청|대기/.test(text)) return "requested";
+      return "";
+    }
+
+    function normalizeQuoteStatus(value) {
+      const text = asText(value).toLowerCase();
+      if (/sent|done|complete|전송|발송|완료/.test(text)) return "sent";
+      return "";
+    }
+
+    function renderParticipantStatusButton(field, value, label, options = {}) {
+      const currentValue = asText(options.currentValue);
+      const active = currentValue === value;
+      const nextValue = active && options.clearable !== false ? "" : value;
+      const stateClass = active ? ` ${options.activeClass || "is-complete"}` : "";
+      return `<button class="participant-status-badge${stateClass}" type="button" data-action="participant-status-update" data-status-field="${escapeHtml(field)}" data-status-value="${escapeHtml(nextValue)}">${escapeHtml(label)}</button>`;
+    }
+
+    function renderParticipantQuoteBadge(row = {}) {
+      const current = normalizeQuoteStatus(row.quoteStatus);
+      return renderParticipantStatusButton("quoteStatus", "sent", current === "sent" ? "견적완료" : "미견적", {
+        currentValue: current,
+        activeClass: "is-complete"
+      });
+    }
+
+    function renderParticipantPaidBadge(field, value) {
+      const current = normalizePaymentStatus(value) === "paid" ? "paid" : "";
+      return renderParticipantStatusButton(field, "paid", current === "paid" ? "입금완료" : "미납", {
+        currentValue: current,
+        activeClass: "is-complete"
+      });
+    }
+
+    function renderParticipantStatusAction(field, value, label) {
+      return `<button class="participant-status-action" type="button" data-action="participant-status-update" data-status-field="${escapeHtml(field)}" data-status-value="${escapeHtml(value)}">${escapeHtml(label)}</button>`;
+    }
+
+    function renderParticipantStatusCell(field, complete, valueLabel, actionLabel, actionValue = "paid") {
+      return `
+        <div class="participant-status-cell">
+          <span class="participant-status-badge${complete ? " is-complete" : ""}">${escapeHtml(valueLabel)}</span>
+          ${renderParticipantStatusAction(field, actionValue, actionLabel)}
+        </div>
+      `;
+    }
+
+    function renderParticipantQuoteBadge(row = {}) {
+      const current = normalizeQuoteStatus(row.quoteStatus);
+      return renderParticipantStatusCell("quoteStatus", current === "sent", current === "sent" ? "견적완료" : "미견적", "견적완료", "sent");
+    }
+
+    function renderParticipantPaidBadge(field, value) {
+      const current = normalizePaymentStatus(value) === "paid" ? "paid" : "";
+      return renderParticipantStatusCell(field, current === "paid", current === "paid" ? "입금완료" : "미납", "입금확인");
+    }
+
+    function renderParticipantRefundBadges(value) {
+      const current = normalizePaymentStatus(value);
+      return `
+        <div class="participant-status-actions">
+          ${renderParticipantStatusButton("refundStatus", "requested", "취소", {
+            currentValue: current,
+            activeClass: "is-warning"
+          })}
+          ${renderParticipantStatusButton("refundStatus", "paid", "환불", {
+            currentValue: current,
+            activeClass: "is-danger"
+          })}
+        </div>
+      `;
+    }
+
+    function renderParticipantRefundBadges(value) {
+      const current = normalizePaymentStatus(value);
+      return `
+        <div class="participant-status-actions">
+          ${renderParticipantStatusAction("refundStatus", current === "requested" ? "" : "requested", "취소")}
+          ${renderParticipantStatusAction("refundStatus", current === "paid" ? "" : "paid", "환불")}
+        </div>
+      `;
+    }
+
+    async function openProductDrawer(schedule) {
+      const product = schedule.product || {};
+      const row = schedule.row || {};
+      openDrawer(
+        "상품 상세 정보",
+        getTitle(row),
+        '<div class="empty loading-state"><span class="loading-spinner" aria-hidden="true"></span><span>실제 상품 상세 정보를 불러오는 중입니다.</span></div>'
+      );
+      const detail = await getProductDetailContent(row, product);
+      const flightItems = buildFlightInfo(row, product, detail);
+      openDrawer(
+        "상품 상세 정보",
+        getTitle(row),
+        `
+          <section class="drawer-section">
+            <h3 class="section-title">기본 정보</h3>
+            ${renderInfoGrid([
+              ["국가", getCountry(row, product)],
+              ["지역", getRegion(row)],
+              ["기간", getPeriod(row, product)],
+              ["상품가", formatPrice(row.productPrice || product.price || row.price)]
+            ])}
+            ${detail.loadError ? '<div class="empty">실제 상품 상세 페이지를 불러오지 못했습니다.</div>' : ""}
+          </section>
+          <section class="drawer-section">
+            <h3 class="section-title">항공편</h3>
+            ${flightItems.length ? renderList(flightItems) : '<div class="empty">등록된 항공편 정보가 없습니다.</div>'}
+          </section>
+          <section class="drawer-section">
+            <h3 class="section-title">포함사항</h3>
+            ${renderList(detail.includes)}
+          </section>
+          <section class="drawer-section">
+            <h3 class="section-title">불포함사항</h3>
+            ${renderList(detail.excludes)}
+          </section>
+          <section class="drawer-section">
+            <h3 class="section-title">참고사항</h3>
+            ${renderList(detail.notes)}
+          </section>
+          <section class="drawer-section">
+            <h3 class="section-title">일정표</h3>
+            ${renderProductSchedule(detail.schedule)}
+          </section>
+        `
+      );
+    }
+
+    function collectDetailList(row = {}, product = {}, paths = []) {
+      const values = paths.flatMap((path) => {
+        if (path.startsWith("product.")) return parseList(getNestedValue(product, path.replace(/^product\./, "")));
+        if (path.startsWith("row.")) return parseList(getNestedValue(row, path.replace(/^row\./, "")));
+        return parseList(row[path] || product[path]);
+      });
+      return [...new Set(values.map(asText).filter(Boolean))];
+    }
+
+    async function getProductDetailContent(row = {}, product = {}) {
+      const actualDetail = await loadSecretTourGoodsDetail(row, product);
+      const includes = collectDetailList(row, product, [
+        "product.includes",
+        "product.includeItems",
+        "row.includes",
+        "row.includeItems",
+        "row.product.includes",
+        "row.trip.includes",
+        "row.included",
+        "row.include",
+        "row.포함사항"
+      ]);
+      const excludes = collectDetailList(row, product, [
+        "product.excludes",
+        "product.excludeItems",
+        "row.excludes",
+        "row.excludeItems",
+        "row.product.excludes",
+        "row.trip.excludes",
+        "row.excluded",
+        "row.exclude",
+        "row.불포함사항"
+      ]);
+      const notes = collectDetailList(row, product, [
+        "product.notes",
+        "product.notice",
+        "row.notes",
+        "row.notice",
+        "row.product.notes",
+        "row.trip.notes",
+        "row.reference",
+        "row.참고사항"
+      ]);
+      const schedule = getProductScheduleItems(row, product);
+      return {
+        includes: parseList(actualDetail.includes).length ? parseList(actualDetail.includes) : includes,
+        excludes: parseList(actualDetail.excludes).length ? parseList(actualDetail.excludes) : excludes,
+        notes: parseList(actualDetail.notes).length ? parseList(actualDetail.notes) : notes,
+        schedule: Array.isArray(actualDetail.schedule) && actualDetail.schedule.length ? actualDetail.schedule : schedule,
+        flightScheduleItems: parseList(actualDetail.flightScheduleItems),
+        loadError: Boolean(actualDetail.loadError)
+      };
+    }
+
+    function buildFlightInfo(row = {}, product = {}, detail = {}) {
+      const actualItems = parseList(detail.flightScheduleItems);
+      if (actualItems.length) return actualItems;
+      const direct = [
+        row.flightInfo,
+        row.airline,
+        row.flightCode,
+        product.flightInfo,
+        product.airline,
+        product.flightCode
+      ].map(asText).filter(Boolean);
+      return [...new Set(direct)];
+    }
+
+    function renderList(items) {
+      const list = parseList(items);
+      if (!list.length) return '<div class="empty">등록된 내용이 없습니다.</div>';
+      return `<ul class="list">${list.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    }
+
+    function getProductScheduleItems(row = {}, product = {}) {
+      const candidates = [
+        product.schedule,
+        product.itinerary,
+        row.schedule,
+        row.itinerary,
+        getNestedValue(row, "product.schedule"),
+        getNestedValue(row, "trip.schedule"),
+        row.scheduleItems,
+        row.scheduleJson,
+        row.일정표
+      ];
+      for (const candidate of candidates) {
+        if (Array.isArray(candidate) && candidate.length) return candidate;
+        const text = asText(candidate);
+        if (!text) continue;
+        try {
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed) && parsed.length) return parsed;
+        } catch (error) {}
+        const list = parseList(text);
+        if (list.length) return list;
+      }
+      return [];
+    }
+
+    function renderProductSchedule(scheduleItems) {
+      if (!Array.isArray(scheduleItems) || !scheduleItems.length) return '<div class="empty">등록된 일정표가 없습니다.</div>';
+      return scheduleItems.map((item, index) => {
+        if (typeof item === "string") {
+          return `<div class="schedule-day"><div class="schedule-day-title">${index + 1}일차</div><div class="info-value">${escapeHtml(item)}</div></div>`;
+        }
+        const points = parseList(item.points || item.items || item.content || item.description);
+        const hotel = asText(item.hotel);
+        const meal = formatMealSummary(item.meal || item.meals);
         return `
-          <button type="button" class="schedule-item ${schedule.key === state.selectedKey ? "active" : ""}" data-schedule-key="${escapeHtml(schedule.key)}">
-            <div class="schedule-title">${escapeHtml(getScheduleTitle(row))}</div>
-            <div class="schedule-meta">
-              <span>${escapeHtml(row.region || parseList(row.regions)[0] || "-")}</span>
-              <span>${escapeHtml(getScheduleDate(row))}</span>
-            </div>
-            <div class="schedule-meta">
-              <span class="badge ${escapeHtml(statusClass(status))}">${escapeHtml(statusLabel(status))}</span>
-              <span>참여 ${escapeHtml(people)}명</span>
-              <span>생성자 ${escapeHtml(row.applicantName || row.memberName || "-")}</span>
-            </div>
-          </button>
+          <div class="schedule-day">
+            <div class="schedule-day-title">${escapeHtml(item.day || `${index + 1}일차`)} ${escapeHtml(item.date || item.dateText || "")}</div>
+            ${points.length ? renderList(points) : `<div class="info-value">${escapeHtml(item.title || item.description || "-")}</div>`}
+            ${hotel ? `<div class="info-value schedule-day-meta">호텔: ${escapeHtml(hotel)}</div>` : ""}
+            ${meal ? `<div class="info-value schedule-day-meta">식사: ${escapeHtml(meal)}</div>` : ""}
+          </div>
         `;
       }).join("");
     }
 
-    function renderDetail() {
-      const schedule = getSelectedSchedule();
-      if (!schedule) {
-        $("#detailGrid").innerHTML = `<div class="panel empty">선택할 일정이 없습니다.</div>`;
-        return;
+    function formatMealSummary(value) {
+      if (Array.isArray(value)) {
+        return value.map((meal) => {
+          if (typeof meal === "string") return asText(meal);
+          return cleanSecretTourDetailText([meal.label, meal.menu].filter(Boolean).join(": "));
+        }).filter(Boolean).join(" / ");
       }
-      const row = schedule.row;
-      const creatorProfile = profileFor(row);
-      $("#detailGrid").innerHTML = `
-        <article class="panel">
-          <div class="detail-head">
-            <div class="detail-title-row">
-              <div>
-                <h2 class="detail-title">${escapeHtml(getScheduleTitle(row))}</h2>
-                <div class="inline-meta" style="margin-top:8px;">
-                  <span>${escapeHtml(row.region || parseList(row.regions)[0] || "-")}</span>
-                  <span>${escapeHtml(getScheduleDate(row))}</span>
-                  <span class="badge ${escapeHtml(statusClass(row.applicationStatus || row.displayStatus || row.approvalStatus))}">${escapeHtml(statusLabel(row.applicationStatus || row.displayStatus || row.approvalStatus))}</span>
-                </div>
-              </div>
-              <span class="badge">scheduleId ${escapeHtml(row.scheduleId || "-")}</span>
-            </div>
-          </div>
-
-          <section class="section">
-            <h3 class="section-title">일정 정보</h3>
-            ${renderInfoGrid([
-              ["신청ID", row.applicationId],
-              ["상품ID", row.erpProductId],
-              ["행사ID", row.erpEventSeq],
-              ["가격", row.productPrice],
-              ["출발 희망", [row.departureDateFrom, row.departureDateTo].filter(Boolean).join(" ~ ")],
-              ["귀국 희망", [row.returnDateFrom, row.returnDateTo].filter(Boolean).join(" ~ ")],
-              ["여행요약", row.tripSummary],
-              ["업데이트", formatDateTime(row.updatedAt || row.createdAt)]
-            ])}
-          </section>
-
-          <section class="section">
-            <h3 class="section-title">생성자</h3>
-            <div class="split">
-              ${renderPersonCard(row, creatorProfile, "모임장")}
-              ${renderInfoGrid([
-                ["동반 인원", `${row.applicantPeople || 1}명`],
-                ["라운딩 스타일", parseList(row.applicantStyles).join(", ")],
-                ["희망 동반자", parseList(row.applicantPreferredMembers).join(", ")],
-                ["인사말", row.applicantGreeting]
-              ])}
-            </div>
-          </section>
-
-          <section class="section">
-            <h3 class="section-title">참여자 목록</h3>
-            ${renderParticipants(schedule)}
-          </section>
-
-          <section class="section">
-            <h3 class="section-title">후기</h3>
-            ${renderReviews(schedule.reviews)}
-          </section>
-        </article>
-      `;
+      return asText(value);
     }
 
     function renderInfoGrid(items) {
       return `
         <div class="info-grid">
           ${items.map(([label, value]) => `
-            <div class="info">
+            <div class="info-item">
               <div class="info-label">${escapeHtml(label)}</div>
               <div class="info-value">${escapeHtml(asText(value) || "-")}</div>
             </div>
@@ -923,155 +3597,378 @@
       `;
     }
 
-    function renderPersonCard(row, profile = {}, role = "참여자") {
-      const name = row.applicantName || row.memberName || profile.memberName || "-";
-      const phone = row.applicantMobile || row.memberMobile || profile.memberMobile || "";
-      const image = profile.profileImageUrl || "";
-      return `
-        <div class="person-card">
-          <div class="person-head">
-            <div>
-              <div class="person-name">${escapeHtml(name)}</div>
-              <div class="inline-meta" style="margin-top:4px;">
-                <span class="badge ${role === "모임장" ? "open" : ""}">${escapeHtml(role)}</span>
-                <span>${escapeHtml(formatPhone(phone))}</span>
-              </div>
-            </div>
-            ${image ? `<img class="profile-image" src="${escapeHtml(image)}" alt="">` : ""}
-          </div>
-          ${renderInfoGrid([
-            ["회원번호", row.memberSeq || profile.memberSeq],
-            ["아이디", row.memberId || profile.memberId],
-            ["성별", row.applicantGender || profile.gender],
-            ["출생연도", row.applicantBirthYear || profile.birthYear],
-            ["타수/레벨", row.applicantLevel || profile.level],
-            ["직업", row.applicantProfession || profile.profession],
-            ["여행스타일", parseList(profile.travelStyles).join(", ")],
-            ["이메일", row.memberEmail || profile.memberEmail]
-          ])}
-        </div>
-      `;
-    }
-
-    function renderParticipants(schedule) {
-      if (!schedule.applications.length) {
-        return `<div class="empty">아직 참여 신청자가 없습니다.</div>`;
+    function downloadCsv() {
+      if (state.currentMenu === "participant-management") {
+        const rows = filterMemberProfiles().map((profile) => ({
+          name: getProfileName(profile),
+          mobile: formatPhone(getProfilePhone(profile)),
+          gender: getProfileGender(profile),
+          birthDate: getProfileBirthDate(profile),
+          age: getProfileAge(profile),
+          handicap: getProfileHandicap(profile),
+          profession: getProfileProfession(profile),
+          roundStyle: getProfileRoundStyle(profile)
+        }));
+        if (!rows.length) return;
+        downloadRowsAsCsv(rows, `golfjoin-participants-${new Date().toISOString().slice(0, 10)}.csv`);
+        return;
       }
-      return `
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>신청일</th>
-                <th>이름</th>
-                <th>연락처</th>
-                <th>인원</th>
-                <th>성별/연령</th>
-                <th>타수/스타일</th>
-                <th>희망 동반자</th>
-                <th>상태</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${schedule.applications.map((row) => `
-                <tr>
-                  <td class="nowrap">${escapeHtml(formatDateTime(row.createdAt))}</td>
-                  <td>${escapeHtml(row.applicantName || row.memberName || "-")}</td>
-                  <td class="nowrap">${escapeHtml(formatPhone(row.applicantMobile || row.memberMobile))}</td>
-                  <td>${escapeHtml(row.applicantPeople || 1)}명</td>
-                  <td>${escapeHtml([row.applicantGender, row.applicantAgeBand || row.applicantBirthYear].filter(Boolean).join(" / ") || "-")}</td>
-                  <td>${escapeHtml([row.applicantLevel, parseList(row.applicantStyles).join(", ")].filter(Boolean).join(" / ") || "-")}</td>
-                  <td>${escapeHtml(parseList(row.applicantPreferredMembers).join(", ") || "-")}</td>
-                  <td><span class="badge ${escapeHtml(statusClass(row.applicationStatus))}">${escapeHtml(statusLabel(row.applicationStatus))}</span></td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function renderReviews(reviews) {
-      const visibleReviews = reviews.filter((row) => asText(row.status).toLowerCase() !== "deleted");
-      if (!visibleReviews.length) return `<div class="empty">등록된 후기가 없습니다.</div>`;
-      return `
-        <div class="review-list">
-          ${visibleReviews.map((row) => `
-            <div class="review-card">
-              <div class="inline-meta">
-                <span>${"★".repeat(Math.max(0, Math.min(5, Number(row.rating || 0))))}</span>
-                <span>${escapeHtml(row.memberName || "-")}</span>
-                <span>${escapeHtml(formatDate(row.createdAt))}</span>
-                <span>${escapeHtml(parseList(row.tags).join(", "))}</span>
-              </div>
-              <div class="review-text">${escapeHtml(row.reviewText || "")}</div>
-            </div>
-          `).join("")}
-        </div>
-      `;
-    }
-
-    function downloadSchedulesCsv() {
-      const rows = getFilteredSchedules().map((schedule) => {
+      const rows = filterSchedules().map((schedule) => {
         const row = schedule.row;
+        const product = schedule.product;
         return {
-          scheduleId: row.scheduleId || "",
-          applicationId: row.applicationId || "",
-          productName: getScheduleTitle(row),
-          region: row.region || parseList(row.regions)[0] || "",
-          date: getScheduleDate(row),
-          creator: row.applicantName || row.memberName || "",
-          creatorPhone: row.applicantMobile || row.memberMobile || "",
-          status: row.applicationStatus || row.displayStatus || row.approvalStatus || "",
-          participants: schedule.applications.length,
-          reviews: schedule.reviews.length
+          pack: getPackLabel(schedule.packType),
+          country: getCountry(row, product),
+          region: getRegion(row),
+          productName: getTitle(row),
+          period: getPeriod(row, product),
+          departureDate: formatDate(getDeparture(row, product)),
+          returnDate: formatDate(getReturn(row, product)),
+          creator: getParticipantName(row),
+          participants: schedule.participants.map(getParticipantName).join(", "),
+          people: schedule.participants.length,
+          price: formatPrice(row.productPrice || product.price || row.price)
         };
       });
-      const headers = Object.keys(rows[0] || {
-        scheduleId: "",
-        applicationId: "",
-        productName: "",
-        region: "",
-        date: "",
-        creator: "",
-        creatorPhone: "",
-        status: "",
-        participants: "",
-        reviews: ""
-      });
-      const csv = [
-        headers.join(","),
-        ...rows.map((row) => headers.map((header) => `"${String(row[header] || "").replace(/"/g, '""')}"`).join(","))
-      ].join("\n");
-      const blob = new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `golfjoin-schedules-${new Date().toISOString().slice(0, 10)}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
+      if (!rows.length) return;
+      downloadRowsAsCsv(rows, `golfjoin-schedules-${new Date().toISOString().slice(0, 10)}.csv`);
     }
 
-    document.addEventListener("click", (event) => {
-      const item = event.target.closest("[data-schedule-key]");
-      if (!item) return;
-      state.selectedKey = item.dataset.scheduleKey;
-      renderScheduleList();
-      renderDetail();
+    function downloadRowsAsCsv(rows, filename) {
+      const headers = Object.keys(rows[0]);
+      const csv = [
+        headers.join(","),
+        ...rows.map((row) => headers.map((key) => `"${String(row[key] ?? "").replace(/"/g, '""')}"`).join(","))
+      ].join("\n");
+      const blob = new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function showApp() {
+      $("#loginScreen").hidden = true;
+      $("#app").hidden = false;
+    }
+
+    function showLogin(message = "") {
+      $("#app").hidden = true;
+      $("#loginScreen").hidden = false;
+      $("#loginError").textContent = message;
+      $("#adminPasswordInput").value = "";
+    }
+
+    function renderTable() {
+      const tableWrap = $("#tableWrap");
+      syncMenuToolbar();
+      if (state.loading) {
+        tableWrap.innerHTML = '<div class="empty loading-state"><span class="loading-spinner" aria-hidden="true"></span><span>데이터를 불러오는 중입니다.</span></div>';
+        return;
+      }
+      if (state.error) {
+        tableWrap.innerHTML = `<div class="error">${escapeHtml(state.error)}</div>`;
+        return;
+      }
+      if (state.currentMenu === "participant-management") {
+        renderMemberProfileTable();
+        return;
+      }
+      if (state.currentSchedulePanel === "consultation") {
+        renderConsultationApplicantsTable();
+        return;
+      }
+      const rows = filterSchedules();
+      if (!rows.length) {
+        tableWrap.innerHTML = '<div class="empty">표시할 일정이 없습니다.</div>';
+        return;
+      }
+      tableWrap.innerHTML = `
+        <table class="schedule-table">
+          <thead>
+            <tr>
+              <th>생성일</th>
+              <th>상태</th>
+              <th>구분</th>
+              <th>국가</th>
+              <th>지역</th>
+              <th>상품명</th>
+              <th>기간</th>
+              <th>출발일</th>
+              <th>도착일</th>
+              <th>인원</th>
+              <th>생성자</th>
+              <th>예약금</th>
+              <th>잔금</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map((schedule) => renderScheduleRow(schedule)).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function submitAdminStatusUpdate(participant, applicationId, fields) {
+      const auth = getAdminAuth();
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "admin_status_update");
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Golfjoin-Admin-Token": auth.token || ""
+        },
+        body: JSON.stringify({
+          sheet: getParticipantSheetName(participant),
+          keyField: "applicationId",
+          keyValue: applicationId,
+          fields,
+          skipSummaryRefresh: true
+        })
+      });
+      if (!response.ok) throw new Error(`저장 실패: ${response.status}`);
+      const result = await response.json();
+      if (!result.ok) throw new Error(result.error || "저장에 실패했습니다.");
+      return result;
+    }
+
+    async function saveParticipantStatus(button) {
+      const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
+      if (!rowElement) return;
+      const schedule = findSchedule(rowElement.dataset.scheduleKey);
+      const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
+      if (!participant) return;
+      const applicationId = getParticipantApplicationId(participant);
+      if (!applicationId) {
+        alert("참여자 저장 행을 찾을 수 없습니다.");
+        return;
+      }
+      const fieldName = button.dataset.statusField;
+      if (!fieldName) return;
+      const fieldValue = button.dataset.statusValue || "";
+      const actionLabel = getStatusActionLabel(fieldName, fieldValue);
+      const confirmed = await openConfirmDialog({
+        title: actionLabel,
+        message: `${getParticipantName(participant) || "참여자"}님의 상태를 '${actionLabel}' 처리할까요?`,
+        okText: actionLabel
+      });
+      if (!confirmed) return;
+      const fields = {
+        [fieldName]: fieldValue
+      };
+      fields.participantStatus = getParticipantStatusFromPayment({ ...participant, ...fields });
+      const previousFields = {
+        [fieldName]: participant[fieldName],
+        participantStatus: participant.participantStatus,
+        updatedAt: participant.updatedAt
+      };
+      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      renderMetrics();
+      renderTable();
+      try {
+        await submitAdminStatusUpdate(participant, applicationId, fields);
+      } catch (error) {
+        Object.assign(participant, previousFields);
+        renderMetrics();
+        renderTable();
+        alert(error.message || "저장에 실패했습니다.");
+      }
+    }
+
+    async function saveQuoteComplete(button) {
+      const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
+      if (!rowElement) return;
+      const schedule = findSchedule(rowElement.dataset.scheduleKey);
+      const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
+      if (!participant) return;
+      const applicationId = getParticipantApplicationId(participant);
+      if (!applicationId) {
+        alert("참여자 저장 행을 찾을 수 없습니다.");
+        return;
+      }
+      const fields = {
+        quoteStatus: "sent",
+        participantStatus: "견적완료"
+      };
+      const previousFields = {
+        quoteStatus: participant.quoteStatus,
+        participantStatus: participant.participantStatus,
+        updatedAt: participant.updatedAt
+      };
+      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      renderMetrics();
+      if (state.currentSchedulePanel === "consultation") renderTable();
+      try {
+        await submitAdminStatusUpdate(participant, applicationId, fields);
+      } catch (error) {
+        Object.assign(participant, previousFields);
+        renderMetrics();
+        if (state.currentSchedulePanel === "consultation") renderTable();
+        alert(error.message || "저장에 실패했습니다.");
+      }
+    }
+
+    async function saveQuoteComplete(button) {
+      const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
+      if (!rowElement) return;
+      const schedule = findSchedule(rowElement.dataset.scheduleKey);
+      const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
+      if (!participant) return;
+      const applicationId = getParticipantApplicationId(participant);
+      if (!applicationId) {
+        alert("참여자 저장 행을 찾을 수 없습니다.");
+        return;
+      }
+      const confirmed = await openConfirmDialog({
+        title: "견적완료",
+        message: `${getParticipantName(participant) || "참여자"}님의 상태를 '견적완료'로 처리할까요?`,
+        okText: "견적완료"
+      });
+      if (!confirmed) return;
+      const fields = {
+        quoteStatus: "sent",
+        participantStatus: "견적완료"
+      };
+      const previousFields = {
+        quoteStatus: participant.quoteStatus,
+        participantStatus: participant.participantStatus,
+        updatedAt: participant.updatedAt
+      };
+      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      renderMetrics();
+      if (state.currentSchedulePanel === "consultation") renderTable();
+      try {
+        await submitAdminStatusUpdate(participant, applicationId, fields);
+      } catch (error) {
+        Object.assign(participant, previousFields);
+        renderMetrics();
+        if (state.currentSchedulePanel === "consultation") renderTable();
+        alert(error.message || "저장에 실패했습니다.");
+      }
+    }
+
+    $("#loginForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const loginId = $("#adminIdInput").value.trim();
+      const loginPassword = $("#adminPasswordInput").value;
+      if (!loginId || !loginPassword) {
+        $("#loginError").textContent = "아이디와 비밀번호를 모두 입력해 주세요.";
+        return;
+      }
+      try {
+        await loginAdmin(loginId, loginPassword);
+        showApp();
+        await loadDashboard();
+        startDashboardAutoRefresh();
+      } catch (error) {
+        clearAdminAuth();
+        stopDashboardAutoRefresh();
+        showLogin(error.message || "로그인에 실패했습니다.");
+      }
     });
 
-    $("#searchInput").addEventListener("input", () => {
-      renderScheduleList();
-      renderDetail();
-    });
-    $("#statusFilter").addEventListener("change", () => {
-      renderScheduleList();
-      renderDetail();
+    $("#logoutButton").addEventListener("click", () => {
+      stopDashboardAutoRefresh();
+      clearAdminAuth();
+      showLogin("");
     });
     $("#reloadButton").addEventListener("click", loadDashboard);
-    $("#downloadButton").addEventListener("click", downloadSchedulesCsv);
+    $("#searchInput").addEventListener("input", renderTable);
+    $("#statusFilter").addEventListener("change", () => {
+      state.currentSchedulePanel = "schedules";
+      renderMetrics();
+      renderTable();
+    });
+    $("#drawerClose").addEventListener("click", closeDrawer);
+    $("#drawerBackdrop").addEventListener("click", closeDrawer);
 
-    loadDashboard();
+    $("#tableWrap").addEventListener("click", (event) => {
+      const quoteButton = event.target.closest('[data-action="quote-complete"]');
+      if (quoteButton) {
+        saveQuoteComplete(quoteButton);
+        return;
+      }
+      const participantStatusButton = event.target.closest('[data-action="participant-status-update"]');
+      if (participantStatusButton) {
+        saveParticipantStatus(participantStatusButton);
+        return;
+      }
+      if (state.currentMenu === "participant-management") {
+        const travelButton = event.target.closest('[data-action="customer-travels"]');
+        if (!travelButton) return;
+        const key = travelButton.dataset.customerKey || "";
+        state.expandedCustomerKey = state.expandedCustomerKey === key ? "" : key;
+        renderTable();
+        return;
+      }
+      if (event.target.closest(".participant-table-wrap")) return;
+      const button = event.target.closest("[data-action][data-key]");
+      if (!button) {
+        if (state.currentMenu !== "schedules" || state.currentSchedulePanel !== "schedules") return;
+        const rowElement = event.target.closest('tr[data-schedule-key]:not(.participant-accordion-row)');
+        if (!rowElement || event.target.closest(".row-actions")) return;
+        const schedule = findSchedule(rowElement.dataset.scheduleKey);
+        if (!schedule) return;
+        state.expandedParticipantKey = state.expandedParticipantKey === schedule.key ? "" : schedule.key;
+        renderTable();
+        return;
+      }
+      const schedule = findSchedule(button.dataset.key);
+      if (!schedule) return;
+      if (button.dataset.action === "participants") {
+        state.expandedParticipantKey = state.expandedParticipantKey === schedule.key ? "" : schedule.key;
+        renderTable();
+      }
+      if (button.dataset.action === "product") openProductDrawer(schedule);
+    });
+
+    $("#drawerBody").addEventListener("click", (event) => {
+      const button = event.target.closest('[data-action="participant-status-update"]');
+      if (!button) return;
+      saveParticipantStatus(button);
+    });
+
+    $("#metrics").addEventListener("click", (event) => {
+      const metric = event.target.closest("[data-metric-action]");
+      if (!metric || state.currentMenu !== "schedules") return;
+      const action = metric.dataset.metricAction || "open";
+      if (action === "consultation") {
+        state.currentSchedulePanel = "consultation";
+      } else {
+        state.currentSchedulePanel = "schedules";
+        if (["open", "closed", "cancelled", "confirmed"].includes(action)) {
+          $("#statusFilter").value = action;
+        }
+      }
+      renderMetrics();
+      renderTable();
+    });
+
+    document.querySelectorAll(".nav-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".nav-button").forEach((item) => item.classList.toggle("active", item === button));
+        state.currentMenu = button.dataset.menu || "schedules";
+        state.currentSchedulePanel = "schedules";
+        $("#pageTitle").textContent = button.textContent.trim();
+        $(".page-sub").textContent = state.currentMenu === "participant-management"
+          ? "조인 페이지에 회원가입한 고객 정보를 확인합니다."
+          : "항공팩, 골프팩 일정별 참여자와 상품 상세 정보를 확인합니다.";
+        renderMetrics();
+        renderTable();
+      });
+    });
+
+    if (getAdminAuth().token) {
+      showApp();
+      loadDashboard();
+      startDashboardAutoRefresh();
+    } else {
+      showLogin("");
+    }
   </script>
 </body>
 </html>

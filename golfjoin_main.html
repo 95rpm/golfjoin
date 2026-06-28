@@ -26561,9 +26561,10 @@
     </div>
   </div>
 
-  <script src="web/golf-join-products-data.js"></script>
+  <script src="web/golfjoin_local_data.js"></script>
   <script>
     const GOLFJOIN_SHEET_API_ENDPOINT = window.GOLFJOIN_SHEET_API_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
+    const GOLFJOIN_SHEET_READ_TIMEOUT_MS = 8000;
 
     const BADGE_IMAGES = {
       justgo: "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/badge_justgo.png",
@@ -26594,7 +26595,20 @@
       }
     };
 
-    const joins = [];
+    const LOCAL_FALLBACK_JOINS = [
+      { id: "erp-30001104-30265790", title: "태국 우돈타니 로얄크릭 3박5일 로얄크릭", region: "우돈타니", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 259000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001104", eventSeq: "30265790" },
+      { id: "erp-30001089-30269803", title: "태국 방콕 2색 3박5일 썬라이즈 호텔", region: "방콕", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 274000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001089", eventSeq: "30269803" },
+      { id: "erp-30001224-30268185", title: "라오스 비엔티안 덴사반 3박5일 덴사반카지노 구관", region: "비엔티안", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 310000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001224", eventSeq: "30268185" },
+      { id: "erp-30001106-30258166", title: "필리핀 클락 파인우드 3박5일 아이온", region: "클락", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 310000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001106", eventSeq: "30258166" },
+      { id: "erp-30001243-30269615", title: "태국 치앙마이 가산쿤탄 3박5일 가산쿤탄 (신관)", region: "치앙마이", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 370000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001243", eventSeq: "30269615" },
+      { id: "erp-30001097-30263569", title: "태국 치앙마이 메조 3박5일 메조", region: "치앙마이", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 385000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001097", eventSeq: "30263569" },
+      { id: "erp-30001123-30269991", title: "태국 방콕 2색 5박7일 썬라이즈 호텔", region: "방콕", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-11", date: "2026.07.05 - 2026.07.11", duration: "5박 7일", price: 400000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001123", eventSeq: "30269991" },
+      { id: "erp-30001092-30262585", title: "태국 치앙마이 아티타야 3박5일 아티타야", region: "치앙마이", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 400000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001092", eventSeq: "30262585" },
+      { id: "erp-30001096-30263360", title: "태국 치앙마이 로얄치앙마이 3박5일 로얄 카트비", region: "치앙마이", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 415000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001096", eventSeq: "30263360" },
+      { id: "erp-30001107-30258375", title: "필리핀 마닐라 썬밸리 3박5일 썬밸리 레이트체크아웃(20시까지)", region: "마닐라", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 415000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001107", eventSeq: "30258375" },
+      { id: "erp-30001084-30216722", title: "태국 방콕 아티타야 3박5일", region: "방콕", category: "해외", departureDate: "2026-07-05", returnDate: "2026-07-09", date: "2026.07.05 - 2026.07.09", duration: "3박 5일", price: 420000, airport: "인천", badge: "시크릿특가", badgeKind: "special", status: "예약", image: "", includes: [], excludes: [], notes: [], schedule: [], participants: [], emptySlots: 4, goodSeq: "30001084", eventSeq: "30216722" }
+    ];
+    const joins = LOCAL_FALLBACK_JOINS.map((join) => ({ ...join }));
     const domesticJoinTemplate = {};
     const overseasJoinTemplate = {};
 
@@ -27028,6 +27042,8 @@
     let joinActionLoadingMessageBase = "";
     let joinActionLoadingMessageDotIndex = 0;
     let homeInitialLoadingMessageBase = "상품 정보를 확인하고 있어요";
+    let homeInitialLoadingMaxTimer = null;
+    const HOME_INITIAL_LOADING_MAX_VISIBLE_MS = 12000;
     const homeInitialLoadingMessages = [
       "상품 정보를 확인하고 있어요",
       "참여 가능한 일정을 불러오고 있어요",
@@ -27166,6 +27182,10 @@
     function openHomeInitialLoading() {
       const overlay = document.getElementById("homeInitialLoadingOverlay");
       const box = overlay?.querySelector(".join-action-loading-box");
+      if (homeInitialLoadingMaxTimer) {
+        clearTimeout(homeInitialLoadingMaxTimer);
+        homeInitialLoadingMaxTimer = null;
+      }
       document.documentElement.classList.add("home-initial-loading", "modal-open");
       document.body.classList.add("home-initial-loading", "modal-open");
       document.getElementById("secret-golf-join")?.classList.add("modal-open");
@@ -27181,6 +27201,13 @@
       if (!homeInitialLoadingIconTimer) {
         homeInitialLoadingIconTimer = setInterval(renderHomeInitialLoadingIcon, JOIN_ACTION_LOADING_ICON_INTERVAL_MS);
       }
+      homeInitialLoadingMaxTimer = setTimeout(() => {
+        homeInitialExternalProductsLoading = false;
+        homeInitialExternalProductsLoadedOnce = true;
+        homeBootstrapLoading = false;
+        renderJoins();
+        closeHomeInitialLoading();
+      }, HOME_INITIAL_LOADING_MAX_VISIBLE_MS);
     }
 
     function closeHomeInitialLoading() {
@@ -27197,6 +27224,10 @@
       if (homeInitialLoadingIconTimer) {
         clearInterval(homeInitialLoadingIconTimer);
         homeInitialLoadingIconTimer = null;
+      }
+      if (homeInitialLoadingMaxTimer) {
+        clearTimeout(homeInitialLoadingMaxTimer);
+        homeInitialLoadingMaxTimer = null;
       }
       homeInitialLoadingMessageDotIndex = 0;
     }
@@ -36048,9 +36079,13 @@
 
     function matchesPeriod(join) {
       const diff = daysUntil(join.departureDate);
+      const today = getTodayDate();
+      const thisMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+      const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+      const nextMonth = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, "0")}`;
       if (state.period === "departure-soon") return join.emptySlots <= 1;
-      if (state.period === "this-month") return join.departureDate.startsWith("2026-05");
-      if (state.period === "next-month") return join.departureDate.startsWith("2026-06");
+      if (state.period === "this-month") return join.departureDate.startsWith(thisMonth);
+      if (state.period === "next-month") return join.departureDate.startsWith(nextMonth);
       if (state.period === "three-months") return diff >= 0 && diff <= 92;
       return true;
     }
@@ -38591,7 +38626,18 @@
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") url.searchParams.set(key, value);
       });
-      const response = await fetch(url.toString(), { method: "GET", cache: "no-store" });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), GOLFJOIN_SHEET_READ_TIMEOUT_MS);
+      let response;
+      try {
+        response = await fetch(url.toString(), {
+          method: "GET",
+          cache: "no-store",
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
       if (!response.ok) throw new Error(`${label} load failed: ${response.status}`);
       const data = await response.json();
       return Array.isArray(data) ? data : (data.items || data.rows || data.applications || data.reviews || []);
@@ -38601,12 +38647,20 @@
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
       const url = new URL(GOLFJOIN_SHEET_API_ENDPOINT);
       url.searchParams.set("action", action);
-      const response = await fetch(url.toString(), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        body: JSON.stringify(payload)
-      });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), GOLFJOIN_SHEET_READ_TIMEOUT_MS);
+      let response;
+      try {
+        response = await fetch(url.toString(), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
       if (!response.ok) throw new Error(`${label} failed: ${response.status}`);
       const data = await response.json();
       return data;
@@ -41065,6 +41119,30 @@
       });
     }
 
+    function loadLocalGolfJoinProductsData() {
+      return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest();
+        request.open("GET", "web/golfjoin_local_data.json", true);
+        request.timeout = 15000;
+        request.onreadystatechange = () => {
+          if (request.readyState !== 4) return;
+          if (request.status < 200 || request.status >= 300) {
+            reject(new Error(`Local golf join products load failed: ${request.status}`));
+            return;
+          }
+          try {
+            const data = JSON.parse(request.responseText || "{}");
+            resolve(Array.isArray(data.items) ? data.items : []);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        request.onerror = () => reject(new Error("Local golf join products request failed."));
+        request.ontimeout = () => reject(new Error("Local golf join products request timed out."));
+        request.send();
+      });
+    }
+
     async function loadSecretTourGoodsProducts() {
       const rows = 100;
       const categoryLists = await mapWithConcurrency(SECRET_TOUR_GOODS_CATEGORY_ROOTS, 3, (cate1) => {
@@ -41191,7 +41269,11 @@
       }
       if (!externalGolfJoinProductsLoadPromise) {
         externalGolfJoinProductsLoading = true;
-        externalGolfJoinProductsLoadPromise = loadSecretTourGoodsProducts()
+        externalGolfJoinProductsLoadPromise = loadLocalGolfJoinProductsData()
+          .catch((error) => {
+            console.warn("Failed to load local golf join products. Falling back to live products.", error);
+            return loadSecretTourGoodsProducts();
+          })
           .then((items) => {
             externalGolfJoinProducts = items.map(normalizeExternalGolfJoinProduct);
             hydrateOverseasJoinsWithSecretProducts();
@@ -46211,6 +46293,10 @@
     }
 
     function renderHomeInitialLoading() {
+      if (!shouldShowHomeInitialLoading()) {
+        renderJoins();
+        return;
+      }
       const sectionList = document.getElementById("joinSectionList");
       const mdPickSection = document.getElementById("joinMdPickSection");
       const activeSectionHead = document.getElementById("joinActiveSectionHead");

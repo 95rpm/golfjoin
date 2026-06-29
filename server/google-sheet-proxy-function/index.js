@@ -146,9 +146,12 @@ const ALLOWED_WRITE_SHEETS_BY_SOURCE = {
   join_apply: "join_applications",
   join_member_profile: "join_member_profiles",
   join_review: "join_reviews",
-  join_wish: "join_wishes"
+  join_wish: "join_wishes",
+  product_display_rule: "product_display_rules"
 };
 const ALLOWED_ACTIONS = new Set(["", "upsert"]);
+const ALLOWED_ROOM_TYPES = new Set(["2인1실", "1인1실"]);
+const ALLOWED_FLIGHT_REQUEST_TYPES = new Set(["", "직접예약", "대행요청"]);
 const ADMIN_STATUS_UPDATE_FIELDS = new Set([
   "participantStatus",
   "quoteStatus",
@@ -710,7 +713,7 @@ function assertWriteSourceAndSheet(payload) {
   const sheet = normalizeSheetName(payload.sheet || "");
   if (sheet && sheet !== expectedSheet) throw createHttpError("sheet does not match source");
   if (!ALLOWED_ACTIONS.has(asText(payload.action))) throw createHttpError("action is not allowed");
-  if (payload.keyField && !["profileId", "applicationId", "reviewId", "wishId"].includes(asText(payload.keyField))) {
+  if (payload.keyField && !["profileId", "applicationId", "reviewId", "wishId", "displayRuleId"].includes(asText(payload.keyField))) {
     throw createHttpError("keyField is not allowed");
   }
   return source;
@@ -737,6 +740,11 @@ function validateApplicationPayload(payload, options = {}) {
   assertList(getValue(payload, "applicant.memberPreferences") || getValue(payload, "applicant.preferredMemberComposition"), "applicant.memberPreferences", { maxItems: 3, maxTextLength: 40 });
   assertTextLength(getValue(payload, "applicant.profession"), "applicant.profession", 80);
   assertTextLength(getValue(payload, "applicant.greeting"), "applicant.greeting", 120);
+  assertAllowedValue(getValue(payload, "applicant.roomType") || "2인1실", "applicant.roomType", ALLOWED_ROOM_TYPES);
+  assertAllowedValue(getValue(payload, "applicant.flightRequestType") || "", "applicant.flightRequestType", ALLOWED_FLIGHT_REQUEST_TYPES);
+  assertNumberRange(getValue(payload, "applicant.singleRoomSurcharge") || 0, "applicant.singleRoomSurcharge", 0, 10000000);
+  assertTextLength(getValue(payload, "applicant.singleRoomSurchargeText"), "applicant.singleRoomSurchargeText", MAX_STRING_LENGTHS.medium);
+  assertAllowedValue(getValue(payload, "applicant.singleRoomSurchargeStatus") || "", "applicant.singleRoomSurchargeStatus", new Set(["", "found", "not_found", "manual_check", "not_selected"]));
   assertBooleanTrue(getValue(payload, "agreements.required"), "agreements.required");
 
   if (Array.isArray(getValue(payload, "applicant.companions")) && getValue(payload, "applicant.companions").length > 7) {
@@ -815,6 +823,21 @@ function validateWishPayload(payload) {
   assertTextLength(getValue(payload, "product.imageUrl") || payload.imageUrl, "product.imageUrl", MAX_STRING_LENGTHS.url);
 }
 
+function validateProductDisplayRulePayload(payload) {
+  assertTextLength(payload.erpProductId || getValue(payload, "product.erpProductId") || payload.goodSeq, "erpProductId", MAX_STRING_LENGTHS.short, { required: true });
+  assertTextLength(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || payload.eventSeq, "erpEventSeq", MAX_STRING_LENGTHS.short, { required: true });
+  assertAllowedValue(payload.section || "available_schedule", "section", new Set(["available_schedule"]), { required: true });
+  assertTextLength(payload.displayRuleId, "displayRuleId", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.overrideTitle || getValue(payload, "product.productName"), "overrideTitle", MAX_STRING_LENGTHS.medium);
+  assertTextLength(payload.overrideImageUrl || getValue(payload, "product.imageUrl"), "overrideImageUrl", MAX_STRING_LENGTHS.url);
+  assertTextLength(payload.displayStartAt, "displayStartAt", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.displayEndAt, "displayEndAt", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.badgeType, "badgeType", MAX_STRING_LENGTHS.short);
+  assertAllowedValue(payload.packType || getValue(payload, "product.packType") || "", "packType", new Set(["", "air", "golf", "항공팩", "골프팩"]));
+  assertTextLength(payload.packTypeName || getValue(payload, "product.packTypeName"), "packTypeName", MAX_STRING_LENGTHS.short);
+  assertNumberRange(payload.displayOrder || 0, "displayOrder", 0, 10000);
+}
+
 function validateWritePayload(payload) {
   const source = assertWriteSourceAndSheet(payload);
   assertTextLength(payload.pageUrl, "pageUrl", MAX_STRING_LENGTHS.url);
@@ -837,6 +860,10 @@ function validateWritePayload(payload) {
   }
   if (source === "join_wish") {
     validateWishPayload(payload);
+    return;
+  }
+  if (source === "product_display_rule") {
+    validateProductDisplayRulePayload(payload);
   }
 }
 
@@ -1131,6 +1158,7 @@ async function readHomeBootstrapBatchDirect(params = {}) {
     joinApplications: payload.joinApplications.map(sanitizePublicRow),
     reviews: payload.reviews.map(sanitizePublicRow),
     wishes: payload.wishes.map(sanitizeJoinWishLookupRow),
+    displayRules: Array.isArray(payload.displayRules) ? payload.displayRules.map(sanitizePublicRow) : [],
     warnings: []
   };
 }
@@ -1153,6 +1181,7 @@ function cloneHomeBootstrapPayload(payload = {}) {
     joinApplications: Array.isArray(payload.joinApplications) ? payload.joinApplications : [],
     reviews: Array.isArray(payload.reviews) ? payload.reviews : [],
     wishes: Array.isArray(payload.wishes) ? payload.wishes : [],
+    displayRules: Array.isArray(payload.displayRules) ? payload.displayRules : [],
     warnings: Array.isArray(payload.warnings) ? [...payload.warnings] : [],
     cache: payload.cache || undefined
   };
@@ -1207,6 +1236,11 @@ async function readHomeBootstrapUncached(params = {}) {
       status: "visible",
       limit: Math.min(Math.max(Number(params?.reviewLimit || 200), 1), 200)
     }).then((rows) => rows.map(sanitizePublicRow))),
+    readHomeBootstrapPart("displayRules", () => readSheetRowsDirect({
+      sheet: "product_display_rules",
+      section: "available_schedule",
+      limit: Math.min(Math.max(Number(params?.displayRuleLimit || 100), 1), 100)
+    }).then((rows) => rows.map(sanitizePublicRow))),
     readHomeBootstrapPart("wishes", async () => {
       const rows = await readJoinWishesForMember({
         memberSeq,
@@ -1226,6 +1260,7 @@ async function readHomeBootstrapUncached(params = {}) {
     joinApplications: [],
     reviews: [],
     wishes: [],
+    displayRules: [],
     warnings: []
   });
 }
@@ -1453,11 +1488,6 @@ async function proxyPost(req, res) {
     return;
   }
 
-  if (!isWriteRequestAuthorized(req)) {
-    const error = new Error("Write token is required");
-    error.status = 403;
-    throw error;
-  }
   const rawLength = Number(req.headers["content-length"] || 0);
   if (rawLength > MAX_POST_BYTES) {
     const error = new Error("Payload too large");
@@ -1470,8 +1500,13 @@ async function proxyPost(req, res) {
     error.status = 400;
     throw error;
   }
-  validateWritePayload(payload);
   const source = asText(payload.source);
+  if (!isWriteRequestAuthorized(req) && !(source === "product_display_rule" && isAdminReadRequest(req))) {
+    const error = new Error("Write token is required");
+    error.status = 403;
+    throw error;
+  }
+  validateWritePayload(payload);
   console.log("golfjoin write start", {
     requestId,
     source,

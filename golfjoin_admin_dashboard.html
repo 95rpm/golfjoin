@@ -382,6 +382,249 @@
       overflow: auto;
       max-height: calc(100vh - 300px);
     }
+    .recommendation-manager {
+      display: grid;
+      gap: 18px;
+      padding: 18px;
+    }
+    .recommendation-table {
+      min-width: 1520px;
+    }
+    .recommendation-calendar-picker {
+      position: relative;
+      width: 260px;
+    }
+    .recommendation-calendar-toggle {
+      width: 100%;
+      min-height: 38px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 7px 10px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .recommendation-calendar-toggle span {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .recommendation-calendar-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 80;
+      width: min(808px, calc(100vw - 20px));
+      max-width: calc(100vw - 20px);
+      max-height: calc(100vh - 20px);
+      display: none;
+      border: 1px solid #eef2f7;
+      border-radius: 0;
+      background: var(--panel);
+      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+      padding: 8px 8px 10px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      transform: translate(-50%, -50%);
+    }
+    .recommendation-calendar-picker.open .recommendation-calendar-panel {
+      display: block;
+    }
+    .recommendation-calendar-head {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) 32px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .recommendation-calendar-month-control {
+      grid-column: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-width: 0;
+    }
+    .recommendation-calendar-month {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 800;
+      min-width: 0;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .recommendation-calendar-months {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+      align-items: start;
+    }
+    .recommendation-calendar-month-block {
+      display: grid;
+      gap: 8px;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .recommendation-calendar-month-title {
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .recommendation-calendar-nav {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--text);
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .recommendation-calendar-nav svg {
+      width: 32px;
+      height: 32px;
+      display: block;
+    }
+    .recommendation-calendar-close {
+      grid-column: 3;
+    }
+    .recommendation-calendar-weekdays,
+    .recommendation-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .recommendation-calendar-weekdays {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .recommendation-calendar-weekdays span {
+      min-height: 22px;
+      line-height: 22px;
+      min-width: 0;
+      text-align: center;
+    }
+    .recommendation-calendar-weekdays span:first-child {
+      color: #ff405c;
+    }
+    .recommendation-calendar-weekdays span:last-child {
+      color: #00a8d8;
+    }
+    .recommendation-calendar-day {
+      position: relative;
+      height: 64px;
+      min-height: 64px;
+      border: 1px solid transparent;
+      border-radius: 0;
+      background: transparent;
+      color: #9ca3af;
+      padding: 2px 1px 3px;
+      text-align: center;
+      cursor: default;
+      opacity: 1;
+      display: grid;
+      grid-template-rows: 42px 16px 12px;
+      align-items: start;
+      justify-items: center;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .recommendation-calendar-day.available {
+      border-color: transparent;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .recommendation-calendar-day.weekend-sun.available,
+    .recommendation-calendar-day.weekend-sat.available {
+      color: #ff405c;
+    }
+    .recommendation-calendar-day.active {
+      border-color: transparent;
+      background: transparent;
+      color: #ffffff;
+    }
+    .recommendation-calendar-date {
+      position: relative;
+      z-index: 1;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1;
+      margin-top: 10px;
+    }
+    .recommendation-calendar-day.active .recommendation-calendar-date {
+      background: #1b42ff;
+      color: #ffffff;
+    }
+    .recommendation-calendar-day.today .recommendation-calendar-date {
+      color: #3689ff !important;
+      background: #eaf2ff;
+      box-shadow: inset 0 0 0 1px rgba(54, 137, 255, 0.22);
+    }
+    .recommendation-calendar-today-label {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      z-index: 3;
+      transform: translateX(-50%);
+      color: #0e60e8;
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .recommendation-calendar-price {
+      display: block;
+      width: max-content;
+      max-width: none;
+      min-width: max-content;
+      min-height: 16px;
+      margin-top: 0;
+      color: #242627;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: 0;
+      overflow: visible;
+      white-space: nowrap;
+    }
+    .recommendation-calendar-day.active .recommendation-calendar-price {
+      color: #ff405c;
+    }
+    .recommendation-calendar-lowest {
+      display: block;
+      min-height: 12px;
+      color: #6d28d9;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.1;
+    }
     table {
       width: 100%;
       min-width: 1320px;
@@ -759,7 +1002,7 @@
     }
     .participant-table {
       width: 100%;
-      min-width: 1280px;
+      min-width: 1520px;
       table-layout: fixed;
     }
     .participant-table th,
@@ -825,15 +1068,15 @@
     }
     .participant-table th:nth-child(8),
     .participant-table td:nth-child(8) {
-      width: 136px;
+      width: 104px;
     }
     .participant-table th:nth-child(9),
     .participant-table td:nth-child(9) {
-      width: 166px;
+      width: 104px;
     }
     .participant-table th:nth-child(10),
     .participant-table td:nth-child(10) {
-      width: 166px;
+      width: 136px;
     }
     .participant-table th:nth-child(11),
     .participant-table td:nth-child(11) {
@@ -841,6 +1084,14 @@
     }
     .participant-table th:nth-child(12),
     .participant-table td:nth-child(12) {
+      width: 166px;
+    }
+    .participant-table th:nth-child(13),
+    .participant-table td:nth-child(13) {
+      width: 166px;
+    }
+    .participant-table th:nth-child(14),
+    .participant-table td:nth-child(14) {
       width: 156px;
     }
     .participant-table th:nth-child(1),
@@ -852,11 +1103,15 @@
     .participant-table th:nth-child(6),
     .participant-table td:nth-child(6),
     .participant-table th:nth-child(7),
-    .participant-table td:nth-child(7) {
+    .participant-table td:nth-child(7),
+    .participant-table th:nth-child(8),
+    .participant-table td:nth-child(8),
+    .participant-table th:nth-child(9),
+    .participant-table td:nth-child(9) {
       text-align: center;
     }
-    .participant-table th:nth-child(8),
-    .participant-table td:nth-child(8) {
+    .participant-table th:nth-child(10),
+    .participant-table td:nth-child(10) {
       text-align: left;
     }
     .participant-role-badge {
@@ -1164,6 +1419,9 @@
       padding: 10px 12px;
       background: var(--surface-soft);
     }
+    .confirm-dialog .info-grid {
+      grid-template-columns: 1fr;
+    }
     .info-label {
       color: var(--muted);
       font-size: 14px;
@@ -1244,6 +1502,7 @@
       </div>
       <nav class="nav" aria-label="대시보드 메뉴">
         <button class="nav-button active" type="button" data-menu="schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-calendar-check-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="m16 20 2 2 4-4"/></svg><span class="nav-label">일정 관리</span></button>
+        <button class="nav-button" type="button" data-menu="recommended-schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 2.9a.6.6 0 0 1 1 0l2.5 5.1a.6.6 0 0 0 .5.3l5.6.8a.6.6 0 0 1 .3 1l-4 3.9a.6.6 0 0 0-.2.6l1 5.5a.6.6 0 0 1-.9.6l-5-2.6a.6.6 0 0 0-.6 0l-5 2.6a.6.6 0 0 1-.9-.6l1-5.5a.6.6 0 0 0-.2-.6l-4-3.9a.6.6 0 0 1 .3-1l5.6-.8a.6.6 0 0 0 .5-.3z"/></svg><span class="nav-label">추천 일정</span></button>
         <button class="nav-button" type="button" data-menu="participant-management"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-users-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg><span class="nav-label">고객 관리</span></button>
       </nav>
       <div class="sidebar-footer">
@@ -1322,6 +1581,7 @@
     const state = {
       rawRows: [],
       schedules: [],
+      displayRules: [],
       memberProfiles: [],
       error: "",
       loading: false,
@@ -1809,6 +2069,35 @@
       return match ? `${match[1]}박${match[2]}일` : "";
     }
 
+    function formatTripNightsDays(startValue, endValue) {
+      const start = parseScheduleDate(startValue);
+      const end = parseScheduleDate(endValue);
+      if (!start || !end) return "";
+      const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+      const nights = Math.round((endDay - startDay) / 86400000);
+      if (!Number.isFinite(nights) || nights < 0) return "";
+      return `${nights}박${nights + 1}일`;
+    }
+
+    function extractTripSummaryPeriod(row = {}, product = {}) {
+      const text = [
+        getNestedValue(row, "trip.tripSummary"),
+        row.tripSummary,
+        getNestedValue(row, "product.tripSummary"),
+        product.tripSummary,
+        product.summary,
+        row.dayNightCnt,
+        product.dayNightCnt,
+        row.duration,
+        product.duration,
+        getTitle(row),
+        product.title
+      ].map(asText).filter(Boolean).join(" ");
+      const match = text.match(/(\d+)\s*박\s*(\d+)\s*일/);
+      return match ? `${match[1]}박${match[2]}일` : "";
+    }
+
     function calculateAge(birthYear) {
       const year = Number(String(birthYear || "").replace(/\D/g, "").slice(0, 4));
       if (!year || year < 1900) return "";
@@ -1825,9 +2114,6 @@
       try {
         return JSON.parse(sessionStorage.getItem(ADMIN_AUTH_SESSION_KEY) || "{}");
       } catch (error) {
-        Object.assign(participant, previousFields);
-        renderMetrics();
-        renderTable();
         return {};
       }
     }
@@ -1878,13 +2164,56 @@
       return Array.isArray(data) ? data : (data.rows || data.items || []);
     }
 
+    async function fetchAdminBootstrap(params = {}) {
+      const auth = getAdminAuth();
+      if (!auth.token) throw new Error("관리자 로그인이 필요합니다.");
+      if (auth.expiresAt && Number(auth.expiresAt) <= Date.now()) {
+        clearAdminAuth();
+        throw new Error("로그인이 만료되었습니다. 다시 로그인해 주세요.");
+      }
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "admin_bootstrap");
+      url.searchParams.set("limit", params.limit || "1000");
+      url.searchParams.set("admin", "1");
+      if (params.refreshSummary) url.searchParams.set("refreshSummary", "true");
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        cache: "no-store",
+        headers: { "X-Golfjoin-Admin-Token": auth.token }
+      });
+      if (response.status === 401 || response.status === 403) clearAdminAuth();
+      if (!response.ok) throw new Error(`admin bootstrap load failed: ${response.status}`);
+      const data = await response.json();
+      if (
+        !data
+        || !Array.isArray(data.builderRows)
+        || !Array.isArray(data.joinRows)
+        || !Array.isArray(data.profileRows)
+        || !Array.isArray(data.displayRuleRows)
+      ) {
+        throw new Error("admin bootstrap payload is invalid");
+      }
+      return {
+        builderRows: data.builderRows,
+        joinRows: data.joinRows,
+        profileRows: data.profileRows,
+        displayRuleRows: data.displayRuleRows
+      };
+    }
+
     async function fetchAdminRows() {
-      const [builderRows, joinRows, profileRows] = await Promise.all([
-        fetchSheet("new_schedule_applications", { limit: "1000", refreshSummary: true }),
+      try {
+        return await fetchAdminBootstrap({ limit: "1000" });
+      } catch (error) {
+        console.warn("Admin bootstrap failed; falling back to parallel sheet reads.", error);
+      }
+      const [builderRows, joinRows, profileRows, displayRuleRows] = await Promise.all([
+        fetchSheet("new_schedule_applications", { limit: "1000" }),
         fetchSheet("join_applications", { limit: "1000" }),
-        fetchSheet("join_member_profiles", { limit: "1000" })
+        fetchSheet("join_member_profiles", { limit: "1000" }),
+        fetchSheet("product_display_rules", { limit: "1000" })
       ]);
-      return { builderRows, joinRows, profileRows };
+      return { builderRows, joinRows, profileRows, displayRuleRows };
     }
 
     function getScheduleKey(row = {}, options = {}) {
@@ -1954,6 +2283,21 @@
       return countries.find((country) => title.includes(country)) || (asText(product.category) === "국내" ? "한국" : "-");
     }
 
+    function getRecommendationProductCountry(product = {}) {
+      const savedCountry = asText(product.country);
+      if (savedCountry) return savedCountry;
+      const text = [
+        product.title,
+        product.region,
+        product.category,
+        product.airport
+      ].map(asText).join(" ");
+      const countries = ["한국", "일본", "중국", "베트남", "태국", "라오스", "대만", "말레이시아", "인도네시아", "필리핀"];
+      const matched = countries.find((country) => text.includes(country));
+      if (matched) return matched;
+      return asText(product.category) === "국내" ? "한국" : "-";
+    }
+
     function getPackType(row = {}, product = {}) {
       const savedType = asText(
         getNestedValue(row, "trip.packType")
@@ -1972,7 +2316,7 @@
       if (savedTypeName.includes("항공")) return "air";
       if (savedTypeName.includes("골프")) return "golf";
       const text = `${getTitle(row)} ${asText(row.tripSummary)} ${asText(product.title)} ${asText(product.badge)} ${asText(product.airport)}`;
-      if (/항공|항공권|인천|김해|부산|출발/i.test(text)) return "air";
+      if (/항공|항공권/i.test(text)) return "air";
       return "golf";
     }
 
@@ -2069,6 +2413,37 @@
         row.handy,
         row.level
       );
+    }
+
+    function getParticipantRoomType(row = {}) {
+      return firstText(
+        getNestedValue(row, "applicant.roomType"),
+        row.applicantRoomType,
+        row.roomType
+      ) || "2인1실";
+    }
+
+    function getParticipantFlightRequestType(row = {}) {
+      return firstText(
+        getNestedValue(row, "applicant.flightRequestType"),
+        row.flightRequestType
+      );
+    }
+
+    function getParticipantSingleRoomSurcharge(row = {}) {
+      return firstText(
+        getNestedValue(row, "applicant.singleRoomSurcharge"),
+        row.singleRoomSurcharge
+      );
+    }
+
+    function renderParticipantRoomType(row = {}) {
+      const roomType = getParticipantRoomType(row);
+      const surcharge = getParticipantSingleRoomSurcharge(row);
+      if (roomType === "1인1실" && Number(String(surcharge || "").replace(/[^0-9.-]/g, "")) > 0) {
+        return `${escapeHtml(roomType)}<br><span class="muted">+${escapeHtml(formatPrice(surcharge))}</span>`;
+      }
+      return escapeHtml(roomType || "-");
     }
 
     function parseCompanionItems(value) {
@@ -2168,7 +2543,84 @@
         || {};
     }
 
-    function buildSchedules(builderRows, joinRows = []) {
+    function getRecommendationDisplayRuleId(rule = {}) {
+      return asText(rule.displayRuleId) || `pdr-${asText(rule.erpProductId || rule.goodSeq)}-${asText(rule.erpEventSeq || rule.eventSeq)}`;
+    }
+
+    function getRecommendationScheduleKey(rule = {}) {
+      return `admin-recommended-${getRecommendationDisplayRuleId(rule)}`;
+    }
+
+    function isActiveRecommendationRule(rule = {}) {
+      return asText(rule.section || "available_schedule") === "available_schedule" && isDisplayRuleVisible(rule);
+    }
+
+    function buildRecommendationScheduleRow(rule = {}) {
+      const product = findProduct({
+        erpProductId: rule.erpProductId,
+        erpEventSeq: rule.erpEventSeq,
+        productName: rule.overrideTitle
+      });
+      const period = extractTripSummaryPeriod({ productName: rule.overrideTitle || product.title, title: rule.overrideTitle || product.title }, product) || formatTripNightsDays(rule.displayStartAt || product.departureDate, rule.displayEndAt || product.returnDate || product.departureDate);
+      return {
+        applicationId: getRecommendationDisplayRuleId(rule),
+        scheduleId: getRecommendationScheduleKey(rule),
+        source: "product_display_rule",
+        applicationStatus: "open",
+        displayStatus: rule.isVisible === false ? "hidden" : "visible",
+        approvalStatus: "approved",
+        productName: rule.overrideTitle || product.title || "",
+        title: rule.overrideTitle || product.title || "",
+        erpProductId: rule.erpProductId || product.goodSeq || product.erpProductId || "",
+        erpEventSeq: rule.erpEventSeq || product.eventSeq || product.erpEventSeq || "",
+        goodSeq: rule.erpProductId || product.goodSeq || "",
+        eventSeq: rule.erpEventSeq || product.eventSeq || "",
+        country: getRecommendationProductCountry(product),
+        region: product.region || "",
+        departureDate: rule.displayStartAt || product.departureDate || "",
+        returnDate: rule.displayEndAt || product.returnDate || product.departureDate || "",
+        tripSummary: period,
+        dayNightCnt: period,
+        duration: period,
+        productPrice: product.price || "",
+        price: product.price || "",
+        packType: rule.packType || product.packType || "",
+        packTypeName: rule.packTypeName || product.packTypeName || "",
+        maxPeople: 4,
+        capacity: 4,
+        createdAt: rule.updatedAt || "",
+        updatedAt: rule.updatedAt || "",
+        adminMemo: rule.adminMemo || "",
+        isRecommendationSchedule: true
+      };
+    }
+
+    function findMatchingScheduleKeyForJoinRow(map, row = {}) {
+      const targetKey = getScheduleKey(row, { preferTarget: true });
+      if (targetKey && map.has(targetKey)) return targetKey;
+      const productId = firstText(
+        getNestedValue(row, "product.erpProductId"),
+        getNestedValue(row, "product.goodSeq"),
+        row.erpProductId,
+        row.goodSeq,
+        row.productId
+      );
+      const eventSeq = firstText(
+        getNestedValue(row, "product.erpEventSeq"),
+        getNestedValue(row, "product.eventSeq"),
+        row.erpEventSeq,
+        row.eventSeq
+      );
+      if (!productId || !eventSeq) return "";
+      for (const [key, schedule] of map.entries()) {
+        const scheduleProductId = firstText(schedule.row?.erpProductId, schedule.row?.goodSeq, schedule.product?.goodSeq, schedule.product?.erpProductId);
+        const scheduleEventSeq = firstText(schedule.row?.erpEventSeq, schedule.row?.eventSeq, schedule.product?.eventSeq, schedule.product?.erpEventSeq);
+        if (scheduleProductId === productId && scheduleEventSeq === eventSeq) return key;
+      }
+      return "";
+    }
+
+    function buildSchedules(builderRows, joinRows = [], displayRuleRows = []) {
       const map = new Map();
       builderRows.forEach((row, index) => {
         const key = getScheduleKey(row) || `schedule-${index}`;
@@ -2184,8 +2636,22 @@
         }
         map.get(key).participants.push(row);
       });
+      displayRuleRows.filter(isActiveRecommendationRule).forEach((rule) => {
+        const key = getRecommendationScheduleKey(rule);
+        if (map.has(key)) return;
+        const row = buildRecommendationScheduleRow(rule);
+        const product = findProduct(row);
+        map.set(key, {
+          key,
+          row,
+          product,
+          participants: [],
+          packType: getPackType(row, product),
+          isRecommendationSchedule: true
+        });
+      });
       joinRows.forEach((row) => {
-        const key = getScheduleKey(row, { preferTarget: true });
+        const key = findMatchingScheduleKeyForJoinRow(map, row);
         if (key && map.has(key)) {
           map.get(key).participants.push(row);
           return;
@@ -2338,17 +2804,15 @@
       state.error = "";
       renderTable();
       try {
-        const { builderRows, joinRows, profileRows } = await fetchAdminRows();
+        const { builderRows, joinRows, profileRows, displayRuleRows } = await fetchAdminRows();
         state.rawRows = [...builderRows, ...joinRows];
-        state.schedules = buildSchedules(builderRows, joinRows);
+        state.schedules = buildSchedules(builderRows, joinRows, displayRuleRows);
         state.memberProfiles = buildMemberProfiles(profileRows);
+        state.displayRules = Array.isArray(displayRuleRows) ? displayRuleRows : [];
         $("#lastUpdated").textContent = `최근 갱신 ${formatDateTime(new Date())} · 5분마다 자동 새로고침`;
       } catch (error) {
         state.error = error.message || "데이터 로드 실패";
         if (!getAdminAuth().token) showLogin("로그인이 만료되었거나 인증에 실패했습니다.");
-        Object.assign(participant, previousFields);
-        renderMetrics();
-        renderTable();
       } finally {
         state.loading = false;
         renderMetrics();
@@ -2370,7 +2834,386 @@
       dashboardAutoRefreshTimer = null;
     }
 
+    function getRecommendationTodayISO() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function getRecommendationMinDepartureISO(offsetDays = 7) {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() + offsetDays);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function getRecommendationProductItems() {
+      const minDepartureDate = getRecommendationMinDepartureISO(7);
+      return products.map((product, index) => {
+        const reference = getSecretTourProductReference({}, product);
+        return {
+          product,
+          index,
+          key: `${reference.goodSeq || asText(product.erpProductId) || asText(product.id) || index}::${reference.eventSeq || asText(product.erpEventSeq) || asText(product.eventSeq) || index}::${index}`,
+          goodSeq: reference.goodSeq || asText(product.erpProductId) || asText(product.goodSeq),
+          eventSeq: reference.eventSeq || asText(product.erpEventSeq) || asText(product.eventSeq)
+        };
+      }).filter((item) => item.goodSeq && item.eventSeq && asText(item.product.departureDate) >= minDepartureDate)
+        .sort((a, b) => {
+          const dateCompare = asText(a.product.departureDate).localeCompare(asText(b.product.departureDate));
+          if (dateCompare) return dateCompare;
+          return asText(a.product.title).localeCompare(asText(b.product.title), "ko");
+        });
+    }
+
+    function getRecommendationUniqueProductCount(items = getRecommendationProductItems()) {
+      return new Set(items.map((item) => item.goodSeq).filter(Boolean)).size;
+    }
+
+    function getRecommendationProductGroups(items = getRecommendationProductItems()) {
+      const groups = new Map();
+      items.forEach((item) => {
+        const key = item.goodSeq;
+        if (!groups.has(key)) {
+          groups.set(key, {
+            goodSeq: item.goodSeq,
+            title: asText(item.product.title) || "상품명 없음",
+            country: getRecommendationProductCountry(item.product),
+            region: asText(item.product.region),
+            category: asText(item.product.category),
+            period: extractTripSummaryPeriod({ productName: item.product.title, title: item.product.title }, item.product) || formatTripNightsDays(item.product.departureDate, item.product.returnDate),
+            items: []
+          });
+        }
+        groups.get(key).items.push(item);
+      });
+      return [...groups.values()].map((group) => {
+        group.items.sort((a, b) => asText(a.product.departureDate).localeCompare(asText(b.product.departureDate)));
+        group.firstDeparture = group.items[0]?.product?.departureDate || "";
+        group.lastDeparture = group.items[group.items.length - 1]?.product?.departureDate || "";
+        return group;
+      }).sort((a, b) => {
+        const dateCompare = asText(a.firstDeparture).localeCompare(asText(b.firstDeparture));
+        if (dateCompare) return dateCompare;
+        return asText(a.title).localeCompare(asText(b.title), "ko");
+      });
+    }
+
+    function findRecommendationProductByKey(key) {
+      return getRecommendationProductItems().find((item) => item.key === key) || null;
+    }
+
+    function parseRecommendationISODate(value) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(asText(value));
+      if (!match) return null;
+      return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    }
+
+    function formatRecommendationMonth(value) {
+      const date = parseRecommendationISODate(value);
+      if (!date) return "";
+      return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function addRecommendationMonths(monthISO, delta) {
+      const date = parseRecommendationISODate(`${asText(monthISO).slice(0, 7)}-01`) || new Date();
+      date.setMonth(date.getMonth() + delta);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`;
+    }
+
+    function getRecommendationTodayMonthISO() {
+      const today = new Date();
+      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-01`;
+    }
+
+    function formatRecommendationMonthRange(monthISO = "") {
+      const startMonth = asText(monthISO) || getRecommendationTodayMonthISO();
+      const endMonth = addRecommendationMonths(startMonth, 1);
+      return `${formatRecommendationMonth(startMonth)} - ${formatRecommendationMonth(endMonth)}`;
+    }
+
+    function formatRecommendationManwon(value) {
+      const number = Number(String(value || "").replace(/[^0-9.-]/g, ""));
+      if (!Number.isFinite(number) || number <= 0) return "";
+      const manwon = number / 10000;
+      return `${Number.isInteger(manwon) ? String(manwon) : manwon.toFixed(1).replace(/\.0$/, "")}만`;
+    }
+
+    function getRecommendationSelectedKey(row) {
+      const picker = row?.querySelector("[data-recommendation-calendar]");
+      const select = row?.querySelector("[data-recommendation-departure]");
+      return picker?.dataset.selectedKey || select?.value || "";
+    }
+
+    function getRecommendationCalendarMonthItems(group = {}, monthISO = "") {
+      const monthKey = asText(monthISO).slice(0, 7);
+      return (group.items || []).filter((item) => asText(item.product.departureDate).slice(0, 7) === monthKey);
+    }
+
+    function renderRecommendationCalendarGrid(group = {}, selectedKey = "", monthISO = "") {
+      const monthDate = parseRecommendationISODate(`${asText(monthISO).slice(0, 7)}-01`) || parseRecommendationISODate(group.firstDeparture);
+      if (!monthDate) return "";
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const itemsByDate = new Map();
+      getRecommendationCalendarMonthItems(group, `${year}-${String(month + 1).padStart(2, "0")}-01`).forEach((item) => {
+        const dateKey = asText(item.product.departureDate);
+        if (!itemsByDate.has(dateKey)) itemsByDate.set(dateKey, item);
+      });
+      const cells = [];
+      for (let index = 0; index < firstDay; index += 1) {
+        cells.push('<div class="recommendation-calendar-day" aria-hidden="true"></div>');
+      }
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const item = itemsByDate.get(dateKey);
+        const active = item && item.key === selectedKey;
+        const price = item ? formatRecommendationManwon(item.product.price) : "";
+        const isToday = dateKey === getRecommendationTodayISO();
+        const dayOfWeek = new Date(year, month, day).getDay();
+        const weekendClass = dayOfWeek === 0 ? " weekend-sun" : dayOfWeek === 6 ? " weekend-sat" : "";
+        cells.push(`
+          <button class="recommendation-calendar-day${weekendClass}${item ? " available" : ""}${active ? " active" : ""}${isToday ? " today" : ""}" type="button" ${item ? `data-recommendation-date-key="${escapeHtml(item.key)}"` : "disabled"}>
+            ${isToday ? '<span class="recommendation-calendar-today-label">TODAY</span>' : ""}
+            <span class="recommendation-calendar-date">${escapeHtml(String(day))}</span>
+            <span class="recommendation-calendar-price">${price ? escapeHtml(price) : ""}</span>
+            <span class="recommendation-calendar-lowest"></span>
+          </button>
+        `);
+      }
+      return cells.join("");
+    }
+
+    function renderRecommendationCalendarMonths(group = {}, selectedKey = "", monthISO = "") {
+      const startMonth = asText(monthISO) || getRecommendationTodayMonthISO();
+      return [0, 1].map((offset) => {
+        const visibleMonth = addRecommendationMonths(startMonth, offset);
+        return `
+          <div class="recommendation-calendar-month-block">
+            <div class="recommendation-calendar-month-title">${escapeHtml(formatRecommendationMonth(visibleMonth))}</div>
+            <div class="recommendation-calendar-weekdays">
+              <span>&#51068;</span><span>&#50900;</span><span>&#54868;</span><span>&#49688;</span><span>&#47785;</span><span>&#44552;</span><span>&#53664;</span>
+            </div>
+            <div class="recommendation-calendar-grid">
+              ${renderRecommendationCalendarGrid(group, selectedKey, visibleMonth)}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderRecommendationCalendarPicker(group = {}) {
+      const selected = group.items[0] || null;
+      const selectedKey = selected?.key || "";
+      const selectedDate = selected?.product?.departureDate || group.firstDeparture || "";
+      const selectedPrice = formatRecommendationManwon(selected?.product?.price);
+      const monthISO = getRecommendationTodayMonthISO();
+      return `
+        <div class="recommendation-calendar-picker" data-recommendation-calendar="${escapeHtml(group.goodSeq)}" data-selected-key="${escapeHtml(selectedKey)}" data-month="${escapeHtml(monthISO)}">
+          <button class="recommendation-calendar-toggle" type="button" data-action="recommendation-calendar-toggle">
+            ${escapeHtml(formatDate(selectedDate) || selectedDate || "출발일 선택")}
+            <span>${escapeHtml(selectedPrice)}</span>
+          </button>
+          <div class="recommendation-calendar-panel">
+            <div class="recommendation-calendar-head">
+              <div class="recommendation-calendar-month-control">
+                <button class="recommendation-calendar-nav" type="button" data-action="recommendation-calendar-prev" aria-label="Previous month"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left-icon lucide-chevron-left" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+                <div class="recommendation-calendar-month">출발일 선택</div>
+                <button class="recommendation-calendar-nav" type="button" data-action="recommendation-calendar-next" aria-label="Next month"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+              </div>
+              <button class="recommendation-calendar-nav recommendation-calendar-close" type="button" data-action="recommendation-calendar-close" aria-label="Close calendar"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+            <div class="recommendation-calendar-months">
+              ${renderRecommendationCalendarMonths(group, selectedKey, monthISO)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateRecommendationCalendarPicker(picker, productKey = "") {
+      if (!picker) return;
+      const groupId = picker.dataset.recommendationCalendar || "";
+      const group = getRecommendationProductGroups().find((item) => asText(item.goodSeq) === asText(groupId));
+      if (!group) return;
+      if (productKey) picker.dataset.selectedKey = productKey;
+      const selected = findRecommendationProductByKey(picker.dataset.selectedKey || "") || group.items[0];
+      picker.dataset.selectedKey = selected?.key || "";
+      const selectedDate = selected?.product?.departureDate || "";
+      const selectedPrice = formatRecommendationManwon(selected?.product?.price);
+      const toggle = picker.querySelector('[data-action="recommendation-calendar-toggle"]');
+      if (toggle) {
+        toggle.innerHTML = `${escapeHtml(formatDate(selectedDate) || selectedDate || "출발일 선택")}<span>${escapeHtml(selectedPrice)}</span>`;
+      }
+      const monthISO = picker.dataset.month || getRecommendationTodayMonthISO();
+      const monthLabel = picker.querySelector(".recommendation-calendar-month");
+      if (monthLabel) monthLabel.textContent = "출발일 선택";
+      const months = picker.querySelector(".recommendation-calendar-months");
+      if (months) months.innerHTML = renderRecommendationCalendarMonths(group, picker.dataset.selectedKey, monthISO);
+    }
+
+    function isDisplayRuleVisible(rule = {}) {
+      return !["false", "0", "hidden", "deleted"].includes(asText(rule.isVisible || "true").toLowerCase());
+    }
+
+    function getActiveRecommendationRules() {
+      return state.displayRules
+        .filter((rule) => asText(rule.section || "available_schedule") === "available_schedule" && isDisplayRuleVisible(rule))
+        .sort((a, b) => Number(a.displayOrder || 0) - Number(b.displayOrder || 0));
+    }
+
+    function findProductForDisplayRule(rule = {}) {
+      return products.find((product) => {
+        const reference = getSecretTourProductReference({}, product);
+        return asText(reference.goodSeq || product.erpProductId || product.goodSeq) === asText(rule.erpProductId)
+          && asText(reference.eventSeq || product.erpEventSeq || product.eventSeq) === asText(rule.erpEventSeq);
+      }) || {};
+    }
+
+    function renderRecommendedSchedulesManager() {
+      const tableWrap = $("#tableWrap");
+      const keyword = asText($("#searchInput")?.value).toLowerCase();
+      const productItems = getRecommendationProductItems();
+      const activeRules = getActiveRecommendationRules().filter((rule) => {
+        if (!keyword) return true;
+        const product = findProductForDisplayRule(rule);
+        return [
+          rule.overrideTitle,
+          product.title,
+          rule.erpProductId,
+          rule.erpEventSeq,
+          rule.displayStartAt
+        ].join(" ").toLowerCase().includes(keyword);
+      });
+      tableWrap.innerHTML = `
+        <div class="recommendation-manager">
+          ${activeRules.length ? `
+            <table class="recommendation-table">
+              <thead>
+                <tr>
+                  <th>순서</th>
+                  <th>상품명</th>
+                  <th>출발일</th>
+                  <th>도착일</th>
+                  <th>상품번호</th>
+                  <th>이벤트</th>
+                  <th>수정일</th>
+                  <th>관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${activeRules.map((rule) => {
+                  const product = findProductForDisplayRule(rule);
+                  const title = rule.overrideTitle || product.title || "상품명 없음";
+                  return `
+                    <tr data-display-rule-id="${escapeHtml(rule.displayRuleId || "")}" data-erp-product-id="${escapeHtml(rule.erpProductId || "")}" data-erp-event-seq="${escapeHtml(rule.erpEventSeq || "")}">
+                      <td>${escapeHtml(rule.displayOrder || "0")}</td>
+                      <td class="product-cell">${escapeHtml(title)}</td>
+                      <td>${escapeHtml(formatDate(rule.displayStartAt || product.departureDate))}</td>
+                      <td>${escapeHtml(formatDate(rule.displayEndAt || product.returnDate))}</td>
+                      <td>${escapeHtml(rule.erpProductId || "")}</td>
+                      <td>${escapeHtml(rule.erpEventSeq || "")}</td>
+                      <td>${escapeHtml(formatDateTime(rule.updatedAt))}</td>
+                      <td><button class="row-button" type="button" data-action="recommendation-hide">숨김</button></td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          ` : '<div class="empty">등록된 추천 일정이 없습니다.</div>'}
+        </div>
+      `;
+    }
+
+    function renderRecommendedSchedulesManager() {
+      const tableWrap = $("#tableWrap");
+      const keyword = asText($("#searchInput")?.value).toLowerCase();
+      const productItems = getRecommendationProductItems();
+      const activeRules = getActiveRecommendationRules();
+      const productGroups = getRecommendationProductGroups(productItems).filter((group) => {
+        if (!keyword) return true;
+        return [
+          group.title,
+          group.country,
+          group.region,
+          group.category,
+          group.goodSeq,
+          group.firstDeparture,
+          group.lastDeparture
+        ].join(" ").toLowerCase().includes(keyword);
+      });
+      tableWrap.innerHTML = `
+        <div class="recommendation-manager">
+          ${productGroups.length ? `
+            <table class="recommendation-table">
+              <thead>
+                <tr>
+                  <th>상품번호</th>
+                  <th>상품명</th>
+                  <th>국가</th>
+                  <th>지역</th>
+                  <th>기간</th>
+                  <th>첫 출발일</th>
+                  <th>마지막 출발일</th>
+                  <th>출발일 선택</th>
+                  <th>추천 상태</th>
+                  <th>관리</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${productGroups.map((group) => {
+                  const activeCount = activeRules.filter((rule) => asText(rule.erpProductId) === asText(group.goodSeq)).length;
+                  return `
+                    <tr data-recommendation-product="${escapeHtml(group.goodSeq)}">
+                      <td>${escapeHtml(group.goodSeq)}</td>
+                      <td class="product-cell">${escapeHtml(group.title)}</td>
+                      <td>${escapeHtml(group.country || "-")}</td>
+                      <td>${escapeHtml(group.region || group.category || "-")}</td>
+                      <td>${escapeHtml(group.period || "-")}</td>
+                      <td>${escapeHtml(formatDate(group.firstDeparture))}</td>
+                      <td>${escapeHtml(formatDate(group.lastDeparture))}</td>
+                      <td>${renderRecommendationCalendarPicker(group)}</td>
+                      <td>${activeCount ? `<span class="badge status-open">${escapeHtml(`${activeCount}개 등록`)}</span>` : '<span class="badge">미등록</span>'}</td>
+                      <td>
+                        <div class="row-actions">
+                          <button class="row-button" type="button" data-action="recommendation-product-view">상품보기</button>
+                          <button class="row-button" type="button" data-action="recommendation-register-candidate">추천등록</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          ` : '<div class="empty">표시할 상품 후보가 없습니다.</div>'}
+        </div>
+      `;
+    }
+
     function renderMetrics() {
+      if (state.currentMenu === "recommended-schedules") {
+        const activeRules = getActiveRecommendationRules();
+        const productItems = getRecommendationProductItems();
+        const items = [
+          ["추천 일정", activeRules.length],
+          ["상품 후보", getRecommendationUniqueProductCount(productItems)],
+          ["숨김 포함", state.displayRules.length]
+        ];
+        $("#metrics").innerHTML = items.map(([label, value]) => `
+          <div class="metric">
+            <div class="metric-label">${escapeHtml(label)}</div>
+            <div class="metric-value">${escapeHtml(value)}</div>
+          </div>
+        `).join("");
+        return;
+      }
       if (state.currentMenu === "participant-management") {
         const total = state.memberProfiles.length;
         const active = countActiveCustomers();
@@ -2435,6 +3278,10 @@
         renderMemberProfileTable();
         return;
       }
+      if (state.currentMenu === "recommended-schedules") {
+        renderRecommendedSchedulesManager();
+        return;
+      }
       if (state.currentSchedulePanel === "consultation") {
         renderConsultationApplicantsTable();
         return;
@@ -2472,14 +3319,16 @@
 
     function syncMenuToolbar() {
       const isParticipantMenu = state.currentMenu === "participant-management";
+      const isRecommendationMenu = state.currentMenu === "recommended-schedules";
       const isConsultationPanel = state.currentMenu === "schedules" && state.currentSchedulePanel === "consultation";
-      $(".toolbar").classList.toggle("compact", isParticipantMenu || isConsultationPanel);
+      $(".toolbar").classList.toggle("compact", isParticipantMenu || isRecommendationMenu || isConsultationPanel);
       $("#searchInput").placeholder = isParticipantMenu
         ? "고객명, 핸드폰 번호, 전문분야, 라운드스타일 검색"
         : isConsultationPanel
           ? "이름, 연락처, 지역, 상품명 검색"
           : "상품명, 지역, 생성자, 참여자 검색";
-      $("#statusFilter").hidden = isParticipantMenu || isConsultationPanel;
+      if (isRecommendationMenu) $("#searchInput").placeholder = "추천 상품명, 상품번호, 출발일 검색";
+      $("#statusFilter").hidden = isParticipantMenu || isRecommendationMenu || isConsultationPanel;
     }
 
     function getConsultationApplicants(options = {}) {
@@ -3034,11 +3883,12 @@
       return "상태 변경";
     }
 
-    function openConfirmDialog({ title = "작업 확인", message = "", okText = "확인", cancelText = "취소" } = {}) {
+    function openConfirmDialog({ title = "작업 확인", message = "", html = "", okText = "확인", cancelText = "취소" } = {}) {
       const backdrop = $("#confirmBackdrop");
       if (!backdrop) return Promise.resolve(window.confirm(message || title));
       $("#confirmTitle").textContent = title;
-      $("#confirmMessage").textContent = message;
+      if (html) $("#confirmMessage").innerHTML = html;
+      else $("#confirmMessage").textContent = message;
       $("#confirmOkButton").textContent = okText;
       $("#confirmCancelButton").textContent = cancelText;
       backdrop.classList.add("open");
@@ -3250,6 +4100,8 @@
                 <th>나이</th>
                 <th>핸디</th>
                 <th>인원</th>
+                <th>객실</th>
+                <th>항공</th>
                 <th>성별구성</th>
                 <th>견적</th>
                 <th>예약금</th>
@@ -3311,6 +4163,8 @@
           <td>${escapeHtml(age ? `${age}세` : "-")}</td>
           <td>${escapeHtml(getParticipantHandicap(row) || "-")}</td>
           <td>${escapeHtml(`${getParticipantPeopleTotal(row, companionRows)}명`)}</td>
+          <td>${renderParticipantRoomType(row)}</td>
+          <td>${escapeHtml(getParticipantFlightRequestType(row) || "-")}</td>
           <td>${renderParticipantGenderIcons(row, companionRows)}</td>
           <td>${renderParticipantQuoteBadge(row)}</td>
           <td>${renderParticipantPaidBadge("depositStatus", row.depositStatus)}</td>
@@ -3675,6 +4529,10 @@
         renderMemberProfileTable();
         return;
       }
+      if (state.currentMenu === "recommended-schedules") {
+        renderRecommendedSchedulesManager();
+        return;
+      }
       if (state.currentSchedulePanel === "consultation") {
         renderConsultationApplicantsTable();
         return;
@@ -3709,6 +4567,157 @@
           </tbody>
         </table>
       `;
+    }
+
+    async function submitProductDisplayRule(payload) {
+      const auth = getAdminAuth();
+      const response = await fetch(SHEET_API_ENDPOINT, {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Golfjoin-Admin-Token": auth.token || ""
+        },
+        body: JSON.stringify({
+          ...payload,
+          source: "product_display_rule",
+          sheet: "product_display_rules",
+          action: "upsert",
+          keyField: "displayRuleId",
+          keyValue: payload.displayRuleId
+        })
+      });
+      if (!response.ok) throw new Error(`추천 일정 저장 실패: ${response.status}`);
+      const result = await response.json();
+      if (result.ok === false) throw new Error(result.error || "추천 일정 저장에 실패했습니다.");
+      return result;
+    }
+
+    async function saveRecommendationScheduleByKey(productKey) {
+      const selected = findRecommendationProductByKey(productKey || "");
+      if (!selected) {
+        alert("추천 일정으로 등록할 상품/출발일을 선택하세요.");
+        return;
+      }
+      const product = selected.product;
+      const displayRuleId = `pdr-${selected.goodSeq}-${selected.eventSeq}`;
+      const existingRule = state.displayRules.find((rule) => asText(rule.displayRuleId) === displayRuleId);
+      const productPackType = product.packType || getPackType({}, product);
+      const productPackTypeName = product.packTypeName || getPackLabel(productPackType);
+      const payload = {
+        displayRuleId,
+        erpProductId: selected.goodSeq,
+        erpEventSeq: selected.eventSeq,
+        section: "available_schedule",
+        isVisible: true,
+        isPinned: true,
+        displayOrder: Number(existingRule?.displayOrder || getActiveRecommendationRules().length + 1),
+        badgeType: "recommended",
+        packType: productPackType,
+        packTypeName: productPackTypeName,
+        overrideTitle: product.title || "",
+        overrideImageUrl: product.image || "",
+        displayStartAt: product.departureDate || "",
+        displayEndAt: product.returnDate || product.departureDate || "",
+        adminMemo: existingRule?.adminMemo || ""
+      };
+      await submitProductDisplayRule(payload);
+      const currentIndex = state.displayRules.findIndex((rule) => asText(rule.displayRuleId) === displayRuleId);
+      if (currentIndex >= 0) state.displayRules.splice(currentIndex, 1, { ...state.displayRules[currentIndex], ...payload, updatedAt: new Date().toISOString() });
+      else state.displayRules.unshift({ ...payload, updatedAt: new Date().toISOString() });
+      renderMetrics();
+      renderTable();
+    }
+
+    function buildRecommendationCandidateSchedule(productKey) {
+      const selected = findRecommendationProductByKey(productKey || "");
+      if (!selected) return null;
+      const product = selected.product || {};
+      return {
+        key: `recommendation-${selected.goodSeq}-${selected.eventSeq}`,
+        product,
+        row: {
+          productName: product.title || "",
+          title: product.title || "",
+          erpProductId: selected.goodSeq,
+          erpEventSeq: selected.eventSeq,
+          goodSeq: selected.goodSeq,
+          eventSeq: selected.eventSeq,
+          country: product.country || "",
+          region: product.region || "",
+          departureDate: product.departureDate || "",
+          returnDate: product.returnDate || product.departureDate || "",
+          productPrice: product.price || "",
+          price: product.price || "",
+          packType: product.packType || "",
+          packTypeName: product.packTypeName || ""
+        },
+        participants: []
+      };
+    }
+
+    async function confirmAndSaveRecommendationSchedule(button) {
+      const row = button.closest("tr[data-recommendation-product]");
+      const productKey = getRecommendationSelectedKey(row);
+      const schedule = buildRecommendationCandidateSchedule(productKey);
+      if (!schedule) {
+        alert("?곹뭹 ?곸꽭瑜??쒖떆??異쒕컻?쇱쓣 ?좏깮?섏꽭??");
+        return;
+      }
+      const product = schedule.product || {};
+      const summaryRows = [
+        ["\uC0C1\uD488\uBA85", getTitle(schedule.row) || product.title || ""],
+        ["\uAE30\uAC04", getPeriod(schedule.row, product) || ""],
+        ["\uCD9C\uBC1C\uC77C", formatDate(getDeparture(schedule.row, product)) || ""],
+        ["\uB3C4\uCC29\uC77C", formatDate(getReturn(schedule.row, product)) || ""],
+        ["\uC694\uAE08", formatPrice(schedule.row.productPrice || product.price || schedule.row.price) || ""]
+      ];
+      const html = `
+        <div class="info-grid">
+          ${summaryRows.map(([label, value]) => `
+            <div class="info-item">
+              <div class="info-label">${escapeHtml(label)}</div>
+              <div class="info-value">${escapeHtml(value || "-")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+      const confirmed = await openConfirmDialog({
+        title: "\uCD94\uCC9C\uC77C\uC815 \uB4F1\uB85D",
+        html,
+        okText: "\uB4F1\uB85D",
+        cancelText: "\uCDE8\uC18C"
+      });
+      if (!confirmed) return;
+      await saveRecommendationScheduleByKey(productKey);
+    }
+
+    async function openRecommendationCandidateProduct(button) {
+      const row = button.closest("tr[data-recommendation-product]");
+      const schedule = buildRecommendationCandidateSchedule(getRecommendationSelectedKey(row));
+      if (!schedule) {
+        alert("상품 상세를 표시할 출발일을 선택하세요.");
+        return;
+      }
+      await openProductDrawer(schedule);
+    }
+
+    async function hideRecommendationSchedule(button) {
+      const row = button.closest("tr[data-display-rule-id]");
+      if (!row) return;
+      const displayRuleId = row.dataset.displayRuleId || `pdr-${row.dataset.erpProductId}-${row.dataset.erpEventSeq}`;
+      const current = state.displayRules.find((rule) => asText(rule.displayRuleId) === displayRuleId)
+        || state.displayRules.find((rule) => asText(rule.erpProductId) === asText(row.dataset.erpProductId) && asText(rule.erpEventSeq) === asText(row.dataset.erpEventSeq));
+      if (!current) return;
+      await submitProductDisplayRule({
+        ...current,
+        displayRuleId,
+        isVisible: false
+      });
+      current.isVisible = false;
+      current.updatedAt = new Date().toISOString();
+      renderMetrics();
+      renderTable();
     }
 
     async function submitAdminStatusUpdate(participant, applicationId, fields) {
@@ -3887,6 +4896,58 @@
     $("#drawerBackdrop").addEventListener("click", closeDrawer);
 
     $("#tableWrap").addEventListener("click", (event) => {
+      const calendarDateButton = event.target.closest("[data-recommendation-date-key]");
+      if (calendarDateButton) {
+        const picker = calendarDateButton.closest("[data-recommendation-calendar]");
+        updateRecommendationCalendarPicker(picker, calendarDateButton.dataset.recommendationDateKey || "");
+        picker?.classList.remove("open");
+        return;
+      }
+      const calendarNavButton = event.target.closest('[data-action="recommendation-calendar-prev"], [data-action="recommendation-calendar-next"]');
+      if (calendarNavButton) {
+        const picker = calendarNavButton.closest("[data-recommendation-calendar]");
+        if (picker) {
+          const delta = calendarNavButton.dataset.action === "recommendation-calendar-prev" ? -1 : 1;
+          picker.dataset.month = addRecommendationMonths(picker.dataset.month || "", delta);
+          updateRecommendationCalendarPicker(picker);
+        }
+        return;
+      }
+      const calendarCloseButton = event.target.closest('[data-action="recommendation-calendar-close"]');
+      if (calendarCloseButton) {
+        calendarCloseButton.closest("[data-recommendation-calendar]")?.classList.remove("open");
+        return;
+      }
+      const calendarToggleButton = event.target.closest('[data-action="recommendation-calendar-toggle"]');
+      if (calendarToggleButton) {
+        const picker = calendarToggleButton.closest("[data-recommendation-calendar]");
+        document.querySelectorAll(".recommendation-calendar-picker.open").forEach((item) => {
+          if (item !== picker) item.classList.remove("open");
+        });
+        picker?.classList.toggle("open");
+        return;
+      }
+      const recommendationProductViewButton = event.target.closest('[data-action="recommendation-product-view"]');
+      if (recommendationProductViewButton) {
+        openRecommendationCandidateProduct(recommendationProductViewButton).catch((error) => {
+          alert(error.message || "상품 상세를 불러오지 못했습니다.");
+        });
+        return;
+      }
+      const recommendationCandidateButton = event.target.closest('[data-action="recommendation-register-candidate"]');
+      if (recommendationCandidateButton) {
+        confirmAndSaveRecommendationSchedule(recommendationCandidateButton).catch((error) => {
+          alert(error.message || "추천 일정 저장에 실패했습니다.");
+        });
+        return;
+      }
+      const recommendationHideButton = event.target.closest('[data-action="recommendation-hide"]');
+      if (recommendationHideButton) {
+        hideRecommendationSchedule(recommendationHideButton).catch((error) => {
+          alert(error.message || "추천 일정 숨김에 실패했습니다.");
+        });
+        return;
+      }
       const quoteButton = event.target.closest('[data-action="quote-complete"]');
       if (quoteButton) {
         saveQuoteComplete(quoteButton);
@@ -3957,6 +5018,9 @@
         $(".page-sub").textContent = state.currentMenu === "participant-management"
           ? "조인 페이지에 회원가입한 고객 정보를 확인합니다."
           : "항공팩, 골프팩 일정별 참여자와 상품 상세 정보를 확인합니다.";
+        if (state.currentMenu === "recommended-schedules") {
+          $(".page-sub").textContent = "참여 가능한 일정이 없을 때 노출할 관리자 추천 상품/출발일을 관리합니다.";
+        }
         renderMetrics();
         renderTable();
       });

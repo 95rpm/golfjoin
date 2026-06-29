@@ -33,6 +33,11 @@ const SHEET_HEADERS = {
     "applicantStyles",
     "applicantPreferredMembers",
     "applicantGreeting",
+    "applicantRoomType",
+    "flightRequestType",
+    "singleRoomSurcharge",
+    "singleRoomSurchargeText",
+    "singleRoomSurchargeStatus",
     "country",
     "region",
     "erpProductId",
@@ -94,6 +99,11 @@ const SHEET_HEADERS = {
     "applicantStyles",
     "applicantPreferredMembers",
     "applicantGreeting",
+    "applicantRoomType",
+    "flightRequestType",
+    "singleRoomSurcharge",
+    "singleRoomSurchargeText",
+    "singleRoomSurchargeStatus",
     "participantStatus",
     "quoteStatus",
     "depositStatus",
@@ -223,6 +233,7 @@ const SHEET_HEADERS = {
     "updatedAt"
   ],
   [SHEET_NAMES.PRODUCT_DISPLAY_RULES]: [
+    "displayRuleId",
     "erpProductId",
     "erpEventSeq",
     "section",
@@ -230,6 +241,8 @@ const SHEET_HEADERS = {
     "isPinned",
     "displayOrder",
     "badgeType",
+    "packType",
+    "packTypeName",
     "overrideTitle",
     "overrideImageUrl",
     "displayStartAt",
@@ -284,6 +297,8 @@ function doPost(e) {
         ? SHEET_NAMES.JOIN_REVIEWS
         : source === "join_wish"
           ? SHEET_NAMES.JOIN_WISHES
+          : source === "product_display_rule"
+            ? SHEET_NAMES.PRODUCT_DISPLAY_RULES
           : SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS;
   const headers = SHEET_HEADERS[sheetName];
   const row = headers.map(function (header) {
@@ -294,7 +309,7 @@ function doPost(e) {
   let writeResult = { action: "append" };
   try {
     writeResult = writeSheetRow_(sheetName, headers, row, payload);
-    if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS || value_(payload, "targetType") === "new_schedule") {
+    if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS || sheetName === SHEET_NAMES.PRODUCT_DISPLAY_RULES || value_(payload, "targetType") === "new_schedule") {
       refreshScheduleParticipantSummary_();
     }
   } finally {
@@ -313,6 +328,10 @@ function doGet(e) {
 
   if (String(params.action || "").toLowerCase() === "home_bootstrap") {
     return jsonOutput_(readHomeBootstrapPayload_(params));
+  }
+
+  if (String(params.action || "").toLowerCase() === "admin_bootstrap") {
+    return jsonOutput_(readAdminBootstrapPayload_(params));
   }
 
   const sheetName = resolveReadSheetName_(params.sheet);
@@ -561,6 +580,11 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
     applicantStyles: row.applicantStyles || row.creatorStyles || row.styles,
     applicantPreferredMembers: row.applicantPreferredMembers || row.creatorPreferredMemberComposition || row.creatorMemberPreferences || row.preferredMemberComposition || row.memberPreferences,
     applicantGreeting: row.applicantGreeting || row.creatorGreeting || row.greeting,
+    applicantRoomType: row.applicantRoomType || row.roomType || "2인1실",
+    flightRequestType: row.flightRequestType || "",
+    singleRoomSurcharge: row.singleRoomSurcharge || "",
+    singleRoomSurchargeText: row.singleRoomSurchargeText || "",
+    singleRoomSurchargeStatus: row.singleRoomSurchargeStatus || "",
     departureDateFrom: row.departureDateFrom || row.startBefore || row.departureDates || row.startSummary,
     departureDateTo: row.departureDateTo || row.startAfter || row.departureDates || row.startSummary,
     returnDateFrom: row.returnDateFrom || row.endBefore || row.returnDates || row.endSummary,
@@ -594,6 +618,11 @@ function mapLegacyGenericRow_(row, header) {
     applicantStyles: row.applicantStyles || row.styles || row.creatorStyles,
     applicantPreferredMembers: row.applicantPreferredMembers || row.preferredMemberComposition || row.memberPreferences || row.creatorPreferredMemberComposition || row.creatorMemberPreferences,
     applicantGreeting: row.applicantGreeting || row.greeting || row.creatorGreeting,
+    applicantRoomType: row.applicantRoomType || row.roomType || "2인1실",
+    flightRequestType: row.flightRequestType || "",
+    singleRoomSurcharge: row.singleRoomSurcharge || "",
+    singleRoomSurchargeText: row.singleRoomSurchargeText || "",
+    singleRoomSurchargeStatus: row.singleRoomSurchargeStatus || "",
     applicationStatus: row.applicationStatus || row.status,
     profileImageObjectName: row.profileImageObjectName || row.objectName,
     profileImageSize: row.profileImageSize || row.photoSize,
@@ -626,7 +655,94 @@ function getRawPayloadColumnValue_(payload, header, sheetName) {
   if (sheetName === SHEET_NAMES.JOIN_WISHES) {
     return getJoinWishValue_(payload, header);
   }
+  if (sheetName === SHEET_NAMES.PRODUCT_DISPLAY_RULES) {
+    return getProductDisplayRuleValue_(payload, header);
+  }
   return getNewScheduleApplicationValue_(payload, header);
+}
+
+function getProductDisplayRuleValue_(payload, header) {
+  const updatedAt = new Date().toISOString();
+  const erpProductId = value_(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq || "";
+  const erpEventSeq = value_(payload, "product.erpEventSeq") || payload.erpEventSeq || payload.eventSeq || "";
+  const displayRuleId = payload.displayRuleId || buildId_("pdr", erpProductId, erpEventSeq, payload.section || "available_schedule");
+  const values = {
+    displayRuleId: displayRuleId,
+    erpProductId: erpProductId,
+    erpEventSeq: erpEventSeq,
+    section: payload.section || "available_schedule",
+    isVisible: payload.isVisible === false ? false : String(payload.isVisible || "true"),
+    isPinned: payload.isPinned === true || String(payload.isPinned || "").toLowerCase() === "true",
+    displayOrder: payload.displayOrder || 0,
+    badgeType: payload.badgeType || "recommended",
+    packType: payload.packType || value_(payload, "product.packType") || "",
+    packTypeName: payload.packTypeName || value_(payload, "product.packTypeName") || "",
+    overrideTitle: payload.overrideTitle || value_(payload, "product.productName") || "",
+    overrideImageUrl: payload.overrideImageUrl || value_(payload, "product.imageUrl") || "",
+    displayStartAt: payload.displayStartAt || value_(payload, "product.departureDate") || "",
+    displayEndAt: payload.displayEndAt || value_(payload, "product.returnDate") || payload.displayStartAt || value_(payload, "product.departureDate") || "",
+    adminMemo: payload.adminMemo || "",
+    updatedAt: updatedAt
+  };
+  return values[header] !== undefined ? values[header] : "";
+}
+
+function isActiveRecommendedScheduleRule_(rule) {
+  const section = String(rule.section || "").trim() || "available_schedule";
+  const visible = String(rule.isVisible === undefined || rule.isVisible === "" ? "true" : rule.isVisible).toLowerCase();
+  const status = String(rule.status || "").toLowerCase();
+  return section === "available_schedule" && visible !== "false" && visible !== "0" && visible !== "no" && status !== "cancelled" && status !== "hidden";
+}
+
+function buildRecommendedScheduleId_(rule) {
+  const idSeed = rule.displayRuleId || [rule.erpProductId, rule.erpEventSeq, rule.displayStartAt].filter(Boolean).join("-") || "rule";
+  const safe = String(idSeed).replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "");
+  return `admin-recommended-${safe || "rule"}`;
+}
+
+function buildRecommendedScheduleSummarySource_(rule) {
+  const scheduleId = buildRecommendedScheduleId_(rule);
+  return {
+    scheduleId: scheduleId,
+    sourceApplicationId: rule.displayRuleId || "",
+    applicationId: rule.displayRuleId || "",
+    productName: rule.overrideTitle || rule.productName || rule.erpProductId || "Recommended schedule",
+    country: rule.country || "",
+    region: rule.region || "",
+    departureDateFrom: rule.displayStartAt || "",
+    departureDateTo: rule.displayStartAt || "",
+    returnDateFrom: rule.displayEndAt || rule.displayStartAt || "",
+    returnDateTo: rule.displayEndAt || rule.displayStartAt || "",
+    tripSummary: rule.tripSummary || "",
+    packType: rule.packType || "",
+    packTypeName: rule.packTypeName || "",
+    applicantPeople: "0",
+    creatorPeople: "0",
+    status: "open",
+    approvalStatus: "approved",
+    displayStatus: "visible",
+    erpProductId: rule.erpProductId || "",
+    erpEventSeq: rule.erpEventSeq || "",
+    isAdminRecommendedSchedule: true
+  };
+}
+
+function isJoinApplicationForSchedule_(join, schedule) {
+  const scheduleId = String(schedule.scheduleId || "").trim();
+  if (String(join.targetType || "") === "new_schedule" && String(join.targetScheduleId || "").trim() === scheduleId) {
+    return true;
+  }
+  if (!schedule.isAdminRecommendedSchedule) return false;
+  const productId = String(schedule.erpProductId || "").trim();
+  const eventSeq = String(schedule.erpEventSeq || "").trim();
+  const joinProductId = String(join.erpProductId || join.goodSeq || "").trim();
+  const joinEventSeq = String(join.erpEventSeq || join.eventSeq || "").trim();
+  const departureDate = String(schedule.departureDateFrom || "").trim();
+  const joinDepartureDate = String(join.departureDate || "").trim();
+  if (!productId || productId !== joinProductId) return false;
+  if (eventSeq && joinEventSeq && eventSeq !== joinEventSeq) return false;
+  if (departureDate && joinDepartureDate && departureDate !== joinDepartureDate) return false;
+  return String(join.targetType || "") !== "new_schedule";
 }
 
 function getNewScheduleApplicationValue_(payload, header) {
@@ -657,6 +773,11 @@ function getNewScheduleApplicationValue_(payload, header) {
     applicantStyles: join_(value_(payload, "applicant.styles")),
     applicantPreferredMembers: join_(value_(payload, "applicant.preferredMemberComposition") || value_(payload, "applicant.memberPreferences")),
     applicantGreeting: value_(payload, "applicant.greeting"),
+    applicantRoomType: value_(payload, "applicant.roomType") || "2인1실",
+    flightRequestType: value_(payload, "applicant.flightRequestType"),
+    singleRoomSurcharge: value_(payload, "applicant.singleRoomSurcharge"),
+    singleRoomSurchargeText: value_(payload, "applicant.singleRoomSurchargeText"),
+    singleRoomSurchargeStatus: value_(payload, "applicant.singleRoomSurchargeStatus"),
     country: value_(payload, "trip.country") || normalizeCountryName_(value_(payload, "trip.region")) || normalizeCountryList_(value_(payload, "trip.regions")),
     region: normalizeRegionName_(value_(payload, "trip.region")),
     erpProductId: value_(payload, "trip.erpProductId") || value_(payload, "trip.productId"),
@@ -724,6 +845,11 @@ function getJoinApplicationValue_(payload, header) {
     applicantStyles: join_(value_(payload, "applicant.styles")),
     applicantPreferredMembers: join_(value_(payload, "applicant.preferredMemberComposition") || value_(payload, "applicant.memberPreferences")),
     applicantGreeting: value_(payload, "applicant.greeting"),
+    applicantRoomType: value_(payload, "applicant.roomType") || "2인1실",
+    flightRequestType: value_(payload, "applicant.flightRequestType"),
+    singleRoomSurcharge: value_(payload, "applicant.singleRoomSurcharge"),
+    singleRoomSurchargeText: value_(payload, "applicant.singleRoomSurchargeText"),
+    singleRoomSurchargeStatus: value_(payload, "applicant.singleRoomSurchargeStatus"),
     participantStatus: payload.participantStatus || value_(payload, "payment.participantStatus") || "신청",
     quoteStatus: payload.quoteStatus || value_(payload, "payment.quoteStatus") || "",
     depositStatus: payload.depositStatus || value_(payload, "payment.depositStatus") || "",
@@ -850,22 +976,27 @@ function refreshScheduleParticipantSummary_() {
   const summarySheet = ensureSheetHeaders_(SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY, SHEET_HEADERS[SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY]);
   const newScheduleRows = readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS);
   const joinRows = readSheetObjects_(SHEET_NAMES.JOIN_APPLICATIONS);
+  const displayRuleRows = readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES);
   const headers = SHEET_HEADERS[SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY];
+  const recommendedScheduleRows = displayRuleRows
+    .filter(isActiveRecommendedScheduleRule_)
+    .map(buildRecommendedScheduleSummarySource_);
+  const scheduleRows = newScheduleRows.concat(recommendedScheduleRows);
 
-  const summaryRows = newScheduleRows.map(function (schedule) {
+  const summaryRows = scheduleRows.map(function (schedule) {
     const scheduleId = schedule.scheduleId;
     const relatedJoins = joinRows.filter(function (join) {
-      return join.targetType === "new_schedule" && join.targetScheduleId === scheduleId;
+      return isJoinApplicationForSchedule_(join, schedule);
     });
     const confirmedJoins = relatedJoins.filter(function (join) { return (join.applicationStatus || join.status) !== "cancelled"; });
     const cancelledJoins = relatedJoins.filter(function (join) { return (join.applicationStatus || join.status) === "cancelled"; });
     const pendingJoins = relatedJoins.filter(function (join) { return (join.applicationStatus || join.status) === "pending"; });
-    const normalizedCreatorPeople = parsePeople_(schedule.applicantPeople || schedule.creatorPeople || "1");
+    const normalizedCreatorPeople = schedule.isAdminRecommendedSchedule ? 0 : parsePeople_(schedule.applicantPeople || schedule.creatorPeople || "1");
     const normalizedJoinedPeople = confirmedJoins.reduce(function (sum, join) { return sum + parsePeople_(join.applicantPeople || join.people); }, 0);
     const rawConfirmedPeople = normalizedCreatorPeople + normalizedJoinedPeople;
     const capacity = 4;
     const confirmedPeople = Math.min(capacity, rawConfirmedPeople);
-    const participants = [
+    const creatorParticipants = normalizedCreatorPeople > 0 ? [
       {
         name: schedule.applicantName || schedule.creatorName,
         phone: schedule.applicantMobile || schedule.creatorPhone,
@@ -875,7 +1006,8 @@ function refreshScheduleParticipantSummary_() {
         styles: schedule.applicantStyles || schedule.creatorStyles,
         memberPreferences: schedule.applicantPreferredMembers || schedule.creatorMemberPreferences || schedule.creatorPreferredMemberComposition
       }
-    ].concat(confirmedJoins.map(function (join) {
+    ] : [];
+    const participants = creatorParticipants.concat(confirmedJoins.map(function (join) {
       return {
         name: join.applicantName || join.name,
         phone: join.applicantMobile || join.phone,
@@ -888,7 +1020,7 @@ function refreshScheduleParticipantSummary_() {
     }));
     const values = {
       scheduleId: scheduleId,
-      sourceApplicationId: schedule.applicationId,
+      sourceApplicationId: schedule.applicationId || schedule.sourceApplicationId,
       title: schedule.productName || `${schedule.region || "새일정"} 맞춤 조인`,
       country: schedule.country || normalizeCountryName_(schedule.region),
       region: normalizeRegionName_(schedule.region),
@@ -1187,6 +1319,11 @@ function readHomeBootstrapPayload_(params) {
       status: "visible",
       limit: reviewLimit
     }).map(normalizeRowForJson_),
+    displayRules: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES), {
+      limit: 100
+    }).filter(function (row) {
+      return String(row.section || "") === "available_schedule" && String(row.isVisible || "true").toLowerCase() !== "false";
+    }).map(normalizeRowForJson_),
     wishes: canReadWishes
       ? filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_WISHES), {
         source: "join_wish",
@@ -1197,6 +1334,34 @@ function readHomeBootstrapPayload_(params) {
         limit: wishLimit
       }).map(normalizeRowForJson_)
       : []
+  };
+}
+
+function readAdminBootstrapPayload_(params) {
+  const limit = Math.min(Math.max(parsePositiveInteger_(params.limit) || 1000, 1), 3000);
+  if (params.refreshSummary === "true") {
+    LockService.getScriptLock().waitLock(30000);
+    try {
+      refreshScheduleParticipantSummary_();
+    } finally {
+      LockService.getScriptLock().releaseLock();
+    }
+  }
+  return {
+    ok: true,
+    updatedAt: new Date().toISOString(),
+    builderRows: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS), {
+      limit: limit
+    }).map(normalizeRowForJson_),
+    joinRows: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_APPLICATIONS), {
+      limit: limit
+    }).map(normalizeRowForJson_),
+    profileRows: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_MEMBER_PROFILES), {
+      limit: limit
+    }).map(normalizeRowForJson_),
+    displayRuleRows: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES), {
+      limit: limit
+    }).map(normalizeRowForJson_)
   };
 }
 

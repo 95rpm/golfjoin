@@ -8949,56 +8949,54 @@
     .detail-share-body {
       display: grid;
       gap: 16px;
-      padding: 18px 20px 20px;
+      padding: 0 20px 20px;
     }
     .detail-share-list {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
     }
     .detail-share-item {
       min-width: 0;
-      min-height: 76px;
-      border: 1px solid #e6ebf0;
-      border-radius: 14px;
+      min-height: 64px;
+      border: 0;
+      border-radius: 0;
+      padding: 14px 0;
       background: #fff;
       color: #101418;
       text-decoration: none;
-      display: grid;
-      justify-items: center;
-      align-content: center;
-      gap: 7px;
-      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px;
+      font-size: 18px;
       font-weight: 700;
       line-height: 1.2;
+      text-align: left;
       cursor: pointer;
     }
+    .detail-share-item + .detail-share-item {
+      border-top: 1px solid #edf1f5;
+    }
     .detail-share-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
+      width: 20px;
+      height: 20px;
+      border-radius: 0;
+      flex: 0 0 20px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: #f2f5f8;
+      background: transparent;
       color: #101418;
-      font-size: 13px;
-      font-weight: 900;
     }
-    .detail-share-item.kakao .detail-share-icon {
-      background: #fee500;
-      color: #191919;
-    }
-    .detail-share-item.facebook .detail-share-icon {
-      background: #1877f2;
-      color: #fff;
-    }
-    .detail-share-item.sms .detail-share-icon {
-      background: #22c55e;
-      color: #fff;
+    .detail-share-icon img,
+    .detail-share-icon svg {
+      width: 20px;
+      height: 20px;
+      display: block;
     }
     .detail-share-url-row {
-      display: grid;
+      display: none;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 8px;
     }
@@ -10107,6 +10105,23 @@
     [data-chip-group="global-level"],
     [data-chip-group="global-member-preference"] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .apply-booking-option-section {
+      display: grid;
+      gap: 10px;
+    }
+    .apply-booking-option-section.is-hidden {
+      display: none;
+    }
+    .apply-room-surcharge {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #64748b;
+      margin-top: 6px;
+    }
+    .apply-room-surcharge strong {
+      color: #111827;
+      font-weight: 800;
     }
     .apply-chip {
       min-height: 48px;
@@ -11427,6 +11442,12 @@
     #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
       grid-template-columns: var(--modal-bottom-prev-width) minmax(0, 1fr);
     }
+    @media (min-width: 641px) {
+      #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
+        grid-template-columns: var(--modal-bottom-prev-width) minmax(0, 1fr);
+        justify-content: stretch;
+      }
+    }
     @media (max-width: 640px) {
       .builder-bottom .button,
       .detail-modal-actions .button,
@@ -11900,6 +11921,7 @@
       font-size: var(--font-detail-main-title);
       font-weight: var(--font-weight-detail-main-title);
       margin: 0 0 15px;
+      padding-left: 10px;
       line-height: 1.25;
       display: block;
       overflow: visible;
@@ -11933,10 +11955,31 @@
       z-index: 2;
       display: none;
       gap: 20px;
+      --detail-anchor-indicator-left: 0px;
+      --detail-anchor-indicator-width: 0px;
+      --detail-anchor-indicator-opacity: 0;
       padding: 12px 0 0;
       margin: 15px 0 0;
       background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(8px);
+    }
+    .detail-anchor-tabs::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: var(--detail-anchor-indicator-width);
+      height: 2px;
+      border-radius: 999px;
+      background: #101418;
+      opacity: var(--detail-anchor-indicator-opacity);
+      transform: translate3d(var(--detail-anchor-indicator-left), 0, 0);
+      transition:
+        transform .42s cubic-bezier(.16, 1, .3, 1),
+        width .42s cubic-bezier(.16, 1, .3, 1),
+        opacity .16s ease;
+      pointer-events: none;
+      will-change: transform, width;
     }
     .detail-anchor-tabs.is-visible {
       display: flex;
@@ -11966,14 +12009,12 @@
       color: #101418;
     }
     .detail-anchor-chip.active::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 2px;
-      border-radius: 999px;
-      background: #101418;
+      content: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .detail-anchor-tabs::after {
+        transition: none;
+      }
     }
     .detail-section {
       margin-top: 24px;
@@ -12559,6 +12600,7 @@
       align-items: baseline;
       justify-content: space-between;
       gap: 12px;
+      padding-left: 10px;
     }
     .detail-product-price-label {
       color: #848c94;
@@ -12751,11 +12793,29 @@
       font-weight: 900;
       line-height: 1;
     }
+    .detail-participant-match-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+    }
+    .detail-participant-match-sparkle {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      display: block;
+    }
     .detail-participant-gender-row {
       display: grid;
       grid-template-columns: 50px minmax(0, 1fr) 50px;
-      gap: 20px;
+      gap: 15px;
       align-items: center;
+    }
+    .detail-participant-gender-side {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      min-width: 0;
     }
     .detail-participant-gender-avatar {
       width: 52px;
@@ -12777,6 +12837,15 @@
       font-weight: 700;
       line-height: 1.3;
       text-align: center;
+    }
+    .detail-participant-gender-mobile-label {
+      display: none;
+      color: #373a3c;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+      white-space: nowrap;
     }
     .detail-participant-gauge-track {
       position: relative;
@@ -12823,6 +12892,39 @@
       line-height: 1.3;
       text-align: right;
     }
+    .detail-participant-match-gauge.is-login-required {
+      min-height: 36px;
+    }
+    .detail-participant-match-gauge.is-login-required::before {
+      content: "";
+      position: absolute;
+      inset: -8px -10px;
+      z-index: 2;
+      border: 1px solid rgba(255, 255, 255, .68);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .54);
+      backdrop-filter: blur(7px);
+      -webkit-backdrop-filter: blur(7px);
+      pointer-events: none;
+    }
+    .detail-participant-match-gauge.is-login-required::after {
+      content: "로그인이 필요해요";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 3;
+      transform: translate(-50%, -50%);
+      min-width: max-content;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .92);
+      color: #101418;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
+      pointer-events: none;
+    }
     .detail-participant-divider {
       display: none;
     }
@@ -12848,6 +12950,44 @@
     .detail-participant-style-chips.mobile {
       display: none;
     }
+    .detail-participant-match-reasons {
+      display: grid;
+      gap: 7px;
+      padding: 13px 14px;
+      border: 1px solid #e6edf7;
+      border-radius: 12px;
+      background: #f7fbff;
+      color: #334155;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.38;
+    }
+    .detail-participant-match-reasons.mobile {
+      display: none;
+      margin-top: 20px;
+      color: #373a3c;
+    }
+    .detail-participant-match-reasons.desktop {
+      grid-column: 1 / -1;
+      color: #69727a;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .detail-participant-match-reason {
+      position: relative;
+      padding-left: 13px;
+    }
+    .detail-participant-match-reason::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: .68em;
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: #2e7dee;
+      transform: translateY(-50%);
+    }
     @media (min-width: 641px) {
       .detail-participant-status-pill {
         display: inline-flex;
@@ -12872,6 +13012,7 @@
       .detail-participant-info-grid,
       .detail-participant-divider,
       .detail-participant-style-chips,
+      .detail-participant-match-reasons.desktop,
       .detail-participant-info-bubble {
         grid-column: 1 / -1;
       }
@@ -12893,6 +13034,27 @@
         bottom: 0;
       }
     }
+    @media (min-width: 360px) and (max-width: 385px) {
+      .detail-participant-gender-summary {
+        font-size: clamp(15px, calc(15px + (100vw - 360px) * 0.08), 17px);
+      }
+    }
+    @media (max-width: 359.98px) {
+      .detail-participant-gender-row {
+        grid-template-columns: 52px minmax(0, 1fr) 52px;
+        gap: 8px;
+        align-items: start;
+      }
+      .detail-participant-gender-center {
+        padding-top: 22px;
+      }
+      .detail-participant-gender-summary {
+        display: none;
+      }
+      .detail-participant-gender-mobile-label {
+        display: block;
+      }
+    }
     @media (max-width: 640px) {
       .detail-participant-style-chips.desktop {
         display: none;
@@ -12900,6 +13062,12 @@
       .detail-participant-style-chips.mobile {
         display: flex;
         margin-top: 12px;
+      }
+      .detail-participant-match-reasons.mobile {
+        display: grid;
+      }
+      .detail-participant-match-reasons.desktop {
+        display: none;
       }
     }
     .detail-benefit-card {
@@ -15496,6 +15664,12 @@
         overflow: visible;
       }
 
+      #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions,
+      body > #detailModal.sgj-portal-overlay.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
+        grid-template-columns: var(--modal-bottom-prev-width) minmax(0, 1fr) !important;
+        gap: 10px;
+      }
+
       #detailModal.mdpick-recruit-mode .detail-modal-actions::after,
       #detailModal.builder-product-detail-mode .detail-modal-actions::after,
       body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions::after,
@@ -15581,7 +15755,6 @@
       #builderDatePopover.builder-date-popover::after,
       #builderFlexSheet.builder-flex-sheet::after,
       body > #detailModal.sgj-portal-overlay .detail-apply-panel::after,
-      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel::after,
       body > .participant-floating.sgj-portal-overlay .participant-popover::after {
         content: "";
         position: absolute;
@@ -15594,6 +15767,10 @@
         background: #d1d5db;
         transform: translateX(-50%);
         pointer-events: none;
+      }
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel::after {
+        display: none;
+        content: none;
       }
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel.is-complete::after {
         display: none;
@@ -18057,6 +18234,38 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .calendar-accordion-list .region-product-admin-badges {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-left: auto;
+      flex: 0 0 auto;
+    }
+    .calendar-accordion-list .region-product-admin-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 20px;
+      padding: 0 7px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .calendar-accordion-list .region-product-admin-badge.lowest-price {
+      background: #fff7ed;
+      color: #f97316;
+    }
+    .calendar-accordion-list .region-product-admin-badge.recommended {
+      background: #eff6ff;
+      color: #1b42ff;
+    }
+    @media (min-width: 641px) {
+      .calendar-accordion-list .region-product-admin-badges {
+        margin-left: 6px;
+      }
+    }
     .calendar-accordion-list .region-product-name {
       min-width: 0;
       overflow: hidden;
@@ -18946,7 +19155,7 @@
         width: 100% !important;
         max-width: 100% !important;
         padding: 10px 22px 0 !important;
-        margin: 15px 0 0 !important;
+        margin: 0 !important;
         overflow-x: auto !important;
         overflow-y: hidden !important;
         overscroll-behavior-x: contain !important;
@@ -18990,7 +19199,7 @@
       }
       #detailModal.open .detail-section,
       body > #detailModal.sgj-portal-overlay.open .detail-section {
-        margin: 25px 22px 0 !important;
+        margin: 25px 22px 15px !important;
       }
       #detailModal.open .detail-section-title.with-people,
       #detailModal.open .detail-team,
@@ -19455,8 +19664,8 @@
       list-style: none;
     }
 
-    .join-mobile-bottom-nav .join-pc-bottom-only {
-      display: block;
+    .join-mobile-bottom-nav .join-mobile-bottom-nav-list > .join-pc-bottom-only {
+      display: list-item;
     }
 
     #secret-golf-join .join-mobile-bottom-nav-list {
@@ -24003,8 +24212,8 @@
         gap: 0;
       }
 
-      .join-mobile-bottom-nav .join-pc-bottom-only {
-        display: none;
+      .join-mobile-bottom-nav .join-mobile-bottom-nav-list > .join-pc-bottom-only {
+        display: none !important;
       }
 
       .join-mobile-bottom-nav button {
@@ -24123,6 +24332,10 @@
       #detailModal .modal-header,
       body > #detailModal.sgj-portal-overlay .modal-header {
         grid-template-columns: minmax(0, 1fr) auto !important;
+      }
+      #detailModal #detailContent,
+      body > #detailModal.sgj-portal-overlay #detailContent {
+        padding-top: 0 !important;
       }
       .modal-header .modal-title,
       .calendar-sheet-header .calendar-sheet-title,
@@ -24798,6 +25011,18 @@
         </section>
       </div>
 
+      <section class="sgj-section sgj-create-section" id="create">
+        <div class="cta-panel">
+          <div class="cta-copy">
+            <div class="section-title cta-title">원하는 일정으로<div class="cta-title-pc-space"> </div><br class="cta-title-linebreak">골프친구 찾기</div>
+            <div class="cta-subcopy">
+              <div class="section-desc cta-subcopy-text">원하는 날짜와 지역의 상품으로<div class="cta-pc-space"> </div><br class="cta-subcopy-linebreak">직접 멤버를 모집해보세요.</div>
+            </div>
+          </div>
+          <button class="button primary large cta-create-button" onclick="openBuilderModalFromMain(this)"><div class="cta-create-button-text">새로운 모임 만들기</div></button>
+        </div>
+      </section>
+
       <div class="section-head-row" id="joinActiveSectionHead">
         <div>
           <div class="section-title">지금, 함께 떠나는 조인여행 <div class="section-title-bolt" aria-hidden="true"></div></div>
@@ -24811,19 +25036,6 @@
   </section>
 
 
-  <section class="sgj-section sgj-create-section" id="create">
-    <div class="page-container">
-      <div class="cta-panel">
-        <div class="cta-copy">
-          <div class="section-title cta-title">원하는 일정으로<div class="cta-title-pc-space"> </div><br class="cta-title-linebreak">골프친구 찾기</div>
-          <div class="cta-subcopy">
-            <div class="section-desc cta-subcopy-text">원하는 날짜와 지역의 상품으로<div class="cta-pc-space"> </div><br class="cta-subcopy-linebreak">직접 멤버를 모집해보세요.</div>
-          </div>
-        </div>
-        <button class="button primary large cta-create-button" onclick="openBuilderModalFromMain(this)"><div class="cta-create-button-text">새로운 모임 만들기</div></button>
-      </div>
-    </div>
-  </section>
   <section class="sgj-section sgj-trust-section">
     <div class="page-container">
       <div class="section-title" style="text-align:center;">안심하고 가볍게 참여하세요.</div>
@@ -24908,6 +25120,12 @@
         <button type="button" data-mobile-nav-key="search" onclick="handleJoinMobileNavSearch()" aria-label="검색">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 21-4.34-4.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle><circle class="search-active-cutout" cx="11" cy="11" r="6.1"></circle></svg>
           <div class="join-mobile-bottom-nav-label">검색</div>
+        </button>
+      </li>
+      <li class="join-pc-bottom-only">
+        <button type="button" data-mobile-nav-key="recruit" onclick="handleJoinMobileRecruitClick(this)" aria-label="멤버모집">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle><path d="M19 8v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div class="join-mobile-bottom-nav-label">멤버모집</div>
         </button>
       </li>
       <li>
@@ -25602,6 +25820,37 @@
                     <div class="apply-companion-error">모든 동반자 성별을 선택해 주세요.</div>
                   </div>
                 </div>
+              </div>
+            </div>
+            <div class="field full">
+              <div class="apply-booking-option-section is-hidden" data-apply-flight-option="global">
+                <div class="apply-section-heading">항공예약</div>
+                <div>
+                  <div class="apply-people-mode" data-chip-group="global-flight-request">
+                    <button type="button" class="apply-people-button active" data-mode="solo" data-value="대행요청" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('global')">
+                      <div class="apply-people-button-label">대행 요청</div>
+                    </button>
+                    <button type="button" class="apply-people-button" data-mode="group" data-value="직접예약" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('global')">
+                      <div class="apply-people-button-label">직접 예약</div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="field full">
+              <div class="apply-booking-option-section" data-apply-room-option="global">
+                <div class="apply-section-heading">숙소타입</div>
+                <div>
+                  <div class="apply-people-mode" data-chip-group="global-room-type">
+                    <button type="button" class="apply-people-button active" data-mode="solo" data-value="2인1실" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('global')">
+                      <div class="apply-people-button-label">2인1실</div>
+                    </button>
+                    <button type="button" class="apply-people-button" data-mode="group" data-value="1인1실" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('global')">
+                      <div class="apply-people-button-label">1인1실</div>
+                    </button>
+                  </div>
+                </div>
+                <div class="apply-room-surcharge" data-apply-room-surcharge="global"></div>
               </div>
             </div>
           </div>
@@ -26914,6 +27163,7 @@
     let googleSheetJoinWishesLoading = false;
     let googleSheetJoinWishesReadCompleted = false;
     let googleSheetJoinWishesReadFailed = false;
+    let googleSheetJoinWishesReadMemberKey = "";
     const GOOGLE_SHEET_READ_CACHE_TTL_MS = 60 * 1000;
     const GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY = "joinApplicationsSheetReadCache";
     const GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY = "builderApplicationsSheetReadCache";
@@ -28891,6 +29141,7 @@
     }
 
     const joinMemberProfileLookupPromises = new Map();
+    const joinMemberProfileLookupResults = new Map();
 
     function clearRememberedJoinMemberProfile(member = {}) {
       try {
@@ -28981,6 +29232,10 @@
       const kakaoId = String(member.kakaoId || "").trim();
       if (!memberSeq && !memberId && !memberMobile && !memberEmail && !kakaoId) return {};
       const lookupKey = [memberSeq, memberId, memberMobile, memberEmail, kakaoId].filter(Boolean).join("|");
+      const cachedLookup = joinMemberProfileLookupResults.get(lookupKey);
+      if (cachedLookup && Date.now() - cachedLookup.fetchedAt <= GOOGLE_SHEET_READ_CACHE_TTL_MS) {
+        return cachedLookup.profile || {};
+      }
       if (joinMemberProfileLookupPromises.has(lookupKey)) {
         return joinMemberProfileLookupPromises.get(lookupKey);
       }
@@ -28996,11 +29251,13 @@
         const profile = normalizeJoinMemberProfileRow(rows[0] || {});
         if (profile.gender || profile.birthYear || profile.profession || profile.level || profile.travelStyles || profile.profileImageUrl || profile.profileThumbnailUrl) {
           rememberJoinMemberProfileLocally(member, profile);
+          joinMemberProfileLookupResults.set(lookupKey, { fetchedAt: Date.now(), profile });
           return profile;
         }
       } catch (error) {
         console.warn("Failed to load join member profile from Google Sheet.", error);
       }
+      joinMemberProfileLookupResults.set(lookupKey, { fetchedAt: Date.now(), profile: {} });
       return {};
       })().finally(() => {
         joinMemberProfileLookupPromises.delete(lookupKey);
@@ -30008,7 +30265,7 @@
     }
 
     async function ensureJoinMemberProfileReady(afterLogin = "my-menu", extraParams = {}, options = {}) {
-      const member = options.member || await getJoinCurrentMember({ refresh: true });
+      const member = options.member || await getJoinCurrentMember({ refresh: Boolean(options.refresh) });
       if (!member) {
         redirectToJoinLogin(afterLogin, extraParams);
         return null;
@@ -30455,6 +30712,7 @@
         }
         localStorage.setItem(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, JSON.stringify({
           fetchedAt: Date.now(),
+          memberKey: getJoinWishMemberKey(),
           rows: nextRows
         }));
       } catch (error) {
@@ -30677,8 +30935,11 @@
     async function hydrateJoinWishesFromGoogleSheet(options = {}) {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return getJoinWishProducts();
       const member = getJoinCachedCurrentMember();
-      if (!getJoinWishMemberKey(member)) return getJoinWishProducts();
+      const memberKey = getJoinWishMemberKey(member);
+      if (!memberKey) return getJoinWishProducts();
       if (googleSheetJoinWishesLoading && !options.force) return getJoinWishProducts();
+      if (!options.force && googleSheetJoinWishesReadCompleted && !googleSheetJoinWishesReadFailed && googleSheetJoinWishesReadMemberKey === memberKey) return getJoinWishProducts();
+      if (!options.force && hasFreshGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, { memberKey })) return getJoinWishProducts();
       googleSheetJoinWishesLoading = true;
       googleSheetJoinWishesReadFailed = false;
       try {
@@ -30692,9 +30953,10 @@
         const sheetItems = rows.map(normalizeJoinWishSheetRow).filter((item) => item.status !== "deleted");
         const merged = mergeJoinWishProducts(getJoinWishProducts(), sheetItems);
         saveJoinWishProducts(merged);
-        writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, rows);
+        writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, rows, { memberKey });
         googleSheetJoinWishesReadCompleted = true;
         googleSheetJoinWishesReadFailed = false;
+        googleSheetJoinWishesReadMemberKey = memberKey;
         return merged;
       } catch (error) {
         googleSheetJoinWishesReadCompleted = true;
@@ -30706,19 +30968,21 @@
       }
     }
 
-    function applyJoinWishesFromGoogleSheetRows(rows = []) {
+    function applyJoinWishesFromGoogleSheetRows(rows = [], memberKey = getJoinWishMemberKey()) {
       const sheetItems = rows.map(normalizeJoinWishSheetRow).filter((item) => item.status !== "deleted");
       const merged = mergeJoinWishProducts(getJoinWishProducts(), sheetItems);
       saveJoinWishProducts(merged);
-      writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, rows);
+      writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, rows, { memberKey: String(memberKey || "") });
       googleSheetJoinWishesReadCompleted = true;
       googleSheetJoinWishesReadFailed = false;
+      googleSheetJoinWishesReadMemberKey = String(memberKey || "");
       return merged;
     }
 
     async function hydrateHomeBootstrapFromGoogleSheet() {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return { ok: false };
       const member = getJoinCachedCurrentMember();
+      const memberKey = getJoinWishMemberKey(member);
       const normalizedMember = member ? getJoinMemberWithCachedProfile(member) : {};
       googleSheetBuilderApplicationsLoading = true;
       googleSheetJoinApplicationsLoading = true;
@@ -30738,7 +31002,7 @@
       };
       try {
         const data = await postGolfJoinSheetAction("home_bootstrap", payload, "Home bootstrap");
-        applyHomeBootstrapRows(data || {});
+        applyHomeBootstrapRows(data || {}, { wishMemberKey: memberKey });
         return { ok: true, data };
       } catch (error) {
         googleSheetBuilderApplicationsLoading = false;
@@ -33951,6 +34215,9 @@
       if (["my", "my-menu", "my-reservation", "my-reservations", "reservations"].includes(openTarget)) {
         return "my-menu";
       }
+      if (["detail", "product", "join-detail", "schedule"].includes(openTarget)) {
+        return "detail";
+      }
       const hashTarget = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim().toLowerCase();
       if (["golfjoin-my", "golfjoin-my-menu", "golfjoin-my-reservation", "golfjoin-my-reservations"].includes(hashTarget)) {
         return "my-menu";
@@ -33962,6 +34229,11 @@
       const params = new URLSearchParams(location.search);
       params.delete("golfjoinOpen");
       params.delete("joinOpen");
+      params.delete("joinId");
+      params.delete("scheduleId");
+      params.delete("productId");
+      params.delete("goodSeq");
+      params.delete("eventSeq");
       const hashTarget = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim().toLowerCase();
       const shouldClearHash = ["golfjoin-my", "golfjoin-my-menu", "golfjoin-my-reservation", "golfjoin-my-reservations"].includes(hashTarget);
       const cleanQuery = params.toString();
@@ -33969,14 +34241,41 @@
       history.replaceState(null, "", cleanUrl);
     }
 
+    function findJoinExternalDeepLinkDetailTarget(params = new URLSearchParams(location.search)) {
+      const joinId = String(params.get("joinId") || params.get("scheduleId") || "").trim();
+      if (joinId) {
+        const direct = joins.find((item) => String(item.id || item.scheduleId || "") === joinId);
+        if (direct && shouldDisplayJoinProduct(direct)) return direct;
+      }
+      const productId = String(params.get("productId") || params.get("goodSeq") || "").trim();
+      const eventSeq = String(params.get("eventSeq") || "").trim();
+      if (!productId) return null;
+      return joins.find((item) => {
+        if (!shouldDisplayJoinProduct(item)) return false;
+        const parsedReference = parseSecretTourProductReference(item.id || item.erpProductId || "", item.eventSeq || item.erpEventSeq || "");
+        const itemGoodSeq = String(item.goodSeq || parsedReference.goodSeq || item.erpProductId || "").trim();
+        const itemEventSeq = String(item.eventSeq || parsedReference.eventSeq || item.erpEventSeq || "").trim();
+        if (String(item.id || "") === productId || String(item.productId || "") === productId) return !eventSeq || itemEventSeq === eventSeq;
+        if (itemGoodSeq !== productId) return false;
+        return !eventSeq || itemEventSeq === eventSeq;
+      }) || null;
+    }
+
     async function resumeJoinExternalDeepLink() {
       const target = getJoinExternalDeepLinkTarget();
       if (!target) return false;
-      clearJoinExternalDeepLinkTarget();
       if (target === "my-menu") {
+        clearJoinExternalDeepLinkTarget();
         setJoinMobileNavActive("my");
         if (!requireJoinLogin("my-menu")) return true;
         await openJoinMyMenu();
+        return true;
+      }
+      if (target === "detail") {
+        const join = findJoinExternalDeepLinkDetailTarget();
+        if (!join) return false;
+        clearJoinExternalDeepLinkTarget();
+        openDetail(join.id);
         return true;
       }
       return false;
@@ -35089,6 +35388,7 @@
       body.querySelectorAll(".detail-anchor-chip").forEach((chip) => {
         chip.classList.toggle("active", chip.dataset.anchorTarget === sectionName);
       });
+      syncDetailAnchorIndicator(tabs, sectionName);
 
       tabs?.classList.add("is-visible");
       const stickyOffset = getDetailAnchorScrollOffset(body, tabs);
@@ -35152,17 +35452,36 @@
       body.querySelectorAll(".detail-anchor-chip").forEach((chip) => {
         chip.classList.toggle("active", chip.dataset.anchorTarget === activeSection);
       });
+      syncDetailAnchorIndicator(tabs, activeSection);
       syncDetailAnchorTabsScroll(tabs, activeSection);
+    }
+
+    function syncDetailAnchorIndicator(tabs, activeSection = "") {
+      if (!tabs) return;
+      const activeChip = activeSection
+        ? tabs.querySelector(`.detail-anchor-chip[data-anchor-target="${activeSection}"]`)
+        : tabs.querySelector(".detail-anchor-chip.active");
+      if (!activeChip) {
+        tabs.style.setProperty("--detail-anchor-indicator-opacity", "0");
+        return;
+      }
+      tabs.style.setProperty("--detail-anchor-indicator-left", `${activeChip.offsetLeft}px`);
+      tabs.style.setProperty("--detail-anchor-indicator-width", `${activeChip.offsetWidth}px`);
+      tabs.style.setProperty("--detail-anchor-indicator-opacity", "1");
     }
 
     function syncDetailAnchorTabsScroll(tabs, activeSection) {
       if (!tabs || !window.matchMedia("(max-width: 640px)").matches) return;
       const activeChip = tabs.querySelector(`.detail-anchor-chip[data-anchor-target="${activeSection}"]`);
       if (!activeChip) return;
-      const reviewChip = tabs.querySelector('.detail-anchor-chip[data-anchor-target="review"]');
+      const chips = Array.from(tabs.querySelectorAll(".detail-anchor-chip"));
+      const activeIndex = chips.indexOf(activeChip);
+      const maxScrollLeft = Math.max(0, tabs.scrollWidth - tabs.clientWidth);
       let targetLeft = tabs.scrollLeft;
-      if (activeSection === "place" && reviewChip) {
-        targetLeft = Math.max(0, reviewChip.offsetLeft + reviewChip.offsetWidth - tabs.clientWidth + 22);
+      if (activeIndex <= 1) {
+        targetLeft = 0;
+      } else if (activeIndex >= chips.length - 2) {
+        targetLeft = maxScrollLeft;
       } else {
         const visibleStart = tabs.scrollLeft;
         const visibleEnd = visibleStart + tabs.clientWidth;
@@ -35174,6 +35493,7 @@
           targetLeft = Math.max(0, chipEnd - tabs.clientWidth + 22);
         }
       }
+      targetLeft = Math.max(0, Math.min(maxScrollLeft, targetLeft));
       if (Math.abs(tabs.scrollLeft - targetLeft) > 2) {
         tabs.scrollTo({ left: targetLeft, behavior: "smooth" });
       }
@@ -35313,8 +35633,46 @@
       navigator.clipboard?.writeText(value).catch(() => {});
     }
 
+    function inferDetailCountryName(regionName = "", join = {}) {
+      const region = String(regionName || "").replace(/\s*,\s*/g, " ").trim();
+      const directCountry = String(join.country || join.countryName || join.nation || join.productCountry || join.erpCountry || "").trim();
+      if (directCountry && directCountry !== region) return directCountry;
+      for (const category of (regionTree || [])) {
+        for (const country of (category.countries || [])) {
+          if (region === country.name) return country.name;
+          if ((country.cities || []).includes(region)) return country.name;
+        }
+      }
+      const knownCountries = (regionTree || [])
+        .flatMap((category) => category.countries || [])
+        .map((country) => country.name)
+        .filter(Boolean);
+      const haystack = [join.title, join.productName, join.goodName, join.location, join.countryRegion, join.region]
+        .map((value) => String(value || ""))
+        .join(" ");
+      return knownCountries.find((country) => haystack.includes(country) && country !== region) || "";
+    }
+
     function formatDetailRegionValue(join = {}) {
-      return String(join.region || join.category || "확인 필요").replace(/\s*,\s*/g, ", ");
+      const rawLocation = String(join.countryRegion || join.location || "").trim();
+      const rawRegion = String(join.region || join.category || "").trim();
+      const parts = (rawLocation || rawRegion)
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean);
+      if (parts.length >= 2) {
+        const countryNames = (regionTree || [])
+          .flatMap((category) => category.countries || [])
+          .map((country) => country.name)
+          .filter(Boolean);
+        const countryPart = parts.find((part) => countryNames.includes(part) || part === join.country || part === join.countryName);
+        if (countryPart) return [countryPart, ...parts.filter((part) => part !== countryPart)].join(" ");
+        return parts.join(" ");
+      }
+      const region = (parts[0] || rawRegion).replace(/\s*,\s*/g, " ").trim();
+      const country = inferDetailCountryName(region, join);
+      if (country && region && !region.includes(country)) return `${country} ${region}`.trim();
+      return region || country || "확인 필요";
     }
 
     function getDetailArrivalRegions(join = {}) {
@@ -35550,6 +35908,8 @@
     }
 
     function getDetailInterestCountV2(join = {}, stats = {}) {
+      const seed = hashStringToNumber([join.id, join.title, join.departureDate].filter(Boolean).join("|"));
+      const displayMinimum = Math.max(8, Number(stats.count || 0) + 8 + (seed % 8));
       const explicit = Number(
         join.interestCount
         || join.viewingCount
@@ -35559,9 +35919,8 @@
         || join.recentViewCount
         || 0
       );
-      if (Number.isFinite(explicit) && explicit > 0) return Math.round(explicit);
-      const seed = hashStringToNumber([join.id, join.title, join.departureDate].filter(Boolean).join("|"));
-      return Math.max(1, Number(stats.count || 0) + 3 + (seed % 4));
+      if (Number.isFinite(explicit) && explicit > 0) return Math.max(Math.round(explicit), displayMinimum);
+      return displayMinimum;
     }
 
     function formatDetailDeadlineLabelV2(join = {}) {
@@ -35577,10 +35936,181 @@
     }
 
     function getDetailTravelStyleMatchPercentV2(join = {}, participants = []) {
+      return calculateDetailTravelMatch(join, participants).percent;
+    }
+
+    function clampDetailTravelMatchScore(score) {
+      return Math.max(68, Math.min(96, Math.round(Number(score) || 72)));
+    }
+
+    function getDetailCurrentMemberForMatch() {
+      return getJoinCachedCurrentMember?.() || {};
+    }
+
+    function normalizeDetailMatchTokens(value) {
+      return []
+        .concat(Array.isArray(value) ? value : String(value || "").split(/[,\n/·|]+/))
+        .map((item) => String(item || "").trim())
+        .filter(Boolean);
+    }
+
+    function getDetailMemberStyleTokens(member = {}) {
+      const raw = member.travelStyles || member.styles || member.memberPreferences || member.preferredMemberComposition || "";
+      if (typeof splitJoinMemberProfileStyles === "function") {
+        const parsed = splitJoinMemberProfileStyles(raw);
+        if (parsed.length) return parsed;
+      }
+      return normalizeDetailMatchTokens(raw);
+    }
+
+    function getDetailMemberAgeDecadeForMatch(member = {}) {
+      const direct = getDetailParticipantAgeDecadeV2({
+        birthYear: member.birthYear || member.birthday,
+        age: member.age,
+        ageDisplay: member.ageDisplay || getJoinMemberAgeBand?.(member)
+      });
+      return Number.isFinite(direct) ? direct : null;
+    }
+
+    function getDetailMemberScoreForMatch(member = {}) {
+      return getDetailParticipantScoreValueV2({
+        handicap: member.level || member.handicap || member.averageScore || ""
+      });
+    }
+
+    function getDetailParticipantAverage(values = []) {
+      const valid = values.filter((value) => Number.isFinite(value) && value > 0);
+      if (!valid.length) return null;
+      return valid.reduce((sum, value) => sum + value, 0) / valid.length;
+    }
+
+    function getDetailMatchStyleLabel(styles = []) {
+      const first = styles.map((style) => String(style || "").replace(/[\u{1F300}-\u{1FAFF}]/gu, "").trim()).find(Boolean);
+      return first ? first.slice(0, 12) : "";
+    }
+
+    function getDetailMatchAgeLabel(ageDecade) {
+      return Number.isFinite(ageDecade) ? `${Math.round(ageDecade)}대` : "";
+    }
+
+    function getDetailMatchScoreLabel(score) {
+      if (!Number.isFinite(score) || score <= 0) return "";
+      const rounded = Math.round(score / 10) * 10;
+      return `${rounded}대 타수`;
+    }
+
+    function addDetailMatchReason(reasons, text) {
+      if (!text || reasons.includes(text) || reasons.length >= 3) return;
+      reasons.push(text);
+    }
+
+    function calculateDetailTravelMatch(join = {}, participants = []) {
+      const member = getDetailCurrentMemberForMatch();
+      const explicitStyleLabel = getDetailMatchStyleLabel(getDetailMemberStyleTokens(member));
       const explicit = Number(join.travelStyleMatchPercent || join.matchPercent || join.matchRate || 0);
-      if (Number.isFinite(explicit) && explicit > 0) return Math.max(1, Math.min(100, Math.round(explicit)));
-      const styleCount = new Set(participants.flatMap((participant) => participant.preferences || [])).size;
-      return Math.max(68, Math.min(94, 78 + Math.min(styleCount, 5) * 2 + (hashStringToNumber(join.id || join.title) % 7)));
+      if (Number.isFinite(explicit) && explicit > 0) {
+        return {
+          percent: clampDetailTravelMatchScore(explicit),
+          reasons: [explicitStyleLabel ? `${explicitStyleLabel} 스타일을 기준으로 살펴봤어요` : "입력하신 스타일을 기준으로 살펴봤어요"]
+        };
+      }
+
+      const memberAgeDecade = getDetailMemberAgeDecadeForMatch(member);
+      const participantAgeAverage = getDetailParticipantAverage(participants.map(getDetailParticipantAgeDecadeV2));
+      const memberScore = getDetailMemberScoreForMatch(member);
+      const participantScoreAverage = getDetailParticipantAverage(participants.map(getDetailParticipantScoreValueV2));
+      const memberStyles = getDetailMemberStyleTokens(member);
+      const participantStyles = [...new Set(participants.flatMap((participant) => normalizeDetailMatchTokens(participant.preferences || participant.styles || participant.memberPreferences)))];
+      const styleMatches = memberStyles.filter((style) => participantStyles.some((item) => item.includes(style) || style.includes(item)));
+      const joinStyles = [...new Set([
+        ...normalizeDetailMatchTokens(join.styles),
+        ...normalizeDetailMatchTokens(join.memberPreferences),
+        ...normalizeDetailMatchTokens(join.preferredMemberComposition)
+      ])];
+      const scheduleStyleMatches = memberStyles.filter((style) => joinStyles.some((item) => item.includes(style) || style.includes(item)));
+      const memberStyleLabel = getDetailMatchStyleLabel(memberStyles);
+      const matchedStyleLabel = getDetailMatchStyleLabel(styleMatches) || memberStyleLabel;
+      const scheduleStyleLabel = getDetailMatchStyleLabel(scheduleStyleMatches) || memberStyleLabel;
+      const memberAgeLabel = getDetailMatchAgeLabel(memberAgeDecade);
+      const memberScoreLabel = getDetailMatchScoreLabel(memberScore);
+      const hasParticipants = participants.length > 0;
+      const hasPrice = Number(join.price || join.productPrice || 0) > 0;
+      const hasDate = Boolean(join.departureDate && join.returnDate);
+      const remaining = Number(join.emptySlots);
+      let score = 72;
+      const reasons = [];
+
+      if (hasParticipants) {
+        score += Math.min(5, participants.length * 2);
+      } else if (join.isAdminRecommendedSchedule) {
+        score += 6;
+        addDetailMatchReason(reasons, memberStyleLabel ? `${memberStyleLabel} 스타일로 시작하기 좋아요` : "원하는 동행 분위기로 시작하기 좋아요");
+      }
+
+      if (Number.isFinite(memberAgeDecade) && Number.isFinite(participantAgeAverage)) {
+        const diff = Math.abs(memberAgeDecade - participantAgeAverage);
+        if (diff <= 10) {
+          score += 6;
+          addDetailMatchReason(reasons, memberAgeLabel ? `${memberAgeLabel} 기준으로 편하게 어울려요` : "편하게 어울릴 연령대에 가까워요");
+        } else if (diff <= 20) {
+          score += 3;
+        } else {
+          score -= 3;
+        }
+      }
+
+      if (memberScore && participantScoreAverage) {
+        const diff = Math.abs(memberScore - participantScoreAverage);
+        if (diff <= 10) {
+          score += 6;
+          addDetailMatchReason(reasons, memberScoreLabel ? `${memberScoreLabel} 템포와 잘 맞아요` : "라운딩 템포가 잘 맞을 가능성이 높아요");
+        } else if (diff <= 20) {
+          score += 3;
+        } else {
+          score -= 4;
+        }
+      }
+
+      if (styleMatches.length) {
+        score += Math.min(6, styleMatches.length * 3);
+        addDetailMatchReason(reasons, matchedStyleLabel ? `${matchedStyleLabel} 성향이 잘 맞아요` : "선호하는 라운딩 분위기가 잘 맞아요");
+      } else if (memberStyles.length && participantStyles.length) {
+        score += 1;
+      }
+      if (!hasParticipants && scheduleStyleMatches.length) {
+        score += Math.min(5, scheduleStyleMatches.length * 2);
+        addDetailMatchReason(reasons, scheduleStyleLabel ? `${scheduleStyleLabel} 분위기와 잘 맞아요` : "선호하는 동행 성향과 잘 맞아요");
+      }
+
+      if (hasDate && hasPrice) {
+        score += 5;
+      } else if (hasDate || hasPrice) {
+        score += 2;
+      }
+
+      if (join.isAdminRecommendedSchedule) score += 3;
+      if (Number.isFinite(remaining) && remaining > 0 && remaining <= 2) score += 3;
+      if (Number.isFinite(remaining) && remaining >= 3) score += 2;
+
+      if (!reasons.length) {
+        const hasStyleBasis = Boolean(memberStyles.length || participantStyles.length || joinStyles.length);
+        addDetailMatchReason(reasons, hasStyleBasis ? "입력하신 스타일을 바탕으로 살펴봤어요" : "스타일을 입력하면 더 정확하게 볼 수 있어요");
+      }
+
+      return {
+        percent: clampDetailTravelMatchScore(score),
+        reasons
+      };
+    }
+
+    function renderDetailTravelMatchReasons(reasons = [], scope = "") {
+      const items = reasons.slice(0, 3);
+      if (!items.length) return "";
+      return `
+        <div class="detail-participant-match-reasons ${escapeHtml(scope)}">
+          ${items.map((reason) => `<div class="detail-participant-match-reason">${escapeHtml(reason)}</div>`).join("")}
+        </div>
+      `;
     }
 
     function getDetailRoundStyleTagsV2(join = {}, participants = []) {
@@ -35628,6 +36158,11 @@
       const minFemaleWidth = stats.female > 0 ? "8px" : "0";
       const maleRadius = stats.male > 0 && stats.female > 0 ? "999px 0 0 999px" : "999px";
       const femaleRadius = stats.male > 0 && stats.female > 0 ? "0 999px 999px 0" : "999px";
+      const isEmptyAdminRecommendation = Boolean(join?.isAdminRecommendedSchedule) && stats.count <= 0;
+      const currentCountLabel = isEmptyAdminRecommendation ? "첫 참여자 모집중" : `${stats.count}명`;
+      const averageAgeLabel = isEmptyAdminRecommendation ? "-" : stats.averageAgeDecade;
+      const averageHandicapLabel = isEmptyAdminRecommendation ? "-" : stats.averageHandicap;
+      const participantInfoBubble = isEmptyAdminRecommendation ? "" : `<div class="detail-participant-info-bubble">클릭하면 멤버 정보를 확인할 수 있어요</div>`;
       return `
         <div class="detail-participant-status">
           <div class="detail-participant-status-title">함께 떠나는 멤버</div>
@@ -35648,7 +36183,7 @@
             <div class="detail-participant-info-grid">
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">현재인원</div>
-                <div class="detail-participant-info-value">${stats.count}명</div>
+                <div class="detail-participant-info-value">${escapeHtml(currentCountLabel)}</div>
               </div>
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">최소출발</div>
@@ -35656,17 +36191,20 @@
               </div>
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">평균연령</div>
-                <div class="detail-participant-info-value">${escapeHtml(stats.averageAgeDecade)}</div>
+                <div class="detail-participant-info-value">${escapeHtml(averageAgeLabel)}</div>
               </div>
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">평균핸디</div>
-                <div class="detail-participant-info-value">${escapeHtml(stats.averageHandicap)}</div>
+                <div class="detail-participant-info-value">${escapeHtml(averageHandicapLabel)}</div>
               </div>
             </div>
             <div class="detail-participant-gender">
               <div class="detail-participant-block-title">성별구성</div>
               <div class="detail-participant-gender-row">
-                <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_man.webp" alt="" loading="lazy" decoding="async">
+                <div class="detail-participant-gender-side">
+                  <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_man.webp" alt="" loading="lazy" decoding="async">
+                  <div class="detail-participant-gender-mobile-label">남성 ${stats.male}명</div>
+                </div>
                 <div class="detail-participant-gender-center">
                   <div class="detail-participant-gender-scale">
                     <div class="detail-participant-gauge-track" aria-hidden="true">
@@ -35676,13 +36214,16 @@
                   </div>
                   <div class="detail-participant-gender-summary">남성 ${stats.male}명 · 여성 ${stats.female}명</div>
                 </div>
-                <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_woman.webp" alt="" loading="lazy" decoding="async">
+                <div class="detail-participant-gender-side">
+                  <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_woman.webp" alt="" loading="lazy" decoding="async">
+                  <div class="detail-participant-gender-mobile-label">여성 ${stats.female}명</div>
+                </div>
               </div>
             </div>
             <div class="detail-participant-divider" aria-hidden="true"></div>
             <div class="detail-participant-match">
               <div class="detail-participant-match-head">
-                <div>여행 스타일이 잘 맞아요</div>
+                <div class="detail-participant-match-label">여행 스타일이 잘 맞아요<svg class="detail-participant-match-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="detailMatchSparklesGradient" x1="4" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe681"></stop><stop offset="0.55" stop-color="#ffc233"></stop><stop offset="1" stop-color="#ff9f1c"></stop></linearGradient></defs><path fill="url(#detailMatchSparklesGradient)" d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path fill="url(#detailMatchSparklesGradient)" d="M20 2a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0V7h-2a1 1 0 1 1 0-2h2V3a1 1 0 0 1 1-1z"></path><circle cx="4" cy="20" r="2" fill="url(#detailMatchSparklesGradient)"></circle></svg></div>
               </div>
               <div class="detail-participant-gauge-track" aria-hidden="true">
                 <div class="detail-participant-gauge-fill" style="--gauge-width:${matchPercent}%;"></div>
@@ -35692,7 +36233,7 @@
             <div class="detail-participant-style-chips">
               ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
-            <div class="detail-participant-info-bubble">클릭하면 멤버 정보를 확인할 수 있어요</div>
+            ${participantInfoBubble}
           </div>
         </div>
       `;
@@ -35703,7 +36244,8 @@
       const totalGenderCount = Math.max(1, stats.male + stats.female);
       const malePercent = Math.max(0, Math.min(100, (stats.male / totalGenderCount) * 100));
       const femalePercent = Math.max(0, Math.min(100 - malePercent, (stats.female / totalGenderCount) * 100));
-      const matchPercent = getDetailTravelStyleMatchPercentV2(join, confirmedParticipants);
+      const travelMatch = calculateDetailTravelMatch(join, confirmedParticipants);
+      const matchPercent = travelMatch.percent;
       const minimumDepartureCount = Math.min(stats.capacity, Math.max(1, Number(join.minimumDepartureCount || join.minDepartureCount || join.minParticipants || 4) || 4));
       const styleTags = getDetailRoundStyleTagsV2(join, confirmedParticipants);
       const interestCount = getDetailInterestCountV2(join, stats);
@@ -35712,6 +36254,15 @@
       const minFemaleWidth = stats.female > 0 ? "8px" : "0";
       const maleRadius = stats.male > 0 && stats.female > 0 ? "999px 0 0 999px" : "999px";
       const femaleRadius = stats.male > 0 && stats.female > 0 ? "0 999px 999px 0" : "999px";
+      const isEmptyAdminRecommendation = Boolean(join?.isAdminRecommendedSchedule) && stats.count <= 0;
+      const currentCountLabel = isEmptyAdminRecommendation ? "첫 참여자 모집중" : `${stats.count}명`;
+      const averageAgeLabel = isEmptyAdminRecommendation ? "-" : stats.averageAgeDecade;
+      const averageHandicapLabel = isEmptyAdminRecommendation ? "-" : stats.averageHandicap;
+      const participantInfoBubble = isEmptyAdminRecommendation ? "" : `<div class="detail-participant-info-bubble">클릭하면 멤버 정보를 확인할 수 있어요</div>`;
+      const isMatchLoginRequired = !getJoinCachedCurrentMember();
+      const matchGaugeClass = `detail-participant-match-gauge${isMatchLoginRequired ? " is-login-required" : ""}`;
+      const mobileMatchReasons = isMatchLoginRequired ? "" : renderDetailTravelMatchReasons(travelMatch.reasons, "mobile");
+      const desktopMatchReasons = isMatchLoginRequired ? "" : renderDetailTravelMatchReasons(travelMatch.reasons, "desktop");
       return `
         <div class="detail-participant-status">
           <div class="detail-participant-status-title">함께 떠나는 멤버</div>
@@ -35732,7 +36283,7 @@
             <div class="detail-participant-info-grid">
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">현재인원</div>
-                <div class="detail-participant-info-value">${stats.count}명</div>
+                <div class="detail-participant-info-value">${escapeHtml(currentCountLabel)}</div>
               </div>
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">최소출발</div>
@@ -35740,17 +36291,20 @@
               </div>
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">평균연령</div>
-                <div class="detail-participant-info-value">${escapeHtml(stats.averageAgeDecade)}</div>
+                <div class="detail-participant-info-value">${escapeHtml(averageAgeLabel)}</div>
               </div>
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">평균핸디</div>
-                <div class="detail-participant-info-value">${escapeHtml(stats.averageHandicap)}</div>
+                <div class="detail-participant-info-value">${escapeHtml(averageHandicapLabel)}</div>
               </div>
             </div>
             <div class="detail-participant-gender">
               <div class="detail-participant-block-title">성별구성</div>
               <div class="detail-participant-gender-row">
-                <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_man.webp" alt="" loading="lazy" decoding="async">
+                <div class="detail-participant-gender-side">
+                  <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_man.webp" alt="" loading="lazy" decoding="async">
+                  <div class="detail-participant-gender-mobile-label">남성 ${stats.male}명</div>
+                </div>
                 <div class="detail-participant-gender-center">
                   <div class="detail-participant-gender-scale">
                     <div class="detail-participant-gauge-track" aria-hidden="true">
@@ -35760,28 +36314,33 @@
                   </div>
                   <div class="detail-participant-gender-summary">남성 ${stats.male}명 · 여성 ${stats.female}명</div>
                 </div>
-                <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_woman.webp" alt="" loading="lazy" decoding="async">
+                <div class="detail-participant-gender-side">
+                  <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_woman.webp" alt="" loading="lazy" decoding="async">
+                  <div class="detail-participant-gender-mobile-label">여성 ${stats.female}명</div>
+                </div>
               </div>
             </div>
             <div class="detail-participant-divider" aria-hidden="true"></div>
             <div class="detail-participant-match">
               <div class="detail-participant-match-head">
-                <div>여행스타일 적합도</div>
+                <div class="detail-participant-match-label">여행스타일 적합도<svg class="detail-participant-match-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="detailMatchSparklesGradient" x1="4" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe681"></stop><stop offset="0.55" stop-color="#ffc233"></stop><stop offset="1" stop-color="#ff9f1c"></stop></linearGradient></defs><path fill="url(#detailMatchSparklesGradient)" d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path fill="url(#detailMatchSparklesGradient)" d="M20 2a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0V7h-2a1 1 0 1 1 0-2h2V3a1 1 0 0 1 1-1z"></path><circle cx="4" cy="20" r="2" fill="url(#detailMatchSparklesGradient)"></circle></svg></div>
               </div>
-              <div class="detail-participant-match-gauge">
+              <div class="${matchGaugeClass}">
                 <div class="detail-participant-match-summary">${matchPercent}%</div>
                 <div class="detail-participant-gauge-track" aria-hidden="true">
                   <div class="detail-participant-gauge-fill" style="--gauge-width:${matchPercent}%;"></div>
                 </div>
+                ${mobileMatchReasons}
               </div>
               <div class="detail-participant-style-chips mobile">
                 ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
               </div>
             </div>
+            ${desktopMatchReasons}
             <div class="detail-participant-style-chips desktop">
               ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
-            <div class="detail-participant-info-bubble">클릭하면 멤버 정보를 확인할 수 있어요</div>
+            ${participantInfoBubble}
           </div>
         </div>
       `;
@@ -36126,7 +36685,6 @@
 
     function getCalendarMonthBounds() {
       const today = getTodayDate();
-      const todayMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const minDeparture = new Date(`${getBuilderMinDepartureISO()}T00:00:00`);
       const minDepartureMonth = new Date(minDeparture.getFullYear(), minDeparture.getMonth(), 1);
       const visibleJoins = getVisibleCalendarJoinProducts();
@@ -36146,10 +36704,9 @@
       const dataStartMonth = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
       const dataEndMonth = new Date(boundedMaxDate.getFullYear(), boundedMaxDate.getMonth(), 1);
       const startMonth = dataStartMonth > minDepartureMonth ? dataStartMonth : minDepartureMonth;
-      const visibleStartMonth = todayMonth < startMonth ? todayMonth : startMonth;
       const endMonth = dataEndMonth > startMonth ? dataEndMonth : startMonth;
       return {
-        startMonth: visibleStartMonth,
+        startMonth,
         endMonth
       };
     }
@@ -36260,6 +36817,7 @@
 
     function shouldDisplayJoinProduct(join = {}) {
       if (isJoinFullyBooked(join)) return false;
+      if (join.isAdminRecommendedSchedule) return true;
       return SHOW_DOMESTIC_JOIN_PRODUCTS || getJoinCategoryClass(join) !== "domestic";
     }
 
@@ -36748,7 +37306,11 @@
       const totalCellsBase = Math.ceil((startOffset + last.getDate()) / 7) * 7;
       const totalCells = options.forceSixWeeks ? Math.max(42, totalCellsBase) : totalCellsBase;
       const todayKey = getISODateKey(getTodayDate());
-      const holidaySet = getKoreanHolidaySet(year);
+      const holidaySets = new Map();
+      const getHolidaySetForYear = (targetYear) => {
+        if (!holidaySets.has(targetYear)) holidaySets.set(targetYear, getKoreanHolidaySet(targetYear));
+        return holidaySets.get(targetYear);
+      };
       const labels = [];
       const weeks = [];
       const monthKey = getMonthKey(monthDate);
@@ -36781,25 +37343,22 @@
         for (let offset = 0; offset < 7; offset += 1) {
           const index = weekStart + offset;
           const dayNumber = index - startOffset + 1;
-          if (dayNumber < 1 || dayNumber > last.getDate()) {
-            weekCells.push(`<div class="calendar-cell muted"></div>`);
-            continue;
-          }
-
-          const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
-          const date = new Date(`${dateKey}T00:00:00`);
-          const canCreateSchedule = isCalendarBuilderDepartureSelectable(date);
-          const events = canCreateSchedule ? (eventsByDate[dateKey] || []) : [];
+          const date = new Date(year, month, dayNumber);
+          const dateKey = getISODateKey(date);
+          const isMutedMonth = date.getMonth() !== month;
+          const displayDayNumber = date.getDate();
+          const canCreateSchedule = !isMutedMonth && isCalendarBuilderDepartureSelectable(date);
+          const events = !isMutedMonth && canCreateSchedule ? (eventsByDate[dateKey] || []) : [];
           const summary = getCalendarEventSummary(events);
-          const canClickDate = events.length > 0 || canCreateSchedule;
+          const canClickDate = !isMutedMonth && (events.length > 0 || canCreateSchedule);
           const isSunday = date.getDay() === 0;
-          const isHoliday = holidaySet.has(dateKey);
+          const isHoliday = getHolidaySetForYear(date.getFullYear()).has(dateKey);
           const isUnavailable = dateKey < getBuilderMinDepartureISO();
           const weekKey = `${getMonthKey(monthDate)}-${weekStart / 7}`;
           weekCells.push(`
-            <div class="calendar-cell${events.length ? " has-data" : ""}${!events.length && canCreateSchedule ? " can-create" : ""}${dateKey === todayKey ? " today" : ""}${isUnavailable ? " unavailable" : ""}${isSunday ? " sunday" : ""}${isHoliday ? " holiday" : ""}">
+            <div class="calendar-cell${isMutedMonth ? " muted" : ""}${events.length ? " has-data" : ""}${!events.length && canCreateSchedule ? " can-create" : ""}${dateKey === todayKey ? " today" : ""}${isUnavailable ? " unavailable" : ""}${isSunday ? " sunday" : ""}${isHoliday ? " holiday" : ""}">
               <button type="button" class="calendar-day-button" ${canClickDate ? `onclick="toggleCalendarDay('${weekKey}', '${dateKey}')"` : "disabled"}>
-                <strong>${dayNumber}</strong>
+                <strong>${displayDayNumber}</strong>
                 ${dateKey === todayKey ? `<div class="calendar-today-label">TODAY</div>` : ""}
                 ${summary.domestic ? `<div class="calendar-event domestic">국내 ${summary.domestic}</div>` : ""}
                 ${summary.overseas ? `<div class="calendar-event overseas">해외 ${summary.overseas}</div>` : ""}
@@ -38333,6 +38892,7 @@
     }
 
     function updateBuilderApplySummary() {
+      updateApplyBookingOptions("builder");
       const canShowApplySummary = builderStep >= 3;
       const nameValue = String(document.getElementById("builderApplyName")?.value || "").trim();
       const birthValue = String(document.getElementById("builderApplyBirthYear")?.value || "").trim();
@@ -38463,7 +39023,16 @@
       const selectedProduct = getBuilderSelectedFixedProduct()
         || [...(externalGolfJoinProducts || []), ...joins].find((item) => item.id === builderState.productId)
         || { id: builderState.productId };
+      if (selectedProduct && !selectedProduct.secretTourDetailLoaded) {
+        try {
+          const detail = await loadSecretTourGoodsDetail(selectedProduct);
+          Object.assign(selectedProduct, mergeSecretTourGoodsDetail(selectedProduct, detail), { secretTourDetailLoaded: true });
+        } catch (error) {
+          console.warn("Failed to load booking option detail.", error);
+        }
+      }
       const selectedProductReference = getSecretTourProductReference(selectedProduct);
+      const bookingOptions = getApplyBookingOptions("builder");
       const productDepartureDate = /^\d{4}-\d{2}-\d{2}$/.test(selectedProduct?.departureDate || "") ? selectedProduct.departureDate : "";
       const productReturnDate = /^\d{4}-\d{2}-\d{2}$/.test(selectedProduct?.returnDate || "") ? selectedProduct.returnDate : productDepartureDate;
       const useProductFixedDates = Boolean(builderState.productId && productDepartureDate);
@@ -38518,7 +39087,12 @@
           styles,
           memberPreferences,
           preferredMemberComposition: memberPreferences,
-          greeting
+          greeting,
+          roomType: bookingOptions.roomType,
+          flightRequestType: bookingOptions.flightRequestType,
+          singleRoomSurcharge: bookingOptions.singleRoomSurcharge,
+          singleRoomSurchargeText: bookingOptions.singleRoomSurchargeText,
+          singleRoomSurchargeStatus: bookingOptions.singleRoomSurchargeStatus
         },
         trip: {
           country: tripCountry,
@@ -38688,10 +39262,10 @@
 
     function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
       const sheetApplication = join?.sheetApplication || {};
-      const scheduleId = join?.scheduleId || sheetApplication.scheduleId || "";
-      const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || "";
+      const scheduleId = join?.scheduleId || sheetApplication.scheduleId || (join?.isAdminRecommendedSchedule ? join.id : "") || "";
+      const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || join?.displayRule?.displayRuleId || "";
       return {
-        targetType: scheduleId ? "new_schedule" : "erp_product",
+        targetType: scheduleId || join?.isAdminRecommendedSchedule ? "new_schedule" : "erp_product",
         targetScheduleId: scheduleId,
         targetApplicationId: applicationId
       };
@@ -38748,7 +39322,12 @@
           styles: data.styles || [],
           memberPreferences: data.memberPreferences || data.preferredMemberComposition || [],
           preferredMemberComposition: data.preferredMemberComposition || data.memberPreferences || [],
-          greeting: data.greeting || ""
+          greeting: data.greeting || "",
+          roomType: data.roomType || "2인1실",
+          flightRequestType: data.flightRequestType || "",
+          singleRoomSurcharge: Number(data.singleRoomSurcharge) || 0,
+          singleRoomSurchargeText: data.singleRoomSurchargeText || "",
+          singleRoomSurchargeStatus: data.singleRoomSurchargeStatus || ""
         },
         agreements: {
           required: Boolean(data.requiredAgreed),
@@ -38828,7 +39407,12 @@
           styles: toBuilderApplicationArray(item.applicantStyles || item.styles),
           memberPreferences: toBuilderApplicationArray(item.applicantPreferredMembers || item.memberPreferences),
           preferredMemberComposition: toBuilderApplicationArray(item.applicantPreferredMembers || item.preferredMemberComposition || item.memberPreferences),
-          greeting: item.applicantGreeting || item.greeting || ""
+          greeting: item.applicantGreeting || item.greeting || "",
+          roomType: item.applicantRoomType || item.roomType || "2인1실",
+          flightRequestType: item.flightRequestType || "",
+          singleRoomSurcharge: Number(item.singleRoomSurcharge) || 0,
+          singleRoomSurchargeText: item.singleRoomSurchargeText || "",
+          singleRoomSurchargeStatus: item.singleRoomSurchargeStatus || ""
         },
         agreements: {
           required: item.requiredAgreed || "",
@@ -38875,10 +39459,23 @@
       }
     }
 
-    function writeGoogleSheetRowsCache(key, rows = []) {
+    function hasFreshGoogleSheetRowsCache(key, options = {}) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(key) || "null");
+        const fetchedAt = Number(cached?.fetchedAt || 0);
+        if (options.memberKey !== undefined && String(cached?.memberKey || "") !== String(options.memberKey || "")) return false;
+        return Number.isFinite(fetchedAt) && fetchedAt > 0 && Date.now() - fetchedAt <= GOOGLE_SHEET_READ_CACHE_TTL_MS;
+      } catch (error) {
+        console.warn("Failed to inspect Google Sheet rows cache.", error);
+        return false;
+      }
+    }
+
+    function writeGoogleSheetRowsCache(key, rows = [], meta = {}) {
       try {
         localStorage.setItem(key, JSON.stringify({
           fetchedAt: Date.now(),
+          ...meta,
           rows: Array.isArray(rows) ? rows : []
         }));
       } catch (error) {
@@ -39139,7 +39736,12 @@
           styles: toBuilderApplicationArray(item.applicantStyles || item.creatorStyles || item.styles),
           memberPreferences: toBuilderApplicationArray(item.applicantPreferredMembers || item.creatorMemberPreferences || item.creatorPreferredMemberComposition || item.memberPreferences || item.preferredMemberComposition),
           preferredMemberComposition: toBuilderApplicationArray(item.applicantPreferredMembers || item.creatorPreferredMemberComposition || item.creatorMemberPreferences || item.preferredMemberComposition || item.memberPreferences),
-          greeting: item.applicantGreeting || item.creatorGreeting || item.greeting || ""
+          greeting: item.applicantGreeting || item.creatorGreeting || item.greeting || "",
+          roomType: item.applicantRoomType || item.roomType || "2인1실",
+          flightRequestType: item.flightRequestType || "",
+          singleRoomSurcharge: Number(item.singleRoomSurcharge) || 0,
+          singleRoomSurchargeText: item.singleRoomSurchargeText || "",
+          singleRoomSurchargeStatus: item.singleRoomSurchargeStatus || ""
         },
         trip: {
           region: item.region || "",
@@ -39366,6 +39968,98 @@
       return join;
     }
 
+    function isTruthyDisplayRuleValue(value) {
+      const text = String(value ?? "").trim().toLowerCase();
+      return !["false", "0", "no", "n", "hidden", "disabled", "deleted"].includes(text);
+    }
+
+    function findAdminRecommendedProduct(rule = {}) {
+      const reference = getSecretTourProductReference({
+        id: rule.erpProductId || rule.goodSeq,
+        erpProductId: rule.erpProductId || rule.goodSeq,
+        erpEventSeq: rule.erpEventSeq || rule.eventSeq
+      });
+      const inlineProducts = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items)
+        ? window.SECRET_GOLF_JOIN_PRODUCTS.items.map(normalizeExternalGolfJoinProduct)
+        : [];
+      const source = [...(externalGolfJoinProducts || inlineProducts), ...joins];
+      return source.find((item) => reference.goodSeq && reference.eventSeq && String(item.goodSeq || item.erpProductId || "") === reference.goodSeq && String(item.eventSeq || item.erpEventSeq || "") === reference.eventSeq)
+        || source.find((item) => reference.id && String(item.id || item.erpProductId || "") === reference.id)
+        || source.find((item) => rule.overrideTitle && String(item.title || "") === String(rule.overrideTitle || ""))
+        || null;
+    }
+
+    function normalizeAdminRecommendedScheduleRule(rule = {}) {
+      const section = String(rule.section || "").trim() || "available_schedule";
+      if (section !== "available_schedule") return null;
+      if (!isTruthyDisplayRuleValue(rule.isVisible)) return null;
+      const product = findAdminRecommendedProduct(rule);
+      const fallback = product || overseasJoinTemplate || joins.find(isOverseasJoin) || joins[0] || {};
+      const productReference = getSecretTourProductReference({
+        ...(product || {}),
+        id: rule.erpProductId || product?.id,
+        erpProductId: rule.erpProductId || product?.erpProductId,
+        erpEventSeq: rule.erpEventSeq || product?.erpEventSeq
+      });
+      const departureDate = getFirstISODate(rule.displayStartAt) || product?.departureDate || fallback.departureDate || "";
+      const returnDate = getFirstISODate(rule.displayEndAt) || product?.returnDate || product?.departureDate || departureDate;
+      const idSeed = rule.displayRuleId || `${productReference.goodSeq || rule.erpProductId || product?.id || "product"}-${productReference.eventSeq || rule.erpEventSeq || departureDate || "date"}`;
+      const scheduleId = `admin-recommended-${String(idSeed).replace(/[^a-z0-9_-]+/gi, "-")}`;
+      const title = rule.overrideTitle || product?.title || fallback.title || "추천 조인 일정";
+      return {
+        ...fallback,
+        ...(product || {}),
+        id: scheduleId,
+        title: escapeBuilderApplicationText(title),
+        scheduleId,
+        sourceApplicationId: rule.displayRuleId || "",
+        departureDate,
+        returnDate,
+        date: `${departureDate} - ${returnDate}`,
+        region: product?.region || fallback.region || "",
+        category: product?.category || fallback.category || (product?.airport ? "해외" : "국내"),
+        image: rule.overrideImageUrl || product?.image || fallback.image || "",
+        badge: rule.badgeType === "pinned" || isTruthyDisplayRuleValue(rule.isPinned) ? "추천일정" : (product?.badge || fallback.badge || "추천일정"),
+        badgeKind: product?.badgeKind || "special",
+        badgeImage: product?.badgeImage || BADGE_IMAGES.special || fallback.badgeImage || "",
+        goodSeq: product?.goodSeq || productReference.goodSeq || rule.erpProductId || "",
+        eventSeq: product?.eventSeq || productReference.eventSeq || rule.erpEventSeq || "",
+        erpProductId: product?.erpProductId || productReference.id || rule.erpProductId || "",
+        erpEventSeq: product?.erpEventSeq || productReference.eventSeq || rule.erpEventSeq || "",
+        packType: rule.packType || product?.packType || fallback.packType || "",
+        packTypeName: rule.packTypeName || product?.packTypeName || fallback.packTypeName || "",
+        participants: [],
+        maxCapacity: JOIN_MAX_CAPACITY,
+        emptySlots: JOIN_MAX_CAPACITY,
+        notes: (product?.notes || fallback.notes || []).slice(),
+        schedule: product?.schedule?.length ? product.schedule : (fallback.schedule || []),
+        displayOrder: Number(rule.displayOrder || 0),
+        displayRule: rule,
+        isAdminRecommendedSchedule: true
+      };
+    }
+
+    function applyAdminRecommendedScheduleRows(rows = []) {
+      const nextIds = new Set();
+      rows.map(normalizeAdminRecommendedScheduleRule).filter(Boolean).forEach((join) => {
+        nextIds.add(join.id);
+        const currentIndex = joins.findIndex((item) => item.id === join.id);
+        if (currentIndex >= 0) joins.splice(currentIndex, 1, join);
+        else joins.unshift(join);
+      });
+      for (let index = joins.length - 1; index >= 0; index -= 1) {
+        if (joins[index]?.isAdminRecommendedSchedule && !nextIds.has(joins[index].id)) {
+          joins.splice(index, 1);
+        }
+      }
+      joins.sort((a, b) => {
+        if (!a.isAdminRecommendedSchedule && !b.isAdminRecommendedSchedule) return 0;
+        if (a.isAdminRecommendedSchedule && b.isAdminRecommendedSchedule) return (Number(a.displayOrder || 0) - Number(b.displayOrder || 0));
+        return a.isAdminRecommendedSchedule ? -1 : 1;
+      });
+      return rows;
+    }
+
     function saveBuilderApplicationPayloadLocally(payload) {
       try {
         const existing = JSON.parse(localStorage.getItem(BUILDER_APPLICATIONS_STORAGE_KEY) || "[]");
@@ -39396,18 +40090,20 @@
       return rows;
     }
 
-    function applyHomeBootstrapRows(data = {}) {
+    function applyHomeBootstrapRows(data = {}, options = {}) {
       const newSchedules = Array.isArray(data.newSchedules) ? data.newSchedules : [];
       const joinApplications = Array.isArray(data.joinApplications) ? data.joinApplications : [];
       const reviews = Array.isArray(data.reviews) ? data.reviews : [];
       const wishes = Array.isArray(data.wishes) ? data.wishes : [];
+      const displayRules = Array.isArray(data.displayRules) ? data.displayRules : [];
       googleSheetBuilderApplicationsLoading = false;
       googleSheetJoinApplicationsLoading = false;
       googleSheetJoinWishesLoading = false;
       applyBuilderApplicationsFromGoogleSheetRows(newSchedules);
       applyJoinApplicationsFromGoogleSheetRows(joinApplications);
       applyJoinReviewsFromGoogleSheetRows(reviews);
-      applyJoinWishesFromGoogleSheetRows(wishes);
+      applyJoinWishesFromGoogleSheetRows(wishes, options.wishMemberKey || "");
+      applyAdminRecommendedScheduleRows(displayRules);
       if (Array.isArray(data.warnings) && data.warnings.length) {
         console.warn("Home bootstrap completed with warnings.", data.warnings);
       }
@@ -39584,6 +40280,14 @@
       builderPeopleMode?.classList.remove("is-group");
       builderPeopleMode?.querySelectorAll(".apply-people-button").forEach((button) => {
         button.classList.toggle("active", button.dataset.joinMode !== "group");
+      });
+      document.querySelector('[data-chip-group="builder-room-type"]')?.classList.remove("is-group");
+      document.querySelector('[data-chip-group="builder-flight-request"]')?.classList.remove("is-group");
+      document.querySelectorAll('[data-chip-group="builder-room-type"] .apply-people-button').forEach((button) => {
+        button.classList.toggle("active", button.dataset.value === "2인1실");
+      });
+      document.querySelectorAll('[data-chip-group="builder-flight-request"] .apply-people-button').forEach((button) => {
+        button.classList.toggle("active", button.dataset.value === "대행요청");
       });
       document.getElementById("builderApplyPeopleAccordion")?.classList.remove("open");
       setCompanionPeople("builder", 1, { update: false });
@@ -40323,7 +41027,7 @@
       if (regionSearchContext === "mdpick") {
         return hasMdPickRegionProducts(name, { country: !String(name || "").includes(",") });
       }
-      return getVisibleJoinProducts().some((join) => joinMatchesRegionSearch(join, name));
+      return getVisibleCalendarJoinProducts().some((join) => joinMatchesRegionSearch(join, name));
     }
 
     function regionCountryHotBadgeHtml(country, options = {}) {
@@ -42376,6 +43080,9 @@
     }
 
     function renderRegionProductCard(join, options = {}) {
+      const adminRecommendedBadges = join.isAdminRecommendedSchedule
+        ? '<div class="region-product-admin-badges"><span class="region-product-admin-badge lowest-price">\uCD5C\uC800\uAC00</span><span class="region-product-admin-badge recommended">\uCD94\uCC9C\uC77C\uC815</span></div>'
+        : "";
       return `
         <article class="region-product-card" onclick="openDetail('${join.id}')">
           <div class="region-product-thumb">
@@ -42388,6 +43095,7 @@
                 <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
               </svg>
               <div class="region-product-location">${getJoinLocationLabel(join)}</div>
+              ${adminRecommendedBadges}
             </div>
             <div class="region-product-name">${join.title}</div>
             <div class="region-product-date">${formatCardDateRange(join)}</div>
@@ -42488,7 +43196,7 @@
       const setTypeHandler = options.setTypeHandler || "setRegionEmptyRecommendType";
       const moreHandler = options.moreHandler || "selectRegionResult";
       const groups = new Map();
-      getVisibleJoinProducts()
+      getVisibleCalendarJoinProducts()
         .filter((join) => Number(join.emptySlots) > 0 && join.region && !joinMatchesRegionSearch(join, query) && getJoinCategoryClass(join) === activeType)
         .forEach((join) => {
           if (!groups.has(join.region)) groups.set(join.region, []);
@@ -42582,7 +43290,7 @@
         `;
         return;
       }
-      const results = sortRegionProductResults(getVisibleJoinProducts().filter((join) => joinMatchesRegionSearch(join, query))).slice(0, 12);
+      const results = sortRegionProductResults(getVisibleCalendarJoinProducts().filter((join) => joinMatchesRegionSearch(join, query))).slice(0, 12);
       if (!results.length) {
         const emptyRegionName = escapeHtml(formatRegionDisplayName(query) || query);
         list.innerHTML = `
@@ -42832,6 +43540,126 @@
 
     function getApplyChipValues(groupName) {
       return Array.from(document.querySelectorAll(`[data-chip-group="${groupName}"] .apply-chip.active`)).map((chip) => chip.dataset.value || chip.textContent.trim()).filter(Boolean);
+    }
+
+    function selectApplyBookingOption(button) {
+      const group = button?.closest(".apply-chip-group, .apply-people-mode");
+      if (!group) return;
+      group.querySelectorAll(".apply-chip, .apply-people-button").forEach((chip) => chip.classList.toggle("active", chip === button));
+    }
+
+    function getApplyBookingChipValue(scope, key, fallback = "") {
+      return getApplyChipValue(`${scope}-${key}`)
+        || document.querySelector(`[data-chip-group="${scope}-${key}"] .apply-people-button.active`)?.dataset.value
+        || fallback;
+    }
+
+    function getApplyProductForBookingOptions(scope) {
+      if (scope === "builder") {
+        return getBuilderSelectedFixedProduct()
+          || [...(externalGolfJoinProducts || []), ...joins].find((item) => item.id === builderState.productId)
+          || { id: builderState.productId };
+      }
+      return getCurrentApplyJoin() || getCurrentDetailJoin() || {};
+    }
+
+    function getApplyProductPackType(product = {}) {
+      const savedPackType = String(product.packType || getNestedValue(product, "trip.packType") || getNestedValue(product, "product.packType") || "").trim().toLowerCase();
+      if (savedPackType === "air" || savedPackType === "항공팩") return "air";
+      if (savedPackType === "golf" || savedPackType === "골프팩") return "golf";
+      if (typeof getMdPickPackType === "function") {
+        const mdPickType = getMdPickPackType(product);
+        if (mdPickType === "air" || mdPickType === "golf") return mdPickType;
+      }
+      const typeText = String(getDetailProductType(product) || product.packTypeName || product.productType || "").trim();
+      if (/항공|air/i.test(typeText)) return "air";
+      return "golf";
+    }
+
+    function parseApplyBookingNotes(product = {}) {
+      return [
+        product.notes,
+        product.notice,
+        getNestedValue(product, "trip.notes"),
+        getNestedValue(product, "product.notes"),
+        getNestedValue(product, "sheetApplication.notes")
+      ].flatMap((value) => parseList(value)).map((item) => String(item || "").trim()).filter(Boolean);
+    }
+
+    function extractSingleRoomSurcharge(notes = []) {
+      const candidates = notes.filter((text) => /(1\s*인\s*1\s*실|싱글|독실|single)/i.test(text));
+      for (const text of candidates) {
+        const matches = [...text.matchAll(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만원|만|원)?/g)];
+        for (const match of matches) {
+          const raw = Number(String(match[1]).replace(/,/g, ""));
+          if (!Number.isFinite(raw) || raw <= 0) continue;
+          const unit = match[2] || "";
+          if (!unit && !String(match[1]).includes(",") && raw < 10000) continue;
+          return {
+            amount: Math.round(/만원|만/.test(unit) ? raw * 10000 : raw),
+            sourceText: text,
+            status: "found"
+          };
+        }
+      }
+      return {
+        amount: 0,
+        sourceText: candidates[0] || "",
+        status: candidates.length ? "manual_check" : "not_found"
+      };
+    }
+
+    function getSingleRoomSurchargeInfo(product = {}) {
+      const directAmount = Number(product.singleRoomSurcharge || getNestedValue(product, "applicant.singleRoomSurcharge") || 0);
+      const directText = String(product.singleRoomSurchargeText || getNestedValue(product, "applicant.singleRoomSurchargeText") || "").trim();
+      if (Number.isFinite(directAmount) && directAmount > 0) {
+        return {
+          amount: directAmount,
+          sourceText: directText,
+          status: product.singleRoomSurchargeStatus || "found"
+        };
+      }
+      return extractSingleRoomSurcharge(parseApplyBookingNotes(product));
+    }
+
+    function getApplyBookingOptions(scope) {
+      const product = getApplyProductForBookingOptions(scope);
+      const packType = getApplyProductPackType(product);
+      const roomType = getApplyBookingChipValue(scope, "room-type", "2인1실");
+      const flightRequestType = packType === "golf" ? getApplyBookingChipValue(scope, "flight-request", "대행요청") : "";
+      const surcharge = roomType === "1인1실"
+        ? getSingleRoomSurchargeInfo(product)
+        : { amount: 0, sourceText: "", status: "not_selected" };
+      return {
+        packType,
+        roomType,
+        flightRequestType,
+        singleRoomSurcharge: surcharge.amount || 0,
+        singleRoomSurchargeText: surcharge.sourceText || "",
+        singleRoomSurchargeStatus: surcharge.status || ""
+      };
+    }
+
+    function formatApplyWon(amount) {
+      const number = Number(amount);
+      if (!Number.isFinite(number) || number <= 0) return "";
+      return `${number.toLocaleString("ko-KR")}원`;
+    }
+
+    function updateApplyBookingOptions(scope) {
+      const options = getApplyBookingOptions(scope);
+      document.querySelector(`[data-apply-flight-option="${scope}"]`)?.classList.toggle("is-hidden", options.packType !== "golf");
+      document.querySelector(`[data-apply-room-option="${scope}"]`)?.classList.remove("is-hidden");
+      const surcharge = document.querySelector(`[data-apply-room-surcharge="${scope}"]`);
+      if (!surcharge) return;
+      if (options.roomType !== "1인1실") {
+        surcharge.textContent = "";
+      } else if (options.singleRoomSurcharge > 0) {
+        surcharge.innerHTML = `1인1실 추가요금 <strong>${escapeHtml(formatApplyWon(options.singleRoomSurcharge))}</strong>`;
+        if (options.singleRoomSurchargeText) surcharge.title = options.singleRoomSurchargeText;
+      } else {
+        surcharge.textContent = "1인1실 추가요금은 상품 참고사항 확인 후 별도 안내됩니다.";
+      }
     }
 
     function scrollApplyChipGroupIntoView(groupName) {
@@ -43097,10 +43925,20 @@
         }
         overlay.style.setProperty("z-index", "2147483650", "important");
         panel.style.setProperty("z-index", "2147483651", "important");
+        const applyJoin = getCurrentApplyJoin();
+        if (applyJoin) await enrichOpenDetailWithSecretTourData(applyJoin, { preserveScroll: true });
         renderGlobalApplyJoinSummary();
         clearApplyErrors();
         document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip.active').forEach((chip) => chip.classList.remove("active"));
         document.querySelector('[data-chip-group="global-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
+        document.querySelector('[data-chip-group="global-room-type"]')?.classList.remove("is-group");
+        document.querySelector('[data-chip-group="global-flight-request"]')?.classList.remove("is-group");
+        document.querySelectorAll('[data-chip-group="global-room-type"] .apply-chip, [data-chip-group="global-room-type"] .apply-people-button').forEach((chip) => {
+          chip.classList.toggle("active", chip.dataset.value === "2인1실");
+        });
+        document.querySelectorAll('[data-chip-group="global-flight-request"] .apply-chip, [data-chip-group="global-flight-request"] .apply-people-button').forEach((chip) => {
+          chip.classList.toggle("active", chip.dataset.value === "대행요청");
+        });
         const privacy = document.getElementById("globalApplyPrivacy");
         if (privacy) {
           privacy.checked = false;
@@ -43141,6 +43979,7 @@
         overlay.classList.add("open");
         requestAnimationFrame(() => panel.classList.add("open"));
         setWidgetModalOpen(true);
+        updateApplyBookingOptions("global");
         updateApplyProgressive();
         document.querySelectorAll("#globalApplyPanel .traveler-field input").forEach(updateTravelerFieldState);
       } finally {
@@ -43165,6 +44004,14 @@
         chip.classList.remove("active");
       });
       document.querySelector('[data-chip-group="global-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
+      document.querySelector('[data-chip-group="global-room-type"]')?.classList.remove("is-group");
+      document.querySelector('[data-chip-group="global-flight-request"]')?.classList.remove("is-group");
+      document.querySelectorAll('[data-chip-group="global-room-type"] .apply-chip, [data-chip-group="global-room-type"] .apply-people-button').forEach((chip) => {
+        chip.classList.toggle("active", chip.dataset.value === "2인1실");
+      });
+      document.querySelectorAll('[data-chip-group="global-flight-request"] .apply-chip, [data-chip-group="global-flight-request"] .apply-people-button').forEach((chip) => {
+        chip.classList.toggle("active", chip.dataset.value === "대행요청");
+      });
       const greeting = document.getElementById("globalApplyGreeting");
       if (greeting) greeting.value = greeting.defaultValue || "잘 부탁드립니다.";
       document.querySelectorAll(".global-apply-agreement").forEach((input) => {
@@ -43185,6 +44032,7 @@
       });
       document.getElementById("globalApplyPeopleAccordion")?.classList.remove("open");
       renderCompanionGenderRows("global");
+      updateApplyBookingOptions("global");
       const submitButton = document.getElementById("globalApplySubmitButton");
       if (submitButton) {
         submitButton.disabled = false;
@@ -43479,6 +44327,7 @@
       const styles = getApplyChipValues("global-style");
       const memberPreferences = getApplyChipValues("global-member-preference");
       const greeting = document.getElementById("globalApplyGreeting")?.value.trim();
+      const bookingOptions = getApplyBookingOptions("global");
 
       if (!name) {
         markApplyFieldErrorWithMessage("name", "이름을 입력해 주세요.");
@@ -43525,6 +44374,11 @@
         memberPreferences,
         preferredMemberComposition: memberPreferences,
         greeting,
+        roomType: bookingOptions.roomType,
+        flightRequestType: bookingOptions.flightRequestType,
+        singleRoomSurcharge: bookingOptions.singleRoomSurcharge,
+        singleRoomSurchargeText: bookingOptions.singleRoomSurchargeText,
+        singleRoomSurchargeStatus: bookingOptions.singleRoomSurchargeStatus,
         member: {
           memberSeq: memberProfile.member?.memberSeq || "",
           memberId: memberProfile.member?.memberId || "",
@@ -44076,7 +44930,7 @@
       const hours = Math.floor((totalSeconds % 86400) / 3600);
       const minutes = Math.floor((totalSeconds % 3600) / 60);
       const seconds = totalSeconds % 60;
-      return `예약가능 ${days}일 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} 남음`;
+      return `예약마감 ${days}일 ${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")} 남음`;
     }
 
     function renderJoinReservationCountdown(join) {
@@ -44087,7 +44941,7 @@
             <circle cx="12" cy="12" r="9" stroke="currentColor"/>
             <path d="M12 7v5l3 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span class="join-reservation-countdown-time">${formatReservationRemaining(deadlineTimestamp)}</span>
+          <div class="join-reservation-countdown-time">${formatReservationRemaining(deadlineTimestamp)}</div>
         </div>
       `;
     }
@@ -46875,9 +47729,12 @@
       const parsedReference = parseSecretTourProductReference(join.id || join.erpProductId || "", join.eventSeq || join.erpEventSeq || "");
       const goodSeq = String(join.goodSeq || parsedReference.goodSeq || join.erpProductId || "").trim();
       const eventSeq = String(join.eventSeq || parsedReference.eventSeq || join.erpEventSeq || "").trim();
-      if (!goodSeq || !eventSeq) return window.location.href;
-      const params = new URLSearchParams({ goodSeq, eventSeq });
-      return `https://${getDetailShareHost()}/goods/goods_view?${params.toString()}`;
+      const url = new URL("https://www.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1");
+      url.searchParams.set("golfjoinOpen", "detail");
+      if (join.id) url.searchParams.set("joinId", String(join.id));
+      if (goodSeq) url.searchParams.set("goodSeq", goodSeq);
+      if (eventSeq) url.searchParams.set("eventSeq", eventSeq);
+      return url.toString();
     }
 
     function getDetailWishEndpoint() {
@@ -47085,10 +47942,8 @@
           </div>
           <div class="detail-share-body">
             <div class="detail-share-list" aria-label="공유 채널">
-              <button type="button" class="detail-share-item kakao" onclick="shareDetailToKakao()"><div class="detail-share-icon">톡</div><div>카카오톡</div></button>
-              <a class="detail-share-item facebook" data-detail-share-facebook href="${escapeHtml(getDetailFacebookShareUrl(shareUrl, title))}" target="_blank" rel="noopener"><div class="detail-share-icon">f</div><div>페이스북</div></a>
-              <button type="button" class="detail-share-item url" onclick="copyDetailShareUrl()"><div class="detail-share-icon">URL</div><div>URL</div></button>
-              <a class="detail-share-item sms" data-detail-share-sms href="${escapeHtml(getDetailSmsShareUrl(shareUrl))}"><div class="detail-share-icon">SMS</div><div>SMS</div></a>
+              <button type="button" class="detail-share-item kakao" onclick="shareDetailToKakao()"><div class="detail-share-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/kakao.webp" alt="" loading="lazy" decoding="async"></div><div>카카오톡으로 공유하기</div></button>
+              <button type="button" class="detail-share-item url" onclick="copyDetailShareUrl()"><div class="detail-share-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg></div><div>주소 복사하기</div></button>
             </div>
             <div class="detail-share-url-row">
               <input type="text" class="detail-share-url-input" id="detailShareUrlInput" value="${escapeHtml(shareUrl)}" readonly>
@@ -47102,11 +47957,7 @@
 
     function updateDetailShareModalUrl(shareUrl, title = document.title) {
       const input = document.getElementById("detailShareUrlInput");
-      const facebook = document.querySelector("[data-detail-share-facebook]");
-      const sms = document.querySelector("[data-detail-share-sms]");
       if (input) input.value = shareUrl;
-      if (facebook) facebook.setAttribute("href", getDetailFacebookShareUrl(shareUrl, title));
-      if (sms) sms.setAttribute("href", getDetailSmsShareUrl(shareUrl));
     }
 
     async function handleDetailShare() {
@@ -47791,6 +48642,9 @@
       updateMdPickSlideDots();
       setupQuickMobileCarousel();
       updateSoonDateLine();
+      if (document.getElementById("detailModal")?.classList.contains("open")) {
+        updateDetailAnchorTabs();
+      }
       if (document.getElementById("calendarSheet")?.classList.contains("open")) {
         renderCalendarSheet();
         updateMobileExpandedCalendarHeight();
@@ -47969,6 +48823,7 @@
       const params = new URLSearchParams(location.search);
       const afterLogin = params.get("afterLogin");
       await bootstrapPromise;
+      await resumeJoinExternalDeepLink();
       closeHomeInitialLoading();
     }
 
@@ -48530,6 +49385,37 @@
                         <div class="apply-companion-error">모든 동반자 성별을 선택해 주세요.</div>
                       </div>
                     </div>
+                  </div>
+                </div>
+                <div class="field full">
+                  <div class="apply-booking-option-section is-hidden" data-apply-flight-option="builder">
+                    <div class="apply-section-heading">항공예약</div>
+                    <div>
+                      <div class="apply-people-mode" data-chip-group="builder-flight-request">
+                        <button type="button" class="apply-people-button active" data-mode="solo" data-value="대행요청" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('builder')">
+                          <div class="apply-people-button-label">대행 요청</div>
+                        </button>
+                        <button type="button" class="apply-people-button" data-mode="group" data-value="직접예약" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('builder')">
+                          <div class="apply-people-button-label">직접 예약</div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field full">
+                  <div class="apply-booking-option-section" data-apply-room-option="builder">
+                    <div class="apply-section-heading">숙소타입</div>
+                    <div>
+                      <div class="apply-people-mode" data-chip-group="builder-room-type">
+                        <button type="button" class="apply-people-button active" data-mode="solo" data-value="2인1실" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('builder')">
+                          <div class="apply-people-button-label">2인1실</div>
+                        </button>
+                        <button type="button" class="apply-people-button" data-mode="group" data-value="1인1실" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('builder')">
+                          <div class="apply-people-button-label">1인1실</div>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="apply-room-surcharge" data-apply-room-surcharge="builder"></div>
                   </div>
                 </div>
               </div>

@@ -179,7 +179,21 @@ const HOME_BOOTSTRAP_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_CACHE_TTL_
 const HOME_BOOTSTRAP_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_STALE_TTL_MS || 10 * 60_000);
 const HOME_BOOTSTRAP_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_CACHE_MAX_KEYS || 100);
 const HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS || 2_500);
+const GA4_PROPERTY_ID = String(process.env.GA4_PROPERTY_ID || "404154820").trim();
+const GA4_LOOKBACK_DAYS = Math.min(Math.max(Number(process.env.GA4_LOOKBACK_DAYS || 30), 1), 365);
+const GA4_JOIN_HOSTS = String(process.env.GA4_JOIN_HOSTS || "www.secret-tour.com,m.secret-tour.com")
+  .split(",")
+  .map((host) => host.trim())
+  .filter(Boolean);
+const GA4_JOIN_PATH = String(process.env.GA4_JOIN_PATH || "/event/plan_view").trim();
+const GA4_JOIN_EVENT_PLAN_SEQ = String(process.env.GA4_JOIN_EVENT_PLAN_SEQ || "3").trim();
+const GA4_VISITOR_COUNT_CACHE_TTL_MS = Number(process.env.GA4_VISITOR_COUNT_CACHE_TTL_MS || 10 * 60_000);
 const homeBootstrapCache = new Map();
+const ga4VisitorCountCache = {
+  count: 0,
+  updatedAt: 0,
+  warning: ""
+};
 
 function getAllowedOrigin(origin = "") {
   if (!origin) return "";
@@ -1159,6 +1173,8 @@ async function readHomeBootstrapBatchDirect(params = {}) {
     reviews: payload.reviews.map(sanitizePublicRow),
     wishes: payload.wishes.map(sanitizeJoinWishLookupRow),
     displayRules: Array.isArray(payload.displayRules) ? payload.displayRules.map(sanitizePublicRow) : [],
+    profileCount: Math.max(0, Math.round(Number(payload.profileCount) || 0)),
+    visitorCount: Math.max(0, Math.round(Number(payload.visitorCount) || 0)),
     warnings: []
   };
 }
@@ -1182,9 +1198,133 @@ function cloneHomeBootstrapPayload(payload = {}) {
     reviews: Array.isArray(payload.reviews) ? payload.reviews : [],
     wishes: Array.isArray(payload.wishes) ? payload.wishes : [],
     displayRules: Array.isArray(payload.displayRules) ? payload.displayRules : [],
+    profileCount: Math.max(0, Math.round(Number(payload.profileCount) || 0)),
+    visitorCount: Math.max(0, Math.round(Number(payload.visitorCount) || 0)),
     warnings: Array.isArray(payload.warnings) ? [...payload.warnings] : [],
     cache: payload.cache || undefined
   };
+}
+
+function hasCompletedJoinMemberProfile(row = {}) {
+  return Boolean(
+    asText(row.gender)
+    && asText(row.birthYear)
+    && asText(row.level)
+    && asText(row.travelStyles || row.styles)
+  );
+}
+
+async function getGoogleMetadataAccessToken() {
+  const response = await fetchWithTimeout("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token", {
+    method: "GET",
+    headers: { "Metadata-Flavor": "Google", "Accept": "application/json" }
+  }, 3000);
+  const text = await response.text();
+  if (!response.ok) throw createHttpError(`Google metadata token failed: ${response.status}`, response.status);
+  const payload = JSON.parse(text || "{}");
+  const token = asText(payload.access_token);
+  if (!token) throw createHttpError("Google metadata token is empty", 502);
+  return token;
+}
+
+function buildGa4JoinVisitorDimensionFilter() {
+  const expressions = [];
+  if (GA4_JOIN_HOSTS.length) {
+    expressions.push({
+      filter: {
+        fieldName: "hostName",
+        inListFilter: {
+          values: GA4_JOIN_HOSTS,
+          caseSensitive: false
+        }
+      }
+    });
+  }
+  if (GA4_JOIN_PATH) {
+    expressions.push({
+      filter: {
+        fieldName: "pagePathPlusQueryString",
+        stringFilter: {
+          matchType: "CONTAINS",
+          value: GA4_JOIN_PATH,
+          caseSensitive: false
+        }
+      }
+    });
+  }
+  if (GA4_JOIN_EVENT_PLAN_SEQ) {
+    expressions.push({
+      filter: {
+        fieldName: "pagePathPlusQueryString",
+        stringFilter: {
+          matchType: "CONTAINS",
+          value: `eventPlanSeq=${GA4_JOIN_EVENT_PLAN_SEQ}`,
+          caseSensitive: false
+        }
+      }
+    });
+  }
+  if (!expressions.length) return undefined;
+  return expressions.length === 1 ? expressions[0] : { andGroup: { expressions } };
+}
+
+async function readGa4JoinVisitorCount() {
+  if (!GA4_PROPERTY_ID) return { count: 0, warning: "GA4_PROPERTY_ID is not configured" };
+  const ageMs = Date.now() - ga4VisitorCountCache.updatedAt;
+  if (ga4VisitorCountCache.updatedAt && ageMs <= GA4_VISITOR_COUNT_CACHE_TTL_MS) {
+    return {
+      count: ga4VisitorCountCache.count,
+      warning: ga4VisitorCountCache.warning
+    };
+  }
+  try {
+    const token = await getGoogleMetadataAccessToken();
+    const body = {
+      dateRanges: [{ startDate: `${GA4_LOOKBACK_DAYS}daysAgo`, endDate: "today" }],
+      metrics: [{ name: "totalUsers" }],
+      dimensionFilter: buildGa4JoinVisitorDimensionFilter()
+    };
+    const response = await fetchWithTimeout(`https://analyticsdata.googleapis.com/v1beta/properties/${encodeURIComponent(GA4_PROPERTY_ID)}:runReport`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(body)
+    }, 5000);
+    const text = await response.text();
+    if (!response.ok) throw createHttpError(`GA4 visitor count failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+    const payload = JSON.parse(text || "{}");
+    const count = Math.max(0, Math.round(Number(payload.rows?.[0]?.metricValues?.[0]?.value || 0)));
+    ga4VisitorCountCache.count = count;
+    ga4VisitorCountCache.updatedAt = Date.now();
+    ga4VisitorCountCache.warning = "";
+    return { count, warning: "" };
+  } catch (error) {
+    const warning = error?.message || "GA4 visitor count failed";
+    if (ga4VisitorCountCache.updatedAt) {
+      ga4VisitorCountCache.warning = warning;
+      return { count: ga4VisitorCountCache.count, warning };
+    }
+    return { count: 0, warning };
+  }
+}
+
+async function appendHomeBootstrapVisitorCount(payload = {}) {
+  const next = {
+    ...payload,
+    visitorCount: Math.max(0, Math.round(Number(payload.visitorCount) || 0))
+  };
+  const result = await readGa4JoinVisitorCount();
+  next.visitorCount = result.count;
+  if (result.warning) {
+    next.warnings = [
+      ...(Array.isArray(next.warnings) ? next.warnings : []),
+      { key: "visitorCount", message: result.warning }
+    ];
+  }
+  return next;
 }
 
 function getHomeBootstrapCacheEntry(cacheKey) {
@@ -1212,7 +1352,7 @@ function setHomeBootstrapCacheEntry(cacheKey, payload) {
 
 async function readHomeBootstrapUncached(params = {}) {
   try {
-    return await readHomeBootstrapBatchDirect(params);
+    return await appendHomeBootstrapVisitorCount(await readHomeBootstrapBatchDirect(params));
   } catch (error) {
     console.warn("Home bootstrap batch failed; falling back to parallel sheet reads.", error?.message || error);
   }
@@ -1241,6 +1381,11 @@ async function readHomeBootstrapUncached(params = {}) {
       section: "available_schedule",
       limit: Math.min(Math.max(Number(params?.displayRuleLimit || 100), 1), 100)
     }).then((rows) => rows.map(sanitizePublicRow))),
+    readHomeBootstrapPart("profileCount", () => readSheetRowsDirect({
+      sheet: "join_member_profiles",
+      limit: Math.min(Math.max(Number(params?.profileLimit || 1000), 1), 3000)
+    }).then((rows) => rows.filter(hasCompletedJoinMemberProfile))),
+    readHomeBootstrapPart("visitorCount", () => readGa4JoinVisitorCount().then((result) => result.count)),
     readHomeBootstrapPart("wishes", async () => {
       const rows = await readJoinWishesForMember({
         memberSeq,
@@ -1252,7 +1397,11 @@ async function readHomeBootstrapUncached(params = {}) {
     })
   ]);
   return parts.reduce((object, part) => {
-    object[part.key] = part.rows;
+    object[part.key] = part.key === "profileCount"
+      ? part.rows.length
+      : part.key === "visitorCount"
+        ? Math.max(0, Math.round(Number(part.rows) || 0))
+        : part.rows;
     if (part.warning) object.warnings.push({ key: part.key, message: part.warning });
     return object;
   }, {
@@ -1261,6 +1410,8 @@ async function readHomeBootstrapUncached(params = {}) {
     reviews: [],
     wishes: [],
     displayRules: [],
+    profileCount: 0,
+    visitorCount: 0,
     warnings: []
   });
 }

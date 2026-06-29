@@ -1324,6 +1324,7 @@ function readHomeBootstrapPayload_(params) {
     }).filter(function (row) {
       return String(row.section || "") === "available_schedule" && String(row.isVisible || "true").toLowerCase() !== "false";
     }).map(normalizeRowForJson_),
+    profileCount: countCompletedJoinMemberProfiles_(),
     wishes: canReadWishes
       ? filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_WISHES), {
         source: "join_wish",
@@ -1335,6 +1336,17 @@ function readHomeBootstrapPayload_(params) {
       }).map(normalizeRowForJson_)
       : []
   };
+}
+
+function countCompletedJoinMemberProfiles_() {
+  return readSheetObjects_(SHEET_NAMES.JOIN_MEMBER_PROFILES).filter(function (row) {
+    return Boolean(
+      String(row.gender || "").trim()
+      && String(row.birthYear || "").trim()
+      && String(row.level || "").trim()
+      && String(row.travelStyles || row.styles || "").trim()
+    );
+  }).length;
 }
 
 function readAdminBootstrapPayload_(params) {

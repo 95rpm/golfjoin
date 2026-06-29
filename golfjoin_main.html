@@ -13056,6 +13056,12 @@
       }
     }
     @media (max-width: 640px) {
+      #detailModal.open .detail-main-title,
+      #detailModal.open .detail-product-price-row,
+      body > #detailModal.sgj-portal-overlay.open .detail-main-title,
+      body > #detailModal.sgj-portal-overlay.open .detail-product-price-row {
+        padding-left: 5px !important;
+      }
       .detail-participant-style-chips.desktop {
         display: none;
       }
@@ -14987,6 +14993,63 @@
       min-width: 104px;
       margin-top: 4px;
       margin-left: 0;
+    }
+    .sgj-page .hero-calendar-social-proof {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      align-self: flex-start;
+      margin-top: 4px;
+      min-width: 0;
+    }
+    .sgj-page .hero-calendar-social-proof .hero-calendar-thumb-stack {
+      margin-top: 0;
+    }
+    .sgj-page .hero-calendar-profile-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: #54abff;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .sgj-page .hero-calendar-profile-count svg {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      color: #54abff;
+    }
+    .sgj-page .hero-calendar-profile-count-number {
+      display: inline-flex;
+      align-items: center;
+      height: 1em;
+      overflow: hidden;
+      font-variant-numeric: tabular-nums;
+    }
+    .sgj-page .hero-calendar-profile-count-digit {
+      width: .62em;
+      height: 1em;
+      overflow: hidden;
+      display: inline-block;
+    }
+    .sgj-page .hero-calendar-profile-count-reel {
+      display: grid;
+      grid-auto-rows: 1em;
+      transform: translateY(0);
+      transition: transform .9s cubic-bezier(.16, 1, .3, 1);
+      will-change: transform;
+    }
+    .sgj-page .hero-calendar-profile-count-reel div {
+      height: 1em;
+      line-height: 1;
+      text-align: center;
+    }
+    .sgj-page .hero-calendar-profile-count-separator {
+      height: 1em;
+      line-height: 1;
+      padding: 0 .03em;
     }
     .sgj-page .hero-calendar-thumb {
       position: relative;
@@ -24693,10 +24756,16 @@
               <div class="hero-calendar-button-text">모집 중인 조인 확인하기</div>
               <div class="hero-calendar-button-desc">원하는 날짜에 함께할 멤버를 찾아보세요</div>
             </div>
-            <div class="hero-calendar-thumb-stack" aria-hidden="true">
-              <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt=""></div>
-              <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/woman1.webp" alt=""></div>
-              <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man2.webp" alt=""></div>
+            <div class="hero-calendar-social-proof">
+              <div class="hero-calendar-thumb-stack" aria-hidden="true">
+                <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt=""></div>
+                <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/woman1.webp" alt=""></div>
+                <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man2.webp" alt=""></div>
+              </div>
+              <div class="hero-calendar-profile-count" aria-label="최근 30일 조인 페이지 방문회원 수">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-icon lucide-user-plus" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>
+                <div class="hero-calendar-profile-count-number" id="heroCalendarProfileCount">0</div>
+              </div>
             </div>
             <svg class="button-chevron lucide lucide-arrow-right-icon lucide-arrow-right" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M5 12h14"></path>
@@ -26996,6 +27065,11 @@
       period: "departure-soon",
       sort: "departure-asc"
     };
+    const HERO_CALENDAR_PROFILE_COUNT_TEST_VALUE = null;
+    let joinMemberProfileCompletedCount = 0;
+    let heroCalendarProfileCountQueuedValue = 0;
+    let heroCalendarProfileCountAnimationReady = false;
+    let heroCalendarProfileCountAnimationStarted = false;
 
     function normalizeEmbeddedBoardContainer() {
       const root = document.getElementById("secret-golf-join");
@@ -27480,6 +27554,7 @@
         homeInitialLoadingMaxTimer = null;
       }
       homeInitialLoadingMessageDotIndex = 0;
+      startHeroCalendarProfileCountAnimation();
     }
 
     function openJoinActionLoading(message = "", options = {}) {
@@ -35978,6 +36053,69 @@
       });
     }
 
+    function getHeroCalendarProfileCountDisplayValue(count) {
+      if (HERO_CALENDAR_PROFILE_COUNT_TEST_VALUE == null) return count;
+      const testValue = Number(HERO_CALENDAR_PROFILE_COUNT_TEST_VALUE);
+      if (Number.isFinite(testValue) && testValue >= 0) return testValue;
+      return count;
+    }
+
+    function normalizeHeroCalendarProfileCount(count) {
+      return Math.max(0, Math.round(Number(count) || 0));
+    }
+
+    function renderHeroCalendarProfileCount(count, options = {}) {
+      const numeric = normalizeHeroCalendarProfileCount(count);
+      const target = document.getElementById("heroCalendarProfileCount");
+      if (!target) return;
+      const formatted = numeric.toLocaleString("ko-KR");
+      target.setAttribute("aria-label", `최근 30일 조인 페이지 방문회원 수 ${formatted}명`);
+      target.innerHTML = formatted.split("").map((char, index) => {
+        if (!/\d/.test(char)) return `<div class="hero-calendar-profile-count-separator">${escapeHtml(char)}</div>`;
+        return `
+          <div class="hero-calendar-profile-count-digit" aria-hidden="true">
+            <div class="hero-calendar-profile-count-reel" data-target-digit="${escapeHtml(char)}" style="transition-delay:${Math.min(index * 70, 420)}ms;">
+              ${Array.from({ length: 10 }, (_, digit) => `<div>${digit}</div>`).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+      if (!options.animate) return;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          target.querySelectorAll(".hero-calendar-profile-count-reel").forEach((reel) => {
+            const digit = Number(reel.dataset.targetDigit || 0);
+            reel.style.transform = `translateY(-${digit}em)`;
+          });
+        });
+      });
+    }
+
+    function updateHeroCalendarProfileCount(count = joinMemberProfileCompletedCount) {
+      const numeric = normalizeHeroCalendarProfileCount(getHeroCalendarProfileCountDisplayValue(count));
+      joinMemberProfileCompletedCount = numeric;
+      heroCalendarProfileCountQueuedValue = numeric;
+      renderHeroCalendarProfileCount(numeric, { animate: true });
+    }
+
+    function queueHeroCalendarProfileCount(count = joinMemberProfileCompletedCount) {
+      const numeric = normalizeHeroCalendarProfileCount(getHeroCalendarProfileCountDisplayValue(count));
+      joinMemberProfileCompletedCount = numeric;
+      heroCalendarProfileCountQueuedValue = numeric;
+      if (heroCalendarProfileCountAnimationReady) {
+        updateHeroCalendarProfileCount(numeric);
+        return;
+      }
+      renderHeroCalendarProfileCount(numeric, { animate: false });
+    }
+
+    function startHeroCalendarProfileCountAnimation() {
+      if (heroCalendarProfileCountAnimationStarted) return;
+      heroCalendarProfileCountAnimationReady = true;
+      heroCalendarProfileCountAnimationStarted = true;
+      updateHeroCalendarProfileCount(heroCalendarProfileCountQueuedValue);
+    }
+
     function getDetailParticipantAverage(values = []) {
       const valid = values.filter((value) => Number.isFinite(value) && value > 0);
       if (!valid.length) return null;
@@ -40096,6 +40234,7 @@
       const reviews = Array.isArray(data.reviews) ? data.reviews : [];
       const wishes = Array.isArray(data.wishes) ? data.wishes : [];
       const displayRules = Array.isArray(data.displayRules) ? data.displayRules : [];
+      queueHeroCalendarProfileCount(data.visitorCount ?? data.profileCount);
       googleSheetBuilderApplicationsLoading = false;
       googleSheetJoinApplicationsLoading = false;
       googleSheetJoinWishesLoading = false;

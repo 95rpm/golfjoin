@@ -392,7 +392,7 @@
     }
     .recommendation-calendar-picker {
       position: relative;
-      width: 260px;
+      width: 220px;
     }
     .recommendation-calendar-toggle {
       width: 100%;
@@ -419,15 +419,16 @@
       top: 50%;
       left: 50%;
       z-index: 80;
-      width: min(808px, calc(100vw - 20px));
-      max-width: calc(100vw - 20px);
-      max-height: calc(100vh - 20px);
+      width: min(848px, calc(100vw - 40px));
+      max-width: calc(100vw - 40px);
+      max-height: calc(100vh - 40px);
       display: none;
       border: 1px solid #eef2f7;
-      border-radius: 0;
+      border-radius: 8px;
       background: var(--panel);
       box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
-      padding: 8px 8px 10px;
+      padding: 20px;
+      box-sizing: border-box;
       overflow-x: hidden;
       overflow-y: auto;
       transform: translate(-50%, -50%);
@@ -473,6 +474,10 @@
       box-sizing: border-box;
     }
     .recommendation-calendar-month-title {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) 32px;
+      align-items: center;
+      gap: 4px;
       color: var(--text);
       font-size: 20px;
       font-weight: 800;
@@ -480,6 +485,11 @@
       width: 100%;
       min-width: 0;
       box-sizing: border-box;
+    }
+    .recommendation-calendar-month-title-text {
+      grid-column: 2;
+      min-width: 0;
+      text-align: center;
     }
     .recommendation-calendar-nav {
       width: 32px;
@@ -526,9 +536,6 @@
     .recommendation-calendar-weekdays span:first-child {
       color: #ff405c;
     }
-    .recommendation-calendar-weekdays span:last-child {
-      color: #00a8d8;
-    }
     .recommendation-calendar-day {
       position: relative;
       height: 64px;
@@ -554,8 +561,7 @@
       color: var(--text);
       cursor: pointer;
     }
-    .recommendation-calendar-day.weekend-sun.available,
-    .recommendation-calendar-day.weekend-sat.available {
+    .recommendation-calendar-day.weekend-sun.available {
       color: #ff405c;
     }
     .recommendation-calendar-day.active {
@@ -943,6 +949,9 @@
       font-weight: 600;
       line-height: 1.5;
     }
+    .drawer-sub:empty {
+      display: none;
+    }
     .drawer-close {
       width: 36px;
       height: 36px;
@@ -967,6 +976,26 @@
       display: grid;
       gap: 12px;
       margin-bottom: 22px;
+    }
+    .drawer-product-detail {
+      display: grid;
+      gap: 16px;
+    }
+    .drawer-detail-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+    }
+    .drawer-detail-box .section-title {
+      margin-bottom: 10px;
+    }
+    .drawer-detail-box .list {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .drawer-detail-box .list li + li {
+      margin-top: 6px;
     }
     .section-title {
       margin: 0;
@@ -1406,6 +1435,30 @@
       gap: 8px;
       margin-top: 20px;
     }
+    .confirm-dialog.recommendation-confirm-dialog {
+      padding: 22px;
+    }
+    .confirm-dialog.recommendation-confirm-dialog .confirm-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 22px;
+    }
+    .confirm-dialog.recommendation-confirm-dialog .confirm-actions .participant-status-action {
+      width: 100%;
+      height: 52px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 800;
+    }
+    .confirm-dialog.recommendation-confirm-dialog #confirmOkButton {
+      border-color: #54abff;
+      background: #54abff;
+      color: #fff;
+    }
     .info-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1568,7 +1621,7 @@
     </div>
   </div>
 
-  <script src="web/golf-join-products-data.js"></script>
+  <script src="web/golfjoin_local_data.js"></script>
   <script>
     const SHEET_API_ENDPOINT = "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
     const ADMIN_AUTH_SESSION_KEY = "golfjoinAdminAuth";
@@ -2883,6 +2936,7 @@
           groups.set(key, {
             goodSeq: item.goodSeq,
             title: asText(item.product.title) || "상품명 없음",
+            packType: getPackType({}, item.product),
             country: getRecommendationProductCountry(item.product),
             region: asText(item.product.region),
             category: asText(item.product.category),
@@ -2997,7 +3051,11 @@
         const visibleMonth = addRecommendationMonths(startMonth, offset);
         return `
           <div class="recommendation-calendar-month-block">
-            <div class="recommendation-calendar-month-title">${escapeHtml(formatRecommendationMonth(visibleMonth))}</div>
+            <div class="recommendation-calendar-month-title">
+              ${offset === 0 ? '<button class="recommendation-calendar-nav" type="button" data-action="recommendation-calendar-prev" aria-label="Previous month"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left-icon lucide-chevron-left" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>' : '<span aria-hidden="true"></span>'}
+              <div class="recommendation-calendar-month-title-text">${escapeHtml(formatRecommendationMonth(visibleMonth))}</div>
+              ${offset === 1 ? '<button class="recommendation-calendar-nav" type="button" data-action="recommendation-calendar-next" aria-label="Next month"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>' : '<span aria-hidden="true"></span>'}
+            </div>
             <div class="recommendation-calendar-weekdays">
               <span>&#51068;</span><span>&#50900;</span><span>&#54868;</span><span>&#49688;</span><span>&#47785;</span><span>&#44552;</span><span>&#53664;</span>
             </div>
@@ -3024,9 +3082,7 @@
           <div class="recommendation-calendar-panel">
             <div class="recommendation-calendar-head">
               <div class="recommendation-calendar-month-control">
-                <button class="recommendation-calendar-nav" type="button" data-action="recommendation-calendar-prev" aria-label="Previous month"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left-icon lucide-chevron-left" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
                 <div class="recommendation-calendar-month">출발일 선택</div>
-                <button class="recommendation-calendar-nav" type="button" data-action="recommendation-calendar-next" aria-label="Next month"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
               </div>
               <button class="recommendation-calendar-nav recommendation-calendar-close" type="button" data-action="recommendation-calendar-close" aria-label="Close calendar"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
             </div>
@@ -3141,6 +3197,7 @@
         if (!keyword) return true;
         return [
           group.title,
+          getPackLabel(group.packType),
           group.country,
           group.region,
           group.category,
@@ -3156,14 +3213,15 @@
               <thead>
                 <tr>
                   <th>상품번호</th>
-                  <th>상품명</th>
+                  <th>구분</th>
                   <th>국가</th>
                   <th>지역</th>
+                  <th>상품명</th>
                   <th>기간</th>
                   <th>첫 출발일</th>
                   <th>마지막 출발일</th>
                   <th>출발일 선택</th>
-                  <th>추천 상태</th>
+                  <th>등록상태</th>
                   <th>관리</th>
                 </tr>
               </thead>
@@ -3173,9 +3231,10 @@
                   return `
                     <tr data-recommendation-product="${escapeHtml(group.goodSeq)}">
                       <td>${escapeHtml(group.goodSeq)}</td>
-                      <td class="product-cell">${escapeHtml(group.title)}</td>
+                      <td><span class="badge ${group.packType === "air" ? "air" : "golf"}">${escapeHtml(getPackLabel(group.packType))}</span></td>
                       <td>${escapeHtml(group.country || "-")}</td>
                       <td>${escapeHtml(group.region || group.category || "-")}</td>
+                      <td class="product-cell">${escapeHtml(group.title)}</td>
                       <td>${escapeHtml(group.period || "-")}</td>
                       <td>${escapeHtml(formatDate(group.firstDeparture))}</td>
                       <td>${escapeHtml(formatDate(group.lastDeparture))}</td>
@@ -3202,9 +3261,8 @@
         const activeRules = getActiveRecommendationRules();
         const productItems = getRecommendationProductItems();
         const items = [
-          ["추천 일정", activeRules.length],
-          ["상품 후보", getRecommendationUniqueProductCount(productItems)],
-          ["숨김 포함", state.displayRules.length]
+          ["추천 등록", activeRules.length],
+          ["상품 후보", getRecommendationUniqueProductCount(productItems)]
         ];
         $("#metrics").innerHTML = items.map(([label, value]) => `
           <div class="metric">
@@ -3883,9 +3941,11 @@
       return "상태 변경";
     }
 
-    function openConfirmDialog({ title = "작업 확인", message = "", html = "", okText = "확인", cancelText = "취소" } = {}) {
+    function openConfirmDialog({ title = "작업 확인", message = "", html = "", okText = "확인", cancelText = "취소", dialogClass = "" } = {}) {
       const backdrop = $("#confirmBackdrop");
       if (!backdrop) return Promise.resolve(window.confirm(message || title));
+      const dialog = backdrop.querySelector(".confirm-dialog");
+      if (dialog) dialog.className = `confirm-dialog${dialogClass ? ` ${dialogClass}` : ""}`;
       $("#confirmTitle").textContent = title;
       if (html) $("#confirmMessage").innerHTML = html;
       else $("#confirmMessage").textContent = message;
@@ -3897,6 +3957,7 @@
         const cleanup = (result) => {
           backdrop.classList.remove("open");
           backdrop.setAttribute("aria-hidden", "true");
+          if (dialog) dialog.className = "confirm-dialog";
           $("#confirmOkButton").removeEventListener("click", onOk);
           $("#confirmCancelButton").removeEventListener("click", onCancel);
           backdrop.removeEventListener("click", onBackdrop);
@@ -4265,45 +4326,44 @@
       const row = schedule.row || {};
       openDrawer(
         "상품 상세 정보",
-        getTitle(row),
+        "",
         '<div class="empty loading-state"><span class="loading-spinner" aria-hidden="true"></span><span>실제 상품 상세 정보를 불러오는 중입니다.</span></div>'
       );
       const detail = await getProductDetailContent(row, product);
       const flightItems = buildFlightInfo(row, product, detail);
       openDrawer(
         "상품 상세 정보",
-        getTitle(row),
+        "",
         `
-          <section class="drawer-section">
-            <h3 class="section-title">기본 정보</h3>
-            ${renderInfoGrid([
-              ["국가", getCountry(row, product)],
-              ["지역", getRegion(row)],
-              ["기간", getPeriod(row, product)],
-              ["상품가", formatPrice(row.productPrice || product.price || row.price)]
-            ])}
-            ${detail.loadError ? '<div class="empty">실제 상품 상세 페이지를 불러오지 못했습니다.</div>' : ""}
-          </section>
-          <section class="drawer-section">
-            <h3 class="section-title">항공편</h3>
-            ${flightItems.length ? renderList(flightItems) : '<div class="empty">등록된 항공편 정보가 없습니다.</div>'}
-          </section>
-          <section class="drawer-section">
-            <h3 class="section-title">포함사항</h3>
-            ${renderList(detail.includes)}
-          </section>
-          <section class="drawer-section">
-            <h3 class="section-title">불포함사항</h3>
-            ${renderList(detail.excludes)}
-          </section>
-          <section class="drawer-section">
-            <h3 class="section-title">참고사항</h3>
-            ${renderList(detail.notes)}
-          </section>
-          <section class="drawer-section">
-            <h3 class="section-title">일정표</h3>
-            ${renderProductSchedule(detail.schedule)}
-          </section>
+          <div class="drawer-product-detail">
+            <section class="drawer-section">
+              <h3 class="section-title">기본정보</h3>
+              ${renderInfoGrid([
+                ["상품명", getTitle(row)],
+                ["국가", getCountry(row, product)],
+                ["지역", getRegion(row)],
+                ["기간", getPeriod(row, product)],
+                ["상품가", formatPrice(row.productPrice || product.price || row.price)]
+              ])}
+              ${detail.loadError ? '<div class="empty">실제 상품 상세 페이지를 불러오지 못했습니다.</div>' : ""}
+            </section>
+            <section class="drawer-detail-box">
+              <h3 class="section-title">항공편</h3>
+              ${flightItems.length ? renderList(flightItems) : '<div class="empty">등록된 항공편 정보가 없습니다.</div>'}
+            </section>
+            <section class="drawer-detail-box">
+              <h3 class="section-title">포함사항</h3>
+              ${renderList(detail.includes)}
+            </section>
+            <section class="drawer-detail-box">
+              <h3 class="section-title">불포함사항</h3>
+              ${renderList(detail.excludes)}
+            </section>
+            <section class="drawer-detail-box">
+              <h3 class="section-title">참고사항</h3>
+              ${renderList(detail.notes)}
+            </section>
+          </div>
         `
       );
     }
@@ -4686,7 +4746,8 @@
         title: "\uCD94\uCC9C\uC77C\uC815 \uB4F1\uB85D",
         html,
         okText: "\uB4F1\uB85D",
-        cancelText: "\uCDE8\uC18C"
+        cancelText: "\uCDE8\uC18C",
+        dialogClass: "recommendation-confirm-dialog"
       });
       if (!confirmed) return;
       await saveRecommendationScheduleByKey(productKey);
@@ -4886,7 +4947,15 @@
       showLogin("");
     });
     $("#reloadButton").addEventListener("click", loadDashboard);
-    $("#searchInput").addEventListener("input", renderTable);
+    $("#searchInput").addEventListener("input", () => {
+      if (state.currentMenu === "recommended-schedules") return;
+      renderTable();
+    });
+    $("#searchInput").addEventListener("keydown", (event) => {
+      if (state.currentMenu !== "recommended-schedules" || event.key !== "Enter") return;
+      event.preventDefault();
+      renderTable();
+    });
     $("#statusFilter").addEventListener("change", () => {
       state.currentSchedulePanel = "schedules";
       renderMetrics();
@@ -5011,8 +5080,13 @@
 
     document.querySelectorAll(".nav-button").forEach((button) => {
       button.addEventListener("click", () => {
+        const previousMenu = state.currentMenu;
         document.querySelectorAll(".nav-button").forEach((item) => item.classList.toggle("active", item === button));
         state.currentMenu = button.dataset.menu || "schedules";
+        if (previousMenu !== state.currentMenu) {
+          const searchInput = $("#searchInput");
+          if (searchInput) searchInput.value = "";
+        }
         state.currentSchedulePanel = "schedules";
         $("#pageTitle").textContent = button.textContent.trim();
         $(".page-sub").textContent = state.currentMenu === "participant-management"

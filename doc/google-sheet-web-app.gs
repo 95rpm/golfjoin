@@ -330,6 +330,10 @@ function doGet(e) {
     return jsonOutput_(readHomeBootstrapPayload_(params));
   }
 
+  if (String(params.action || "").toLowerCase() === "home_bootstrap_light") {
+    return jsonOutput_(readHomeBootstrapLightPayload_(params));
+  }
+
   if (String(params.action || "").toLowerCase() === "admin_bootstrap") {
     return jsonOutput_(readAdminBootstrapPayload_(params));
   }
@@ -1337,6 +1341,238 @@ function readHomeBootstrapPayload_(params) {
         limit: wishLimit
       }).map(normalizeRowForJson_)
       : []
+  };
+}
+
+function readHomeBootstrapLightPayload_(params) {
+  const newScheduleLimit = Math.min(Math.max(parsePositiveInteger_(params.newScheduleLimit) || 100, 1), 100);
+  const joinApplicationLimit = Math.min(Math.max(parsePositiveInteger_(params.joinApplicationLimit) || 100, 1), 200);
+  const wishLimit = Math.min(Math.max(parsePositiveInteger_(params.wishLimit) || 200, 1), 200);
+  const memberSeq = String(params.memberSeq || "").trim();
+  const memberId = String(params.memberId || "").trim();
+  const memberMobile = normalizePhone_(params.memberMobile || params.phone || "");
+  const canReadWishes = memberMobile && (memberSeq || memberId);
+  const newSchedules = filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS), {
+    source: "new_schedule_builder",
+    limit: newScheduleLimit
+  });
+  const joinApplications = filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_APPLICATIONS), {
+    source: "join_apply",
+    limit: joinApplicationLimit
+  });
+  const displayRules = filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES), {
+    limit: 100
+  }).filter(function (row) {
+    return String(row.section || "") === "available_schedule" && String(row.isVisible || "true").toLowerCase() !== "false";
+  });
+  const wishes = canReadWishes
+    ? filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_WISHES), {
+      source: "join_wish",
+      status: "active",
+      memberSeq: memberSeq,
+      memberId: memberId,
+      memberMobile: memberMobile,
+      limit: wishLimit
+    })
+    : [];
+
+  return {
+    ok: true,
+    serverTime: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    newScheduleSummaries: newSchedules.map(buildNewScheduleSummary_),
+    participantSummaries: buildParticipantSummaries_(joinApplications),
+    displayRules: displayRules.map(buildDisplayRuleSummary_),
+    wishTargetKeys: wishes.map(buildWishTargetKey_).filter(function (item) { return item.targetKey; }),
+    memberBasic: {
+      hasMember: Boolean(memberSeq || memberId || memberMobile)
+    }
+  };
+}
+
+function buildPreviewSeed_(row, fallback) {
+  return [
+    row.applicationId,
+    row.scheduleId,
+    row.memberSeq,
+    row.memberId,
+    row.applicantMobile,
+    row.memberMobile,
+    fallback
+  ].filter(Boolean).join("-");
+}
+
+function buildParticipantPreview_(row, index) {
+  return {
+    gender: row.applicantGender || row.creatorGender || row.gender || "",
+    ageDisplay: row.applicantAgeBand || row.creatorAgeDisplay || row.ageDisplay || "",
+    profession: row.applicantProfession || row.creatorProfession || row.profession || "",
+    level: row.applicantLevel || row.creatorLevel || row.level || "",
+    styles: splitList_(row.applicantStyles || row.creatorStyles || row.styles),
+    memberPreferences: splitList_(row.applicantPreferredMembers || row.creatorMemberPreferences || row.creatorPreferredMemberComposition || row.memberPreferences),
+    iconSeed: buildPreviewSeed_(row, index),
+    companionGroup: row.applicantPeople && parsePeople_(row.applicantPeople) > 1 ? String(row.applicationId || row.scheduleId || "") : ""
+  };
+}
+
+function splitList_(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return String(value || "").split(",").map(function (item) { return item.trim(); }).filter(Boolean);
+}
+
+function buildCompanionPreview_(row, companion, index) {
+  return {
+    gender: companion.gender || companion || row.applicantGender || "",
+    ageDisplay: row.applicantAgeBand || "",
+    profession: row.applicantProfession || "",
+    level: row.applicantLevel || "",
+    styles: splitList_(row.applicantStyles),
+    memberPreferences: splitList_(row.applicantPreferredMembers),
+    iconSeed: buildPreviewSeed_(row, `companion-${index}`),
+    companionGroup: String(row.applicationId || row.scheduleId || "")
+  };
+}
+
+function parseCompanionPreviews_(row) {
+  const raw = row.applicantCompanions || row.creatorCompanions || "";
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(String(raw));
+    if (Array.isArray(parsed)) return parsed.map(function (item, index) { return buildCompanionPreview_(row, item || {}, index); });
+  } catch (error) {
+    // Fall back to comma-separated values.
+  }
+  return String(raw).split(",").map(function (gender, index) {
+    return buildCompanionPreview_(row, { gender: gender.trim() }, index);
+  }).filter(function (item) { return item.gender; });
+}
+
+function buildParticipantPreviewList_(row, maxCount) {
+  const count = Math.max(1, parsePeople_(row.applicantPeople || row.creatorPeople || "1"));
+  const previews = [buildParticipantPreview_(row, 0)].concat(parseCompanionPreviews_(row));
+  return previews.slice(0, Math.min(maxCount || 4, count));
+}
+
+function getFirstDateFromRange_(from, to) {
+  return String(from || to || "").split("~")[0].trim();
+}
+
+function buildNewScheduleSummary_(row) {
+  const people = parsePeople_(row.applicantPeople || row.creatorPeople || "1");
+  const capacity = 4;
+  const confirmedCount = Math.min(capacity, people);
+  const departureDate = getFirstDateFromRange_(row.departureDateFrom, row.departureDateTo);
+  const returnDate = getFirstDateFromRange_(row.returnDateFrom, row.returnDateTo) || departureDate;
+  return {
+    scheduleId: row.scheduleId || "",
+    applicationId: row.applicationId || "",
+    targetType: "new_schedule",
+    erpProductId: row.erpProductId || "",
+    erpEventSeq: row.erpEventSeq || "",
+    title: row.productName || "",
+    country: row.country || normalizeCountryName_(row.region),
+    region: normalizeRegionName_(row.region),
+    departureDate: departureDate,
+    returnDate: returnDate,
+    price: row.productPrice || "",
+    image: row.imageUrl || "",
+    packType: row.packType || "",
+    packTypeName: row.packTypeName || "",
+    flightIncluded: row.flightIncluded || "",
+    roomType: row.applicantRoomType || row.roomType || "",
+    flightRequestType: row.flightRequestType || "",
+    singleRoomSurchargeText: row.singleRoomSurchargeText || "",
+    creatorPreview: buildParticipantPreview_(row, "creator"),
+    participantsPreview: buildParticipantPreviewList_(row, 4),
+    confirmedCount: confirmedCount,
+    remainingSlots: Math.max(0, capacity - confirmedCount),
+    approvalStatus: row.approvalStatus || row.applicationStatus || row.status || "approved",
+    displayStatus: row.displayStatus || "visible",
+    sortOrder: row.sortOrder || row.displayOrder || "",
+    createdAt: row.createdAt || "",
+    updatedAt: row.updatedAt || row.createdAt || "",
+    shareUrl: row.shareUrl || row.pageUrl || ""
+  };
+}
+
+function getParticipantSummaryKey_(row) {
+  return [
+    row.targetType || "",
+    row.targetScheduleId || "",
+    row.targetApplicationId || "",
+    row.erpProductId || "",
+    row.erpEventSeq || ""
+  ].join("|");
+}
+
+function buildParticipantSummaries_(rows) {
+  const groups = {};
+  rows.forEach(function (row) {
+    const key = getParticipantSummaryKey_(row);
+    if (!groups[key]) {
+      groups[key] = {
+        targetType: row.targetType || "",
+        targetScheduleId: row.targetScheduleId || "",
+        targetApplicationId: row.targetApplicationId || "",
+        erpProductId: row.erpProductId || "",
+        erpEventSeq: row.erpEventSeq || "",
+        confirmedCount: 0,
+        remainingSlots: 4,
+        participantsPreview: [],
+        lastAppliedAt: ""
+      };
+    }
+    const count = Math.max(1, parsePeople_(row.applicantPeople || row.people || "1"));
+    groups[key].confirmedCount = Math.min(4, groups[key].confirmedCount + count);
+    groups[key].participantsPreview = groups[key].participantsPreview.concat(buildParticipantPreviewList_(row, count)).slice(0, 4);
+    groups[key].remainingSlots = Math.max(0, 4 - groups[key].confirmedCount);
+    const appliedAt = String(row.updatedAt || row.createdAt || "");
+    if (appliedAt > String(groups[key].lastAppliedAt || "")) groups[key].lastAppliedAt = appliedAt;
+  });
+  return Object.keys(groups).map(function (key) { return groups[key]; });
+}
+
+function buildDisplayRuleSummary_(row) {
+  return {
+    displayRuleId: row.displayRuleId || "",
+    targetType: "display_rule",
+    targetId: row.displayRuleId || row.erpProductId || "",
+    erpProductId: row.erpProductId || "",
+    erpEventSeq: row.erpEventSeq || "",
+    section: row.section || "",
+    displayStatus: row.displayStatus || (String(row.isVisible || "true").toLowerCase() === "false" ? "hidden" : "visible"),
+    approvalStatus: row.approvalStatus || "approved",
+    isVisible: row.isVisible,
+    isPinned: row.isPinned,
+    sectionKey: row.section || "",
+    sortOrder: row.displayOrder || "",
+    displayOrder: row.displayOrder || "",
+    badge: row.badgeType || "",
+    badgeType: row.badgeType || "",
+    packType: row.packType || "",
+    packTypeName: row.packTypeName || "",
+    overrideTitle: row.overrideTitle || "",
+    overrideImageUrl: row.overrideImageUrl || "",
+    displayStartAt: row.displayStartAt || "",
+    displayEndAt: row.displayEndAt || "",
+    updatedAt: row.updatedAt || ""
+  };
+}
+
+function buildWishTargetKey_(row) {
+  const targetType = row.targetType || "product";
+  const targetKey = row.targetKey || (targetType === "join_schedule"
+    ? (row.targetScheduleId || row.scheduleId || "")
+    : (row.erpProductId || row.goodSeq || row.productId || ""));
+  return {
+    targetType: targetType,
+    targetKey: targetKey,
+    targetScheduleId: row.targetScheduleId || "",
+    targetApplicationId: row.targetApplicationId || "",
+    erpProductId: row.erpProductId || "",
+    erpEventSeq: row.erpEventSeq || "",
+    status: row.status || "active",
+    updatedAt: row.updatedAt || row.createdAt || ""
   };
 }
 

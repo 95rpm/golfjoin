@@ -173,12 +173,17 @@ const MAX_STRING_LENGTHS = {
 };
 const MAX_POST_BYTES = Number(process.env.MAX_POST_BYTES || 128 * 1024);
 const SECRET_TOUR_PUBLIC_ORIGIN = "https://www.secret-tour.com";
+const GOLFJOIN_SHARE_OG_FALLBACK_IMAGE = String(process.env.GOLFJOIN_SHARE_OG_FALLBACK_IMAGE || "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner1.webp").trim();
 const MAX_SECRET_TOUR_HTML_BYTES = Number(process.env.MAX_SECRET_TOUR_HTML_BYTES || 1024 * 1024 * 2);
 const EXTERNAL_FETCH_TIMEOUT_MS = Number(process.env.EXTERNAL_FETCH_TIMEOUT_MS || 15000);
 const HOME_BOOTSTRAP_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_CACHE_TTL_MS || 60_000);
 const HOME_BOOTSTRAP_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_STALE_TTL_MS || 10 * 60_000);
 const HOME_BOOTSTRAP_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_CACHE_MAX_KEYS || 100);
 const HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS || 2_500);
+const HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS || 60_000);
+const HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS || 10 * 60_000);
+const HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS || 100);
+const HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS || 2_000);
 const GA4_PROPERTY_ID = String(process.env.GA4_PROPERTY_ID || "404154820").trim();
 const GA4_LOOKBACK_DAYS = Math.min(Math.max(Number(process.env.GA4_LOOKBACK_DAYS || 30), 1), 365);
 const GA4_HOME_HOSTS = String(process.env.GA4_HOME_HOSTS || process.env.GA4_JOIN_HOSTS || "www.secret-tour.com,m.secret-tour.com")
@@ -190,6 +195,7 @@ const GA4_HOME_EVENT_PLAN_SEQ = String(process.env.GA4_HOME_EVENT_PLAN_SEQ || ""
 const GA4_VISITOR_COUNT_CACHE_TTL_MS = Number(process.env.GA4_VISITOR_COUNT_CACHE_TTL_MS || 10 * 60_000);
 const GA4_ACTIVE_USER_COUNT_CACHE_TTL_MS = Number(process.env.GA4_ACTIVE_USER_COUNT_CACHE_TTL_MS || 60_000);
 const homeBootstrapCache = new Map();
+const homeBootstrapLightCache = new Map();
 const ga4VisitorCountCache = {
   count: 0,
   updatedAt: 0,
@@ -1186,6 +1192,115 @@ async function readHomeBootstrapBatchDirect(params = {}) {
   };
 }
 
+async function readHomeBootstrapLightDirect(params = {}) {
+  const target = buildSheetReadUrl({
+    action: "home_bootstrap_light",
+    memberSeq: asText(params.memberSeq),
+    memberId: asText(params.memberId),
+    memberMobile: normalizePhone(params.memberMobile || params.phone),
+    newScheduleLimit: Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100),
+    joinApplicationLimit: Math.min(Math.max(Number(params.joinApplicationLimit || 100), 1), 200),
+    wishLimit: Math.min(Math.max(Number(params.wishLimit || 200), 1), 200)
+  });
+  const response = await fetchWithTimeout(target, {
+    method: "GET",
+    headers: { "Accept": "application/json" },
+    redirect: "follow"
+  });
+  const text = await response.text();
+  if (!response.ok) throw createHttpError(`Home bootstrap light failed: ${response.status}`, response.status);
+  const payload = JSON.parse(text || "{}");
+  if (
+    !payload
+    || !Array.isArray(payload.newScheduleSummaries)
+    || !Array.isArray(payload.participantSummaries)
+    || !Array.isArray(payload.displayRules)
+    || !Array.isArray(payload.wishTargetKeys)
+  ) {
+    throw createHttpError("Home bootstrap light payload is invalid", 502);
+  }
+  return sanitizeHomeBootstrapLightPayload(payload);
+}
+
+function sanitizePreviewItem(item = {}) {
+  return {
+    displayName: maskName(item.displayName || item.name || ""),
+    gender: asText(item.gender),
+    ageDisplay: asText(item.ageDisplay || item.age),
+    profession: asText(item.profession),
+    level: asText(item.level),
+    styles: Array.isArray(item.styles) ? item.styles.map(asText).filter(Boolean) : [],
+    memberPreferences: Array.isArray(item.memberPreferences) ? item.memberPreferences.map(asText).filter(Boolean) : [],
+    iconSeed: asText(item.iconSeed || item.seed),
+    companionGroup: asText(item.companionGroup)
+  };
+}
+
+function sanitizeHomeBootstrapLightPayload(payload = {}) {
+  return {
+    ok: Boolean(payload.ok !== false),
+    serverTime: asText(payload.serverTime || payload.updatedAt || new Date().toISOString()),
+    updatedAt: asText(payload.updatedAt || payload.serverTime || new Date().toISOString()),
+    newScheduleSummaries: (Array.isArray(payload.newScheduleSummaries) ? payload.newScheduleSummaries : []).map((item) => ({
+      scheduleId: asText(item.scheduleId),
+      applicationId: asText(item.applicationId),
+      targetType: asText(item.targetType || "new_schedule"),
+      erpProductId: asText(item.erpProductId),
+      erpEventSeq: asText(item.erpEventSeq),
+      title: asText(item.title),
+      country: asText(item.country),
+      region: asText(item.region),
+      departureDate: asText(item.departureDate),
+      returnDate: asText(item.returnDate),
+      price: item.price,
+      image: asText(item.image),
+      packType: asText(item.packType),
+      packTypeName: asText(item.packTypeName),
+      flightIncluded: asText(item.flightIncluded),
+      roomType: asText(item.roomType),
+      flightRequestType: asText(item.flightRequestType),
+      singleRoomSurchargeText: asText(item.singleRoomSurchargeText),
+      creatorPreview: sanitizePreviewItem(item.creatorPreview || {}),
+      participantsPreview: (Array.isArray(item.participantsPreview) ? item.participantsPreview : []).map(sanitizePreviewItem).slice(0, 4),
+      confirmedCount: Math.max(0, Math.round(Number(item.confirmedCount) || 0)),
+      remainingSlots: Math.max(0, Math.round(Number(item.remainingSlots) || 0)),
+      approvalStatus: asText(item.approvalStatus),
+      displayStatus: asText(item.displayStatus),
+      sortOrder: item.sortOrder,
+      createdAt: asText(item.createdAt),
+      updatedAt: asText(item.updatedAt),
+      shareUrl: asText(item.shareUrl)
+    })),
+    participantSummaries: (Array.isArray(payload.participantSummaries) ? payload.participantSummaries : []).map((item) => ({
+      targetType: asText(item.targetType),
+      targetScheduleId: asText(item.targetScheduleId),
+      targetApplicationId: asText(item.targetApplicationId),
+      erpProductId: asText(item.erpProductId),
+      erpEventSeq: asText(item.erpEventSeq),
+      confirmedCount: Math.max(0, Math.round(Number(item.confirmedCount) || 0)),
+      remainingSlots: Math.max(0, Math.round(Number(item.remainingSlots) || 0)),
+      participantsPreview: (Array.isArray(item.participantsPreview) ? item.participantsPreview : []).map(sanitizePreviewItem).slice(0, 4),
+      lastAppliedAt: asText(item.lastAppliedAt)
+    })),
+    displayRules: (Array.isArray(payload.displayRules) ? payload.displayRules : []).map(sanitizePublicRow),
+    wishTargetKeys: (Array.isArray(payload.wishTargetKeys) ? payload.wishTargetKeys : []).map((item) => ({
+      targetType: asText(item.targetType || "product"),
+      targetKey: asText(item.targetKey),
+      targetScheduleId: asText(item.targetScheduleId),
+      targetApplicationId: asText(item.targetApplicationId),
+      erpProductId: asText(item.erpProductId),
+      erpEventSeq: asText(item.erpEventSeq),
+      status: asText(item.status || "active"),
+      updatedAt: asText(item.updatedAt)
+    })).filter((item) => item.targetKey),
+    memberBasic: {
+      hasMember: Boolean(payload.memberBasic?.hasMember)
+    },
+    warnings: Array.isArray(payload.warnings) ? payload.warnings : [],
+    cache: payload.cache || undefined
+  };
+}
+
 function createHomeBootstrapCacheKey(params = {}) {
   return [
     asText(params.memberSeq),
@@ -1211,6 +1326,22 @@ function cloneHomeBootstrapPayload(payload = {}) {
     warnings: Array.isArray(payload.warnings) ? [...payload.warnings] : [],
     cache: payload.cache || undefined
   };
+}
+
+function createHomeBootstrapLightCacheKey(params = {}) {
+  return [
+    "v1",
+    asText(params.memberSeq),
+    asText(params.memberId),
+    normalizePhone(params.memberMobile || params.phone),
+    Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100),
+    Math.min(Math.max(Number(params.joinApplicationLimit || 100), 1), 200),
+    Math.min(Math.max(Number(params.wishLimit || 200), 1), 200)
+  ].join("|");
+}
+
+function cloneHomeBootstrapLightPayload(payload = {}) {
+  return sanitizeHomeBootstrapLightPayload(payload);
 }
 
 function hasCompletedJoinMemberProfile(row = {}) {
@@ -1478,6 +1609,10 @@ async function readHomeBootstrapUncached(params = {}) {
   });
 }
 
+async function readHomeBootstrapLightUncached(params = {}) {
+  return readHomeBootstrapLightDirect(params);
+}
+
 function refreshHomeBootstrapCache(cacheKey, params = {}) {
   const existing = homeBootstrapCache.get(cacheKey);
   if (existing?.refreshing) return existing.refreshing;
@@ -1498,6 +1633,53 @@ function refreshHomeBootstrapCache(cacheKey, params = {}) {
     existing.refreshing = refreshing;
   } else {
     homeBootstrapCache.set(cacheKey, { payload: null, updatedAt: 0, refreshing });
+  }
+  return refreshing;
+}
+
+function getHomeBootstrapLightCacheEntry(cacheKey) {
+  const entry = homeBootstrapLightCache.get(cacheKey);
+  if (!entry?.payload) return null;
+  const ageMs = Date.now() - entry.updatedAt;
+  if (ageMs > HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS) {
+    homeBootstrapLightCache.delete(cacheKey);
+    return null;
+  }
+  return { ...entry, ageMs };
+}
+
+function setHomeBootstrapLightCacheEntry(cacheKey, payload) {
+  if (homeBootstrapLightCache.size >= HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS && !homeBootstrapLightCache.has(cacheKey)) {
+    const oldestKey = homeBootstrapLightCache.keys().next().value;
+    if (oldestKey) homeBootstrapLightCache.delete(oldestKey);
+  }
+  homeBootstrapLightCache.set(cacheKey, {
+    payload: cloneHomeBootstrapLightPayload(payload),
+    updatedAt: Date.now(),
+    refreshing: null
+  });
+}
+
+function refreshHomeBootstrapLightCache(cacheKey, params = {}) {
+  const existing = homeBootstrapLightCache.get(cacheKey);
+  if (existing?.refreshing) return existing.refreshing;
+  const refreshing = readHomeBootstrapLightUncached(params)
+    .then((payload) => {
+      setHomeBootstrapLightCacheEntry(cacheKey, payload);
+      return payload;
+    })
+    .catch((error) => {
+      console.warn("Home bootstrap light cache refresh failed.", error?.message || error);
+      return null;
+    })
+    .finally(() => {
+      const entry = homeBootstrapLightCache.get(cacheKey);
+      if (entry) entry.refreshing = null;
+    });
+  if (existing) {
+    existing.refreshing = refreshing;
+  } else {
+    homeBootstrapLightCache.set(cacheKey, { payload: null, updatedAt: 0, refreshing });
   }
   return refreshing;
 }
@@ -1544,10 +1726,160 @@ async function proxyHomeBootstrap(params, res) {
   });
 }
 
+async function proxyHomeBootstrapLight(params, res) {
+  const cacheKey = createHomeBootstrapLightCacheKey(params);
+  const cached = getHomeBootstrapLightCacheEntry(cacheKey);
+  if (cached && cached.ageMs <= HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS) {
+    res.status(200).json({
+      ...cloneHomeBootstrapLightPayload(cached.payload),
+      cache: { status: "hit", ageMs: cached.ageMs }
+    });
+    return;
+  }
+  if (cached) {
+    refreshHomeBootstrapLightCache(cacheKey, params);
+    res.status(200).json({
+      ...cloneHomeBootstrapLightPayload(cached.payload),
+      warnings: [
+        ...(cached.payload.warnings || []),
+        { key: "cache", message: "Returned stale home bootstrap light cache while refreshing." }
+      ],
+      cache: { status: "stale", ageMs: cached.ageMs }
+    });
+    return;
+  }
+  const refresh = refreshHomeBootstrapLightCache(cacheKey, params);
+  const timeout = new Promise((resolve) => {
+    setTimeout(() => resolve(null), HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS);
+  });
+  const payload = await Promise.race([refresh, timeout]);
+  if (payload) {
+    res.status(200).json({
+      ...cloneHomeBootstrapLightPayload(payload),
+      cache: { status: "miss", ageMs: 0 }
+    });
+    return;
+  }
+  const fallback = await refresh;
+  if (!fallback) throw createHttpError("Home bootstrap light failed", 502);
+  res.status(200).json({
+    ...cloneHomeBootstrapLightPayload(fallback),
+    cache: { status: "miss-slow", ageMs: 0 }
+  });
+}
+
+async function proxyHomeStats(res) {
+  const [visitorResult, activeResult] = await Promise.all([
+    readGa4HomeVisitorCount(),
+    readGa4HomeActiveUserCount()
+  ]);
+  const warnings = [];
+  if (visitorResult.warning) warnings.push({ key: "recent30DayVisitors", message: visitorResult.warning });
+  if (activeResult.warning) warnings.push({ key: "activeUsersNow", message: activeResult.warning });
+  res.status(200).json({
+    ok: true,
+    recent30DayVisitors: visitorResult.count,
+    activeUsersNow: activeResult.count,
+    updatedAt: new Date().toISOString(),
+    warnings
+  });
+}
+
 function assertDigits(value, field) {
   const text = asText(value);
   if (!/^\d+$/.test(text)) throw createHttpError(`${field} is invalid`);
   return text;
+}
+
+function escapeHtml(value = "") {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function compactText(value = "", maxLength = 160) {
+  const text = asText(value).replace(/\s+/g, " ");
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, Math.max(0, maxLength - 1)).trim()}…`;
+}
+
+function isSecretTourHost(hostname = "") {
+  return /^(www\.|m\.)?secret-tour\.com$/i.test(String(hostname || ""));
+}
+
+function normalizeShareTargetUrl(value = "") {
+  try {
+    const url = new URL(asText(value) || "/event/plan_view?eventPlanSeq=3&page=1", SECRET_TOUR_PUBLIC_ORIGIN);
+    if (url.protocol !== "https:" || !isSecretTourHost(url.hostname)) {
+      return `${SECRET_TOUR_PUBLIC_ORIGIN}/event/plan_view?eventPlanSeq=3&page=1`;
+    }
+    return url.toString();
+  } catch (error) {
+    return `${SECRET_TOUR_PUBLIC_ORIGIN}/event/plan_view?eventPlanSeq=3&page=1`;
+  }
+}
+
+function normalizeShareImageUrl(value = "") {
+  try {
+    const url = new URL(asText(value) || GOLFJOIN_SHARE_OG_FALLBACK_IMAGE);
+    if (url.protocol !== "https:") return GOLFJOIN_SHARE_OG_FALLBACK_IMAGE;
+    return url.toString();
+  } catch (error) {
+    return GOLFJOIN_SHARE_OG_FALLBACK_IMAGE;
+  }
+}
+
+function getRequestAbsoluteUrl(req) {
+  const protocol = asText(req.headers["x-forwarded-proto"]) || req.protocol || "https";
+  const host = asText(req.headers["x-forwarded-host"]) || asText(req.headers.host);
+  const originalUrl = req.originalUrl || req.url || "";
+  if (!host) return normalizeShareTargetUrl("");
+  return `${protocol}://${host}${originalUrl}`;
+}
+
+function proxyShareOg(req, res) {
+  const targetUrl = normalizeShareTargetUrl(req.query?.url);
+  const title = compactText(req.query?.title || "\uC2DC\uD06C\uB9BF\uD22C\uC5B4 \uC870\uC778\uACE8\uD504", 90);
+  const description = compactText(req.query?.desc || req.query?.description || "\uD568\uAED8 \uB5A0\uB0A0 \uACE8\uD504\uCE5C\uAD6C\uB97C \uCC3E\uB294 \uC911", 180);
+  const imageUrl = normalizeShareImageUrl(req.query?.image || req.query?.imageUrl);
+  const shareUrl = getRequestAbsoluteUrl(req);
+  const safeTitle = escapeHtml(title);
+  const safeDescription = escapeHtml(description);
+  const safeImageUrl = escapeHtml(imageUrl);
+  const safeShareUrl = escapeHtml(shareUrl);
+  const safeTargetUrl = escapeHtml(targetUrl);
+  res.status(200);
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.set("Cache-Control", "public, max-age=300, s-maxage=300");
+  res.send(`<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${safeTitle}</title>
+  <link rel="canonical" href="${safeTargetUrl}">
+  <meta name="robots" content="noindex, follow">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="\uC2DC\uD06C\uB9BF\uD22C\uC5B4">
+  <meta property="og:title" content="${safeTitle}">
+  <meta property="og:description" content="${safeDescription}">
+  <meta property="og:image" content="${safeImageUrl}">
+  <meta property="og:image:secure_url" content="${safeImageUrl}">
+  <meta property="og:url" content="${safeShareUrl}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${safeTitle}">
+  <meta name="twitter:description" content="${safeDescription}">
+  <meta name="twitter:image" content="${safeImageUrl}">
+  <meta http-equiv="refresh" content="0; url=${safeTargetUrl}">
+</head>
+<body>
+  <script>location.replace(${JSON.stringify(targetUrl)});</script>
+  <a href="${safeTargetUrl}">\uC0C1\uD488 \uC0C1\uC138\uBCF4\uAE30</a>
+</body>
+</html>`);
 }
 
 function buildSecretTourGoodsViewProxyUrl(query = {}) {
@@ -1675,6 +2007,17 @@ async function proxyPost(req, res) {
     return;
   }
 
+  if (req.query?.action === "home_bootstrap_light") {
+    const payload = readBody(req);
+    await proxyHomeBootstrapLight(payload, res);
+    return;
+  }
+
+  if (req.query?.action === "home_stats") {
+    await proxyHomeStats(res);
+    return;
+  }
+
   if (req.query?.action === "admin_login") {
     proxyAdminLogin(req, res);
     return;
@@ -1792,6 +2135,10 @@ exports.proxyGoogleSheet = async (req, res) => {
   }
 
   try {
+    if (req.method === "GET" && req.query?.action === "share_og") {
+      proxyShareOg(req, res);
+      return;
+    }
     assertRequestAllowed(req);
     if (req.method === "GET") {
       await proxyGet(req, res);

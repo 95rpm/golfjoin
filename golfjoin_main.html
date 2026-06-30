@@ -4506,7 +4506,7 @@
       border-bottom: 0;
     }
     .faq-list details[open] {
-      background: #f8fafc;
+      background: #ffffff;
     }
     .faq-list details { padding: 18px 20px; }
     .faq-list summary {
@@ -4644,10 +4644,6 @@
       padding: 18px;
       text-align: left;
       cursor: pointer;
-      transition: border-color .2s ease, transform .2s ease;
-    }
-    .support-action-card:hover {
-      border-color: var(--blue);
     }
     .support-card-visual {
       width: 100%;
@@ -4662,6 +4658,30 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+    }
+    .support-card-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 30px;
+      gap: 12px;
+      align-items: end;
+    }
+    .support-card-text {
+      min-width: 0;
+    }
+    .support-card-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      color: #c9cdd0;
+      background: transparent;
+      pointer-events: none;
+      align-self: end;
+    }
+    .support-card-arrow svg {
+      width: 30px;
+      height: 30px;
     }
     .support-card-label {
       color: var(--blue);
@@ -25683,33 +25703,53 @@
           <div class="support-card-visual">
             <img class="support-card-image" alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_kakao.webp" style="width: 100%; height: 100%;">
           </div>
-          <div class="support-card-label">카카오톡 상담하기</div>
-          <div class="support-card-title">24시간 채팅 상담</div>
-          <div class="support-card-copy">기다림 없이 톡으로 편하게</div>
+          <div class="support-card-content">
+            <div class="support-card-text">
+              <div class="support-card-label">카카오톡 상담하기</div>
+              <div class="support-card-title">24시간 채팅 상담</div>
+              <div class="support-card-copy">기다림 없이 톡으로 편하게</div>
+            </div>
+            <div class="support-card-arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+          </div>
         </button>
         <button type="button" class="support-action-card" onclick="handlePhoneContact()" aria-label="전화로 문의하기">
           <div class="support-card-visual">
             <img class="support-card-image" alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_phone.webp" style="width: 100%; height: 100%;">
           </div>
-          <div class="support-card-label">전화로 문의하기</div>
-          <div class="support-card-title">베테랑 매니저 직통</div>
-          <div class="support-card-copy">궁금하신 점, 목소리로 듣고 해결</div>
+          <div class="support-card-content">
+            <div class="support-card-text">
+              <div class="support-card-label">전화로 문의하기</div>
+              <div class="support-card-title">베테랑 매니저 직통</div>
+              <div class="support-card-copy">궁금하신 점, 목소리로 듣고 해결</div>
+            </div>
+            <div class="support-card-arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+          </div>
         </button>
         <button type="button" class="support-action-card" onclick="openExternalLink('https://band.us/@secrettour')" aria-label="밴드 가입하기" style="position: relative;">
           <div class="support-card-visual">
             <img class="support-card-image" alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_band.webp" style="width: 100%; height: 100%;">
           </div>
-          <div class="support-card-label">밴드 가입하기</div>
-          <div class="support-card-title">3,500명 정예 커뮤니티</div>
-          <div class="support-card-copy">매일 업데이트되는 특가 조인</div>
+          <div class="support-card-content">
+            <div class="support-card-text">
+              <div class="support-card-label">밴드 가입하기</div>
+              <div class="support-card-title">3,500명 정예 커뮤니티</div>
+              <div class="support-card-copy">매일 업데이트되는 특가 조인</div>
+            </div>
+            <div class="support-card-arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+          </div>
         </button>
-        <button type="button" class="support-action-card" onclick="openExternalLink('https://mbti.secret-tour.com/')" aria-label="동반자 MBTI 확인">
+        <button type="button" class="support-action-card" onclick="openExternalLink('https://mbti.secret-tour.com/')" aria-label="내 여행 스타일은?">
           <div class="support-card-visual">
             <img class="support-card-image" alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_mbti.webp" style="width: 100%; height: 100%;">
           </div>
-          <div class="support-card-label">동반자 MBTI 확인</div>
-          <div class="support-card-title">나의 골프 MBTI는?</div>
-          <div class="support-card-copy">찰떡궁합 동반자를 찾아드려요</div>
+          <div class="support-card-content">
+            <div class="support-card-text">
+              <div class="support-card-label">내 여행 스타일은?</div>
+              <div class="support-card-title">나의 골프 MBTI는?</div>
+              <div class="support-card-copy">찰떡궁합 동반자를 찾아드려요</div>
+            </div>
+            <div class="support-card-arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+          </div>
         </button>
       </div>
     </div>
@@ -27618,6 +27658,7 @@
     let joinMemberProfileCompletedCount = 0;
     let heroCalendarActiveCountValue = 0;
     let heroCalendarProfileCountQueuedValue = 0;
+    let heroCalendarActiveCountQueuedValue = 0;
     let heroCalendarProfileCountAnimationReady = false;
     let heroCalendarProfileCountAnimationStarted = false;
 
@@ -27730,6 +27771,12 @@
     let currentDetailMode = "normal";
     let currentDetailJoinData = null;
     let currentSharePayload = null;
+    const GOLFJOIN_KAKAO_COMMERCE_TEMPLATE_ID = 134859;
+    const GOLFJOIN_KAKAO_TEST_IMAGES = [
+      "https://secrettour.toursoft.co.kr/upload/secrettour/ckeditor/202603/secrettour_832fb8a67d6844b58d1283ac5ccf37a6.jpg",
+      "https://secrettour.toursoft.co.kr/upload/secrettour/ckeditor/202603/secrettour_8310c2e92e6f40b1a628ece50b8c6619.jpg",
+      "https://secrettour.toursoft.co.kr/upload/secrettour/ckeditor/202603/secrettour_cd99573fe92c4f9499d3e286414390ee.jpg"
+    ];
     let latestBuilderApplicationShareJoin = null;
     let currentDetailReturnContext = null;
     let currentMdPickProductGroupKey = "";
@@ -27790,11 +27837,17 @@
     let googleSheetJoinWishesReadCompleted = false;
     let googleSheetJoinWishesReadFailed = false;
     let googleSheetJoinWishesReadMemberKey = "";
+    let pendingHomeBootstrapLightData = null;
+    let homeBootstrapLightApplySignature = "";
     const GOOGLE_SHEET_READ_CACHE_TTL_MS = 60 * 1000;
     const GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY = "joinApplicationsSheetReadCache";
     const GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY = "builderApplicationsSheetReadCache";
     const GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY = "joinReviewsSheetReadCache";
     const GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY = "joinWishesSheetReadCache";
+    const HOME_BOOTSTRAP_LIGHT_CACHE_KEY = "homeBootstrapLightCache";
+    const HOME_STATS_CACHE_KEY = "homeStatsCache";
+    const HOME_STATS_VISITOR_TTL_MS = 10 * 60 * 1000;
+    const HOME_STATS_ACTIVE_TTL_MS = 60 * 1000;
     const REVIEW_IMAGE_SIGN_ENDPOINT = window.GOLFJOIN_IMAGE_SIGN_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sign-gcs-upload";
     const REVIEW_IMAGE_MAX_FILES = 3;
     const REVIEW_IMAGE_MAX_ORIGINAL_BYTES = 10 * 1024 * 1024;
@@ -31468,6 +31521,7 @@
       const current = getJoinWishProducts().filter((item) => !(item.wishType === snapshot.wishType && getJoinWishTargetKey(item) === targetKey));
       saveJoinWishProducts([snapshot, ...current].slice(0, 50));
       updateJoinWishRowsCache(snapshot, "active");
+      invalidateHomeBootstrapLightCache();
       void saveJoinWishToGoogleSheet(snapshot, "active").catch((error) => {
         console.warn("Failed to save wish to Google Sheet.", error);
       });
@@ -31484,6 +31538,7 @@
       };
       saveJoinWishProducts(getJoinWishProducts().filter((item) => !(item.wishType === wishType && getJoinWishTargetKey(item) === key)));
       updateJoinWishRowsCache(removed, "deleted");
+      invalidateHomeBootstrapLightCache();
       void saveJoinWishToGoogleSheet(removed, "deleted").catch((error) => {
         console.warn("Failed to remove wish from Google Sheet.", error);
       });
@@ -31643,6 +31698,107 @@
       try {
         const data = await postGolfJoinSheetAction("home_bootstrap", payload, "Home bootstrap");
         applyHomeBootstrapRows(data || {}, { wishMemberKey: memberKey });
+        return { ok: true, data };
+      } catch (error) {
+        googleSheetBuilderApplicationsLoading = false;
+        googleSheetJoinApplicationsLoading = false;
+        googleSheetJoinWishesLoading = false;
+        googleSheetBuilderApplicationsReadCompleted = true;
+        googleSheetJoinApplicationsReadCompleted = true;
+        googleSheetJoinWishesReadCompleted = true;
+        googleSheetBuilderApplicationsReadFailed = true;
+        googleSheetJoinApplicationsReadFailed = true;
+        googleSheetJoinWishesReadFailed = true;
+        renderJoins();
+        throw error;
+      }
+    }
+
+    function getHomeSheetMemberPayload() {
+      const member = getJoinCachedCurrentMember();
+      const normalizedMember = member ? getJoinMemberWithCachedProfile(member) : {};
+      return {
+        member,
+        memberKey: getJoinWishMemberKey(member),
+        payload: {
+          memberSeq: normalizedMember.memberSeq || "",
+          memberId: normalizedMember.memberId || "",
+          memberMobile: normalizeJoinMemberPhone(normalizedMember.memberMobile || normalizedMember.mobile || normalizedMember.phone || "")
+        }
+      };
+    }
+
+    function applyHomeStatsPayload(data = {}, options = {}) {
+      const visitorCount = Number(data.recent30DayVisitors ?? data.visitorCount);
+      const activeCount = Number(data.activeUsersNow ?? data.activeUserCount);
+      if (Number.isFinite(visitorCount) && visitorCount >= 0) {
+        queueHeroCalendarProfileCount(visitorCount);
+      }
+      if (Number.isFinite(activeCount) && activeCount >= 0) {
+        queueHeroCalendarActiveCount(activeCount);
+      }
+      if (options.cache !== false) {
+        writeJoinJsonCache(HOME_STATS_CACHE_KEY, {
+          recent30DayVisitors: Number.isFinite(visitorCount) && visitorCount >= 0 ? visitorCount : joinMemberProfileCompletedCount,
+          activeUsersNow: Number.isFinite(activeCount) && activeCount >= 0 ? activeCount : heroCalendarActiveCountValue,
+          updatedAt: data.updatedAt || new Date().toISOString()
+        });
+      }
+    }
+
+    function hydrateHomeStatsFromLocalCache() {
+      const cached = readJoinJsonCache(HOME_STATS_CACHE_KEY, Math.max(HOME_STATS_VISITOR_TTL_MS, HOME_STATS_ACTIVE_TTL_MS));
+      const payload = cached?.payload || {};
+      const fetchedAt = Number(cached?.fetchedAt || 0);
+      if (!payload || !fetchedAt) return false;
+      const visitorFresh = Date.now() - fetchedAt <= HOME_STATS_VISITOR_TTL_MS;
+      const activeFresh = Date.now() - fetchedAt <= HOME_STATS_ACTIVE_TTL_MS;
+      if (visitorFresh && Number.isFinite(Number(payload.recent30DayVisitors))) {
+        queueHeroCalendarProfileCount(Number(payload.recent30DayVisitors));
+      }
+      if (activeFresh && Number.isFinite(Number(payload.activeUsersNow))) {
+        queueHeroCalendarActiveCount(Number(payload.activeUsersNow));
+      }
+      return visitorFresh || activeFresh;
+    }
+
+    async function hydrateHomeStatsFromGoogleSheet() {
+      hydrateHomeStatsFromLocalCache();
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return { ok: false };
+      try {
+        const data = await postGolfJoinSheetAction("home_stats", {}, "Home stats");
+        applyHomeStatsPayload(data || {});
+        return { ok: true, data };
+      } catch (error) {
+        console.warn("Failed to load home stats.", error);
+        hydrateHomeStatsFromLocalCache();
+        return { ok: false, error };
+      }
+    }
+
+    async function hydrateHomeBootstrapLightFromGoogleSheet() {
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return { ok: false };
+      const { memberKey, payload: memberPayload } = getHomeSheetMemberPayload();
+      googleSheetBuilderApplicationsLoading = true;
+      googleSheetJoinApplicationsLoading = true;
+      googleSheetJoinWishesLoading = Boolean(memberKey);
+      googleSheetBuilderApplicationsReadFailed = false;
+      googleSheetJoinApplicationsReadFailed = false;
+      googleSheetJoinWishesReadFailed = false;
+      renderJoins();
+      const cached = readJoinJsonCache(HOME_BOOTSTRAP_LIGHT_CACHE_KEY, GOOGLE_SHEET_READ_CACHE_TTL_MS, { memberKey });
+      if (cached?.payload) {
+        applyHomeBootstrapLightRows(cached.payload, { wishMemberKey: memberKey, fromCache: true });
+      }
+      try {
+        const data = await postGolfJoinSheetAction("home_bootstrap_light", {
+          ...memberPayload,
+          newScheduleLimit: 100,
+          joinApplicationLimit: 100,
+          wishLimit: 200
+        }, "Home bootstrap light");
+        writeJoinJsonCache(HOME_BOOTSTRAP_LIGHT_CACHE_KEY, data || {}, { memberKey });
+        applyHomeBootstrapLightRows(data || {}, { wishMemberKey: memberKey });
         return { ok: true, data };
       } catch (error) {
         googleSheetBuilderApplicationsLoading = false;
@@ -36029,19 +36185,20 @@
     function getDetailAnchorScrollOffset(body, tabs) {
       if (!body || !tabs) return 0;
       const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const headingGap = isMobile ? 16 : 8;
       const tabHeight = tabs.offsetHeight || 0;
       const bodyRect = body.getBoundingClientRect();
       const tabsRect = tabs.getBoundingClientRect();
       const isFixed = tabs.classList.contains("is-mobile-fixed") || getComputedStyle(tabs).position === "fixed";
       if (isFixed && tabsRect.height) {
-        return Math.max(0, tabsRect.bottom - bodyRect.top);
+        return Math.max(0, tabsRect.bottom - bodyRect.top + headingGap);
       }
       if (!isMobile) {
         const styles = getComputedStyle(tabs);
         const stickyTop = styles.position === "sticky" ? (Number.parseFloat(styles.top) || 0) : 0;
-        return Math.max(0, tabHeight + stickyTop);
+        return Math.max(0, tabHeight + stickyTop + headingGap);
       }
-      return 56 + tabHeight;
+      return 56 + tabHeight + headingGap;
     }
 
     function getDetailSectionMarginRectTop(section) {
@@ -36748,6 +36905,7 @@
       heroCalendarProfileCountAnimationReady = true;
       heroCalendarProfileCountAnimationStarted = true;
       updateHeroCalendarProfileCount(heroCalendarProfileCountQueuedValue);
+      updateHeroCalendarActiveCount(heroCalendarActiveCountQueuedValue);
     }
 
     function normalizeHeroCalendarActiveCount(count) {
@@ -36757,10 +36915,26 @@
     function updateHeroCalendarActiveCount(count = heroCalendarActiveCountValue) {
       const numeric = normalizeHeroCalendarActiveCount(count);
       heroCalendarActiveCountValue = numeric;
+      heroCalendarActiveCountQueuedValue = numeric;
       const target = document.getElementById("heroCalendarActiveCount");
       if (!target) return;
       const formatted = numeric.toLocaleString("ko-KR");
       renderHeroCalendarSlotCount(target, formatted, { animate: true });
+      target.closest(".hero-calendar-active-count")?.setAttribute("aria-label", `현재 보고 있는 인원 ${formatted}명`);
+    }
+
+    function queueHeroCalendarActiveCount(count = heroCalendarActiveCountValue) {
+      const numeric = normalizeHeroCalendarActiveCount(count);
+      heroCalendarActiveCountValue = numeric;
+      heroCalendarActiveCountQueuedValue = numeric;
+      const target = document.getElementById("heroCalendarActiveCount");
+      if (!target) return;
+      if (heroCalendarProfileCountAnimationReady) {
+        updateHeroCalendarActiveCount(numeric);
+        return;
+      }
+      const formatted = numeric.toLocaleString("ko-KR");
+      renderHeroCalendarSlotCount(target, formatted, { animate: false });
       target.closest(".hero-calendar-active-count")?.setAttribute("aria-label", `현재 보고 있는 인원 ${formatted}명`);
     }
 
@@ -40327,6 +40501,45 @@
       }
     }
 
+    function readJoinJsonCache(key, ttlMs = GOOGLE_SHEET_READ_CACHE_TTL_MS, options = {}) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(key) || "null");
+        const fetchedAt = Number(cached?.fetchedAt || 0);
+        if (!cached || !Number.isFinite(fetchedAt) || fetchedAt <= 0) return null;
+        if (ttlMs >= 0 && Date.now() - fetchedAt > ttlMs) return null;
+        if (options.memberKey !== undefined && String(cached.memberKey || "") !== String(options.memberKey || "")) return null;
+        return cached;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function writeJoinJsonCache(key, payload = {}, meta = {}) {
+      try {
+        localStorage.setItem(key, JSON.stringify({
+          fetchedAt: Date.now(),
+          ...meta,
+          payload
+        }));
+      } catch (error) {
+        console.warn("Failed to write join json cache.", error);
+      }
+    }
+
+    function removeJoinJsonCache(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        // Ignore cache cleanup failures.
+      }
+    }
+
+    function invalidateHomeBootstrapLightCache() {
+      removeJoinJsonCache(HOME_BOOTSTRAP_LIGHT_CACHE_KEY);
+      pendingHomeBootstrapLightData = null;
+      homeBootstrapLightApplySignature = "";
+    }
+
     function applyJoinApplicationPayload(payload, options = {}) {
       const normalized = options.remember === false ? normalizeJoinApplyPayload(payload) : rememberJoinApplicationPayload(payload);
       const joinId = getNestedValue(normalized, "join.id");
@@ -40812,6 +41025,206 @@
       return join;
     }
 
+    function shouldShowLightSummary(item = {}) {
+      const approval = String(item.approvalStatus || "").trim().toLowerCase();
+      const display = String(item.displayStatus || "").trim().toLowerCase();
+      if (["rejected", "deleted", "hidden", "inactive", "cancelled"].includes(approval)) return false;
+      if (["hidden", "deleted", "inactive", "false", "0"].includes(display)) return false;
+      if (approval === "pending") return false;
+      return true;
+    }
+
+    function buildLightPreviewParticipant(preview = {}, joinId = "", index = 0) {
+      const gender = preview.gender || "";
+      return {
+        id: `${joinId}-preview-${index + 1}`,
+        name: preview.displayName || "",
+        gender,
+        companionGroup: preview.companionGroup || "",
+        age: preview.ageDisplay || "",
+        handicap: preview.level || "",
+        profession: preview.profession || "",
+        preferences: [
+          ...toBuilderApplicationArray(preview.styles),
+          ...toBuilderApplicationArray(preview.memberPreferences)
+        ],
+        memberPreferences: toBuilderApplicationArray(preview.memberPreferences),
+        preferredMemberComposition: toBuilderApplicationArray(preview.memberPreferences),
+        message: "",
+        status: "confirmed",
+        gif: getBuilderApplicationGenderIcon(gender, null, `${joinId}-${preview.iconSeed || index}`)
+      };
+    }
+
+    function applyLightParticipantsToJoin(join, previews = [], summary = {}) {
+      if (!join) return null;
+      const previewParticipants = (Array.isArray(previews) ? previews : [])
+        .slice(0, BUILDER_APPLICATION_MAX_CAPACITY)
+        .map((preview, index) => buildLightPreviewParticipant(preview, join.id || join.scheduleId || "", index));
+      if (previewParticipants.length) {
+        join.participants = previewParticipants;
+      }
+      const confirmedCount = Math.max(0, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, Number(summary.confirmedCount) || previewParticipants.length || getConfirmedParticipants(join).length));
+      const remainingSlots = Number.isFinite(Number(summary.remainingSlots))
+        ? Math.max(0, Number(summary.remainingSlots))
+        : Math.max(0, BUILDER_APPLICATION_MAX_CAPACITY - confirmedCount);
+      join.emptySlots = remainingSlots;
+      join.maxCapacity = BUILDER_APPLICATION_MAX_CAPACITY;
+      return join;
+    }
+
+    function buildLightBuilderPayload(summary = {}) {
+      const applicationId = summary.applicationId || "";
+      const scheduleId = summary.scheduleId || "";
+      return {
+        applicationId,
+        scheduleId,
+        submittedAt: summary.createdAt || summary.updatedAt || new Date().toISOString(),
+        source: "new_schedule_builder",
+        applicationStatus: summary.approvalStatus || "",
+        displayStatus: summary.displayStatus || "",
+        applicant: {
+          name: summary.creatorPreview?.displayName || "",
+          gender: summary.creatorPreview?.gender || "",
+          ageDisplay: summary.creatorPreview?.ageDisplay || "",
+          profession: summary.creatorPreview?.profession || "",
+          people: Math.max(1, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, Number(summary.confirmedCount) || 1)),
+          companions: (summary.participantsPreview || []).slice(1).map((item) => ({ gender: item.gender || "" })),
+          level: summary.creatorPreview?.level || "",
+          styles: summary.creatorPreview?.styles || [],
+          memberPreferences: summary.creatorPreview?.memberPreferences || [],
+          preferredMemberComposition: summary.creatorPreview?.memberPreferences || [],
+          roomType: summary.roomType || "",
+          flightRequestType: summary.flightRequestType || "",
+          singleRoomSurchargeText: summary.singleRoomSurchargeText || ""
+        },
+        trip: {
+          region: summary.region || "",
+          productId: summary.erpProductId || "",
+          erpProductId: summary.erpProductId || "",
+          erpEventSeq: summary.erpEventSeq || "",
+          productName: summary.title || "",
+          productPrice: summary.price || "",
+          startSummary: summary.departureDate || "",
+          endSummary: summary.returnDate || "",
+          departureDates: [summary.departureDate].filter(Boolean),
+          returnDates: [summary.returnDate].filter(Boolean)
+        }
+      };
+    }
+
+    function upsertLightNewScheduleSummary(summary = {}) {
+      if (!summary.scheduleId && !summary.applicationId) return null;
+      if (!shouldShowLightSummary(summary)) return null;
+      const join = upsertBuilderApplicationJoin(buildLightBuilderPayload(summary), { render: false, source: "light" });
+      join.lightSummary = summary;
+      join.scheduleId = summary.scheduleId || join.scheduleId || "";
+      join.sourceApplicationId = summary.applicationId || join.sourceApplicationId || "";
+      if (summary.title) join.title = escapeBuilderApplicationText(summary.title);
+      if (summary.region) join.region = escapeBuilderApplicationText(summary.region);
+      if (summary.country) join.country = summary.country;
+      if (summary.departureDate) join.departureDate = summary.departureDate;
+      if (summary.returnDate) join.returnDate = summary.returnDate;
+      join.date = `${join.departureDate || ""} - ${join.returnDate || join.departureDate || ""}`;
+      if (Number(summary.price)) join.price = Number(summary.price);
+      if (summary.image) join.image = summary.image;
+      join.packType = summary.packType || join.packType || "";
+      join.packTypeName = summary.packTypeName || join.packTypeName || "";
+      join.flightIncluded = summary.flightIncluded || join.flightIncluded || "";
+      join.shareUrl = summary.shareUrl || join.shareUrl || "";
+      applyLightParticipantsToJoin(join, summary.participantsPreview, summary);
+      return join;
+    }
+
+    function findJoinForParticipantSummary(summary = {}) {
+      return joins.find((join) => summary.targetScheduleId && String(join.scheduleId || "") === String(summary.targetScheduleId))
+        || joins.find((join) => summary.targetApplicationId && String(join.sourceApplicationId || "") === String(summary.targetApplicationId))
+        || joins.find((join) => summary.erpProductId && summary.erpEventSeq && String(join.erpProductId || join.goodSeq || "") === String(summary.erpProductId) && String(join.erpEventSeq || join.eventSeq || "") === String(summary.erpEventSeq))
+        || joins.find((join) => summary.erpProductId && String(join.erpProductId || join.goodSeq || "") === String(summary.erpProductId))
+        || null;
+    }
+
+    function applyLightParticipantSummary(summary = {}) {
+      const join = findJoinForParticipantSummary(summary);
+      if (!join) return null;
+      if (join.isBuilderApplicationJoin || join.scheduleId || join.sourceApplicationId) {
+        const existingParticipants = getConfirmedParticipants(join);
+        const previewParticipants = (Array.isArray(summary.participantsPreview) ? summary.participantsPreview : [])
+          .slice(0, BUILDER_APPLICATION_MAX_CAPACITY)
+          .map((preview, index) => buildLightPreviewParticipant(preview, join.id || join.scheduleId || "", index));
+        const seen = new Set();
+        join.participants = [...existingParticipants, ...previewParticipants].filter((participant) => {
+          const key = String(participant.id || `${participant.gender || ""}-${participant.age || ""}-${participant.profession || ""}`);
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        }).slice(0, BUILDER_APPLICATION_MAX_CAPACITY);
+        join.emptySlots = Math.max(0, BUILDER_APPLICATION_MAX_CAPACITY - getConfirmedParticipants(join).length);
+        join.maxCapacity = BUILDER_APPLICATION_MAX_CAPACITY;
+        return join;
+      }
+      return applyLightParticipantsToJoin(join, summary.participantsPreview, summary);
+    }
+
+    function applyLightWishTargetKeys(items = [], memberKey = getJoinWishMemberKey()) {
+      const rows = (Array.isArray(items) ? items : []).map((item) => ({
+        wishType: item.targetType || "product",
+        targetType: item.targetType || "product",
+        targetKey: item.targetKey || "",
+        targetScheduleId: item.targetScheduleId || "",
+        targetApplicationId: item.targetApplicationId || "",
+        erpProductId: item.erpProductId || item.targetKey || "",
+        erpEventSeq: item.erpEventSeq || "",
+        status: item.status || "active",
+        updatedAt: item.updatedAt || new Date().toISOString()
+      })).filter((item) => item.targetKey);
+      applyJoinWishesFromGoogleSheetRows(rows, memberKey);
+      return rows;
+    }
+
+    function getHomeBootstrapLightSignature(data = {}) {
+      return [
+        data.serverTime || data.updatedAt || "",
+        (data.newScheduleSummaries || []).length,
+        (data.participantSummaries || []).length,
+        (data.displayRules || []).length,
+        (data.wishTargetKeys || []).length,
+        externalGolfJoinProducts ? "products" : "no-products"
+      ].join("|");
+    }
+
+    function applyHomeBootstrapLightRows(data = {}, options = {}) {
+      pendingHomeBootstrapLightData = data || null;
+      const signature = getHomeBootstrapLightSignature(data || {});
+      if (options.fromCache !== true && signature === homeBootstrapLightApplySignature) return data;
+      homeBootstrapLightApplySignature = signature;
+      googleSheetBuilderApplicationsLoading = false;
+      googleSheetJoinApplicationsLoading = false;
+      googleSheetJoinWishesLoading = false;
+      googleSheetBuilderApplicationsReadCompleted = true;
+      googleSheetJoinApplicationsReadCompleted = true;
+      googleSheetJoinWishesReadCompleted = true;
+      googleSheetBuilderApplicationsReadFailed = false;
+      googleSheetJoinApplicationsReadFailed = false;
+      googleSheetJoinWishesReadFailed = false;
+      (data.newScheduleSummaries || []).forEach(upsertLightNewScheduleSummary);
+      (data.participantSummaries || []).forEach(applyLightParticipantSummary);
+      applyAdminRecommendedScheduleRows(data.displayRules || []);
+      applyLightWishTargetKeys(data.wishTargetKeys || [], options.wishMemberKey || getJoinWishMemberKey());
+      renderJoins();
+      refreshDetailWishButtons();
+      if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+        renderJoinMyWishMenu();
+      }
+      return data;
+    }
+
+    function reapplyPendingHomeBootstrapLightData() {
+      if (!pendingHomeBootstrapLightData) return;
+      homeBootstrapLightApplySignature = "";
+      applyHomeBootstrapLightRows(pendingHomeBootstrapLightData, { wishMemberKey: getJoinWishMemberKey() });
+    }
+
     function isTruthyDisplayRuleValue(value) {
       const text = String(value ?? "").trim().toLowerCase();
       return !["false", "0", "no", "n", "hidden", "disabled", "deleted"].includes(text);
@@ -40941,7 +41354,7 @@
       const wishes = Array.isArray(data.wishes) ? data.wishes : [];
       const displayRules = Array.isArray(data.displayRules) ? data.displayRules : [];
       queueHeroCalendarProfileCount(data.visitorCount ?? data.profileCount);
-      updateHeroCalendarActiveCount(data.activeUserCount);
+      queueHeroCalendarActiveCount(data.activeUserCount);
       googleSheetBuilderApplicationsLoading = false;
       googleSheetJoinApplicationsLoading = false;
       googleSheetJoinWishesLoading = false;
@@ -40998,6 +41411,7 @@
           const payload = await getBuilderApplyPayload();
           if (!validateBuilderApplyPayload(payload)) return { ok: false };
           await saveBuilderApplyToGoogleSheet(payload);
+          invalidateHomeBootstrapLightCache();
           const join = upsertBuilderApplicationJoin(payload, { persist: true });
           latestBuilderApplicationShareJoin = join;
           return { ok: true, join, payload };
@@ -45359,6 +45773,7 @@
       try {
         const applyPayload = buildJoinApplyPayload(applyData);
         await saveJoinApplyToGoogleSheet(applyPayload);
+        invalidateHomeBootstrapLightCache();
         applyJoinApplicationPayload(applyPayload, { persist: true });
         if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinId === getNestedValue(applyPayload, "join.id")) {
           renderDetailContent(getCurrentApplyJoin());
@@ -48710,6 +49125,63 @@
       return url.toString();
     }
 
+    function stripSharePreviewText(value = "") {
+      return String(value || "")
+        .replace(/<[^>]*>/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function truncateSharePreviewText(value = "", maxLength = 160) {
+      const text = stripSharePreviewText(value);
+      if (text.length <= maxLength) return text;
+      return `${text.slice(0, Math.max(0, maxLength - 1)).trim()}…`;
+    }
+
+    function getDetailSharePreviewImage(payload = {}, join = payload) {
+      const candidates = [
+        payload.imageUrl,
+        payload.image,
+        ...getDetailSlides(payload),
+        join.imageUrl,
+        join.image,
+        ...getDetailSlides(join)
+      ].filter((image) => /^https?:\/\//i.test(String(image || "").trim()));
+      return [...new Set(candidates.map((image) => String(image).trim()))][0]
+        || "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner1.webp";
+    }
+
+    function getDetailSharePreviewDescription(payload = {}, join = payload) {
+      const direct = stripSharePreviewText(payload.description || payload.goodDescription || join.goodDescription || join.description || "");
+      if (direct) return truncateSharePreviewText(direct, 180);
+      const schedule = getKakaoCommerceScheduleText(payload, join);
+      const duration = getKakaoCommerceDurationText(payload, join);
+      const region = [payload.country || join.country || "", payload.region || join.region || ""].filter(Boolean).join(" ");
+      const spotsValue = Number(payload.emptySlots ?? join.emptySlots ?? 0);
+      const spots = spotsValue > 0 ? `잔여 ${spotsValue}자리` : "";
+      return truncateSharePreviewText(["함께 떠날 골프친구를 찾는 중", region, schedule, duration, spots].filter(Boolean).join(" · "), 180);
+    }
+
+    function buildDetailShareOgUrl(payload = {}, targetUrl = "") {
+      const endpoint = new URL(GOLFJOIN_SHEET_API_ENDPOINT, window.location.href);
+      const target = targetUrl || payload.sourceUrl || buildDetailGoodsSourceUrl(payload);
+      const parsedReference = parseSecretTourProductReference(payload.id || payload.erpProductId || "", payload.eventSeq || payload.erpEventSeq || "");
+      const goodSeq = String(payload.goodSeq || parsedReference.goodSeq || payload.erpProductId || "").trim();
+      const eventSeq = String(payload.eventSeq || parsedReference.eventSeq || payload.erpEventSeq || "").trim();
+      endpoint.search = "";
+      endpoint.searchParams.set("action", "share_og");
+      endpoint.searchParams.set("url", target);
+      endpoint.searchParams.set("title", truncateSharePreviewText(payload.title || document.title, 90));
+      endpoint.searchParams.set("desc", getDetailSharePreviewDescription(payload, payload));
+      endpoint.searchParams.set("image", getDetailSharePreviewImage(payload, payload));
+      if (payload.id) endpoint.searchParams.set("joinId", String(payload.id));
+      if (goodSeq) endpoint.searchParams.set("goodSeq", goodSeq);
+      if (eventSeq) endpoint.searchParams.set("eventSeq", eventSeq);
+      endpoint.searchParams.set("ogv", String(payload.updatedAt || payload.createdAt || payload.departureDate || eventSeq || goodSeq || "1").replace(/[^\w.-]/g, "").slice(0, 40) || "1");
+      return endpoint.toString();
+    }
+
     function getDetailWishEndpoint() {
       if (/^(m\.|www\.)?secret-tour\.com$/i.test(window.location.hostname)) return "/goods/updateGoodsWish.json";
       const host = window.matchMedia("(max-width: 640px)").matches ? "m.secret-tour.com" : "www.secret-tour.com";
@@ -48812,6 +49284,7 @@
     }
 
     async function fetchDetailShareUrl(sourceUrl) {
+      if (String(sourceUrl || "").includes("action=share_og")) return sourceUrl;
       if (!/^(m\.|www\.)?secret-tour\.com$/i.test(window.location.hostname)) return sourceUrl;
       try {
         const response = await fetch(getDetailShortUrlEndpoint(sourceUrl), {
@@ -48956,12 +49429,102 @@
       }
     }
 
+    function getKakaoCommercePrice(value) {
+      const price = Number(String(value || "").replace(/[^\d]/g, ""));
+      return Number.isFinite(price) && price > 0 ? String(Math.round(price)) : "0";
+    }
+
+    function getKakaoCommerceMobileUrl(webUrl) {
+      try {
+        const url = new URL(webUrl || getCurrentGolfJoinShareUrl());
+        if (/^(www\.)?secret-tour\.com$/i.test(url.hostname)) url.hostname = "m.secret-tour.com";
+        return url.toString();
+      } catch (error) {
+        return webUrl || getCurrentGolfJoinShareUrl();
+      }
+    }
+
+    function getKakaoCommerceImages(payload = {}, join = {}) {
+      if (Array.isArray(GOLFJOIN_KAKAO_TEST_IMAGES) && GOLFJOIN_KAKAO_TEST_IMAGES.length >= 3) {
+        return GOLFJOIN_KAKAO_TEST_IMAGES.slice(0, 3);
+      }
+      const candidates = [
+        payload.imageUrl,
+        payload.image,
+        ...getDetailSlides(payload),
+        join.imageUrl,
+        join.image,
+        ...getDetailSlides(join)
+      ].filter((image) => /^https?:\/\//i.test(String(image || "").trim()));
+      const images = [...new Set(candidates.map((image) => String(image).trim()))];
+      const fallback = "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner1.webp";
+      while (images.length < 3) images.push(images[images.length - 1] || fallback);
+      return images.slice(0, 3);
+    }
+
+    function formatKakaoCommerceDateWithDay(isoDate) {
+      const text = String(isoDate || "").trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+      const date = new Date(`${text}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return text;
+      const dayNames = ["\uC77C", "\uC6D4", "\uD654", "\uC218", "\uBAA9", "\uAE08", "\uD1A0"];
+      return `${text}(${dayNames[date.getDay()]})`;
+    }
+
+    function getKakaoCommerceScheduleText(payload = {}, join = {}) {
+      const start = payload.departureDate || join.departureDate || "";
+      const end = payload.returnDate || join.returnDate || "";
+      if (start && end) return `${formatKakaoCommerceDateWithDay(start)}~${formatKakaoCommerceDateWithDay(end)}`;
+      return payload.date || join.date || start || end || "";
+    }
+
+    function getKakaoCommerceDurationText(payload = {}, join = {}) {
+      const existing = payload.duration || join.duration || "";
+      if (existing) return existing;
+      const start = payload.departureDate || join.departureDate || "";
+      const end = payload.returnDate || join.returnDate || "";
+      if (!start || !end) return "";
+      const startDate = new Date(`${start}T00:00:00`);
+      const endDate = new Date(`${end}T00:00:00`);
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return "";
+      const days = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1);
+      return `${Math.max(0, days - 1)}\uBC15${days}\uC77C`;
+    }
+
+    function buildKakaoCommerceTemplateArgs(payload = {}, join = {}) {
+      const url = document.getElementById("detailShareUrlInput")?.value || payload.url || payload.sourceUrl || buildDetailGoodsSourceUrl(join);
+      const mobileUrl = getKakaoCommerceMobileUrl(url);
+      const images = getKakaoCommerceImages(payload, join);
+      const price = getKakaoCommercePrice(payload.price || payload.productPrice || join.price || join.productPrice);
+      const schedule = getKakaoCommerceScheduleText(payload, join);
+      const duration = getKakaoCommerceDurationText(payload, join);
+      const spotsValue = Number(payload.emptySlots ?? join.emptySlots ?? 0);
+      const spots = spotsValue > 0 ? `\uC794\uC5EC ${spotsValue}\uC790\uB9AC` : "\uC794\uC5EC \uC790\uB9AC \uD655\uC778";
+      const descParts = ["\uD568\uAED8 \uB5A0\uB0A0 \uACE8\uD504\uCE5C\uAD6C \uCC3E\uB294 \uC911", schedule || "\uC77C\uC815 \uD655\uC778", duration, spots].filter(Boolean);
+      const desc = payload.description || descParts.join(" \u00B7 ");
+      return {
+        TITLE: payload.title || join.title || document.title,
+        DESC: desc,
+        THU: images[0],
+        THU2: images[1],
+        THU3: images[2],
+        PRICE: price,
+        DISCOUNT_PRICE: "",
+        DISCOUNT_RATE: "",
+        CURRENCY: "\uC6D0",
+        SCHEDULE: schedule || "\uC77C\uC815 \uD655\uC778",
+        SPOTS: spots,
+        WEB_URL: url,
+        MOBILE_WEB_URL: mobileUrl
+      };
+    }
+
     async function shareDetailToKakao() {
       const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
       const payload = currentSharePayload || join;
       const url = document.getElementById("detailShareUrlInput")?.value || payload.url || payload.sourceUrl || buildDetailGoodsSourceUrl(join);
       let KakaoSdk = window.Kakao;
-      if (!KakaoSdk?.Link?.sendDefault) {
+      if (!KakaoSdk?.Share?.sendCustom && !KakaoSdk?.Link?.sendCustom) {
         try {
           KakaoSdk = await ensureJoinKakaoSdk();
         } catch (error) {
@@ -48969,7 +49532,20 @@
         }
       }
       if (KakaoSdk && !KakaoSdk.isInitialized?.()) KakaoSdk.init(JOIN_KAKAO_JS_KEY);
-      if (KakaoSdk?.Link?.sendDefault) {
+      const templateArgs = buildKakaoCommerceTemplateArgs({ ...payload, url }, join);
+      if (KakaoSdk?.Share?.sendCustom) {
+        KakaoSdk.Share.sendCustom({
+          templateId: GOLFJOIN_KAKAO_COMMERCE_TEMPLATE_ID,
+          templateArgs
+        });
+        return;
+      }
+      if (KakaoSdk?.Link?.sendCustom) {
+        KakaoSdk.Link.sendCustom({
+          templateId: GOLFJOIN_KAKAO_COMMERCE_TEMPLATE_ID,
+          templateArgs
+        });
+        return;
         KakaoSdk.Link.sendDefault({
           objectType: "feed",
           content: {
@@ -49024,15 +49600,17 @@
     async function handleDetailShare() {
       const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
       const sourceUrl = buildDetailGoodsSourceUrl(join);
-      openDetailShareModal(join, sourceUrl);
-      const shareUrl = await fetchDetailShareUrl(sourceUrl);
+      const ogShareUrl = buildDetailShareOgUrl({ ...join, sourceUrl }, sourceUrl);
+      openDetailShareModal({ ...join, sourceUrl }, ogShareUrl);
+      const shareUrl = await fetchDetailShareUrl(ogShareUrl);
       if (shareUrl !== sourceUrl) updateDetailShareModalUrl(shareUrl, join.title || document.title);
     }
     async function handleCompletionShare(type = "apply") {
       const payload = buildCompletionSharePayload(type);
       const sourceUrl = payload.sourceUrl || getCurrentGolfJoinShareUrl();
-      openDetailShareModal(payload, sourceUrl);
-      const shareUrl = await fetchDetailShareUrl(sourceUrl);
+      const ogShareUrl = buildDetailShareOgUrl({ ...payload, sourceUrl }, sourceUrl);
+      openDetailShareModal({ ...payload, sourceUrl }, ogShareUrl);
+      const shareUrl = await fetchDetailShareUrl(ogShareUrl);
       if (shareUrl !== sourceUrl) updateDetailShareModalUrl(shareUrl, payload.title || document.title);
     }
     window.handleDetailShare = handleDetailShare;
@@ -49853,17 +50431,16 @@
       const externalProductsPromise = ensureExternalGolfJoinProductsLoaded().catch((error) => {
         console.warn("Failed to load external golf join products during home init.", error);
       }).finally(() => {
+        reapplyPendingHomeBootstrapLightData();
         homeInitialExternalProductsLoading = false;
         homeInitialExternalProductsLoadedOnce = true;
         renderHomeInitialLoading();
       });
-      const bootstrapPromise = hydrateHomeBootstrapFromGoogleSheet().catch((error) => {
-        console.warn("Failed to load home bootstrap data. Falling back to individual sheet reads.", error);
+      const bootstrapPromise = hydrateHomeBootstrapLightFromGoogleSheet().catch((error) => {
+        console.warn("Failed to load home bootstrap light data. Falling back to essential sheet reads.", error);
         return Promise.all([
           hydrateBuilderApplicationJoinsFromGoogleSheet(),
-          hydrateJoinApplicationsFromGoogleSheet(),
-          hydrateJoinReviewsFromGoogleSheet(),
-          hydrateJoinWishesFromGoogleSheet()
+          hydrateJoinApplicationsFromGoogleSheet()
         ]);
       }).then(async () => {
         renderJoins();
@@ -49885,6 +50462,7 @@
         renderJoins();
         renderHomeInitialLoading();
       });
+      hydrateHomeStatsFromGoogleSheet();
       await externalProductsPromise;
       renderJoins();
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));

@@ -4086,7 +4086,7 @@
     .calendar-today-label {
       position: absolute;
       left: 50%;
-      top: calc(50% + 18px);
+      top: calc(50% + 0px);
       z-index: 3;
       transform: translateX(-50%);
       color: #0e60e8;
@@ -4097,8 +4097,21 @@
       pointer-events: none;
     }
     @media (min-width: 641px) {
-      .calendar-today-label {
+      .calendar-today-label,
+      .calendar-holiday-label {
         font-size: 14px;
+      }
+    }
+    @media (max-width: 640px) {
+      .calendar-holiday-label {
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .calendar-event {
+        top: calc(50% + 8px);
+      }
+      .calendar-event + .calendar-event {
+        top: calc(50% + 26px);
       }
     }
     .calendar-month.inactive-month .calendar-cell strong {
@@ -4106,15 +4119,66 @@
     }
     .calendar-cell.holiday strong,
     .calendar-cell.sunday strong {
-      color: var(--red);
+      color: #ef4444;
     }
-    .calendar-cell.unavailable.holiday strong,
-    .calendar-cell.unavailable.sunday strong {
-      color: #c7cbd1 !important;
+    .calendar-cell.muted.holiday strong,
+    .calendar-cell.muted.sunday strong {
+      color: #ffa3a3 !important;
+    }
+    .calendar-holiday-label {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + -5px);
+      z-index: 3;
+      transform: translateX(-50%);
+      display: block;
+      max-width: 92%;
+      color: #ef4444;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+    }
+    .calendar-cell.muted .calendar-holiday-label {
+      color: #ffa3a3;
+    }
+    .calendar-cell.unavailable:not(.muted).holiday strong,
+    .calendar-cell.unavailable:not(.muted).sunday strong {
+      color: #ef4444 !important;
+    }
+    .calendar-cell.unavailable.muted.holiday strong,
+    .calendar-cell.unavailable.muted.sunday strong {
+      color: #ffa3a3 !important;
+    }
+    .calendar-month.inactive-month .calendar-cell:not(.muted).holiday strong,
+    .calendar-month.inactive-month .calendar-cell:not(.muted).sunday strong,
+    .calendar-sheet .calendar-cell:not(.muted).holiday .calendar-day-button strong,
+    .calendar-sheet .calendar-cell:not(.muted).sunday .calendar-day-button strong,
+    body > .calendar-sheet-overlay .calendar-cell:not(.muted).holiday .calendar-day-button strong,
+    body > .calendar-sheet-overlay .calendar-cell:not(.muted).sunday .calendar-day-button strong {
+      color: #ef4444 !important;
+    }
+    .calendar-month.inactive-month .calendar-cell.muted.holiday strong,
+    .calendar-month.inactive-month .calendar-cell.muted.sunday strong,
+    .calendar-sheet .calendar-cell.muted.holiday .calendar-day-button strong,
+    .calendar-sheet .calendar-cell.muted.sunday .calendar-day-button strong,
+    body > .calendar-sheet-overlay .calendar-cell.muted.holiday .calendar-day-button strong,
+    body > .calendar-sheet-overlay .calendar-cell.muted.sunday .calendar-day-button strong {
+      color: #ffa3a3 !important;
     }
     .calendar-event {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 13px);
+      z-index: 3;
+      transform: translateX(-50%);
       display: block;
-      margin-top: 4px;
+      width: max-content;
+      max-width: 88%;
+      margin-top: 0;
       padding: 2px 6px;
       border-radius: 3px;
       font-size: 13px;
@@ -4123,6 +4187,17 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .calendar-event + .calendar-event {
+      top: calc(50% + 31px);
+    }
+    @media (max-width: 640px) {
+      .calendar-event {
+        top: calc(50% + 8px);
+      }
+      .calendar-event + .calendar-event {
+        top: calc(50% + 26px);
+      }
     }
     .calendar-event.domestic {
       background: #eff6ff;
@@ -4135,6 +4210,7 @@
     .calendar-day-button {
       position: relative;
       width: 100%;
+      min-height: 76px;
       padding: 0;
       display: flex;
       flex-direction: column;
@@ -4953,7 +5029,8 @@
       padding: 8px 0;
     }
     .builder-weekday:first-child,
-    .builder-day.sunday {
+    .builder-day.sunday,
+    .builder-day.holiday {
       color: #ef4444;
     }
     .builder-calendar-grid {
@@ -5024,10 +5101,22 @@
     .builder-day.muted {
       color: #c7cbd1;
     }
+    .builder-day.muted.sunday,
+    .builder-day.muted.holiday {
+      color: #ffa3a3;
+    }
     .builder-day.unavailable {
       color: #c7cbd1;
       cursor: not-allowed;
       opacity: .72;
+    }
+    .builder-day.unavailable:not(.muted).sunday,
+    .builder-day.unavailable:not(.muted).holiday {
+      color: #ef4444;
+    }
+    .builder-day.unavailable.muted.sunday,
+    .builder-day.unavailable.muted.holiday {
+      color: #ffa3a3;
     }
     .builder-day.unavailable .builder-day-number {
       background: #f8fafc;
@@ -5122,11 +5211,11 @@
     .builder-day-label {
       position: absolute;
       left: 50%;
-      top: calc(50% + 15px);
+      top: calc(50% + 19px);
       transform: translateX(-50%);
       font-size: 14px;
       font-weight: 500;
-      color: #8b91a0;
+      color: #373a3c;
       white-space: nowrap;
     }
     .builder-day.range.flex .builder-day-number {
@@ -5710,6 +5799,7 @@
       grid-template-columns: minmax(0, 1fr) auto;
     }
     .builder-region-search-field {
+      --region-search-input-width: 100%;
       padding: 0 12px;
       min-height: 48px;
       border: 1px solid var(--border);
@@ -5771,10 +5861,32 @@
       color: #64748b;
     }
     .builder-region-search .region-search-clear-input {
+      width: 23px;
+      height: 23px;
+      flex: 0 0 23px;
+      align-items: center;
+      justify-content: center;
+      color: #272727;
+      background: #eeeeee;
+      border-radius: 999px;
       display: none;
+    }
+    .builder-region-search .region-search-clear-input:hover {
+      color: #373a3c;
+      background: #d9dee5;
+    }
+    .builder-region-search .region-search-clear-input svg {
+      width: 16px;
+      height: 16px;
     }
     .builder-region-search.searching .region-search-clear-input {
       display: inline-flex;
+    }
+    .builder-region-search.searching .builder-region-search-field input,
+    .builder-region-search.has-product-results .builder-region-search-field input {
+      flex: 0 1 auto;
+      width: min(var(--region-search-input-width, 100%), 100%);
+      max-width: 100%;
     }
     .builder-region-search.searching .mobile-search-icon {
       display: none;
@@ -6147,6 +6259,9 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+    .builder-region-product-list .region-product-location + .join-flight-chip.excluded {
+      margin-left: 3px;
     }
     .builder-region-product-list .join-category-chip {
       min-height: 20px;
@@ -7068,7 +7183,7 @@
         border-right: 0;
         border-bottom: 0;
         border-left: 0;
-        border-radius: 20px 20px 0 0;
+        border-radius: 20px;
         background: #fff;
         box-shadow: 0 -16px 40px rgba(15, 23, 42, 0.16);
         opacity: 0;
@@ -7122,6 +7237,19 @@
         letter-spacing: 0;
         margin-top: 18px;
       }
+      .builder-date-center-stepper {
+        display: grid;
+        justify-items: center;
+        gap: 3px;
+        min-width: 0;
+      }
+      .builder-date-center-stepper .builder-date-title-selected {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 0;
+      }
       .builder-date-title-selected .builder-date-weekday,
       .builder-date-title-range .builder-date-weekday {
         color: #8b97a8;
@@ -7164,8 +7292,8 @@
         border-radius: 10px;
         background: transparent;
         color: #64748b;
-        font-size: 15px;
-        font-weight: 900;
+        font-size: 16px;
+        font-weight: 800;
         line-height: 1.2;
       }
       .builder-date-mode-button.active {
@@ -7174,7 +7302,7 @@
       .builder-date-stepper-stage {
         display: none;
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-        align-items: center;
+        align-items: start;
         gap: 10px;
       }
       .builder-date-popover.flex-open .builder-date-stepper-stage {
@@ -7183,7 +7311,7 @@
       .builder-date-side-stepper {
         display: grid;
         justify-items: center;
-        gap: 1px;
+        gap: 3px;
         min-width: 0;
       }
       .builder-date-side-label {
@@ -7291,6 +7419,182 @@
         border-radius: 12px;
         font-size: 15px;
       }
+      .builder-date-flex-row .builder-stepper,
+      .builder-stepper,
+      .builder-date-side-controls {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        width: auto;
+        border: 1px solid #d1d5db;
+        border-radius: 15px;
+        background: #fff;
+        overflow: hidden;
+      }
+      .builder-date-flex-row .builder-stepper button,
+      .builder-stepper button,
+      .builder-date-side-controls button {
+        width: 40px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+        color: #373a3c;
+      }
+      .builder-date-flex-row .builder-stepper button:first-child,
+      .builder-stepper button:first-child,
+      .builder-date-side-controls button:first-child {
+        border-right: 1px solid #d1d5db;
+      }
+      .builder-date-flex-row .builder-stepper button:last-child,
+      .builder-stepper button:last-child,
+      .builder-date-side-controls button:last-child {
+        border-left: 1px solid #d1d5db;
+      }
+      .builder-date-flex-row .builder-stepper button:disabled,
+      .builder-stepper button:disabled,
+      .builder-date-side-controls button:disabled {
+        color: #c7d0dc;
+        background: #fff;
+        cursor: default;
+      }
+      .builder-date-flex-row .builder-stepper button svg,
+      .builder-stepper button svg,
+      .builder-date-side-controls button svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+      }
+      .builder-date-flex-row .builder-stepper span,
+      .builder-stepper span,
+      .builder-date-side-controls span {
+        min-width: 40px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #101418;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .builder-date-mode-toggle {
+        isolation: isolate;
+      }
+      .builder-date-mode-toggle::before {
+        z-index: 0;
+        will-change: transform;
+        transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s ease;
+      }
+      .builder-date-popover.flex-open .builder-date-mode-toggle::before {
+        transform: translateX(100%);
+      }
+      .builder-date-mode-button {
+        z-index: 1;
+        transition: color 0.18s ease;
+      }
+      .builder-date-flex-row .builder-stepper,
+      .builder-stepper {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        width: auto;
+        border: 1px solid #d1d5db;
+        border-radius: 15px;
+        background: #fff;
+        overflow: hidden;
+      }
+      .builder-date-flex-row .builder-stepper button,
+      .builder-stepper button {
+        width: 40px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+        color: #373a3c;
+      }
+      .builder-date-flex-row .builder-stepper button:first-child,
+      .builder-stepper button:first-child {
+        border-right: 1px solid #d1d5db;
+      }
+      .builder-date-flex-row .builder-stepper button:last-child,
+      .builder-stepper button:last-child {
+        border-left: 1px solid #d1d5db;
+      }
+      .builder-date-flex-row .builder-stepper button:disabled,
+      .builder-stepper button:disabled {
+        color: #c7d0dc;
+        background: #fff;
+        cursor: default;
+      }
+      .builder-date-flex-row .builder-stepper button svg,
+      .builder-stepper button svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+      }
+      .builder-date-flex-row .builder-stepper span,
+      .builder-stepper span {
+        min-width: 40px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #101418;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .builder-date-side-controls {
+        gap: 0;
+        border: 1px solid #d1d5db;
+        border-radius: 15px;
+        background: #fff;
+        overflow: hidden;
+      }
+      .builder-date-side-controls button {
+        width: 40px;
+        height: 34px;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+        color: #373a3c;
+      }
+      .builder-date-side-controls button:first-child {
+        border-right: 1px solid #d1d5db;
+      }
+      .builder-date-side-controls button:last-child {
+        border-left: 1px solid #d1d5db;
+      }
+      .builder-date-side-controls button:disabled {
+        color: #c7d0dc;
+        background: #fff;
+      }
+      .builder-date-side-controls button svg {
+        width: 18px;
+        height: 18px;
+      }
+      .builder-date-side-controls span {
+        min-width: 40px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #101418;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+      }
       .builder-modal.builder-complete-step {
         height: auto;
         min-height: 0;
@@ -7372,15 +7676,52 @@
     .builder-stepper {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 0;
+      border: 1px solid #d1d5db;
+      border-radius: 15px;
+      background: #fff;
+      overflow: hidden;
     }
     .builder-stepper button {
-      width: 34px;
+      width: 40px;
       height: 34px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: #fff;
+      color: #373a3c;
+      font-weight: 800;
+    }
+    .builder-stepper button:first-child {
+      border-right: 1px solid #d1d5db;
+    }
+    .builder-stepper button:last-child {
+      border-left: 1px solid #d1d5db;
+    }
+    .builder-stepper button:disabled {
+      color: #c7d0dc;
+      background: #fff;
+      cursor: default;
+    }
+    .builder-stepper button svg {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+    .builder-stepper span {
+      min-width: 40px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #101418;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
     }
     .builder-product-detail {
       position: absolute;
@@ -7566,6 +7907,19 @@
         letter-spacing: 0;
         margin-top: 18px;
       }
+      .builder-date-center-stepper {
+        display: grid;
+        justify-items: center;
+        gap: 3px;
+        min-width: 0;
+      }
+      .builder-date-center-stepper .builder-date-title-selected {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 0;
+      }
       .builder-date-title-selected .builder-date-weekday,
       .builder-date-title-range .builder-date-weekday {
         color: #8b97a8;
@@ -7618,7 +7972,7 @@
       .builder-date-stepper-stage {
         display: none;
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-        align-items: center;
+        align-items: start;
         gap: 10px;
       }
       .builder-date-popover.flex-open .builder-date-stepper-stage {
@@ -7627,7 +7981,7 @@
       .builder-date-side-stepper {
         display: grid;
         justify-items: center;
-        gap: 1px;
+        gap: 3px;
         min-width: 0;
       }
       .builder-date-side-label {
@@ -7734,6 +8088,85 @@
         min-height: 46px;
         border-radius: 12px;
         font-size: 15px;
+      }
+      .builder-date-flex-row .builder-stepper,
+      .builder-stepper,
+      .builder-date-side-controls {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        width: auto;
+        border: 1px solid #d1d5db;
+        border-radius: 15px;
+        background: #fff;
+        overflow: hidden;
+      }
+      .builder-date-flex-row .builder-stepper button,
+      .builder-stepper button,
+      .builder-date-side-controls button {
+        width: 40px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: #fff;
+        color: #373a3c;
+      }
+      .builder-date-flex-row .builder-stepper button:first-child,
+      .builder-stepper button:first-child,
+      .builder-date-side-controls button:first-child {
+        border-right: 1px solid #d1d5db;
+      }
+      .builder-date-flex-row .builder-stepper button:last-child,
+      .builder-stepper button:last-child,
+      .builder-date-side-controls button:last-child {
+        border-left: 1px solid #d1d5db;
+      }
+      .builder-date-flex-row .builder-stepper button:disabled,
+      .builder-stepper button:disabled,
+      .builder-date-side-controls button:disabled {
+        color: #c7d0dc;
+        background: #fff;
+        cursor: default;
+      }
+      .builder-date-flex-row .builder-stepper button svg,
+      .builder-stepper button svg,
+      .builder-date-side-controls button svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+      }
+      .builder-date-flex-row .builder-stepper span,
+      .builder-stepper span,
+      .builder-date-side-controls span {
+        min-width: 40px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #101418;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .builder-date-mode-toggle {
+        isolation: isolate;
+      }
+      .builder-date-mode-toggle::before {
+        z-index: 0;
+        will-change: transform;
+        transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s ease;
+      }
+      .builder-date-popover.flex-open .builder-date-mode-toggle::before {
+        transform: translateX(100%);
+      }
+      .builder-date-mode-button {
+        z-index: 1;
+        transition: color 0.18s ease;
       }
       .builder-weekday {
         font-size: 14px;
@@ -9484,6 +9917,28 @@
       text-align: center;
       transform: none !important;
     }
+    .apply-complete-share-button {
+      width: 100%;
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 2px;
+      border: 1px solid #dbe4ee;
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      cursor: pointer;
+    }
+    .apply-complete-share-button svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+    }
     @media (min-width: 641px) {
       .apply-complete-copy {
         margin-top: 12px;
@@ -9519,6 +9974,9 @@
       font-size: 16px;
       font-weight: 800;
       cursor: pointer;
+    }
+    .apply-complete-share-button + .apply-complete-close {
+      margin-top: -4px;
     }
     .detail-apply-head {
       display: flex;
@@ -10040,9 +10498,41 @@
       font-weight: 650;
     }
 
+    [data-chip-group="join-member-gender"].traveler-gender-select {
+      isolation: isolate;
+    }
+
+    [data-chip-group="join-member-gender"].traveler-gender-select::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 6px;
+      z-index: 0;
+      display: block;
+      width: calc((100% - 12px) / 2);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+      opacity: 0;
+      transform: translateX(calc(var(--join-member-gender-index, 0) * 100%));
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.18s ease;
+      will-change: transform;
+      pointer-events: none;
+    }
+
+    [data-chip-group="join-member-gender"].traveler-gender-select:has(.apply-chip.active)::before {
+      opacity: 1;
+    }
+
+    [data-chip-group="join-member-gender"].traveler-gender-select.has-gender-selection::before {
+      opacity: 1;
+    }
+
     [data-chip-group="join-member-gender"] .apply-chip.active {
-      background: #54abff;
-      color: #ffffff;
+      background: transparent;
+      color: #0f172a;
+      box-shadow: none;
     }
 
     .traveler-gender-select .apply-chip:hover {
@@ -12958,7 +13448,7 @@
       border-radius: 12px;
       background: #f7fbff;
       color: #334155;
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 700;
       line-height: 1.38;
     }
@@ -13489,7 +13979,7 @@
     }
     .detail-summary-flight-card .detail-flight-summary-card {
       width: 100%;
-      max-width: 420px;
+      max-width: none;
       margin-top: 0;
     }
     @media (min-width: 641px) {
@@ -14276,7 +14766,6 @@
         background: #fff;
         border-bottom: 1px solid var(--border);
         border-radius: 0 0 14px 14px;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
       }
       .calendar-mobile-toggle svg {
         width: 18px;
@@ -14997,31 +15486,73 @@
     .sgj-page .hero-calendar-social-proof {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 0px;
       align-self: flex-start;
       margin-top: 4px;
       min-width: 0;
     }
     .sgj-page .hero-calendar-social-proof .hero-calendar-thumb-stack {
+      align-self: center;
       margin-top: 0;
     }
-    .sgj-page .hero-calendar-profile-count {
+    .sgj-page .hero-calendar-count-stack {
+      display: grid;
+      gap: 2px;
+      align-self: center;
+      align-content: center;
+      min-width: 0;
+      height: 38px;
+      min-height: 38px;
+      padding: 5px 0 0 0;
+    }
+    .sgj-page .hero-calendar-profile-count,
+    .sgj-page .hero-calendar-active-count {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      color: #54abff;
-      font-size: 15px;
+      color: #1f91ff;
+      font-size: 13px;
       font-weight: 700;
       line-height: 1;
       white-space: nowrap;
     }
-    .sgj-page .hero-calendar-profile-count svg {
-      width: 20px;
-      height: 20px;
-      flex: 0 0 20px;
-      color: #54abff;
+    .builder-day-holiday-label {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 18px);
+      z-index: 3;
+      max-width: 92%;
+      transform: translateX(-50%);
+      color: #ef4444;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
     }
-    .sgj-page .hero-calendar-profile-count-number {
+    .builder-day.muted .builder-day-holiday-label {
+      color: #ffa3a3;
+    }
+    @media (max-width: 640px) {
+      .calendar-holiday-label,
+      .builder-day-holiday-label {
+        font-size: 11px;
+      }
+    }
+    .sgj-page .hero-calendar-profile-count svg,
+    .sgj-page .hero-calendar-active-count svg {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+      color: #1f91ff;
+    }
+    .sgj-page .hero-calendar-active-count svg {
+      margin-left: -1px;
+    }
+    .sgj-page .hero-calendar-profile-count-number,
+    .sgj-page .hero-calendar-active-count-number {
       display: inline-flex;
       align-items: center;
       height: 1em;
@@ -15053,10 +15584,10 @@
     }
     .sgj-page .hero-calendar-thumb {
       position: relative;
-      width: 40px;
-      height: 40px;
-      flex: 0 0 40px;
-      min-width: 40px;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      min-width: 38px;
       border-radius: 50%;
       overflow: hidden;
       border: 1px solid #f1f1f1;
@@ -19866,7 +20397,8 @@
         will-change: top, width, transform;
       }
 
-      .join-create-floating-button.is-expanded {
+      .join-create-floating-button.is-expanded,
+      .join-create-floating-button:hover {
         top: calc(var(--join-mobile-visual-end, 100vh) - 72px - 20px - 56px);
         width: 168px;
         box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
@@ -19909,7 +20441,8 @@
         transition: opacity .2s ease, transform .24s ease;
       }
 
-      .join-create-floating-button.is-expanded .join-create-floating-button-text {
+      .join-create-floating-button.is-expanded .join-create-floating-button-text,
+      .join-create-floating-button:hover .join-create-floating-button-text {
         opacity: 1;
         transform: translateX(0);
       }
@@ -24365,6 +24898,12 @@
         background: #fff;
         pointer-events: none;
       }
+      body > #builderAlertModal.sgj-portal-overlay.open::before {
+        content: none !important;
+      }
+      body > #builderAlertModal.builder-alert-overlay.sgj-portal-overlay {
+        background: rgba(15, 23, 42, .34) !important;
+      }
 
       body > .sgj-portal-overlay .modal,
       body > .sgj-portal-overlay .calendar-sheet,
@@ -24762,9 +25301,15 @@
                 <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/woman1.webp" alt=""></div>
                 <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man2.webp" alt=""></div>
               </div>
-              <div class="hero-calendar-profile-count" aria-label="최근 30일 조인 페이지 방문회원 수">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-icon lucide-user-plus" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>
-                <div class="hero-calendar-profile-count-number" id="heroCalendarProfileCount">0</div>
+              <div class="hero-calendar-count-stack">
+                <div class="hero-calendar-profile-count" aria-label="최근 30일 홈페이지 방문자 수">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-icon lucide-user-plus" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>
+                  <div class="hero-calendar-profile-count-number" id="heroCalendarProfileCount">0</div>
+                </div>
+                <div class="hero-calendar-active-count" aria-label="현재 보고 있는 인원">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  <div class="hero-calendar-active-count-number" id="heroCalendarActiveCount">0</div>
+                </div>
               </div>
             </div>
             <svg class="button-chevron lucide lucide-arrow-right-icon lucide-arrow-right" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -25177,7 +25722,7 @@
     <div class="join-create-floating-button-text">새 모임 만들기</div>
   </button>
 
-  <div class="join-mobile-bottom-nav is-hidden" id="joinMobileBottomNav" role="navigation" aria-label="모바일 빠른 메뉴">
+  <div class="join-mobile-bottom-nav is-visible" id="joinMobileBottomNav" role="navigation" aria-label="모바일 빠른 메뉴">
     <ul class="join-mobile-bottom-nav-list">
       <li>
         <button type="button" data-mobile-nav-key="my" onclick="handleJoinMyButtonClick()" aria-label="마이페이지" class="is-active">
@@ -26045,6 +26590,10 @@
               <div class="apply-complete-action-label">밴드 가입하기</div>
             </button>
           </div>
+          <button type="button" class="apply-complete-share-button" onclick="handleCompletionShare('apply')">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+            <span>공유하기</span>
+          </button>
           <button type="button" class="apply-complete-close" onclick="closeAllJoinModals()">확인</button>
         </div>
       </div>
@@ -26882,7 +27431,7 @@
   <script src="web/golfjoin_local_data.js"></script>
   <script>
     const GOLFJOIN_SHEET_API_ENDPOINT = window.GOLFJOIN_SHEET_API_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
-    const GOLFJOIN_SHEET_READ_TIMEOUT_MS = 8000;
+    const GOLFJOIN_SHEET_READ_TIMEOUT_MS = 20000;
 
     const BADGE_IMAGES = {
       justgo: "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/badge_justgo.png",
@@ -27067,6 +27616,7 @@
     };
     const HERO_CALENDAR_PROFILE_COUNT_TEST_VALUE = null;
     let joinMemberProfileCompletedCount = 0;
+    let heroCalendarActiveCountValue = 0;
     let heroCalendarProfileCountQueuedValue = 0;
     let heroCalendarProfileCountAnimationReady = false;
     let heroCalendarProfileCountAnimationStarted = false;
@@ -27179,6 +27729,8 @@
     let currentDetailJoinId = null;
     let currentDetailMode = "normal";
     let currentDetailJoinData = null;
+    let currentSharePayload = null;
+    let latestBuilderApplicationShareJoin = null;
     let currentDetailReturnContext = null;
     let currentMdPickProductGroupKey = "";
     let currentMdPickCountryKey = "";
@@ -27544,6 +28096,7 @@
         document.documentElement.classList.remove("modal-open");
         document.body.classList.remove("modal-open");
         document.getElementById("secret-golf-join")?.classList.remove("modal-open");
+        setJoinMobileBottomNavVisible(true);
       }
       if (homeInitialLoadingIconTimer) {
         clearInterval(homeInitialLoadingIconTimer);
@@ -29464,10 +30017,21 @@
       setWidgetModalOpen(true);
     }
 
+    function syncJoinMemberGenderToggleSlider(group = document.querySelector('[data-chip-group="join-member-gender"]')) {
+      if (!group) return;
+      const chips = Array.from(group.querySelectorAll(".apply-chip"));
+      const activeIndex = chips.findIndex((chip) => chip.classList.contains("active"));
+      group.style.setProperty("--join-member-gender-index", String(Math.max(0, activeIndex)));
+      group.classList.toggle("has-gender-selection", activeIndex >= 0);
+    }
+
     function setJoinMemberSignupChipValue(groupName, value) {
       document.querySelectorAll(`[data-chip-group="${groupName}"] .apply-chip`).forEach((chip) => {
         chip.classList.toggle("active", Boolean(value) && chip.dataset.value === value);
       });
+      if (groupName === "join-member-gender") {
+        syncJoinMemberGenderToggleSlider();
+      }
     }
 
     function setJoinMemberSignupChipValues(groupName, values = []) {
@@ -29579,6 +30143,7 @@
       document.querySelectorAll('[data-chip-group="join-member-gender"] .apply-chip').forEach((chip) => {
         chip.classList.toggle("active", chip.dataset.value === "남성");
       });
+      syncJoinMemberGenderToggleSlider();
       document.querySelectorAll('[data-chip-group="join-member-level"] .apply-chip, [data-chip-group="join-member-travel-style"] .apply-chip').forEach((chip) => {
         chip.classList.remove("active");
       });
@@ -34196,8 +34761,14 @@
     function initializeJoinMobileBottomNav() {
       const nav = document.getElementById("joinMobileBottomNav");
       if (!nav) return;
+      const createButton = document.getElementById("joinCreateFloatingButton");
       let lastScrollY = window.scrollY || 0;
       let lastTouchY = 0;
+      let hoverOpenedNav = false;
+      let hoverCloseTimer = 0;
+      let hoverSourceRect = null;
+      let hoverPointerX = -1;
+      let hoverPointerY = -1;
       let ticking = false;
       scheduleJoinMobileVisualViewportVarsUpdate();
       window.visualViewport?.addEventListener("resize", scheduleJoinMobileVisualViewportVarsUpdate, { passive: true });
@@ -34210,6 +34781,64 @@
         if (Math.abs(delta) <= 6) return;
         setJoinMobileBottomNavVisible(delta < 0 && currentScrollY > 24);
       };
+      const isMobileBottomNavHoverEnabled = () => window.matchMedia("(max-width: 640px)").matches;
+      const clearHoverCloseTimer = () => {
+        clearTimeout(hoverCloseTimer);
+        hoverCloseTimer = 0;
+      };
+      const updateHoverPointer = (event) => {
+        if (!event) return;
+        hoverPointerX = event.clientX;
+        hoverPointerY = event.clientY;
+      };
+      const isPointInRect = (rect, inset = 0) => {
+        if (!rect) return false;
+        return hoverPointerX >= rect.left - inset
+          && hoverPointerX <= rect.right + inset
+          && hoverPointerY >= rect.top - inset
+          && hoverPointerY <= rect.bottom + inset;
+      };
+      const isPointerInBottomNavHoverArea = () => {
+        return isPointInRect(hoverSourceRect, 8)
+          || isPointInRect(createButton?.getBoundingClientRect(), 8)
+          || isPointInRect(nav.getBoundingClientRect(), 8);
+      };
+      const openBottomNavByButtonHover = (event) => {
+        if (!isMobileBottomNavHoverEnabled()) return;
+        updateHoverPointer(event);
+        clearHoverCloseTimer();
+        hoverSourceRect = createButton?.getBoundingClientRect() || null;
+        hoverOpenedNav = !nav.classList.contains("is-visible");
+        setJoinMobileBottomNavVisible(true);
+      };
+      const scheduleCloseBottomNavByButtonHover = (event) => {
+        if (!hoverOpenedNav) return;
+        updateHoverPointer(event);
+        clearHoverCloseTimer();
+        hoverCloseTimer = setTimeout(() => {
+          hoverCloseTimer = 0;
+          if (isPointerInBottomNavHoverArea()) return;
+          hoverOpenedNav = false;
+          hoverSourceRect = null;
+          setJoinMobileBottomNavVisible(false);
+        }, 120);
+      };
+      createButton?.addEventListener("mouseenter", openBottomNavByButtonHover);
+      createButton?.addEventListener("mouseleave", scheduleCloseBottomNavByButtonHover);
+      nav.addEventListener("mouseenter", (event) => {
+        updateHoverPointer(event);
+        clearHoverCloseTimer();
+      });
+      nav.addEventListener("mouseleave", scheduleCloseBottomNavByButtonHover);
+      window.addEventListener("mousemove", (event) => {
+        if (!hoverOpenedNav) return;
+        updateHoverPointer(event);
+        if (isPointerInBottomNavHoverArea()) {
+          clearHoverCloseTimer();
+          return;
+        }
+        scheduleCloseBottomNavByButtonHover(event);
+      }, { passive: true });
       window.addEventListener("scroll", () => {
         if (ticking) return;
         ticking = true;
@@ -36064,12 +36693,8 @@
       return Math.max(0, Math.round(Number(count) || 0));
     }
 
-    function renderHeroCalendarProfileCount(count, options = {}) {
-      const numeric = normalizeHeroCalendarProfileCount(count);
-      const target = document.getElementById("heroCalendarProfileCount");
+    function renderHeroCalendarSlotCount(target, formatted, options = {}) {
       if (!target) return;
-      const formatted = numeric.toLocaleString("ko-KR");
-      target.setAttribute("aria-label", `최근 30일 조인 페이지 방문회원 수 ${formatted}명`);
       target.innerHTML = formatted.split("").map((char, index) => {
         if (!/\d/.test(char)) return `<div class="hero-calendar-profile-count-separator">${escapeHtml(char)}</div>`;
         return `
@@ -36089,6 +36714,15 @@
           });
         });
       });
+    }
+
+    function renderHeroCalendarProfileCount(count, options = {}) {
+      const numeric = normalizeHeroCalendarProfileCount(count);
+      const target = document.getElementById("heroCalendarProfileCount");
+      if (!target) return;
+      const formatted = numeric.toLocaleString("ko-KR");
+      target.setAttribute("aria-label", `최근 30일 홈페이지 방문자 수 ${formatted}명`);
+      renderHeroCalendarSlotCount(target, formatted, options);
     }
 
     function updateHeroCalendarProfileCount(count = joinMemberProfileCompletedCount) {
@@ -36114,6 +36748,20 @@
       heroCalendarProfileCountAnimationReady = true;
       heroCalendarProfileCountAnimationStarted = true;
       updateHeroCalendarProfileCount(heroCalendarProfileCountQueuedValue);
+    }
+
+    function normalizeHeroCalendarActiveCount(count) {
+      return Math.max(0, Math.round(Number(count) || 0));
+    }
+
+    function updateHeroCalendarActiveCount(count = heroCalendarActiveCountValue) {
+      const numeric = normalizeHeroCalendarActiveCount(count);
+      heroCalendarActiveCountValue = numeric;
+      const target = document.getElementById("heroCalendarActiveCount");
+      if (!target) return;
+      const formatted = numeric.toLocaleString("ko-KR");
+      renderHeroCalendarSlotCount(target, formatted, { animate: true });
+      target.closest(".hero-calendar-active-count")?.setAttribute("aria-label", `현재 보고 있는 인원 ${formatted}명`);
     }
 
     function getDetailParticipantAverage(values = []) {
@@ -36608,8 +37256,30 @@
       return `<svg xmlns="http://www.w3.org/2000/svg" class="detail-flight-route-icon lucide lucide-plane-takeoff-icon lucide-plane-takeoff" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 22h20"/><path d="M6.36 17.4 4 17l-2-4 1.1-.55a2 2 0 0 1 1.8 0l.17.1a2 2 0 0 0 1.8 0L8 12 5 6l.9-.45a2 2 0 0 1 2.09.2l4.02 3a2 2 0 0 0 2.1.2l4.19-2.06a2.41 2.41 0 0 1 1.73-.17L21 7a1.4 1.4 0 0 1 .87 1.99l-.38.76c-.23.46-.6.84-1.07 1.08L7.58 17.2a2 2 0 0 1-1.22.18Z"/></svg>`;
     }
 
+    function formatDetailFlightRouteCity(city = "") {
+      const text = cleanSecretTourDetailText(city);
+      if (!text) return "";
+      const countries = new Set();
+      (regionTree || []).forEach((category) => {
+        (category.countries || []).forEach((country) => {
+          if (country.name) countries.add(String(country.name).trim());
+        });
+      });
+      const commaParts = text.split(",").map((part) => part.trim()).filter(Boolean);
+      if (commaParts.length > 1) {
+        const regionParts = commaParts.filter((part) => !countries.has(part));
+        if (regionParts.length) return regionParts[0];
+      }
+      for (const country of countries) {
+        if (text.startsWith(`${country} `)) return text.slice(country.length).trim() || text;
+        if (text.endsWith(` ${country}`)) return text.slice(0, -country.length).trim() || text;
+      }
+      return text;
+    }
+
     function renderDetailFlightRoutePoint(city, dateTime, reverse = false) {
-      const cityHtml = `<div class="detail-flight-route-city">${escapeHtml(city || "확인 필요")}</div>`;
+      const displayCity = formatDetailFlightRouteCity(city);
+      const cityHtml = `<div class="detail-flight-route-city">${escapeHtml(displayCity || "확인 필요")}</div>`;
       const timeHtml = `<div class="detail-flight-route-time">${escapeHtml(dateTime || "시간 확인 중")}</div>`;
       return `
         <div class="detail-flight-route-point">
@@ -36916,31 +37586,35 @@
       return false;
     }
 
-    function getKoreanHolidaySet(year) {
+    function getKoreanHolidayMap(year) {
       const holidays = {
-        2026: [
-          "2026-01-01",
-          "2026-02-16",
-          "2026-02-17",
-          "2026-02-18",
-          "2026-03-01",
-          "2026-03-02",
-          "2026-05-05",
-          "2026-05-24",
-          "2026-05-25",
-          "2026-06-06",
-          "2026-08-15",
-          "2026-08-17",
-          "2026-09-24",
-          "2026-09-25",
-          "2026-09-26",
-          "2026-10-03",
-          "2026-10-05",
-          "2026-10-09",
-          "2026-12-25"
-        ]
+        2026: {
+          "2026-01-01": "신정",
+          "2026-02-16": "설날",
+          "2026-02-17": "설날",
+          "2026-02-18": "설날",
+          "2026-03-01": "삼일절",
+          "2026-03-02": "대체공휴일",
+          "2026-05-05": "어린이날",
+          "2026-05-24": "부처님오신날",
+          "2026-05-25": "대체공휴일",
+          "2026-06-06": "현충일",
+          "2026-08-15": "광복절",
+          "2026-08-17": "대체공휴일",
+          "2026-09-24": "추석",
+          "2026-09-25": "추석",
+          "2026-09-26": "추석",
+          "2026-10-03": "개천절",
+          "2026-10-05": "대체공휴일",
+          "2026-10-09": "한글날",
+          "2026-12-25": "성탄절"
+        }
       };
-      return new Set(holidays[year] || []);
+      return new Map(Object.entries(holidays[year] || {}));
+    }
+
+    function getKoreanHolidaySet(year) {
+      return new Set(getKoreanHolidayMap(year).keys());
     }
 
     function getJoinCategoryClass(join) {
@@ -37444,10 +38118,10 @@
       const totalCellsBase = Math.ceil((startOffset + last.getDate()) / 7) * 7;
       const totalCells = options.forceSixWeeks ? Math.max(42, totalCellsBase) : totalCellsBase;
       const todayKey = getISODateKey(getTodayDate());
-      const holidaySets = new Map();
-      const getHolidaySetForYear = (targetYear) => {
-        if (!holidaySets.has(targetYear)) holidaySets.set(targetYear, getKoreanHolidaySet(targetYear));
-        return holidaySets.get(targetYear);
+      const holidayMaps = new Map();
+      const getHolidayMapForYear = (targetYear) => {
+        if (!holidayMaps.has(targetYear)) holidayMaps.set(targetYear, getKoreanHolidayMap(targetYear));
+        return holidayMaps.get(targetYear);
       };
       const labels = [];
       const weeks = [];
@@ -37490,7 +38164,8 @@
           const summary = getCalendarEventSummary(events);
           const canClickDate = !isMutedMonth && (events.length > 0 || canCreateSchedule);
           const isSunday = date.getDay() === 0;
-          const isHoliday = getHolidaySetForYear(date.getFullYear()).has(dateKey);
+          const holidayName = getHolidayMapForYear(date.getFullYear()).get(dateKey) || "";
+          const isHoliday = Boolean(holidayName);
           const isUnavailable = dateKey < getBuilderMinDepartureISO();
           const weekKey = `${getMonthKey(monthDate)}-${weekStart / 7}`;
           weekCells.push(`
@@ -37498,6 +38173,7 @@
               <button type="button" class="calendar-day-button" ${canClickDate ? `onclick="toggleCalendarDay('${weekKey}', '${dateKey}')"` : "disabled"}>
                 <strong>${displayDayNumber}</strong>
                 ${dateKey === todayKey ? `<div class="calendar-today-label">TODAY</div>` : ""}
+                ${holidayName && dateKey !== todayKey ? `<div class="calendar-holiday-label">${escapeHtml(holidayName)}</div>` : ""}
                 ${summary.domestic ? `<div class="calendar-event domestic">국내 ${summary.domestic}</div>` : ""}
                 ${summary.overseas ? `<div class="calendar-event overseas">해외 ${summary.overseas}</div>` : ""}
               </button>
@@ -37853,6 +38529,9 @@
         const inEndFlex = hasEnd && stamp >= endFlexMin && stamp <= endFlexMax;
         const isFlexDisplay = inStartFlex || inEndFlex;
         const isToday = stamp === todayStamp;
+        const iso = getISODateKey(date);
+        const holidayName = getKoreanHolidayMap(date.getFullYear()).get(iso) || "";
+        const isHoliday = Boolean(holidayName);
         const displayUnavailable = unavailable && !isFlexDisplay && !isStart && !isEnd && !isRange;
         if (isFlexDisplay) flexClasses.push("flex");
         if ((inStartFlex && startFlexMin === startFlexMax) || (inEndFlex && endFlexMin === endFlexMax)) {
@@ -37861,11 +38540,10 @@
           if ((inStartFlex && stamp === startFlexMin) || (inEndFlex && stamp === endFlexMin)) flexClasses.push("flex-edge-left");
           if ((inStartFlex && stamp === startFlexMax) || (inEndFlex && stamp === endFlexMax)) flexClasses.push("flex-edge-right");
         }
-        const cls = ["builder-day", muted ? "muted" : "", displayUnavailable ? "unavailable" : "", isToday ? "today" : "", weekday === 0 ? "sunday" : "", weekday === 6 ? "saturday" : "", ...new Set(flexClasses), isRange ? "range" : "", hasStart && hasEnd && !displayUnavailable && (isStart || isEnd) ? "linked" : "", !displayUnavailable && isStart ? "start" : "", !displayUnavailable && isEnd ? "end" : ""].filter(Boolean).join(" ");
-        const iso = getISODateKey(date);
+        const cls = ["builder-day", muted ? "muted" : "", displayUnavailable ? "unavailable" : "", isToday ? "today" : "", weekday === 0 ? "sunday" : "", weekday === 6 ? "saturday" : "", isHoliday ? "holiday" : "", ...new Set(flexClasses), isRange ? "range" : "", hasStart && hasEnd && !displayUnavailable && (isStart || isEnd) ? "linked" : "", !displayUnavailable && isStart ? "start" : "", !displayUnavailable && isEnd ? "end" : ""].filter(Boolean).join(" ");
         const departurePriceLabel = !displayUnavailable && !hasStart ? getBuilderDepartureDatePriceLabel(iso) : "";
         const returnPriceLabel = !displayUnavailable && !isStart && hasStart && !hasEnd ? getBuilderReturnDatePriceLabel(iso) : "";
-        const label = !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : departurePriceLabel ? `<div class="builder-day-label">${departurePriceLabel}</div>` : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : "";
+        const label = !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : departurePriceLabel ? `<div class="builder-day-label">${departurePriceLabel}</div>` : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : holidayName ? `<div class="builder-day-holiday-label">${escapeHtml(holidayName)}</div>` : "";
         const canClick = !isLoadingDates && (!unavailable || isStart || isEnd);
         const click = canClick ? (isStart ? "openBuilderDatePopover('start', this)" : isEnd ? "openBuilderDatePopover('end', this)" : `selectBuilderDate(${dayOffset}, this)`) : "";
         return `<button type="button" class="${cls}" data-builder-day-offset="${dayOffset}" ${click ? `onclick="${click}"` : "disabled"}><div class="builder-day-number">${day}</div>${label}</button>`;
@@ -38082,8 +38760,8 @@
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
       const formatShort = (date) => `${date.getMonth() + 1}.${date.getDate()}<span class="builder-date-weekday">${weekdays[date.getDay()]}</span>`;
       const formatPlain = (date) => `${date.getMonth() + 1}.${date.getDate()}(${weekdays[date.getDay()]})`;
-      const chevronLeft = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      const chevronRight = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const minusIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"/></svg>';
+      const plusIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>';
       const disabledAttr = (side, delta) => canChangeBuilderPopoverFlex(target, side, delta) ? "" : " disabled";
       const label = target === "start" ? "출발일" : "도착일";
       const selectedText = formatShort(selectedDate);
@@ -38111,22 +38789,29 @@
           <div class="builder-date-side-stepper">
             <div class="builder-date-side-label">전</div>
             <div class="builder-date-side-controls">
-              <button type="button" onclick="changeBuilderPopoverFlex('before', 1)" aria-label="이전 여유날짜 늘리기"${disabledAttr("before", 1)}>${chevronLeft}</button>
+              <button type="button" onclick="changeBuilderPopoverFlex('before', -1)" aria-label="이전 여유날짜 줄이기"${disabledAttr("before", -1)}>${minusIcon}</button>
               <span id="builderMobileBeforeFlex">+${before}일</span>
-              <button type="button" onclick="changeBuilderPopoverFlex('before', -1)" aria-label="이전 여유날짜 줄이기"${disabledAttr("before", -1)}>${chevronRight}</button>
+              <button type="button" onclick="changeBuilderPopoverFlex('before', 1)" aria-label="이전 여유날짜 늘리기"${disabledAttr("before", 1)}>${plusIcon}</button>
             </div>
           </div>
-          <div class="builder-date-title-selected">${selectedText}</div>
+          <div class="builder-date-center-stepper">
+            <div class="builder-date-side-label">기준일</div>
+            <div class="builder-date-title-selected">${selectedText}</div>
+          </div>
           <div class="builder-date-side-stepper">
             <div class="builder-date-side-label">후</div>
             <div class="builder-date-side-controls">
-              <button type="button" onclick="changeBuilderPopoverFlex('after', -1)" aria-label="이후 여유날짜 줄이기"${disabledAttr("after", -1)}>${chevronLeft}</button>
+              <button type="button" onclick="changeBuilderPopoverFlex('after', -1)" aria-label="이후 여유날짜 줄이기"${disabledAttr("after", -1)}>${minusIcon}</button>
               <span id="builderMobileAfterFlex">+${after}일</span>
-              <button type="button" onclick="changeBuilderPopoverFlex('after', 1)" aria-label="이후 여유날짜 늘리기"${disabledAttr("after", 1)}>${chevronRight}</button>
+              <button type="button" onclick="changeBuilderPopoverFlex('after', 1)" aria-label="이후 여유날짜 늘리기"${disabledAttr("after", 1)}>${plusIcon}</button>
             </div>
           </div>
         </div>
       `;
+    }
+
+    function formatBuilderFlexDayCount(value) {
+      return `+${Math.max(0, Number(value) || 0)}일`;
     }
 
     function updateBuilderPopoverFlexButtons() {
@@ -38134,6 +38819,18 @@
         const side = button.dataset.builderPopoverFlexSide;
         const delta = Number(button.dataset.builderPopoverFlexDelta);
         button.disabled = !canChangeBuilderPopoverFlex(activeBuilderPopoverTarget, side, delta);
+      });
+    }
+
+    function syncBuilderDateModeToggleState() {
+      const popover = document.getElementById("builderDatePopover");
+      const buttons = popover?.querySelectorAll(".builder-date-mode-button");
+      if (!buttons?.length) return;
+      buttons.forEach((button) => {
+        const isFlexButton = button.getAttribute("onclick")?.includes("'flex'");
+        const isActive = Boolean(isFlexButton) === Boolean(activeBuilderPopoverFlexOpen);
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", isActive ? "true" : "false");
       });
     }
 
@@ -38209,8 +38906,8 @@
       }
       activeBuilderPopoverTrigger = trigger;
       renderBuilderDatePopoverTitle(target, day, flexBefore, flexAfter);
-      document.getElementById("builderPopoverBeforeFlex").textContent = `${flexBefore}일`;
-      document.getElementById("builderPopoverAfterFlex").textContent = `${flexAfter}일`;
+      document.getElementById("builderPopoverBeforeFlex").textContent = formatBuilderFlexDayCount(flexBefore);
+      document.getElementById("builderPopoverAfterFlex").textContent = formatBuilderFlexDayCount(flexAfter);
       updateBuilderPopoverFlexButtons();
 
       popover.classList.remove("above", "flex-open");
@@ -38363,9 +39060,12 @@
         };
       }
       popover.classList.toggle("flex-open", activeBuilderPopoverFlexOpen);
+      syncBuilderDateModeToggleState();
       if (isBuilderDateBottomPanelMode()) {
         const prefix = activeBuilderPopoverTarget === "start" ? "start" : "end";
-        renderBuilderDatePopoverTitle(activeBuilderPopoverTarget, activeBuilderPopoverDay, builderState[`${prefix}Before`], builderState[`${prefix}After`]);
+        window.setTimeout(() => {
+          renderBuilderDatePopoverTitle(activeBuilderPopoverTarget, activeBuilderPopoverDay, builderState[`${prefix}Before`], builderState[`${prefix}After`]);
+        }, 260);
       }
       requestAnimationFrame(() => {
         positionBuilderDatePopover(popover, activeBuilderPopoverTrigger, activeBuilderPopoverTrigger?.closest(".builder-calendar-card"));
@@ -38392,11 +39092,17 @@
       }
       const before = builderState[`${prefix}Before`];
       const after = builderState[`${prefix}After`];
-      renderBuilderDatePopoverTitle(activeBuilderPopoverTarget, activeBuilderPopoverDay, before, after);
-      document.getElementById("builderPopoverBeforeFlex").textContent = `${before}일`;
-      document.getElementById("builderPopoverAfterFlex").textContent = `${after}일`;
       popover.classList.add("open");
       popover.classList.toggle("flex-open", activeBuilderPopoverFlexOpen);
+      syncBuilderDateModeToggleState();
+      window.setTimeout(() => {
+        renderBuilderDatePopoverTitle(activeBuilderPopoverTarget, activeBuilderPopoverDay, before, after);
+        const beforeEl = document.getElementById("builderPopoverBeforeFlex");
+        const afterEl = document.getElementById("builderPopoverAfterFlex");
+        if (beforeEl) beforeEl.textContent = formatBuilderFlexDayCount(before);
+        if (afterEl) afterEl.textContent = formatBuilderFlexDayCount(after);
+        updateBuilderPopoverFlexButtons();
+      }, 260);
       updateBuilderPopoverFlexButtons();
       updateBuilderSummary();
       updateBuilderNotice();
@@ -38450,15 +39156,15 @@
         builderState[key] = previous;
         clampBuilderFlexWindow(key);
       }
-      document.getElementById(side === "before" ? "builderPopoverBeforeFlex" : "builderPopoverAfterFlex").textContent = `${builderState[key]}일`;
+      document.getElementById(side === "before" ? "builderPopoverBeforeFlex" : "builderPopoverAfterFlex").textContent = formatBuilderFlexDayCount(builderState[key]);
       updateBuilderPopoverFlexButtons();
       if (window.matchMedia("(max-width: 640px)").matches) {
         const before = builderState[`${prefix}Before`];
         const after = builderState[`${prefix}After`];
         renderBuilderCalendar();
         renderBuilderDatePopoverTitle(activeBuilderPopoverTarget, activeBuilderPopoverDay, before, after);
-        document.getElementById("builderPopoverBeforeFlex").textContent = `${before}일`;
-        document.getElementById("builderPopoverAfterFlex").textContent = `${after}일`;
+        document.getElementById("builderPopoverBeforeFlex").textContent = formatBuilderFlexDayCount(before);
+        document.getElementById("builderPopoverAfterFlex").textContent = formatBuilderFlexDayCount(after);
         activeBuilderPopoverFlexOpen = true;
         document.getElementById("builderDatePopover")?.classList.add("open", "flex-open");
         updateBuilderSummary();
@@ -40235,6 +40941,7 @@
       const wishes = Array.isArray(data.wishes) ? data.wishes : [];
       const displayRules = Array.isArray(data.displayRules) ? data.displayRules : [];
       queueHeroCalendarProfileCount(data.visitorCount ?? data.profileCount);
+      updateHeroCalendarActiveCount(data.activeUserCount);
       googleSheetBuilderApplicationsLoading = false;
       googleSheetJoinApplicationsLoading = false;
       googleSheetJoinWishesLoading = false;
@@ -40291,8 +40998,9 @@
           const payload = await getBuilderApplyPayload();
           if (!validateBuilderApplyPayload(payload)) return { ok: false };
           await saveBuilderApplyToGoogleSheet(payload);
-          upsertBuilderApplicationJoin(payload, { persist: true });
-          return { ok: true };
+          const join = upsertBuilderApplicationJoin(payload, { persist: true });
+          latestBuilderApplicationShareJoin = join;
+          return { ok: true, join, payload };
         }, {
           button: next,
           message: "모임을 생성 중이에요."
@@ -40544,8 +41252,8 @@
       const selectedDate = new Date(builderState.viewYear, builderState.viewMonth, isStart ? builderState.startDay : builderState.endDay);
       document.getElementById("builderFlexTitle").textContent = isStart ? "출발일 선택" : "도착일 선택";
       document.getElementById("builderFlexDate").textContent = `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일`;
-      document.getElementById("builderBeforeFlex").textContent = `${isStart ? builderState.startBefore : builderState.endBefore}일`;
-      document.getElementById("builderAfterFlex").textContent = `${isStart ? builderState.startAfter : builderState.endAfter}일`;
+      document.getElementById("builderBeforeFlex").textContent = formatBuilderFlexDayCount(isStart ? builderState.startBefore : builderState.endBefore);
+      document.getElementById("builderAfterFlex").textContent = formatBuilderFlexDayCount(isStart ? builderState.startAfter : builderState.endAfter);
       sheet?.classList.add("open");
     }
 
@@ -40558,7 +41266,7 @@
       const key = `${prefix}${side === "before" ? "Before" : "After"}`;
       builderState[key] = Math.max(0, Math.min(7, builderState[key] + delta));
       clampBuilderFlexWindow(key);
-      document.getElementById(side === "before" ? "builderBeforeFlex" : "builderAfterFlex").textContent = `${builderState[key]}일`;
+      document.getElementById(side === "before" ? "builderBeforeFlex" : "builderAfterFlex").textContent = formatBuilderFlexDayCount(builderState[key]);
       renderBuilderCalendar();
     }
 
@@ -40879,7 +41587,7 @@
       ["미얀마", "해외"], ["양곤, 미얀마", "해외"],
       ["베트남", "해외"], ["다낭, 베트남", "해외"], ["푸꾸옥, 베트남", "해외"], ["하노이, 베트남", "해외"], ["호치민, 베트남", "해외"],
       ["브루나이", "해외"], ["엠파이어 호텔 컨트리클럽, 브루나이", "해외"],
-      ["인도네시아", "해외"], ["롬복, 인도네시아", "해외"], ["자카르타, 인도네시아", "해외"], ["바탐, 인도네시아", "해외"],
+      ["인도네시아", "해외"], ["발리, 인도네시아", "해외"], ["롬복, 인도네시아", "해외"], ["자카르타, 인도네시아", "해외"], ["바탐, 인도네시아", "해외"],
       ["태국", "해외"], ["방콕, 태국", "해외"], ["파타야, 태국", "해외"], ["후아힌, 태국", "해외"], ["치앙마이, 태국", "해외"], ["카오야이, 태국", "해외"], ["푸켓, 태국", "해외"],
       ["필리핀", "해외"], ["마닐라, 필리핀", "해외"], ["세부, 필리핀", "해외"], ["클락, 필리핀", "해외"],
       ["일본", "해외"], ["구마모토, 일본", "해외"], ["가고시마, 일본", "해외"], ["기타큐슈, 일본", "해외"], ["나가사키, 일본", "해외"], ["나고야, 일본", "해외"], ["미야자키, 일본", "해외"], ["오키나와, 일본", "해외"], ["아오모리, 일본", "해외"], ["후쿠오카, 일본", "해외"], ["이바라키, 일본", "해외"], ["시즈오카, 일본", "해외"],
@@ -40896,7 +41604,7 @@
           { name: "미얀마", cities: ["양곤"] },
           { name: "베트남", cities: ["다낭", "푸꾸옥", "하노이", "호치민"] },
           { name: "브루나이", cities: ["엠파이어 호텔 컨트리클럽"] },
-          { name: "인도네시아", cities: ["롬복", "자카르타", "바탐"] },
+          { name: "인도네시아", cities: ["발리", "롬복", "자카르타", "바탐"] },
           { name: "태국", cities: ["방콕", "파타야", "후아힌", "치앙마이", "카오야이", "푸켓"] },
           { name: "필리핀", cities: ["마닐라", "세부", "클락"] }
         ]
@@ -42555,7 +43263,7 @@
                 <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
               </svg>
               <div class="region-product-location">${getJoinLocationLabel(product)}</div>
-              ${renderJoinCategoryChip(product)}
+              ${renderJoinFlightChip(product)}
             </div>
             <div class="region-product-name">${product.title}</div>
             <div class="region-product-date">${formatCardDateRange(product)}</div>
@@ -43169,6 +43877,118 @@
     function normalizeRegionKeyword(value) {
       return String(value || "").replace(/\s+/g, "").replace(/[(),·/]/g, "").toLowerCase();
     }
+
+    function getRegionMasterCountryMap() {
+      const countries = new Map();
+      (regionTree || []).forEach((category) => {
+        (category.countries || []).forEach((country) => {
+          const name = String(country.name || "").trim();
+          if (!name) return;
+          countries.set(normalizeRegionKeyword(name), {
+            category: category.category || "",
+            name,
+            cities: new Set((country.cities || []).map((city) => normalizeRegionKeyword(city)).filter(Boolean)),
+            cityNames: country.cities || []
+          });
+        });
+      });
+      return countries;
+    }
+
+    function inferRegionMasterProductCountry(product = {}, countryMap = getRegionMasterCountryMap()) {
+      const direct = [product.country, product.countryName, product.nation, product.productCountry, product.erpCountry]
+        .map((value) => String(value || "").trim())
+        .find(Boolean);
+      if (direct) return direct;
+      const regionText = [product.region, product.area, product.city, product.location]
+        .map((value) => String(value || "").trim())
+        .filter(Boolean)
+        .join(" ");
+      const regionKey = normalizeRegionKeyword(regionText);
+      for (const country of countryMap.values()) {
+        if (regionKey && regionKey === normalizeRegionKeyword(country.name)) return country.name;
+        if (regionKey && country.cities.has(regionKey)) return country.name;
+      }
+      const haystack = normalizeRegionKeyword([
+        product.title,
+        product.productName,
+        product.goodName,
+        product.region,
+        product.area,
+        product.city,
+        product.location
+      ].filter(Boolean).join(" "));
+      for (const country of countryMap.values()) {
+        if (haystack.includes(normalizeRegionKeyword(country.name))) return country.name;
+      }
+      return "";
+    }
+
+    function inferRegionMasterProductRegion(product = {}, countryName = "", countryMap = getRegionMasterCountryMap()) {
+      const rawRegion = [product.region, product.area, product.city, product.location]
+        .map((value) => String(value || "").trim())
+        .find(Boolean) || "";
+      const country = countryMap.get(normalizeRegionKeyword(countryName));
+      const directRegion = String(rawRegion || "").split(",").map((part) => part.trim()).filter(Boolean)[0] || "";
+      if (directRegion && normalizeRegionKeyword(directRegion) !== normalizeRegionKeyword(countryName)) return directRegion;
+      if (!country) return directRegion;
+      const haystack = normalizeRegionKeyword([product.title, product.productName, product.goodName, rawRegion].filter(Boolean).join(" "));
+      return (country.cityNames || []).find((city) => haystack.includes(normalizeRegionKeyword(city))) || directRegion;
+    }
+
+    function auditGolfJoinRegionMaster() {
+      const countryMap = getRegionMasterCountryMap();
+      const searchItemKeys = new Set((regionSearchItems || []).map(([name]) => normalizeRegionKeyword(name)));
+      const products = (typeof getBuilderProductSource === "function" ? getBuilderProductSource() : [])
+        .filter((product) => product && (product.title || product.productName || product.region));
+      const missingCountries = new Map();
+      const missingCities = new Map();
+      const missingSearchItems = new Map();
+      products.forEach((product) => {
+        const countryName = inferRegionMasterProductCountry(product, countryMap);
+        const regionName = inferRegionMasterProductRegion(product, countryName, countryMap);
+        if (!countryName) return;
+        const countryKey = normalizeRegionKeyword(countryName);
+        const country = countryMap.get(countryKey);
+        const title = product.title || product.productName || product.goodName || product.id || "";
+        if (!country) {
+          if (!missingCountries.has(countryName)) missingCountries.set(countryName, { country: countryName, examples: [] });
+          missingCountries.get(countryName).examples.push(title);
+          return;
+        }
+        if (!searchItemKeys.has(countryKey)) {
+          missingSearchItems.set(country.name, { name: country.name, type: "country", expected: country.name });
+        }
+        const regionKey = normalizeRegionKeyword(regionName);
+        if (!regionKey || regionKey === countryKey) return;
+        if (!country.cities.has(regionKey)) {
+          const key = `${country.name}|${regionName}`;
+          if (!missingCities.has(key)) missingCities.set(key, { country: country.name, city: regionName, examples: [] });
+          missingCities.get(key).examples.push(title);
+        }
+        const searchName = regionLabel(regionName, country.name);
+        if (!searchItemKeys.has(normalizeRegionKeyword(searchName))) {
+          missingSearchItems.set(searchName, { name: searchName, type: "city", expected: searchName });
+        }
+      });
+      const result = {
+        productCount: products.length,
+        missingCountries: [...missingCountries.values()].map((item) => ({ ...item, examples: item.examples.slice(0, 3) })),
+        missingCities: [...missingCities.values()].map((item) => ({ ...item, examples: item.examples.slice(0, 3) })),
+        missingSearchItems: [...missingSearchItems.values()]
+      };
+      if (result.missingCountries.length || result.missingCities.length || result.missingSearchItems.length) {
+        console.groupCollapsed("[GolfJoin] Region master audit");
+        console.log(result);
+        if (result.missingCountries.length) console.table(result.missingCountries);
+        if (result.missingCities.length) console.table(result.missingCities);
+        if (result.missingSearchItems.length) console.table(result.missingSearchItems);
+        console.groupEnd();
+      }
+      return result;
+    }
+
+    window.auditGolfJoinRegionMaster = auditGolfJoinRegionMaster;
 
     function getRegionSearchTokens(value) {
       const rawParts = String(value || "").split(/[,\s/·()]+/).map((item) => item.trim()).filter(Boolean);
@@ -46374,6 +47194,13 @@
       return country.tokens.some((token) => haystack.includes(normalizeRegionKeyword(token)));
     }
 
+    function getMdPickDisplayDedupKey(item = {}) {
+      const title = normalizeRegionKeyword(item.title || "");
+      const region = normalizeRegionKeyword(item.region || "");
+      const packType = String(item.packType || "").trim().toLowerCase();
+      return [item.countryKey || "", packType, title || region].join("|");
+    }
+
     function getMdPickRepresentativeProducts(country) {
       const minDepartureIso = getBuilderMinDepartureISO();
       const groups = new Map();
@@ -46414,8 +47241,15 @@
           });
         }
       });
+      const seenDisplayKeys = new Set();
       return [...groups.values()]
         .sort((a, b) => a.price - b.price || String(a.departureDate).localeCompare(String(b.departureDate)) || String(a.title).localeCompare(String(b.title), "ko"))
+        .filter((item) => {
+          const displayKey = getMdPickDisplayDedupKey(item);
+          if (seenDisplayKeys.has(displayKey)) return false;
+          seenDisplayKeys.add(displayKey);
+          return true;
+        })
         .slice(0, 4);
     }
 
@@ -48006,6 +48840,57 @@
       return `sms://${smsSeparator}body=${encodeURIComponent(shareUrl)}`;
     }
 
+    function getCurrentGolfJoinShareUrl() {
+      const url = new URL(window.location.href);
+      [
+        "afterLogin",
+        "applyJoinId",
+        "wishJoinId",
+        "builderAction",
+        "builderProductId",
+        "productGroupKey",
+        "countryKey",
+        "returnUrl"
+      ].forEach((key) => url.searchParams.delete(key));
+      url.hash = "";
+      return url.toString();
+    }
+
+    function buildCompletionSharePayload(type = "apply") {
+      const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || null;
+      if (type === "apply" && join) {
+        return {
+          ...join,
+          title: join.title || "시크릿투어 조인골프",
+          description: join.goodDescription || join.description || "함께 떠나는 시크릿투어 조인골프",
+          imageUrl: getDetailSlides(join)[0] || join.image || "",
+          sourceUrl: buildDetailGoodsSourceUrl(join)
+        };
+      }
+      if (type === "builder" && latestBuilderApplicationShareJoin) {
+        const createdJoin = latestBuilderApplicationShareJoin;
+        return {
+          ...createdJoin,
+          title: createdJoin.title || "시크릿투어 조인골프",
+          description: "생성된 조인 일정 상세를 공유합니다.",
+          imageUrl: getDetailSlides(createdJoin)[0] || createdJoin.image || "",
+          sourceUrl: buildDetailGoodsSourceUrl(createdJoin)
+        };
+      }
+      const builderProduct = builderState.productId
+        ? (currentDetailJoinData || [...(externalGolfJoinProducts || []), ...joins].find((item) => item.id === builderState.productId))
+        : null;
+      return {
+        ...(builderProduct || {}),
+        title: builderProduct?.title || "시크릿투어 조인골프",
+        description: type === "builder"
+          ? "새로운 골프 조인 모임을 함께 만들어보세요."
+          : "취향이 통하는 골프친구와 함께 떠나는 조인여행",
+        imageUrl: builderProduct ? (getDetailSlides(builderProduct)[0] || builderProduct.image || "") : "",
+        sourceUrl: builderProduct ? buildDetailGoodsSourceUrl(builderProduct) : getCurrentGolfJoinShareUrl()
+      };
+    }
+
     function ensureDetailShareModal() {
       let overlay = document.getElementById("detailShareModal");
       if (overlay) return overlay;
@@ -48027,36 +48912,71 @@
       modal?.classList.remove("open");
     }
 
+    function copyTextWithSelectionFallback(text) {
+      const target = document.createElement("textarea");
+      target.value = text;
+      target.setAttribute("readonly", "");
+      target.style.position = "fixed";
+      target.style.left = "-9999px";
+      target.style.top = "0";
+      target.style.opacity = "0";
+      document.body.appendChild(target);
+      target.focus();
+      target.select();
+      if (target.setSelectionRange) target.setSelectionRange(0, target.value.length);
+      let copied = false;
+      try {
+        copied = document.execCommand("copy");
+      } finally {
+        target.remove();
+      }
+      return copied;
+    }
+
     async function copyDetailShareUrl() {
       const input = document.getElementById("detailShareUrlInput");
       const url = input?.value || "";
       if (!url) return;
       try {
-        if (navigator.clipboard?.writeText) {
+        let copied = false;
+        if (window.isSecureContext && navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(url);
+          copied = true;
         } else {
-          input.focus();
-          input.select();
-          document.execCommand("copy");
+          copied = copyTextWithSelectionFallback(url);
         }
+        if (!copied) copied = copyTextWithSelectionFallback(url);
+        if (!copied) throw new Error("Clipboard copy failed");
         alert("링크가 복사되었습니다.");
       } catch (error) {
         input?.focus();
         input?.select();
         console.warn("copy failed", error);
+        window.prompt("자동 복사가 제한되어 있습니다. 아래 주소를 복사해 주세요.", url);
       }
     }
 
-    function shareDetailToKakao() {
+    async function shareDetailToKakao() {
       const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
-      const url = document.getElementById("detailShareUrlInput")?.value || buildDetailGoodsSourceUrl(join);
-      if (window.Kakao?.Link?.sendDefault) {
-        window.Kakao.Link.sendDefault({
+      const payload = currentSharePayload || join;
+      const url = document.getElementById("detailShareUrlInput")?.value || payload.url || payload.sourceUrl || buildDetailGoodsSourceUrl(join);
+      let KakaoSdk = window.Kakao;
+      if (!KakaoSdk?.Link?.sendDefault) {
+        try {
+          KakaoSdk = await ensureJoinKakaoSdk();
+        } catch (error) {
+          console.warn("Kakao share sdk failed", error);
+        }
+      }
+      if (KakaoSdk && !KakaoSdk.isInitialized?.()) KakaoSdk.init(JOIN_KAKAO_JS_KEY);
+      if (KakaoSdk?.Link?.sendDefault) {
+        KakaoSdk.Link.sendDefault({
           objectType: "feed",
           content: {
-            title: join.title || document.title,
+            title: payload.title || join.title || document.title,
             description: join.goodDescription || join.description || "시크릿투어 골프여행",
-            imageUrl: getDetailSlides(join)[0] || join.image || "",
+            description: payload.description || join.goodDescription || join.description || "시크릿투어 골프여행",
+            imageUrl: payload.imageUrl || getDetailSlides(join)[0] || join.image || "",
             link: {
               mobileWebUrl: url,
               webUrl: url
@@ -48071,6 +48991,7 @@
     function openDetailShareModal(join, shareUrl) {
       const overlay = ensureDetailShareModal();
       const title = join?.title || document.title;
+      currentSharePayload = { ...(join || {}), title, url: shareUrl, sourceUrl: join?.sourceUrl || shareUrl };
       overlay.innerHTML = `
         <div class="detail-share-panel" role="dialog" aria-modal="true" aria-labelledby="detailShareTitle">
           <div class="detail-share-head">
@@ -48097,6 +49018,7 @@
     function updateDetailShareModalUrl(shareUrl, title = document.title) {
       const input = document.getElementById("detailShareUrlInput");
       if (input) input.value = shareUrl;
+      if (currentSharePayload) currentSharePayload.url = shareUrl;
     }
 
     async function handleDetailShare() {
@@ -48106,7 +49028,15 @@
       const shareUrl = await fetchDetailShareUrl(sourceUrl);
       if (shareUrl !== sourceUrl) updateDetailShareModalUrl(shareUrl, join.title || document.title);
     }
+    async function handleCompletionShare(type = "apply") {
+      const payload = buildCompletionSharePayload(type);
+      const sourceUrl = payload.sourceUrl || getCurrentGolfJoinShareUrl();
+      openDetailShareModal(payload, sourceUrl);
+      const shareUrl = await fetchDetailShareUrl(sourceUrl);
+      if (shareUrl !== sourceUrl) updateDetailShareModalUrl(shareUrl, payload.title || document.title);
+    }
     window.handleDetailShare = handleDetailShare;
+    window.handleCompletionShare = handleCompletionShare;
     window.closeDetailShareModal = closeDetailShareModal;
     window.handleDetailShareBackdrop = handleDetailShareBackdrop;
     window.copyDetailShareUrl = copyDetailShareUrl;
@@ -48169,7 +49099,7 @@
       if (kakao) kakao.hidden = true;
       if (dateChange) dateChange.hidden = true;
       if (primary) {
-        primary.textContent = "새 모임 만들기";
+        primary.textContent = "모임 만들기";
         primary.setAttribute("onclick", "handleDetailPrimaryAction()");
         primary.style.removeProperty("grid-column");
       }
@@ -48574,6 +49504,9 @@
         renderCompanionGenderRows("global");
       }
       if (group.closest("#joinMemberSignupForm")) {
+        if (group.dataset.chipGroup === "join-member-gender") {
+          syncJoinMemberGenderToggleSlider(group);
+        }
         if (group.dataset.chipGroup === "join-member-level" && chip.classList.contains("active")) {
           requestAnimationFrame(() => setJoinMemberSignupStep(5));
           return;
@@ -48726,8 +49659,6 @@
     submitGlobalApply = wrapJoinAsyncFunction(submitGlobalApply);
     openMdPickProductDetail = wrapJoinAsyncFunction(openMdPickProductDetail);
     handleDetailWish = wrapJoinAsyncFunction(handleDetailWish);
-    copyDetailShareUrl = wrapJoinAsyncFunction(copyDetailShareUrl);
-    handleDetailShare = wrapJoinAsyncFunction(handleDetailShare);
     window.handleDetailShare = handleDetailShare;
     window.copyDetailShareUrl = copyDetailShareUrl;
 
@@ -49200,7 +50131,7 @@
           </svg>
         </button>
         <div class="builder-header-copy">
-          <div class="builder-title">새 모임 만들기</div>
+          <div class="builder-title">새로운 모임 만들기</div>
         </div>
         <span class="modal-header-spacer" aria-hidden="true"></span>
       </div>
@@ -49247,7 +50178,10 @@
               <button type="button" onclick="changeBuilderPopoverFlex('before', -1)" aria-label="이전 여유날짜 줄이기" disabled=""><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
             </div>
           </div>
-          <div class="builder-date-title-selected">6.27<span class="builder-date-weekday">토</span></div>
+          <div class="builder-date-center-stepper">
+            <div class="builder-date-side-label">기준일</div>
+            <div class="builder-date-title-selected">6.27<span class="builder-date-weekday">토</span></div>
+          </div>
           <div class="builder-date-side-stepper">
             <div class="builder-date-side-label">후</div>
             <div class="builder-date-side-controls">
@@ -49263,8 +50197,8 @@
                 <button type="button" class="primary-action" onclick="fixBuilderSelectedDate()" style="margin-right: 0px !important;">이날만</button>
               </div>
               <div class="builder-date-flex-panel">
-                <div class="builder-date-flex-row"><div>전</div><div class="builder-stepper"><button type="button" data-builder-popover-flex-side="before" data-builder-popover-flex-delta="-1" onclick="changeBuilderPopoverFlex('before', -1)" style="margin-right: 0px !important;" disabled="">-</button><span id="builderPopoverBeforeFlex">0일</span><button type="button" data-builder-popover-flex-side="before" data-builder-popover-flex-delta="1" onclick="changeBuilderPopoverFlex('before', 1)" style="margin-right: 0px !important;">+</button></div></div>
-                <div class="builder-date-flex-row"><div>후</div><div class="builder-stepper"><button type="button" data-builder-popover-flex-side="after" data-builder-popover-flex-delta="-1" onclick="changeBuilderPopoverFlex('after', -1)" style="margin-right: 0px !important;" disabled="">-</button><span id="builderPopoverAfterFlex">0일</span><button type="button" data-builder-popover-flex-side="after" data-builder-popover-flex-delta="1" onclick="changeBuilderPopoverFlex('after', 1)" style="margin-right: 0px !important;">+</button></div></div>
+                <div class="builder-date-flex-row"><div>전</div><div class="builder-stepper"><button type="button" data-builder-popover-flex-side="before" data-builder-popover-flex-delta="-1" onclick="changeBuilderPopoverFlex('before', -1)" style="margin-right: 0px !important;" disabled=""><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderPopoverBeforeFlex">+0일</span><button type="button" data-builder-popover-flex-side="before" data-builder-popover-flex-delta="1" onclick="changeBuilderPopoverFlex('before', 1)" style="margin-right: 0px !important;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
+                <div class="builder-date-flex-row"><div>후</div><div class="builder-stepper"><button type="button" data-builder-popover-flex-side="after" data-builder-popover-flex-delta="-1" onclick="changeBuilderPopoverFlex('after', -1)" style="margin-right: 0px !important;" disabled=""><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderPopoverAfterFlex">+0일</span><button type="button" data-builder-popover-flex-side="after" data-builder-popover-flex-delta="1" onclick="changeBuilderPopoverFlex('after', 1)" style="margin-right: 0px !important;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
               <div class="builder-date-flex-actions"><button type="button" onclick="cancelBuilderPopoverFlex()" style="margin-right: 0px !important;">취소</button><button type="button" class="primary-action" onclick="confirmBuilderPopoverFlex()" style="margin-right: 0px !important;">선택완료</button></div>
               </div>
             </div>
@@ -49682,6 +50616,10 @@
                   <div class="apply-complete-action-label">밴드 가입하기</div>
                 </button>
               </div>
+              <button type="button" class="apply-complete-share-button" onclick="handleCompletionShare('builder')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+                <span>공유하기</span>
+              </button>
               <button type="button" class="apply-complete-close" onclick="closeAllJoinModals()">확인</button>
             </div>
           </div>
@@ -49694,8 +50632,8 @@
       </div>
       <div class="builder-flex-sheet" id="builderFlexSheet">
         <div class="builder-flex-head"><div><div class="builder-flex-title" id="builderFlexTitle">출발일 선택</div><div class="builder-subtitle" id="builderFlexDate">5월 1일</div></div><button type="button" class="modal-close-icon" onclick="closeBuilderFlexSheet()" aria-label="닫기"></button></div>
-        <div class="builder-stepper-row"><span>전</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('before', -1)">-</button><span id="builderBeforeFlex">0일</span><button type="button" onclick="changeBuilderFlex('before', 1)">+</button></div></div>
-        <div class="builder-stepper-row"><span>후</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('after', -1)">-</button><span id="builderAfterFlex">0일</span><button type="button" onclick="changeBuilderFlex('after', 1)">+</button></div></div>
+        <div class="builder-stepper-row"><span>전</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('before', -1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderBeforeFlex">+0일</span><button type="button" onclick="changeBuilderFlex('before', 1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
+        <div class="builder-stepper-row"><span>후</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('after', -1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderAfterFlex">+0일</span><button type="button" onclick="changeBuilderFlex('after', 1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
       </div>
       <div class="builder-product-detail" id="builderProductDetail">
         <div class="builder-header"><button type="button" class="modal-close-icon modal-back-icon" onclick="closeBuilderProductDetail()" aria-label="뒤로가기"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg></button><div class="builder-header-copy"><div class="builder-title">추천 상품 상세</div></div><span class="modal-header-spacer" aria-hidden="true"></span></div>

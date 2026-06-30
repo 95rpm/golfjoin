@@ -1325,6 +1325,8 @@ function readHomeBootstrapPayload_(params) {
       return String(row.section || "") === "available_schedule" && String(row.isVisible || "true").toLowerCase() !== "false";
     }).map(normalizeRowForJson_),
     profileCount: countCompletedJoinMemberProfiles_(),
+    visitorCount: 0,
+    activeUserCount: 0,
     wishes: canReadWishes
       ? filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_WISHES), {
         source: "join_wish",

@@ -13327,7 +13327,7 @@
       border: 0;
       border-radius: 15px;
       background: #f8f9fa;
-      padding: 16px 18px;
+      padding: 14px;
     }
     .detail-benefit-kicker {
       color: #101418;
@@ -13399,7 +13399,7 @@
     }
     .detail-monthly-progress {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+      grid-template-columns: minmax(0, 1fr);
       align-items: center;
       gap: 18px;
       padding: 16px;
@@ -13412,32 +13412,6 @@
       min-width: 0;
       gap: 14px;
     }
-    .detail-monthly-thumb-stack {
-      display: flex;
-      align-items: center;
-      width: var(--monthly-stack-width, 128px);
-      min-width: var(--monthly-stack-width, 128px);
-      height: 54px;
-    }
-    .detail-monthly-thumb {
-      width: 48px;
-      height: 48px;
-      margin-left: -12px;
-      border: 3px solid #fff;
-      border-radius: 999px;
-      background: #eef2f7;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
-      overflow: hidden;
-    }
-    .detail-monthly-thumb:first-child {
-      margin-left: 0;
-    }
-    .detail-monthly-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
     .detail-monthly-member-copy {
       display: grid;
       gap: 4px;
@@ -13445,13 +13419,13 @@
     }
     .detail-monthly-member-title {
       color: #101418;
-      font-size: 17px;
-      font-weight: 900;
+      font-size: 23px;
+      font-weight: 700;
       line-height: 1.2;
     }
     .detail-monthly-member-sub {
-      color: #697077;
-      font-size: 14px;
+      color: #848c94;
+      font-size: 16px;
       font-weight: 700;
       line-height: 1.3;
     }
@@ -13465,14 +13439,14 @@
       justify-content: space-between;
       align-items: baseline;
       gap: 10px;
-      color: #697077;
-      font-size: 13px;
-      font-weight: 800;
+      color: #848c94;
+      font-size: 17px;
+      font-weight: 600;
     }
     .detail-monthly-gauge-count {
-      color: #126bff;
+      color: #4887ff;
       font-size: 20px;
-      font-weight: 900;
+      font-weight: 800;
       line-height: 1;
       white-space: nowrap;
     }
@@ -13487,14 +13461,6 @@
       .detail-monthly-progress {
         grid-template-columns: 1fr;
         gap: 14px;
-      }
-      .detail-monthly-thumb-stack {
-        width: min(var(--monthly-stack-width, 128px), 116px);
-        min-width: min(var(--monthly-stack-width, 128px), 116px);
-      }
-      .detail-monthly-thumb {
-        width: 44px;
-        height: 44px;
       }
     }
     .detail-participant-status-pills {
@@ -13824,6 +13790,7 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
       .detail-participant-status-pills,
+      .detail-monthly-progress,
       .detail-participant-status-card .detail-team,
       .detail-participant-info-grid,
       .detail-participant-divider,
@@ -30258,11 +30225,10 @@
       const key = String(
         member.memberSeq
         || member.memberId
-        || normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || fallbackMobile || "")
         || member.memberEmail
         || ""
       ).trim();
-      return buildGoogleSheetRecordId("jmp", "member", key || fallbackMobile || "profile");
+      return buildGoogleSheetRecordId("jmp", "member", key || "profile");
     }
 
     function normalizeJoinMemberProfileRow(row = {}) {
@@ -32456,7 +32422,7 @@
       const seed = getJoinMyReservationProductSeed(joinId);
       const join = seed.join || {};
       const productReference = getSecretTourProductReference(join.id ? join : getNestedValue(application, "product") || getNestedValue(application, "join") || {});
-      const applicationRecordId = application.joinApplyId || buildGoogleSheetRecordId("ja", application.submittedAt, getNestedValue(application, "applicant.phone"), joinId);
+      const applicationRecordId = application.joinApplyId || buildGoogleSheetRecordId("ja", application.submittedAt, getNestedValue(application, "member.memberSeq") || getNestedValue(application, "member.memberId") || getNestedValue(application, "applicant.name") || "member", joinId);
       const hostParticipant = Array.isArray(join.participants) ? getConfirmedParticipants(join)[0] || null : null;
       return {
         joinId,
@@ -32648,7 +32614,7 @@
         updatedAt: item.updatedAt || item.submittedAt || ""
       };
       if (!normalized.reviewId) {
-        normalized.reviewId = buildGoogleSheetRecordId("jr", normalized.submittedAt || new Date().toISOString(), normalized.member.memberSeq || normalized.member.memberId || normalized.member.memberMobile, normalized.product.erpProductId || normalized.product.productName);
+        normalized.reviewId = buildGoogleSheetRecordId("jr", normalized.submittedAt || new Date().toISOString(), normalized.member.memberSeq || normalized.member.memberId || normalized.member.memberName || "member", normalized.product.erpProductId || normalized.product.productName);
       }
       return normalized;
     }
@@ -32783,8 +32749,8 @@
         .filter((application) => joins.some((item) => item.id === getNestedValue(application, "join.id")))
         .filter((application) => isJoinMyJoinApplicationForMember(application, member))
         .filter((application, index, list) => {
-          const key = String(application.joinApplyId || buildGoogleSheetRecordId("ja", application.submittedAt, getNestedValue(application, "applicant.phone"), getNestedValue(application, "join.id")) || "").trim();
-          return !key || list.findIndex((item) => String(item.joinApplyId || buildGoogleSheetRecordId("ja", item.submittedAt, getNestedValue(item, "applicant.phone"), getNestedValue(item, "join.id")) || "").trim() === key) === index;
+          const key = String(application.joinApplyId || buildGoogleSheetRecordId("ja", application.submittedAt, getNestedValue(application, "member.memberSeq") || getNestedValue(application, "member.memberId") || getNestedValue(application, "applicant.name") || "member", getNestedValue(application, "join.id")) || "").trim();
+          return !key || list.findIndex((item) => String(item.joinApplyId || buildGoogleSheetRecordId("ja", item.submittedAt, getNestedValue(item, "member.memberSeq") || getNestedValue(item, "member.memberId") || getNestedValue(item, "applicant.name") || "member", getNestedValue(item, "join.id")) || "").trim() === key) === index;
         })
         .filter((application) => {
           const join = joins.find((item) => item.id === getNestedValue(application, "join.id"));
@@ -35132,7 +35098,7 @@
       const member = getJoinCachedCurrentMember() || {};
       const submittedAt = new Date().toISOString();
       const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
-      const reviewId = presetReviewId || buildGoogleSheetRecordId("jr", submittedAt, member.memberSeq || member.memberId || memberMobile, productReference.id || join.id || title);
+      const reviewId = presetReviewId || buildGoogleSheetRecordId("jr", submittedAt, member.memberSeq || member.memberId || member.memberName || "member", productReference.id || join.id || title);
       return {
         reviewId,
         source: "join_review",
@@ -37167,6 +37133,9 @@
     }
 
     function getDetailDepartureRegion(join = {}) {
+      if (getDetailProductType(join) === "골프팩") return "개별";
+      const explicitDepartureAirport = String(join.departureAirport || join.airport || "").trim();
+      if (explicitDepartureAirport) return explicitDepartureAirport;
       const airport = String(join.airport || "").trim();
       if (isSecretTourAirlineName(airport) || isIndividualAirName(airport) || isIndividualAirName(join.air2CdNm) || isIndividualAirName(join.air2Nm) || isIndividualAirCode(join.air2Cd)) return "개별";
       return airport || "개별";
@@ -37330,26 +37299,6 @@
       return Number.isFinite(value) && value > 0 ? Math.round(value) : fallback;
     }
 
-    function renderDetailMonthlyThumbStack(participants = []) {
-      const fallbackThumbs = [
-        "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_man.webp",
-        "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_woman.webp",
-        "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp",
-        "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/woman1.webp"
-      ];
-      const thumbs = participants.slice(0, 4).map((participant) => ({
-        src: participant.gif || fallbackThumbs[0],
-        alt: participant.name || "참여자"
-      }));
-      while (thumbs.length < 4) {
-        thumbs.push({ src: fallbackThumbs[thumbs.length % fallbackThumbs.length], alt: "참여 예정 멤버" });
-      }
-      const width = 48 + Math.max(0, thumbs.length - 1) * 36;
-      return `<div class="detail-monthly-thumb-stack" style="--monthly-stack-width:${width}px;" aria-hidden="true">
-        ${thumbs.map((thumb, index) => `<div class="detail-monthly-thumb" style="z-index:${thumbs.length - index};"><img src="${escapeHtml(thumb.src)}" alt="${escapeHtml(thumb.alt)}" loading="lazy" decoding="async"></div>`).join("")}
-      </div>`;
-    }
-
     function renderDetailMonthlyParticipantStatus(join, confirmedParticipants, participantCapacity, options = {}) {
       const stats = getDetailParticipantStats(confirmedParticipants, participantCapacity);
       const capacity = getJoinRecruitmentCapacity(join, stats.capacity);
@@ -37358,6 +37307,20 @@
       const percent = Math.max(0, Math.min(100, capacity ? (count / capacity) * 100 : 0));
       const deadlineLabel = formatDetailDeadlineLabelV2(join);
       const interestCount = getDetailInterestCountV2(join, { ...stats, capacity, count, remaining });
+      const totalGenderCount = Math.max(1, stats.male + stats.female);
+      const malePercent = Math.max(0, Math.min(100, (stats.male / totalGenderCount) * 100));
+      const femalePercent = Math.max(0, Math.min(100 - malePercent, (stats.female / totalGenderCount) * 100));
+      const minMaleWidth = stats.male > 0 ? "8px" : "0";
+      const minFemaleWidth = stats.female > 0 ? "8px" : "0";
+      const maleRadius = stats.male > 0 && stats.female > 0 ? "999px 0 0 999px" : "999px";
+      const femaleRadius = stats.male > 0 && stats.female > 0 ? "0 999px 999px 0" : "999px";
+      const travelMatch = calculateDetailTravelMatch(join, confirmedParticipants);
+      const matchPercent = travelMatch.percent;
+      const styleTags = getDetailRoundStyleTagsV2(join, confirmedParticipants);
+      const isMatchLoginRequired = !getJoinCachedCurrentMember();
+      const matchGaugeClass = `detail-participant-match-gauge${isMatchLoginRequired ? " is-login-required" : ""}`;
+      const mobileMatchReasons = isMatchLoginRequired ? "" : renderDetailTravelMatchReasons(travelMatch.reasons, "mobile");
+      const desktopMatchReasons = isMatchLoginRequired ? "" : renderDetailTravelMatchReasons(travelMatch.reasons, "desktop");
       return `
         <div class="detail-participant-status">
           <div class="detail-participant-status-title">함께하는 멤버</div>
@@ -37374,21 +37337,19 @@
             </div>
             <div class="detail-monthly-progress">
               <div class="detail-monthly-member-side">
-                ${renderDetailMonthlyThumbStack(confirmedParticipants)}
                 <div class="detail-monthly-member-copy">
                   <div class="detail-monthly-member-title">월례회</div>
-                  <div class="detail-monthly-member-sub">${count > 0 ? `${count}명이 함께 신청했어요` : "참여 가능한 단체여행입니다"}</div>
+                  <div class="detail-monthly-member-sub">${count > 0 ? `${count}명이 함께 신청했어요` : "누구나 참여 가능한 단체여행입니다"}</div>
                 </div>
               </div>
               <div class="detail-monthly-gauge">
                 <div class="detail-monthly-gauge-head">
-                  <span>모집인원</span>
-                  <span class="detail-monthly-gauge-count">${count}/${capacity}명</span>
+                  <div>모집인원</div>
+                  <div class="detail-monthly-gauge-count">${count}/${capacity}명</div>
                 </div>
                 <div class="detail-participant-gauge-track" aria-hidden="true">
                   <div class="detail-participant-gauge-fill" style="--gauge-width:${percent}%;"></div>
                 </div>
-                <div class="detail-monthly-member-sub">남은자리 ${remaining}자리</div>
               </div>
             </div>
             <div class="detail-participant-info-grid">
@@ -37408,6 +37369,48 @@
                 <div class="detail-participant-info-label">평균핸디</div>
                 <div class="detail-participant-info-value">${escapeHtml(count > 0 ? stats.averageHandicap : "-")}</div>
               </div>
+            </div>
+            <div class="detail-participant-gender">
+              <div class="detail-participant-block-title">성별구성</div>
+              <div class="detail-participant-gender-row">
+                <div class="detail-participant-gender-side">
+                  <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_man.webp" alt="" loading="lazy" decoding="async">
+                  <div class="detail-participant-gender-mobile-label">남성 ${stats.male}명</div>
+                </div>
+                <div class="detail-participant-gender-center">
+                  <div class="detail-participant-gender-scale">
+                    <div class="detail-participant-gauge-track" aria-hidden="true">
+                      <div class="detail-participant-gauge-fill" style="--gauge-width:${malePercent}%; --gauge-min-width:${minMaleWidth}; --male-radius:${maleRadius};"></div>
+                      <div class="detail-participant-gauge-fill detail-participant-gender-fill-female" style="--male-width:${malePercent}%; --female-width:${femalePercent}%; --female-min-width:${minFemaleWidth}; --female-radius:${femaleRadius};"></div>
+                    </div>
+                  </div>
+                  <div class="detail-participant-gender-summary">남성 ${stats.male}명 · 여성 ${stats.female}명</div>
+                </div>
+                <div class="detail-participant-gender-side">
+                  <img class="detail-participant-gender-avatar" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/icon_woman.webp" alt="" loading="lazy" decoding="async">
+                  <div class="detail-participant-gender-mobile-label">여성 ${stats.female}명</div>
+                </div>
+              </div>
+            </div>
+            <div class="detail-participant-divider" aria-hidden="true"></div>
+            <div class="detail-participant-match">
+              <div class="detail-participant-match-head">
+                <div class="detail-participant-match-label">여행스타일 적합도<svg class="detail-participant-match-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="detailMonthlyMatchSparklesGradient" x1="4" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe681"></stop><stop offset="0.55" stop-color="#ffc233"></stop><stop offset="1" stop-color="#ff9f1c"></stop></linearGradient></defs><path fill="url(#detailMonthlyMatchSparklesGradient)" d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path fill="url(#detailMonthlyMatchSparklesGradient)" d="M20 2a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0V7h-2a1 1 0 1 1 0-2h2V3a1 1 0 0 1 1-1z"></path><circle cx="4" cy="20" r="2" fill="url(#detailMonthlyMatchSparklesGradient)"></circle></svg></div>
+              </div>
+              <div class="${matchGaugeClass}">
+                <div class="detail-participant-match-summary">${matchPercent}%</div>
+                <div class="detail-participant-gauge-track" aria-hidden="true">
+                  <div class="detail-participant-gauge-fill" style="--gauge-width:${matchPercent}%;"></div>
+                </div>
+                ${mobileMatchReasons}
+              </div>
+              <div class="detail-participant-style-chips mobile">
+                ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
+              </div>
+            </div>
+            ${desktopMatchReasons}
+            <div class="detail-participant-style-chips desktop">
+              ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
           </div>
         </div>
@@ -38104,8 +38107,17 @@
     }
 
     function getDetailAirportsFromSchedule(join = {}) {
+      const explicitDepartureAirport = String(join.departureAirport || "").trim();
+      const explicitArrivalAirport = String(join.arrivalAirport || "").trim();
       const schedule = Array.isArray(join.schedule) ? join.schedule : [];
-      if (!schedule.length) return {};
+      if (!schedule.length) {
+        return {
+          departureAirport: explicitDepartureAirport,
+          arrivalAirport: explicitArrivalAirport,
+          returnDepartureAirport: explicitArrivalAirport,
+          returnArrivalAirport: explicitDepartureAirport
+        };
+      }
       const firstText = getDetailScheduleSearchText(schedule[0]);
       const lastText = getDetailScheduleSearchText(schedule[schedule.length - 1]);
       const prevLastText = schedule.length > 1 ? getDetailScheduleSearchText(schedule[schedule.length - 2]) : "";
@@ -38114,10 +38126,10 @@
       const prevLastAirports = extractAirportNamesFromScheduleText(prevLastText);
       const returnAirports = lastAirports.length ? lastAirports : prevLastAirports;
       return {
-        departureAirport: firstAirports[0] || "",
-        arrivalAirport: firstAirports[1] || "",
-        returnDepartureAirport: returnAirports.length > 1 ? returnAirports[0] : "",
-        returnArrivalAirport: returnAirports.length > 1 ? returnAirports[returnAirports.length - 1] : (returnAirports[0] || "")
+        departureAirport: explicitDepartureAirport || firstAirports[0] || "",
+        arrivalAirport: explicitArrivalAirport || firstAirports[1] || "",
+        returnDepartureAirport: explicitArrivalAirport || (returnAirports.length > 1 ? returnAirports[0] : ""),
+        returnArrivalAirport: explicitDepartureAirport || (returnAirports.length > 1 ? returnAirports[returnAirports.length - 1] : (returnAirports[0] || ""))
       };
     }
 
@@ -40805,7 +40817,8 @@
       const requiredAgreed = true;
       const marketingAgreed = false;
       const submittedAt = new Date().toISOString();
-      const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, phone);
+      const builderMemberKey = memberProfile.member?.memberSeq || memberProfile.member?.memberId || memberProfile.memberId || name || "member";
+      const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, builderMemberKey);
       const scheduleId = buildGoogleSheetRecordId("sch", applicationId);
       const selectedProduct = getBuilderSelectedFixedProduct()
         || [...(externalGolfJoinProducts || []), ...joins].find((item) => item.id === builderState.productId)
@@ -41064,7 +41077,8 @@
       const productReference = getSecretTourProductReference(join);
       const submittedAt = new Date().toISOString();
       const phone = data.phone || "";
-      const joinApplyId = buildGoogleSheetRecordId("ja", submittedAt, phone, join.id || "");
+      const joinMemberKey = data.member?.memberSeq || data.member?.memberId || data.name || "member";
+      const joinApplyId = buildGoogleSheetRecordId("ja", submittedAt, joinMemberKey, join.id || "");
       return {
         joinApplyId,
         source: "join_apply",
@@ -41220,7 +41234,7 @@
 
     function rememberJoinApplicationPayload(payload) {
       const normalized = normalizeJoinApplyPayload(payload);
-      const key = normalized.joinApplyId || buildGoogleSheetRecordId("ja", normalized.submittedAt, getNestedValue(normalized, "applicant.phone"), getNestedValue(normalized, "join.id"));
+      const key = normalized.joinApplyId || buildGoogleSheetRecordId("ja", normalized.submittedAt, getNestedValue(normalized, "member.memberSeq") || getNestedValue(normalized, "member.memberId") || getNestedValue(normalized, "applicant.name") || "member", getNestedValue(normalized, "join.id"));
       if (key) joinApplicationPayloadMemory.set(key, normalized);
       return normalized;
     }
@@ -41314,7 +41328,7 @@
       const joinId = getNestedValue(normalized, "join.id");
       const join = joins.find((item) => item.id === joinId);
       if (!join) return null;
-      const recordId = normalized.joinApplyId || buildGoogleSheetRecordId("ja", normalized.submittedAt, getNestedValue(normalized, "applicant.phone"), joinId);
+      const recordId = normalized.joinApplyId || buildGoogleSheetRecordId("ja", normalized.submittedAt, getNestedValue(normalized, "member.memberSeq") || getNestedValue(normalized, "member.memberId") || getNestedValue(normalized, "applicant.name") || "member", joinId);
       if ((join.participants || []).some((participant) => String(participant.id || "").startsWith(`${recordId}-p`))) {
         join.emptySlots = Math.max(0, BUILDER_APPLICATION_MAX_CAPACITY - getConfirmedParticipants(join).length);
         return join;
@@ -41339,7 +41353,7 @@
           preferences: toBuilderApplicationArray(applicant.styles),
           message: index === 0 ? (applicant.greeting || "잘 부탁드립니다.") : "동반 참여 인원입니다.",
           status: "confirmed",
-          gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${applicant.phone || ""}`)
+          gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${applicant.name || index}`)
         };
       });
       join.participants = [...(join.participants || []), ...participants];
@@ -41458,7 +41472,15 @@
     }
 
     function buildGoogleSheetRecordId(prefix, ...parts) {
-      const safe = String(parts.join("-") || new Date().toISOString())
+      const scrubbedParts = parts.map((part) => {
+        const text = String(part || "");
+        const digits = text.replace(/\D/g, "");
+        if (/^010\d{8}$/.test(digits)) return "private";
+        return text
+          .replace(/010[-\s]?\d{4}[-\s]?\d{4}/g, "private")
+          .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "private");
+      });
+      const safe = String(scrubbedParts.join("-") || new Date().toISOString())
         .replace(/[^a-z0-9가-힣_-]+/gi, "-")
         .replace(/^-+|-+$/g, "");
       return `${prefix}_${safe}`;
@@ -41467,7 +41489,7 @@
     function ensureBuilderApplicationIdentifiers(payload = {}) {
       const submittedAt = payload.submittedAt || new Date().toISOString();
       const phone = getNestedValue(payload, "applicant.phone") || payload.creatorPhone || payload.phone || "";
-      const applicationId = payload.applicationId || buildGoogleSheetRecordId("nsa", submittedAt, phone);
+      const applicationId = payload.applicationId || buildGoogleSheetRecordId("nsa", submittedAt, payload.member?.memberSeq || payload.member?.memberId || "member");
       const scheduleId = payload.scheduleId || buildGoogleSheetRecordId("sch", applicationId);
       return {
         ...payload,
@@ -41713,7 +41735,7 @@
       const productName = getNestedValue(normalized, "trip.productName") || product?.title || "";
       const applicantName = getNestedValue(normalized, "applicant.name");
       const submittedAt = normalized.submittedAt || new Date().toISOString();
-      const idSeed = normalized.scheduleId || normalized.applicationId || `${submittedAt}-${getNestedValue(normalized, "applicant.phone")}-${productName}-${region}-${index}`.replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
+      const idSeed = normalized.scheduleId || normalized.applicationId || buildGoogleSheetRecordId("nsa", submittedAt, productName, region, index);
       const participantName = escapeBuilderApplicationText(maskBuilderApplicantName(applicantName));
       const participants = buildBuilderApplicationParticipants(normalized, fallback, idSeed || index, participantName);
       const savedProductPrice = parseBuilderApplicationPrice(getNestedValue(normalized, "trip.productPrice") || normalized.productPrice || normalized.price);
@@ -41961,7 +41983,11 @@
           singleRoomSurchargeText: summary.singleRoomSurchargeText || ""
         },
         trip: {
+          country: summary.country || "",
           region: summary.region || "",
+          airport: summary.airport || summary.departureAirport || "",
+          departureAirport: summary.departureAirport || summary.airport || "",
+          arrivalAirport: summary.arrivalAirport || "",
           productId: summary.erpProductId || "",
           erpProductId: summary.erpProductId || "",
           erpEventSeq: summary.erpEventSeq || "",
@@ -41985,6 +42011,9 @@
       if (summary.title) join.title = escapeBuilderApplicationText(summary.title);
       if (summary.region) join.region = escapeBuilderApplicationText(summary.region);
       if (summary.country) join.country = summary.country;
+      if (summary.airport) join.airport = summary.airport;
+      if (summary.departureAirport || summary.airport) join.departureAirport = summary.departureAirport || summary.airport;
+      if (summary.arrivalAirport) join.arrivalAirport = summary.arrivalAirport;
       const departureDate = normalizeSheetDateText(summary.departureDate);
       const returnDate = normalizeSheetDateText(summary.returnDate) || departureDate;
       if (departureDate) join.departureDate = departureDate;
@@ -42145,6 +42174,8 @@
       const title = rule.overrideTitle || product?.title || fallback.title || "추천 조인 일정";
       const ruleCountry = String(rule.country || "").trim();
       const ruleRegion = String(rule.region || "").trim();
+      const ruleDepartureAirport = String(rule.departureAirport || rule.airport || "").trim();
+      const ruleArrivalAirport = String(rule.arrivalAirport || "").trim();
       const rulePrice = Number(String(rule.productPrice || rule.price || "").replace(/[^\d.-]/g, ""));
       const category = product?.category || (ruleCountry && ruleCountry !== "한국" ? "해외" : "") || fallback.category || (product?.airport || rule.airport ? "해외" : "국내");
       return {
@@ -42157,11 +42188,13 @@
         departureDate,
         returnDate,
         date: `${departureDate} - ${returnDate}`,
-        country: product?.country || ruleCountry || fallback.country || "",
-        region: product?.region || ruleRegion || fallback.region || "",
+        country: ruleCountry || product?.country || fallback.country || "",
+        region: ruleRegion || product?.region || fallback.region || "",
         category,
-        airport: normalizeSecretTourAirportName(product?.airport, rule.airport, product?.air2CdNm, fallback.airport),
-        airline: product?.airline || normalizeSecretTourAirlineName(product?.air2Nm, product?.air2CdNm, rule.airline),
+        airport: normalizeSecretTourAirportName(ruleDepartureAirport, product?.airport, product?.air2CdNm, fallback.airport),
+        departureAirport: normalizeSecretTourAirportName(ruleDepartureAirport, product?.departureAirport, product?.airport, product?.air2CdNm, fallback.departureAirport, fallback.airport),
+        arrivalAirport: ruleArrivalAirport || product?.arrivalAirport || fallback.arrivalAirport || "",
+        airline: rule.airline || product?.airline || normalizeSecretTourAirlineName(product?.air2Nm, product?.air2CdNm),
         price: Number(product?.price) || (Number.isFinite(rulePrice) ? rulePrice : 0) || Number(fallback.price) || 0,
         image: rule.overrideImageUrl || product?.image || fallback.image || "",
         badge: rule.badgeType === "pinned" || isTruthyDisplayRuleValue(rule.isPinned) ? "추천일정" : (product?.badge || fallback.badge || "추천일정"),
@@ -44076,21 +44109,14 @@
         if (!response.ok) throw new Error(`Local golf join products load failed: ${response.status}`);
         return response.json();
       });
-      return Promise.allSettled(urls.map(loadPayload)).then((results) => {
-        const payloads = results
-          .filter((result) => result.status === "fulfilled" && Array.isArray(result.value?.items) && result.value.items.length)
-          .map((result) => result.value);
-        if (!payloads.length) {
-          const error = results.find((result) => result.status === "rejected")?.reason;
-          throw error || new Error("Local golf join products load failed.");
-        }
-        payloads.sort((a, b) => {
-          const dateCompare = String(b.generatedAt || "").localeCompare(String(a.generatedAt || ""));
-          if (dateCompare) return dateCompare;
-          return Number(b.count || b.items?.length || 0) - Number(a.count || a.items?.length || 0);
-        });
-        return payloads[0].items;
-      });
+      return urls.reduce((promise, url) => {
+        return promise.catch(() => loadPayload(url).then((payload) => {
+          if (!Array.isArray(payload?.items) || !payload.items.length) {
+            throw new Error(`Golf join products payload is empty: ${url}`);
+          }
+          return payload.items;
+        }));
+      }, Promise.reject(new Error("Golf join products load not started.")));
     }
 
     async function loadSecretTourGoodsProducts() {
@@ -44138,6 +44164,8 @@
         region: item.region || fallback.region || "",
         category: item.category || (normalizeSecretTourAirportName(item.airport, item.air2CdNm) ? "해외" : "국내"),
         airport: normalizeSecretTourAirportName(item.airport, item.departureAirport, item.depAirport, item.airportName, item.air2CdNm, fallback.airport),
+        departureAirport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm, fallback.departureAirport, fallback.airport),
+        arrivalAirport: item.arrivalAirport || item.arrAirport || item.toCity || item.arrivalCity || item.region || fallback.arrivalAirport || "",
         airline: item.airline || normalizeSecretTourAirlineName(item.air2Nm, item.air2CdNm, fallback.airline),
         departureDate: item.departureDate || fallback.departureDate,
         returnDate: item.returnDate || item.departureDate || fallback.returnDate,
@@ -46564,7 +46592,7 @@
           preferences: data.styles,
           message: index === 0 ? data.greeting : "동반 참여 인원입니다.",
           status: "confirmed",
-          gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${data.phone || ""}`)
+          gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${data.name || index}`)
         };
       });
       join.participants = [...(join.participants || []), ...participants];

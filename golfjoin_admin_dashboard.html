@@ -35,6 +35,9 @@
       font-family: var(--font-family-sgj);
       letter-spacing: 0;
     }
+    body.dashboard-busy {
+      overflow: hidden;
+    }
     button, input, select { font: inherit; }
     button { cursor: pointer; }
     [hidden] { display: none !important; }
@@ -287,6 +290,10 @@
       gap: 12px;
       margin-bottom: 16px;
     }
+    .metrics.with-action {
+      grid-template-columns: repeat(2, 125.66px) minmax(0, 1fr);
+      align-items: end;
+    }
     .metric {
       position: relative;
       min-height: 92px;
@@ -346,6 +353,13 @@
     .metric.actionable.active .metric-arrow {
       color: var(--primary-dark);
     }
+    .metrics-action {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      min-height: 92px;
+      grid-column: 3;
+    }
 
     .panel {
       border: 1px solid var(--line);
@@ -387,12 +401,100 @@
       gap: 18px;
       padding: 18px;
     }
+    .recommendation-manager-status {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .recommendation-refresh-button {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .recommendation-refresh-button:hover {
+      background: var(--surface-soft);
+    }
     .recommendation-table {
-      min-width: 1520px;
+      min-width: 1360px;
+    }
+    .recommendation-options {
+      width: 112px;
+      min-width: 112px;
+    }
+    .recommendation-monthly-toggle {
+      position: relative;
+      display: block;
+      width: 112px;
+      height: 34px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .recommendation-monthly-toggle input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .recommendation-toggle-track {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      align-items: center;
+      height: 100%;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      overflow: hidden;
+    }
+    .recommendation-toggle-track::before {
+      content: "";
+      position: absolute;
+      inset: 3px auto 3px 3px;
+      width: calc(50% - 3px);
+      border-radius: 999px;
+      background: var(--panel);
+      box-shadow: 0 1px 6px rgba(15, 23, 42, 0.12);
+      transition: transform 0.16s ease;
+    }
+    .recommendation-monthly-toggle input:checked + .recommendation-toggle-track::before {
+      transform: translateX(100%);
+    }
+    .recommendation-toggle-label {
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1;
+      text-align: center;
+    }
+    .recommendation-monthly-toggle input:not(:checked) + .recommendation-toggle-track .recommendation-toggle-label:first-child,
+    .recommendation-monthly-toggle input:checked + .recommendation-toggle-track .recommendation-toggle-label:last-child {
+      color: #373a3c;
+    }
+    .recommendation-capacity-input {
+      width: 64px;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--text);
+      padding: 6px 8px;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: right;
     }
     .recommendation-calendar-picker {
       position: relative;
-      width: 220px;
+      width: 168px;
     }
     .recommendation-calendar-toggle {
       width: 100%;
@@ -400,7 +502,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--panel);
@@ -408,11 +510,14 @@
       padding: 7px 10px;
       font-size: 15px;
       font-weight: 700;
+      white-space: nowrap;
     }
     .recommendation-calendar-toggle span {
       color: var(--muted);
       font-size: 14px;
       font-weight: 700;
+      margin-left: 0;
+      text-align: right;
     }
     .recommendation-calendar-panel {
       position: fixed;
@@ -858,8 +963,8 @@
       color: #1db26a;
     }
     .badge.status-open {
-      background: var(--primary-soft);
-      color: #1f6fb3;
+      background: #c7ffc6;
+      color: #197c34;
     }
     .badge.status-closed,
     .badge.status-confirmed {
@@ -894,6 +999,35 @@
     }
     @keyframes dashboard-spin {
       to { transform: rotate(360deg); }
+    }
+    .dashboard-loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: none;
+      place-items: center;
+      background: rgba(15, 23, 42, 0.38);
+      cursor: wait;
+      pointer-events: auto;
+      touch-action: none;
+    }
+    .dashboard-loading-overlay.open {
+      display: grid;
+    }
+    .dashboard-loading-card {
+      min-width: 260px;
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+      padding: 24px 26px;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 800;
+      text-align: center;
     }
     .error { color: var(--red); }
 
@@ -1081,19 +1215,19 @@
     }
     .participant-table th:nth-child(4),
     .participant-table td:nth-child(4) {
-      width: 76px;
+      width: 70px;
     }
     .participant-table th:nth-child(5),
     .participant-table td:nth-child(5) {
-      width: 70px;
+      width: 98px;
     }
     .participant-table th:nth-child(6),
     .participant-table td:nth-child(6) {
-      width: 98px;
+      width: 76px;
     }
     .participant-table th:nth-child(7),
     .participant-table td:nth-child(7) {
-      width: 76px;
+      width: 104px;
     }
     .participant-table th:nth-child(8),
     .participant-table td:nth-child(8) {
@@ -1101,11 +1235,11 @@
     }
     .participant-table th:nth-child(9),
     .participant-table td:nth-child(9) {
-      width: 104px;
+      width: 76px;
     }
     .participant-table th:nth-child(10),
     .participant-table td:nth-child(10) {
-      width: 136px;
+      width: 76px;
     }
     .participant-table th:nth-child(11),
     .participant-table td:nth-child(11) {
@@ -1136,12 +1270,10 @@
     .participant-table th:nth-child(8),
     .participant-table td:nth-child(8),
     .participant-table th:nth-child(9),
-    .participant-table td:nth-child(9) {
-      text-align: center;
-    }
+    .participant-table td:nth-child(9),
     .participant-table th:nth-child(10),
     .participant-table td:nth-child(10) {
-      text-align: left;
+      text-align: center;
     }
     .participant-role-badge {
       display: inline-flex;
@@ -1181,6 +1313,16 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      white-space: nowrap;
+    }
+    .schedule-people-text {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 800;
       white-space: nowrap;
     }
     .participant-people-cell {
@@ -1621,14 +1763,31 @@
     </div>
   </div>
 
+  <div class="dashboard-loading-overlay" id="dashboardLoadingOverlay" aria-hidden="true">
+    <div class="dashboard-loading-card" role="status" aria-live="polite">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      <span id="dashboardLoadingMessage">처리 중입니다.</span>
+    </div>
+  </div>
+
   <script src="web/golfjoin_local_data.js"></script>
   <script>
     const SHEET_API_ENDPOINT = "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
     const ADMIN_AUTH_SESSION_KEY = "golfjoinAdminAuth";
-    const DASHBOARD_AUTO_REFRESH_MS = 5 * 60 * 1000;
+    const RECOMMENDATION_REGISTER_RELOAD_KEY = "golfjoinRecommendationRegisterReload";
     const $ = (selector) => document.querySelector(selector);
-    const products = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items) ? window.SECRET_GOLF_JOIN_PRODUCTS.items : [];
+    let products = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items) ? window.SECRET_GOLF_JOIN_PRODUCTS.items : [];
+    let productDataInfo = {
+      source: "local",
+      generatedAt: window.SECRET_GOLF_JOIN_PRODUCTS?.generatedAt || "",
+      refreshedAt: "",
+      count: products.length
+    };
+    const SECRET_TOUR_GOODS_LIST_URL = "/goods/getGoodsList.json";
+    const SECRET_TOUR_GOODS_EVENT_LIST_URL = "/goods/getGoodsEventList.json";
     const SECRET_TOUR_FLIGHT_SCHEDULE_URL = "/goods/add/flight_schedule";
+    const SECRET_TOUR_PUBLIC_ORIGIN = "https://www.secret-tour.com";
+    const SECRET_TOUR_GOODS_CATEGORY_ROOTS = ["1", "2", "3", "5"];
     const secretTourGoodsDetailCache = new Map();
     let dashboardAutoRefreshTimer = null;
     const state = {
@@ -1668,6 +1827,48 @@
       return text.split(",").map(asText).filter(Boolean);
     }
 
+    function applyGolfJoinProductsPayload(payload = {}, source = "local") {
+      if (!Array.isArray(payload.items) || !payload.items.length) return false;
+      products = payload.items;
+      productDataInfo = {
+        source,
+        generatedAt: payload.generatedAt || "",
+        refreshedAt: payload.generatedAt || "",
+        count: Number(payload.count || payload.items.length) || payload.items.length
+      };
+      return true;
+    }
+
+    async function fetchGolfJoinProductsPayload(url) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Product data load failed: ${response.status}`);
+      return response.json();
+    }
+
+    async function loadLatestSavedGolfJoinProductsData() {
+      const cacheBust = `v=${Date.now()}`;
+      const urls = [
+        `web/golfjoin_local_data.json?${cacheBust}`,
+        `https://storage.googleapis.com/golfjoin-bucket/web/golfjoin_local_data.json?${cacheBust}`
+      ];
+      const payloads = [];
+      for (const url of urls) {
+        try {
+          const payload = await fetchGolfJoinProductsPayload(url);
+          if (Array.isArray(payload.items) && payload.items.length) payloads.push(payload);
+        } catch (error) {
+          console.warn("Failed to load saved product data.", url, error);
+        }
+      }
+      if (!payloads.length) return false;
+      payloads.sort((a, b) => {
+        const dateCompare = asText(b.generatedAt).localeCompare(asText(a.generatedAt));
+        if (dateCompare) return dateCompare;
+        return Number(b.count || b.items?.length || 0) - Number(a.count || a.items?.length || 0);
+      });
+      return applyGolfJoinProductsPayload(payloads[0], "saved");
+    }
+
     function cleanSecretTourDetailText(value) {
       return String(value || "")
         .replace(/\u00a0/g, " ")
@@ -1680,6 +1881,209 @@
       const text = String(value || "").replace(/\D/g, "");
       if (text.length !== 8) return "";
       return `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}`;
+    }
+
+    function secretTourImageUrl(path) {
+      const value = String(path || "").trim();
+      if (!value) return "";
+      if (value.startsWith("//")) return `https:${value}`;
+      if (/^https?:\/\//i.test(value)) return value;
+      return `${SECRET_TOUR_PUBLIC_ORIGIN}${value.startsWith("/") ? value : `/${value}`}`;
+    }
+
+    function addDaysToISO(isoDate, days) {
+      if (!isoDate) return "";
+      const date = new Date(`${isoDate}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return "";
+      date.setDate(date.getDate() + Number(days || 0));
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function isSecretTourAirlineName(value) {
+      return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
+    }
+
+    function normalizeSecretTourAirportName(...values) {
+      return values.map(asText).find((value) => value && !isSecretTourAirlineName(value)) || "";
+    }
+
+    function normalizeSecretTourAirlineName(...values) {
+      return values.map(asText).find(isSecretTourAirlineName) || "";
+    }
+
+    function normalizeSecretTourGoodsItem(item, index) {
+      const departureDate = secretTourDateToISO(item.minStartDay);
+      const dayCnt = Number(item.dayCnt) || 1;
+      const price = Number(item.dpPrice) || Number(item.minPrice) || 0;
+      const productType = item.productType || item.goodsType || item.goodType || item.goodKind || item.goodDetailCdNm || item.goodDetailName || item.packageType || item.packType || item.tourType || item.airProductYn || item.airYn || item.flightYn || item.includeAirYn || "";
+      return {
+        id: item.goodSeq ? `secret-tour-${item.goodSeq}` : `secret-tour-product-${index}`,
+        goodSeq: item.goodSeq,
+        goodTransportSeq: item.goodTransportSeq || item.transportSeq || item.goodAirSeq || item.airSeq || item.flightSeq || "",
+        goodCd: item.goodCd || "",
+        productType,
+        goodsType: item.goodsType || item.goodType || "",
+        goodDetailCdNm: item.goodDetailCdNm || item.goodDetailName || "",
+        airProductYn: item.airProductYn || item.airYn || item.flightYn || item.includeAirYn || "",
+        air2Cd: item.air2Cd || "",
+        air2CdNm: item.air2CdNm || "",
+        air2Nm: item.air2Nm || item.air2CdNm || "",
+        title: item.goodNm || "Golf join product",
+        region: item.tourCity || item.areaCdNm || "",
+        category: item.areaCdNm || "",
+        airport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
+        airline: normalizeSecretTourAirlineName(item.airline, item.airlineName, item.airlineNm, item.air2Nm, item.air2CdNm),
+        departureDate,
+        returnDate: addDaysToISO(departureDate, Math.max(dayCnt - 1, 0)),
+        duration: item.period || String(item.dayNightCnt || "").trim(),
+        dayNightCnt: item.period || "",
+        price,
+        image: secretTourImageUrl(item.imagePath),
+        includes: [],
+        excludes: [],
+        notes: [],
+        schedule: [],
+        emptySlots: 4,
+        source: "secret-tour-goods"
+      };
+    }
+
+    function normalizeSecretTourGoodsEventItem(product, event, index) {
+      const departureDate = secretTourDateToISO(event.startDay || event.depStartDay || product.minStartDay);
+      const returnDate = secretTourDateToISO(event.endDay || event.arrStartDay);
+      const price = Number(event.adultPrice) || Number(event.minPrice) || Number(product.minPrice) || 0;
+      const restCnt = Number(event.restCnt);
+      const productType = event.productType || event.goodsType || event.goodType || event.goodKind || event.goodDetailCdNm || event.goodDetailName || event.packageType || event.packType || event.tourType || event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.productType || product.goodsType || product.goodType || product.goodKind || product.goodDetailCdNm || product.goodDetailName || product.packageType || product.packType || product.tourType || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn || "";
+      return {
+        id: event.eventSeq ? `secret-tour-${product.goodSeq}-${event.eventSeq}` : `secret-tour-${product.goodSeq}-event-${index}`,
+        goodSeq: product.goodSeq,
+        eventSeq: event.eventSeq,
+        goodTransportSeq: event.goodTransportSeq || event.transportSeq || event.goodAirSeq || event.airSeq || event.flightSeq || product.goodTransportSeq || product.transportSeq || product.goodAirSeq || product.airSeq || product.flightSeq || "",
+        goodCd: product.goodCd || "",
+        productType,
+        goodsType: event.goodsType || event.goodType || product.goodsType || product.goodType || "",
+        goodDetailCdNm: event.goodDetailCdNm || event.goodDetailName || product.goodDetailCdNm || product.goodDetailName || "",
+        airProductYn: event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn || "",
+        air2Cd: event.air2Cd || product.air2Cd || "",
+        air2CdNm: product.air2CdNm || "",
+        air2Nm: event.air2Nm || product.air2Nm || product.air2CdNm || "",
+        title: event.eventNm || product.goodNm || "Golf join product",
+        region: product.tourCity || product.areaCdNm || "",
+        category: product.areaCdNm || "",
+        airport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
+        airline: normalizeSecretTourAirlineName(event.airline, event.airlineName, event.airlineNm, event.air2Nm, product.airline, product.air2Nm, product.air2CdNm),
+        departureDate,
+        returnDate: returnDate || departureDate,
+        duration: event.period || product.period || String(product.dayNightCnt || "").trim(),
+        dayNightCnt: event.period || product.period || "",
+        price,
+        image: secretTourImageUrl(event.imagePath || product.imagePath),
+        includes: [],
+        excludes: [],
+        notes: [],
+        schedule: [],
+        emptySlots: Number.isFinite(restCnt) ? Math.max(0, restCnt) : 4,
+        source: "secret-tour-goods-event"
+      };
+    }
+
+    function buildSecretTourGoodsListUrl(page, rows, category = {}) {
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "secret_tour_goods_list");
+      url.searchParams.set("cate1", category.cate1 || "");
+      url.searchParams.set("cate2", category.cate2 || "");
+      url.searchParams.set("cate3", "");
+      url.searchParams.set("goodDetailCd", "");
+      url.searchParams.set("page", String(page));
+      url.searchParams.set("rows", String(rows));
+      return url.toString();
+    }
+
+    function buildSecretTourGoodsEventListUrl(goodSeq) {
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "secret_tour_goods_events");
+      url.searchParams.set("goodSeq", String(goodSeq || ""));
+      return url.toString();
+    }
+
+    async function fetchSecretTourJson(url, label) {
+      const auth = getAdminAuth();
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "X-Golfjoin-Admin-Token": auth.token || ""
+        },
+        cache: "no-store"
+      });
+      if (!response.ok) {
+        const text = await response.text().catch(() => "");
+        throw new Error(`${label} failed: ${response.status}${text ? ` ${text.slice(0, 160)}` : ""}`);
+      }
+      return response.json();
+    }
+
+    async function loadSecretTourGoodsEvents(goodSeq) {
+      if (!goodSeq) return [];
+      const payload = await fetchSecretTourJson(buildSecretTourGoodsEventListUrl(goodSeq), "Secret Tour event list");
+      return Array.isArray(payload?.list) ? payload.list : [];
+    }
+
+    async function mapWithConcurrency(items, limit, mapper) {
+      const results = new Array(items.length);
+      let cursor = 0;
+      const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (cursor < items.length) {
+          const index = cursor;
+          cursor += 1;
+          results[index] = await mapper(items[index], index);
+        }
+      });
+      await Promise.all(workers);
+      return results;
+    }
+
+    async function loadSecretTourGoodsListForCategory(cate1, rows) {
+      const category = { cate1 };
+      const firstPayload = await fetchSecretTourJson(buildSecretTourGoodsListUrl(1, rows, category), "Secret Tour product list");
+      const firstList = Array.isArray(firstPayload?.list) ? firstPayload.list : [];
+      const totalCount = Number(firstPayload?.count || firstList[0]?.totalCount || firstList.length) || firstList.length;
+      const pageCount = Math.ceil(totalCount / rows);
+      const allItems = firstList.slice();
+      for (let page = 2; page <= pageCount; page += 1) {
+        const payload = await fetchSecretTourJson(buildSecretTourGoodsListUrl(page, rows, category), "Secret Tour product list");
+        const list = Array.isArray(payload?.list) ? payload.list : [];
+        allItems.push(...list);
+      }
+      return allItems;
+    }
+
+    function uniqueSecretTourGoodsItems(items) {
+      const seen = new Set();
+      return items.filter((item) => {
+        const key = item.goodSeq || item.goodCd || item.goodNm;
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    async function loadSecretTourGoodsProducts() {
+      const rows = 100;
+      const categoryLists = await mapWithConcurrency(SECRET_TOUR_GOODS_CATEGORY_ROOTS, 3, (cate1) => {
+        return loadSecretTourGoodsListForCategory(cate1, rows);
+      });
+      const allItems = uniqueSecretTourGoodsItems(categoryLists.flat());
+      const eventGroups = await mapWithConcurrency(allItems, 4, async (item, itemIndex) => {
+        try {
+          const events = await loadSecretTourGoodsEvents(item.goodSeq);
+          if (!events.length) return [normalizeSecretTourGoodsItem(item, itemIndex)];
+          return events.map((event, eventIndex) => normalizeSecretTourGoodsEventItem(item, event, eventIndex));
+        } catch (error) {
+          console.warn(error);
+          return [normalizeSecretTourGoodsItem(item, itemIndex)];
+        }
+      });
+      return eventGroups.flat();
     }
 
     function parseSecretTourProductReference(value, eventSeqValue = "") {
@@ -2608,6 +3012,16 @@
       return asText(rule.section || "available_schedule") === "available_schedule" && isDisplayRuleVisible(rule);
     }
 
+    function getRecommendationRuleCapacity(rule = {}) {
+      const value = Number(rule.capacity || rule.maxPeople || rule.recruitmentCapacity || 0);
+      return Number.isFinite(value) && value > 0 ? Math.round(value) : 4;
+    }
+
+    function isMonthlyRecommendationRule(rule = {}) {
+      return asText(rule.scheduleType || rule.displayType || rule.badgeType).toLowerCase() === "monthly"
+        || asText(rule.scheduleLabel || rule.badgeLabel || rule.adminMemo).includes("월례회");
+    }
+
     function buildRecommendationScheduleRow(rule = {}) {
       const product = findProduct({
         erpProductId: rule.erpProductId,
@@ -2639,8 +3053,10 @@
         price: product.price || "",
         packType: rule.packType || product.packType || "",
         packTypeName: rule.packTypeName || product.packTypeName || "",
-        maxPeople: 4,
-        capacity: 4,
+        maxPeople: getRecommendationRuleCapacity(rule),
+        capacity: getRecommendationRuleCapacity(rule),
+        scheduleType: rule.scheduleType || (isMonthlyRecommendationRule(rule) ? "monthly" : ""),
+        scheduleLabel: rule.scheduleLabel || (isMonthlyRecommendationRule(rule) ? "월례회" : ""),
         createdAt: rule.updatedAt || "",
         updatedAt: rule.updatedAt || "",
         adminMemo: rule.adminMemo || "",
@@ -2857,12 +3273,13 @@
       state.error = "";
       renderTable();
       try {
+        await loadLatestSavedGolfJoinProductsData();
         const { builderRows, joinRows, profileRows, displayRuleRows } = await fetchAdminRows();
         state.rawRows = [...builderRows, ...joinRows];
         state.schedules = buildSchedules(builderRows, joinRows, displayRuleRows);
         state.memberProfiles = buildMemberProfiles(profileRows);
         state.displayRules = Array.isArray(displayRuleRows) ? displayRuleRows : [];
-        $("#lastUpdated").textContent = `최근 갱신 ${formatDateTime(new Date())} · 5분마다 자동 새로고침`;
+        $("#lastUpdated").textContent = `최근 갱신 ${formatDateTime(new Date())}`;
       } catch (error) {
         state.error = error.message || "데이터 로드 실패";
         if (!getAdminAuth().token) showLogin("로그인이 만료되었거나 인증에 실패했습니다.");
@@ -2871,14 +3288,6 @@
         renderMetrics();
         renderTable();
       }
-    }
-
-    function startDashboardAutoRefresh() {
-      stopDashboardAutoRefresh();
-      dashboardAutoRefreshTimer = window.setInterval(() => {
-        if (!getAdminAuth().token || state.loading) return;
-        loadDashboard();
-      }, DASHBOARD_AUTO_REFRESH_MS);
     }
 
     function stopDashboardAutoRefresh() {
@@ -2903,6 +3312,58 @@
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
+    }
+
+    function formatRecommendationProductDataStatus(productItems = getRecommendationProductItems()) {
+      const uniqueCount = getRecommendationUniqueProductCount(productItems);
+      const sourceLabel = productDataInfo.source === "live"
+        ? "홈페이지 최신 API"
+        : productDataInfo.source === "saved"
+          ? "저장된 최신 데이터"
+          : "로컬 데이터";
+      const dateValue = productDataInfo.refreshedAt || productDataInfo.generatedAt || "";
+      const dateLabel = dateValue ? formatDateTime(dateValue) || dateValue : "";
+      return `${sourceLabel} 기준 / 전체 ${productDataInfo.count.toLocaleString()}개 / 추천 가능 상품 ${uniqueCount.toLocaleString()}개${dateLabel ? ` / ${dateLabel}` : ""}`;
+    }
+
+    async function refreshRecommendationProductsFromHomepage() {
+      showDashboardLoading("상품정보를 업데이트하고 저장하는 중입니다.");
+      try {
+        const auth = getAdminAuth();
+        const url = new URL(SHEET_API_ENDPOINT);
+        url.searchParams.set("action", "refresh_secret_tour_products");
+        const response = await fetch(url.toString(), {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Golfjoin-Admin-Token": auth.token || ""
+          },
+          body: JSON.stringify({ requestedAt: new Date().toISOString() })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || `상품정보 저장 업데이트에 실패했습니다. (${response.status})`);
+        }
+        if (!Array.isArray(data.items) || !data.items.length) {
+          throw new Error("저장된 상품 목록을 받지 못했습니다.");
+        }
+        products = data.items;
+        productDataInfo = {
+          source: "live",
+          generatedAt: data.generatedAt || "",
+          refreshedAt: data.generatedAt || new Date().toISOString(),
+          count: Number(data.count || products.length) || products.length
+        };
+        secretTourGoodsDetailCache.clear();
+        renderMetrics();
+        renderTable();
+      } catch (error) {
+        console.error(error);
+        alert(error.message || "상품정보 저장 업데이트에 실패했습니다.");
+      } finally {
+        hideDashboardLoading();
+      }
     }
 
     function getRecommendationProductItems() {
@@ -3002,6 +3463,19 @@
       const picker = row?.querySelector("[data-recommendation-calendar]");
       const select = row?.querySelector("[data-recommendation-departure]");
       return picker?.dataset.selectedKey || select?.value || "";
+    }
+
+    function getRecommendationRowOptions(row) {
+      const monthly = Boolean(row?.querySelector("[data-recommendation-monthly]")?.checked);
+      const input = row?.querySelector("[data-recommendation-capacity]");
+      const parsedCapacity = Number(input?.value || 0);
+      const capacity = Number.isFinite(parsedCapacity) && parsedCapacity > 0
+        ? Math.max(1, Math.min(200, Math.round(parsedCapacity)))
+        : (monthly ? 40 : 4);
+      return {
+        monthly,
+        capacity
+      };
     }
 
     function getRecommendationCalendarMonthItems(group = {}, monthISO = "") {
@@ -3158,7 +3632,8 @@
                   <th>상품명</th>
                   <th>출발일</th>
                   <th>도착일</th>
-                  <th>상품번호</th>
+                  <th>구분</th>
+                  <th>정원</th>
                   <th>이벤트</th>
                   <th>수정일</th>
                   <th>관리</th>
@@ -3174,7 +3649,8 @@
                       <td class="product-cell">${escapeHtml(title)}</td>
                       <td>${escapeHtml(formatDate(rule.displayStartAt || product.departureDate))}</td>
                       <td>${escapeHtml(formatDate(rule.displayEndAt || product.returnDate))}</td>
-                      <td>${escapeHtml(rule.erpProductId || "")}</td>
+                      <td>${isMonthlyRecommendationRule(rule) ? '<span class="badge status-open">단체</span>' : '<span class="badge">일반</span>'}</td>
+                      <td>${escapeHtml(`${getRecommendationRuleCapacity(rule)}명`)}</td>
                       <td>${escapeHtml(rule.erpEventSeq || "")}</td>
                       <td>${escapeHtml(formatDateTime(rule.updatedAt))}</td>
                       <td><button class="row-button" type="button" data-action="recommendation-hide">숨김</button></td>
@@ -3212,7 +3688,6 @@
             <table class="recommendation-table">
               <thead>
                 <tr>
-                  <th>상품번호</th>
                   <th>구분</th>
                   <th>국가</th>
                   <th>지역</th>
@@ -3221,6 +3696,8 @@
                   <th>첫 출발일</th>
                   <th>마지막 출발일</th>
                   <th>출발일 선택</th>
+                  <th>구분</th>
+                  <th>정원</th>
                   <th>등록상태</th>
                   <th>관리</th>
                 </tr>
@@ -3230,7 +3707,6 @@
                   const activeCount = activeRules.filter((rule) => asText(rule.erpProductId) === asText(group.goodSeq)).length;
                   return `
                     <tr data-recommendation-product="${escapeHtml(group.goodSeq)}">
-                      <td>${escapeHtml(group.goodSeq)}</td>
                       <td><span class="badge ${group.packType === "air" ? "air" : "golf"}">${escapeHtml(getPackLabel(group.packType))}</span></td>
                       <td>${escapeHtml(group.country || "-")}</td>
                       <td>${escapeHtml(group.region || group.category || "-")}</td>
@@ -3239,6 +3715,18 @@
                       <td>${escapeHtml(formatDate(group.firstDeparture))}</td>
                       <td>${escapeHtml(formatDate(group.lastDeparture))}</td>
                       <td>${renderRecommendationCalendarPicker(group)}</td>
+                      <td>
+                        <div class="recommendation-options">
+                          <label class="recommendation-monthly-toggle" aria-label="일반/단체 구분">
+                            <input type="checkbox" data-recommendation-monthly>
+                            <span class="recommendation-toggle-track">
+                              <span class="recommendation-toggle-label">일반</span>
+                              <span class="recommendation-toggle-label">단체</span>
+                            </span>
+                          </label>
+                        </div>
+                      </td>
+                      <td><input class="recommendation-capacity-input" type="number" min="1" max="200" step="1" value="4" data-recommendation-capacity aria-label="정원"></td>
                       <td>${activeCount ? `<span class="badge status-open">${escapeHtml(`${activeCount}개 등록`)}</span>` : '<span class="badge">미등록</span>'}</td>
                       <td>
                         <div class="row-actions">
@@ -3264,14 +3752,21 @@
           ["추천 등록", activeRules.length],
           ["상품 후보", getRecommendationUniqueProductCount(productItems)]
         ];
-        $("#metrics").innerHTML = items.map(([label, value]) => `
+        const metrics = $("#metrics");
+        metrics.classList.add("with-action");
+        metrics.innerHTML = `${items.map(([label, value]) => `
           <div class="metric">
             <div class="metric-label">${escapeHtml(label)}</div>
             <div class="metric-value">${escapeHtml(value)}</div>
           </div>
-        `).join("");
+        `).join("")}
+          <div class="metrics-action">
+            <button class="recommendation-refresh-button" type="button" data-action="recommendation-refresh-products">상품업데이트</button>
+          </div>
+        `;
         return;
       }
+      $("#metrics").classList.remove("with-action");
       if (state.currentMenu === "participant-management") {
         const total = state.memberProfiles.length;
         const active = countActiveCustomers();
@@ -3385,8 +3880,24 @@
         : isConsultationPanel
           ? "이름, 연락처, 지역, 상품명 검색"
           : "상품명, 지역, 생성자, 참여자 검색";
-      if (isRecommendationMenu) $("#searchInput").placeholder = "추천 상품명, 상품번호, 출발일 검색";
+      if (isRecommendationMenu) $("#searchInput").placeholder = "추천 상품명, 출발일 검색";
       $("#statusFilter").hidden = isParticipantMenu || isRecommendationMenu || isConsultationPanel;
+    }
+
+    function activateScheduleManagementView() {
+      state.currentMenu = "schedules";
+      state.currentSchedulePanel = "schedules";
+      state.expandedParticipantKey = "";
+      document.querySelectorAll(".nav-button").forEach((item) => {
+        item.classList.toggle("active", item.dataset.menu === "schedules");
+      });
+      const scheduleButton = document.querySelector('.nav-button[data-menu="schedules"]');
+      const searchInput = $("#searchInput");
+      const statusFilter = $("#statusFilter");
+      if (scheduleButton) $("#pageTitle").textContent = scheduleButton.textContent.trim();
+      $(".page-sub").textContent = "항공팩, 골프팩 일정별 참여자와 상품 상세 정보를 확인합니다.";
+      if (searchInput) searchInput.value = "";
+      if (statusFilter) statusFilter.value = "open";
     }
 
     function getConsultationApplicants(options = {}) {
@@ -3581,6 +4092,11 @@
     }
 
     function renderSchedulePeopleIcons(schedule = {}) {
+      const capacity = getScheduleCapacity(schedule);
+      if (capacity > 4) {
+        const people = getSchedulePaymentCounts(schedule).total;
+        return `<span class="schedule-people-text" aria-label="${escapeHtml(`${people}명`)}" title="${escapeHtml(`${people}명`)}">${escapeHtml(`${people}명`)}</span>`;
+      }
       const total = 4;
       const genderSlots = getSchedulePeopleGenderSlots(schedule);
       const fallbackFilled = Math.max(0, Math.min(total, Number(schedule.participants?.length) || 0));
@@ -3980,6 +4496,22 @@
       });
     }
 
+    function showDashboardLoading(message = "처리 중입니다.") {
+      const overlay = $("#dashboardLoadingOverlay");
+      const messageTarget = $("#dashboardLoadingMessage");
+      if (messageTarget) messageTarget.textContent = message;
+      document.body.classList.add("dashboard-busy");
+      overlay?.classList.add("open");
+      overlay?.setAttribute("aria-hidden", "false");
+    }
+
+    function hideDashboardLoading() {
+      const overlay = $("#dashboardLoadingOverlay");
+      overlay?.classList.remove("open");
+      overlay?.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("dashboard-busy");
+    }
+
     async function saveParticipantStatus(button) {
       const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
       if (!rowElement) return;
@@ -4157,13 +4689,13 @@
                 <th>구분</th>
                 <th>이름</th>
                 <th>핸드폰번호</th>
+                <th>인원</th>
+                <th>성별구성</th>
+                <th>객실</th>
+                <th>항공</th>
                 <th>성별</th>
                 <th>나이</th>
                 <th>핸디</th>
-                <th>인원</th>
-                <th>객실</th>
-                <th>항공</th>
-                <th>성별구성</th>
                 <th>견적</th>
                 <th>예약금</th>
                 <th>잔금</th>
@@ -4220,13 +4752,13 @@
             </div>
           </td>
           <td>${escapeHtml(formatPhone(getParticipantPhone(row)))}</td>
+          <td>${escapeHtml(`${getParticipantPeopleTotal(row, companionRows)}명`)}</td>
+          <td>${renderParticipantGenderIcons(row, companionRows)}</td>
+          <td>${renderParticipantRoomType(row)}</td>
+          <td>${escapeHtml(getParticipantFlightRequestType(row) || "-")}</td>
           <td>${escapeHtml(getParticipantGender(row) || "-")}</td>
           <td>${escapeHtml(age ? `${age}세` : "-")}</td>
           <td>${escapeHtml(getParticipantHandicap(row) || "-")}</td>
-          <td>${escapeHtml(`${getParticipantPeopleTotal(row, companionRows)}명`)}</td>
-          <td>${renderParticipantRoomType(row)}</td>
-          <td>${escapeHtml(getParticipantFlightRequestType(row) || "-")}</td>
-          <td>${renderParticipantGenderIcons(row, companionRows)}</td>
           <td>${renderParticipantQuoteBadge(row)}</td>
           <td>${renderParticipantPaidBadge("depositStatus", row.depositStatus)}</td>
           <td>${renderParticipantPaidBadge("balanceStatus", row.balanceStatus)}</td>
@@ -4653,7 +5185,7 @@
       return result;
     }
 
-    async function saveRecommendationScheduleByKey(productKey) {
+    async function saveRecommendationScheduleByKey(productKey, options = {}) {
       const selected = findRecommendationProductByKey(productKey || "");
       if (!selected) {
         alert("추천 일정으로 등록할 상품/출발일을 선택하세요.");
@@ -4664,6 +5196,10 @@
       const existingRule = state.displayRules.find((rule) => asText(rule.displayRuleId) === displayRuleId);
       const productPackType = product.packType || getPackType({}, product);
       const productPackTypeName = product.packTypeName || getPackLabel(productPackType);
+      const capacity = Math.max(1, Math.min(200, Math.round(Number(options.capacity || existingRule?.capacity || 4) || 4)));
+      const isMonthly = Boolean(options.monthly) || isMonthlyRecommendationRule(existingRule);
+      const tripSummary = extractTripSummaryPeriod({ productName: product.title || "", title: product.title || "", tripSummary: product.tripSummary || product.dayNightCnt || product.duration || "" }, product)
+        || formatTripNightsDays(product.departureDate || "", product.returnDate || product.departureDate || "");
       const payload = {
         displayRuleId,
         erpProductId: selected.goodSeq,
@@ -4672,13 +5208,23 @@
         isVisible: true,
         isPinned: true,
         displayOrder: Number(existingRule?.displayOrder || getActiveRecommendationRules().length + 1),
-        badgeType: "recommended",
+        badgeType: isMonthly ? "monthly" : "recommended",
+        scheduleType: isMonthly ? "monthly" : "",
+        scheduleLabel: isMonthly ? "월례회" : "",
+        capacity,
+        maxPeople: capacity,
         packType: productPackType,
         packTypeName: productPackTypeName,
         overrideTitle: product.title || "",
         overrideImageUrl: product.image || "",
+        country: getRecommendationProductCountry(product),
+        region: product.region || product.category || "",
+        airport: normalizeSecretTourAirportName(product.airport, product.departureAirport, product.depAirport, product.airportName, product.air2CdNm),
+        airline: product.airline || normalizeSecretTourAirlineName(product.air2Nm, product.air2CdNm),
+        productPrice: product.price || "",
         displayStartAt: product.departureDate || "",
         displayEndAt: product.returnDate || product.departureDate || "",
+        tripSummary,
         adminMemo: existingRule?.adminMemo || ""
       };
       await submitProductDisplayRule(payload);
@@ -4719,6 +5265,7 @@
     async function confirmAndSaveRecommendationSchedule(button) {
       const row = button.closest("tr[data-recommendation-product]");
       const productKey = getRecommendationSelectedKey(row);
+      const recommendationOptions = getRecommendationRowOptions(row);
       const schedule = buildRecommendationCandidateSchedule(productKey);
       if (!schedule) {
         alert("?곹뭹 ?곸꽭瑜??쒖떆??異쒕컻?쇱쓣 ?좏깮?섏꽭??");
@@ -4730,6 +5277,8 @@
         ["\uAE30\uAC04", getPeriod(schedule.row, product) || ""],
         ["\uCD9C\uBC1C\uC77C", formatDate(getDeparture(schedule.row, product)) || ""],
         ["\uB3C4\uCC29\uC77C", formatDate(getReturn(schedule.row, product)) || ""],
+        ["\uAD6C\uBD84", recommendationOptions.monthly ? "\uC6D4\uB840\uD68C" : "\uCD94\uCC9C\uC77C\uC815"],
+        ["\uBAA8\uC9D1\uC778\uC6D0", `${recommendationOptions.capacity}\uBA85`],
         ["\uC694\uAE08", formatPrice(schedule.row.productPrice || product.price || schedule.row.price) || ""]
       ];
       const html = `
@@ -4750,7 +5299,15 @@
         dialogClass: "recommendation-confirm-dialog"
       });
       if (!confirmed) return;
-      await saveRecommendationScheduleByKey(productKey);
+      showDashboardLoading("추천일정을 등록하는 중입니다.");
+      try {
+        await saveRecommendationScheduleByKey(productKey, recommendationOptions);
+        activateScheduleManagementView();
+        sessionStorage.setItem(RECOMMENDATION_REGISTER_RELOAD_KEY, "1");
+        window.location.reload();
+      } finally {
+        hideDashboardLoading();
+      }
     }
 
     async function openRecommendationCandidateProduct(button) {
@@ -4933,7 +5490,6 @@
         await loginAdmin(loginId, loginPassword);
         showApp();
         await loadDashboard();
-        startDashboardAutoRefresh();
       } catch (error) {
         clearAdminAuth();
         stopDashboardAutoRefresh();
@@ -4964,7 +5520,20 @@
     $("#drawerClose").addEventListener("click", closeDrawer);
     $("#drawerBackdrop").addEventListener("click", closeDrawer);
 
+    $("#tableWrap").addEventListener("change", (event) => {
+      const monthlyToggle = event.target.closest("[data-recommendation-monthly]");
+      if (!monthlyToggle) return;
+      const row = monthlyToggle.closest("tr[data-recommendation-product]");
+      const input = row?.querySelector("[data-recommendation-capacity]");
+      if (input && monthlyToggle.checked && (!Number(input.value) || Number(input.value) === 4)) input.value = "40";
+    });
+
     $("#tableWrap").addEventListener("click", (event) => {
+      const recommendationRefreshButton = event.target.closest('[data-action="recommendation-refresh-products"]');
+      if (recommendationRefreshButton) {
+        refreshRecommendationProductsFromHomepage();
+        return;
+      }
       const calendarDateButton = event.target.closest("[data-recommendation-date-key]");
       if (calendarDateButton) {
         const picker = calendarDateButton.closest("[data-recommendation-calendar]");
@@ -4994,6 +5563,13 @@
           if (item !== picker) item.classList.remove("open");
         });
         picker?.classList.toggle("open");
+        return;
+      }
+      const monthlyToggle = event.target.closest("[data-recommendation-monthly]");
+      if (monthlyToggle) {
+        const row = monthlyToggle.closest("tr[data-recommendation-product]");
+        const input = row?.querySelector("[data-recommendation-capacity]");
+        if (input && monthlyToggle.checked && (!Number(input.value) || Number(input.value) === 4)) input.value = "40";
         return;
       }
       const recommendationProductViewButton = event.target.closest('[data-action="recommendation-product-view"]');
@@ -5063,6 +5639,11 @@
     });
 
     $("#metrics").addEventListener("click", (event) => {
+      const recommendationRefreshButton = event.target.closest('[data-action="recommendation-refresh-products"]');
+      if (recommendationRefreshButton) {
+        refreshRecommendationProductsFromHomepage();
+        return;
+      }
       const metric = event.target.closest("[data-metric-action]");
       if (!metric || state.currentMenu !== "schedules") return;
       const action = metric.dataset.metricAction || "open";
@@ -5102,8 +5683,11 @@
 
     if (getAdminAuth().token) {
       showApp();
+      if (sessionStorage.getItem(RECOMMENDATION_REGISTER_RELOAD_KEY) === "1") {
+        sessionStorage.removeItem(RECOMMENDATION_REGISTER_RELOAD_KEY);
+        activateScheduleManagementView();
+      }
       loadDashboard();
-      startDashboardAutoRefresh();
     } else {
       showLogin("");
     }

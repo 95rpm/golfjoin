@@ -1,6 +1,7 @@
 "use strict";
 
 const crypto = require("crypto");
+const { Storage } = require("@google-cloud/storage");
 
 const SHEET_WEB_APP_URL = process.env.SHEET_WEB_APP_URL || "";
 const ALLOWED_ORIGINS = String(process.env.ALLOWED_ORIGINS || "https://m.secret-tour.com,https://www.secret-tour.com")
@@ -176,12 +177,18 @@ const SECRET_TOUR_PUBLIC_ORIGIN = "https://www.secret-tour.com";
 const GOLFJOIN_SHARE_OG_FALLBACK_IMAGE = String(process.env.GOLFJOIN_SHARE_OG_FALLBACK_IMAGE || "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner1.webp").trim();
 const MAX_SECRET_TOUR_HTML_BYTES = Number(process.env.MAX_SECRET_TOUR_HTML_BYTES || 1024 * 1024 * 2);
 const EXTERNAL_FETCH_TIMEOUT_MS = Number(process.env.EXTERNAL_FETCH_TIMEOUT_MS || 15000);
+const GOLFJOIN_PRODUCTS_BUCKET = String(process.env.GOLFJOIN_PRODUCTS_BUCKET || "golfjoin-bucket").trim();
+const GOLFJOIN_PRODUCTS_PREFIX = String(process.env.GOLFJOIN_PRODUCTS_PREFIX || "web").trim().replace(/^\/+|\/+$/g, "");
+const SECRET_TOUR_GOODS_CATEGORY_ROOTS = String(process.env.SECRET_TOUR_GOODS_CATEGORY_ROOTS || "1,2,3,5")
+  .split(",")
+  .map((value) => value.trim())
+  .filter(Boolean);
 const HOME_BOOTSTRAP_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_CACHE_TTL_MS || 60_000);
 const HOME_BOOTSTRAP_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_STALE_TTL_MS || 10 * 60_000);
 const HOME_BOOTSTRAP_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_CACHE_MAX_KEYS || 100);
 const HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_REFRESH_TIMEOUT_MS || 2_500);
-const HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS || 60_000);
-const HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS || 10 * 60_000);
+const HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS || 5 * 60_000);
+const HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS || 30 * 60_000);
 const HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS || 100);
 const HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS || 2_000);
 const GA4_PROPERTY_ID = String(process.env.GA4_PROPERTY_ID || "404154820").trim();
@@ -206,6 +213,7 @@ const ga4ActiveUserCountCache = {
   updatedAt: 0,
   warning: ""
 };
+const storage = new Storage();
 
 function getAllowedOrigin(origin = "") {
   if (!origin) return "";
@@ -434,6 +442,35 @@ function getValue(object, path) {
 
 function asText(value = "") {
   return String(value == null ? "" : value).trim();
+}
+
+function normalizeSheetDateText(value = "") {
+  const text = asText(value);
+  if (!text) return "";
+  const isoDate = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoDate) return `${isoDate[1]}-${isoDate[2]}-${isoDate[3]}`;
+  const parsed = new Date(text);
+  if (!Number.isFinite(parsed.getTime())) return text.split("~")[0]?.trim() || text;
+  const kstTime = parsed.getTime() + (9 * 60 * 60 * 1000);
+  return new Date(kstTime).toISOString().slice(0, 10);
+}
+
+function getSheetSerialFromDateText(value = "") {
+  const iso = normalizeSheetDateText(value);
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return "";
+  const utc = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const base = Date.UTC(1899, 11, 30);
+  return String(Math.round((utc - base) / 86400000));
+}
+
+function normalizeSheetPriceText(value = "") {
+  const text = asText(value);
+  if (!text) return "";
+  if (/^\d{4}-\d{2}-\d{2}/.test(text) || /^[A-Z][a-z]{2}\s[A-Z][a-z]{2}\s\d{2}\s\d{4}/.test(text)) {
+    return getSheetSerialFromDateText(text);
+  }
+  return text.replace(/[^\d.-]/g, "");
 }
 
 function assertTextLength(value, field, maxLength, options = {}) {
@@ -858,7 +895,14 @@ function validateProductDisplayRulePayload(payload) {
   assertTextLength(payload.overrideImageUrl || getValue(payload, "product.imageUrl"), "overrideImageUrl", MAX_STRING_LENGTHS.url);
   assertTextLength(payload.displayStartAt, "displayStartAt", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.displayEndAt, "displayEndAt", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.tripSummary, "tripSummary", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.badgeType, "badgeType", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.scheduleType, "scheduleType", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.scheduleLabel, "scheduleLabel", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.country || getValue(payload, "product.country"), "country", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.region || getValue(payload, "product.region"), "region", MAX_STRING_LENGTHS.medium);
+  assertNumberRange(payload.capacity || payload.maxPeople || 4, "capacity", 1, 200);
+  assertNumberRange(payload.maxPeople || payload.capacity || 4, "maxPeople", 1, 200);
   assertAllowedValue(payload.packType || getValue(payload, "product.packType") || "", "packType", new Set(["", "air", "golf", "항공팩", "골프팩"]));
   assertTextLength(payload.packTypeName || getValue(payload, "product.packTypeName"), "packTypeName", MAX_STRING_LENGTHS.short);
   assertNumberRange(payload.displayOrder || 0, "displayOrder", 0, 10000);
@@ -1023,6 +1067,12 @@ function sendGolfjoinApplicationNotificationsInBackground(payload = {}, notifica
 function sanitizeMemberProfileLookupRow(row = {}) {
   return {
     profileId: asText(row.profileId),
+    memberSeq: asText(row.memberSeq),
+    memberId: asText(row.memberId),
+    memberName: asText(row.memberName),
+    memberChannel: asText(row.memberChannel),
+    memberMobile: normalizePhone(row.memberMobile),
+    memberEmail: asText(row.memberEmail),
     gender: asText(row.gender),
     birthYear: asText(row.birthYear || row.birthday),
     profession: asText(row.profession),
@@ -1195,12 +1245,8 @@ async function readHomeBootstrapBatchDirect(params = {}) {
 async function readHomeBootstrapLightDirect(params = {}) {
   const target = buildSheetReadUrl({
     action: "home_bootstrap_light",
-    memberSeq: asText(params.memberSeq),
-    memberId: asText(params.memberId),
-    memberMobile: normalizePhone(params.memberMobile || params.phone),
     newScheduleLimit: Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100),
-    joinApplicationLimit: Math.min(Math.max(Number(params.joinApplicationLimit || 100), 1), 200),
-    wishLimit: Math.min(Math.max(Number(params.wishLimit || 200), 1), 200)
+    joinApplicationLimit: Math.min(Math.max(Number(params.joinApplicationLimit || 100), 1), 200)
   });
   const response = await fetchWithTimeout(target, {
     method: "GET",
@@ -1245,14 +1291,20 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
       scheduleId: asText(item.scheduleId),
       applicationId: asText(item.applicationId),
       targetType: asText(item.targetType || "new_schedule"),
+      memberSeq: asText(item.memberSeq),
+      memberId: asText(item.memberId),
+      memberName: asText(item.memberName),
+      memberChannel: asText(item.memberChannel),
+      memberMobile: normalizePhone(item.memberMobile),
+      memberEmail: asText(item.memberEmail),
       erpProductId: asText(item.erpProductId),
       erpEventSeq: asText(item.erpEventSeq),
       title: asText(item.title),
       country: asText(item.country),
       region: asText(item.region),
-      departureDate: asText(item.departureDate),
-      returnDate: asText(item.returnDate),
-      price: item.price,
+      departureDate: normalizeSheetDateText(item.departureDate),
+      returnDate: normalizeSheetDateText(item.returnDate),
+      price: normalizeSheetPriceText(item.price),
       image: asText(item.image),
       packType: asText(item.packType),
       packTypeName: asText(item.packTypeName),
@@ -1330,13 +1382,9 @@ function cloneHomeBootstrapPayload(payload = {}) {
 
 function createHomeBootstrapLightCacheKey(params = {}) {
   return [
-    "v1",
-    asText(params.memberSeq),
-    asText(params.memberId),
-    normalizePhone(params.memberMobile || params.phone),
+    "public-v2",
     Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100),
-    Math.min(Math.max(Number(params.joinApplicationLimit || 100), 1), 200),
-    Math.min(Math.max(Number(params.wishLimit || 200), 1), 200)
+    Math.min(Math.max(Number(params.joinApplicationLimit || 100), 1), 200)
   ].join("|");
 }
 
@@ -1902,6 +1950,311 @@ function buildSecretTourFlightScheduleProxyUrl(query = {}) {
   return target;
 }
 
+function buildSecretTourGoodsListProxyUrl(query = {}) {
+  const target = new URL("/goods/getGoodsList.json", SECRET_TOUR_PUBLIC_ORIGIN);
+  target.searchParams.set("cate1", asText(query.cate1 || ""));
+  target.searchParams.set("cate2", asText(query.cate2 || ""));
+  target.searchParams.set("cate3", asText(query.cate3 || ""));
+  target.searchParams.set("goodDetailCd", asText(query.goodDetailCd || ""));
+  target.searchParams.set("page", assertDigits(query.page || "1", "page"));
+  target.searchParams.set("rows", assertDigits(query.rows || "100", "rows"));
+  return target;
+}
+
+function buildSecretTourGoodsEventsProxyUrl(query = {}) {
+  const target = new URL("/goods/getGoodsEventList.json", SECRET_TOUR_PUBLIC_ORIGIN);
+  target.searchParams.set("goodSeq", assertDigits(query.goodSeq, "goodSeq"));
+  return target;
+}
+
+function secretTourDateToISO(value) {
+  const text = String(value || "").replace(/\D/g, "");
+  if (text.length !== 8) return "";
+  return `${text.slice(0, 4)}-${text.slice(4, 6)}-${text.slice(6, 8)}`;
+}
+
+function secretTourImageUrl(path) {
+  const value = String(path || "").trim();
+  if (!value) return "";
+  if (value.startsWith("//")) return `https:${value}`;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${SECRET_TOUR_PUBLIC_ORIGIN}${value.startsWith("/") ? value : `/${value}`}`;
+}
+
+function addDaysToISO(isoDate, days) {
+  if (!isoDate) return "";
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setUTCDate(date.getUTCDate() + Number(days || 0));
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+
+function nowKstISOString() {
+  const date = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}T${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}:${String(date.getUTCSeconds()).padStart(2, "0")}+09:00`;
+}
+
+function isSecretTourAirlineName(value) {
+  return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
+}
+
+function normalizeSecretTourAirportName(...values) {
+  return values.map(asText).find((value) => value && !isSecretTourAirlineName(value)) || "";
+}
+
+function normalizeSecretTourAirlineName(...values) {
+  return values.map(asText).find(isSecretTourAirlineName) || "";
+}
+
+function normalizeSecretTourGoodsItem(item = {}, index = 0) {
+  const departureDate = secretTourDateToISO(item.minStartDay);
+  const dayCnt = Number(item.dayCnt) || 1;
+  const price = Number(item.dpPrice) || Number(item.minPrice) || 0;
+  const productType = item.productType || item.goodsType || item.goodType || item.goodKind || item.goodDetailCdNm || item.goodDetailName || item.packageType || item.packType || item.tourType || item.airProductYn || item.airYn || item.flightYn || item.includeAirYn || "";
+  return {
+    id: item.goodSeq ? `secret-tour-${item.goodSeq}` : `secret-tour-product-${index}`,
+    source: "secret-tour-goods",
+    goodSeq: asText(item.goodSeq),
+    eventSeq: "",
+    erpProductId: asText(item.goodSeq),
+    erpEventSeq: "",
+    goodTransportSeq: asText(item.goodTransportSeq || item.transportSeq || item.goodAirSeq || item.airSeq || item.flightSeq),
+    goodCd: asText(item.goodCd),
+    productType: asText(productType),
+    goodsType: asText(item.goodsType || item.goodType),
+    goodDetailCdNm: asText(item.goodDetailCdNm || item.goodDetailName),
+    airProductYn: asText(item.airProductYn || item.airYn || item.flightYn || item.includeAirYn),
+    air2Cd: asText(item.air2Cd),
+    air2CdNm: asText(item.air2CdNm),
+    air2Nm: asText(item.air2Nm || item.air2CdNm),
+    title: asText(item.goodNm) || "Golf join product",
+    region: asText(item.tourCity || item.areaCdNm),
+    category: asText(item.areaCdNm),
+    airport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
+    airline: normalizeSecretTourAirlineName(item.airline, item.airlineName, item.airlineNm, item.air2Nm, item.air2CdNm),
+    departureDate,
+    returnDate: addDaysToISO(departureDate, Math.max(dayCnt - 1, 0)),
+    duration: asText(item.period || item.dayNightCnt),
+    dayNightCnt: asText(item.period || item.dayNightCnt),
+    price,
+    image: secretTourImageUrl(item.imagePath),
+    includes: [],
+    excludes: [],
+    notes: [],
+    schedule: [],
+    emptySlots: 4
+  };
+}
+
+function normalizeSecretTourGoodsEventItem(product = {}, event = {}, index = 0) {
+  const departureDate = secretTourDateToISO(event.startDay || event.depStartDay || product.minStartDay);
+  const returnDate = secretTourDateToISO(event.endDay || event.arrStartDay);
+  const price = Number(event.adultPrice) || Number(event.minPrice) || Number(product.minPrice) || 0;
+  const restCnt = Number(event.restCnt);
+  const productType = event.productType || event.goodsType || event.goodType || event.goodKind || event.goodDetailCdNm || event.goodDetailName || event.packageType || event.packType || event.tourType || event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.productType || product.goodsType || product.goodType || product.goodKind || product.goodDetailCdNm || product.goodDetailName || product.packageType || product.packType || product.tourType || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn || "";
+  const goodSeq = asText(product.goodSeq);
+  const eventSeq = asText(event.eventSeq);
+  return {
+    id: eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : `secret-tour-${goodSeq}-event-${index}`,
+    source: "secret-tour-goods-event",
+    goodSeq,
+    eventSeq,
+    erpProductId: goodSeq && eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : goodSeq,
+    erpEventSeq: eventSeq,
+    goodTransportSeq: asText(event.goodTransportSeq || event.transportSeq || event.goodAirSeq || event.airSeq || event.flightSeq || product.goodTransportSeq || product.transportSeq || product.goodAirSeq || product.airSeq || product.flightSeq),
+    goodCd: asText(product.goodCd),
+    productType: asText(productType),
+    goodsType: asText(event.goodsType || event.goodType || product.goodsType || product.goodType),
+    goodDetailCdNm: asText(event.goodDetailCdNm || event.goodDetailName || product.goodDetailCdNm || product.goodDetailName),
+    airProductYn: asText(event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn),
+    air2Cd: asText(event.air2Cd || product.air2Cd),
+    air2CdNm: asText(product.air2CdNm),
+    air2Nm: asText(event.air2Nm || product.air2Nm || product.air2CdNm),
+    title: asText(event.eventNm || product.goodNm) || "Golf join product",
+    region: asText(product.tourCity || product.areaCdNm),
+    category: asText(product.areaCdNm),
+    airport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
+    airline: normalizeSecretTourAirlineName(event.airline, event.airlineName, event.airlineNm, event.air2Nm, product.airline, product.air2Nm, product.air2CdNm),
+    departureDate,
+    returnDate: returnDate || departureDate,
+    duration: asText(event.period || product.period || product.dayNightCnt),
+    dayNightCnt: asText(event.period || product.period || product.dayNightCnt),
+    price,
+    image: secretTourImageUrl(event.imagePath || product.imagePath),
+    includes: [],
+    excludes: [],
+    notes: [],
+    schedule: [],
+    emptySlots: Number.isFinite(restCnt) ? Math.max(0, restCnt) : 4
+  };
+}
+
+async function fetchSecretTourJson(target) {
+  const response = await fetchWithTimeout(target, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json, */*;q=0.8",
+      "X-Requested-With": "XMLHttpRequest",
+      "User-Agent": "GolfJoinAdmin/1.0"
+    },
+    redirect: "follow"
+  });
+  const text = await response.text();
+  if (!response.ok) throw createHttpError(`Secret Tour JSON failed: ${response.status}`, 502);
+  try {
+    return JSON.parse(text || "{}");
+  } catch (error) {
+    throw createHttpError("Secret Tour JSON is invalid", 502);
+  }
+}
+
+async function mapWithConcurrency(items, limit, mapper) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+async function loadSecretTourGoodsListForCategory(cate1, rows) {
+  const firstPayload = await fetchSecretTourJson(buildSecretTourGoodsListProxyUrl({ cate1, page: "1", rows: String(rows) }));
+  const firstList = Array.isArray(firstPayload?.list) ? firstPayload.list : [];
+  const totalCount = Number(firstPayload?.count || firstList[0]?.totalCount || firstList.length) || firstList.length;
+  const pageCount = Math.ceil(totalCount / rows);
+  const allItems = firstList.slice();
+  for (let page = 2; page <= pageCount; page += 1) {
+    const payload = await fetchSecretTourJson(buildSecretTourGoodsListProxyUrl({ cate1, page: String(page), rows: String(rows) }));
+    const list = Array.isArray(payload?.list) ? payload.list : [];
+    allItems.push(...list);
+  }
+  return allItems;
+}
+
+function uniqueSecretTourGoodsItems(items = []) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = item.goodSeq || item.goodCd || item.goodNm;
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function loadSecretTourGoodsProducts() {
+  const rows = 100;
+  const categoryLists = await mapWithConcurrency(SECRET_TOUR_GOODS_CATEGORY_ROOTS, 3, (cate1) => {
+    return loadSecretTourGoodsListForCategory(cate1, rows);
+  });
+  const allItems = uniqueSecretTourGoodsItems(categoryLists.flat());
+  const eventGroups = await mapWithConcurrency(allItems, 4, async (item, itemIndex) => {
+    try {
+      const payload = await fetchSecretTourJson(buildSecretTourGoodsEventsProxyUrl({ goodSeq: item.goodSeq }));
+      const events = Array.isArray(payload?.list) ? payload.list : [];
+      if (!events.length) return [normalizeSecretTourGoodsItem(item, itemIndex)];
+      return events.map((event, eventIndex) => normalizeSecretTourGoodsEventItem(item, event, eventIndex));
+    } catch (error) {
+      console.warn("Secret Tour event load failed", { goodSeq: item.goodSeq, message: error?.message || "" });
+      return [normalizeSecretTourGoodsItem(item, itemIndex)];
+    }
+  });
+  return eventGroups.flat();
+}
+
+function buildGolfJoinProductsPayload(items = []) {
+  const dates = items.map((item) => item.departureDate).filter(Boolean).sort();
+  return {
+    schema: "secret-golf-join-board-v1",
+    generatedAt: nowKstISOString(),
+    range: {
+      startDate: dates[0] || "",
+      endDate: dates[dates.length - 1] || ""
+    },
+    count: items.length,
+    items
+  };
+}
+
+function getGolfJoinProductObjectName(fileName) {
+  return `${GOLFJOIN_PRODUCTS_PREFIX ? `${GOLFJOIN_PRODUCTS_PREFIX}/` : ""}${fileName}`;
+}
+
+async function saveGolfJoinProductsPayload(payload) {
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const jsonText = `${JSON.stringify(payload, null, 2)}\n`;
+  const jsText = `window.SECRET_GOLF_JOIN_PRODUCTS = ${jsonText};\n`;
+  const options = {
+    resumable: false,
+    metadata: {
+      cacheControl: "public, max-age=60",
+      contentType: "application/json; charset=utf-8"
+    }
+  };
+  await bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.json")).save(jsonText, options);
+  await bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.js")).save(jsText, {
+    ...options,
+    metadata: {
+      ...options.metadata,
+      contentType: "application/javascript; charset=utf-8"
+    }
+  });
+}
+
+async function refreshSecretTourProducts(req, res) {
+  if (!isAdminReadRequest(req)) {
+    const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
+    error.status = 403;
+    throw error;
+  }
+  const items = await loadSecretTourGoodsProducts();
+  if (!items.length) throw createHttpError("No Secret Tour products were loaded", 502);
+  const payload = buildGolfJoinProductsPayload(items);
+  await saveGolfJoinProductsPayload(payload);
+  res.status(200).json({
+    ok: true,
+    saved: true,
+    bucket: GOLFJOIN_PRODUCTS_BUCKET,
+    files: [
+      getGolfJoinProductObjectName("golfjoin_local_data.js"),
+      getGolfJoinProductObjectName("golfjoin_local_data.json")
+    ],
+    generatedAt: payload.generatedAt,
+    range: payload.range,
+    count: payload.count,
+    items: payload.items
+  });
+}
+
+async function proxySecretTourJson(req, res) {
+  if (!isAdminReadRequest(req)) {
+    const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
+    error.status = 403;
+    throw error;
+  }
+  const action = asText(req.query?.action);
+  const target = action === "secret_tour_goods_events"
+    ? buildSecretTourGoodsEventsProxyUrl(req.query || {})
+    : buildSecretTourGoodsListProxyUrl(req.query || {});
+  const response = await fetchWithTimeout(target, {
+    method: "GET",
+    headers: {
+      "Accept": "application/json, */*;q=0.8",
+      "X-Requested-With": "XMLHttpRequest",
+      "User-Agent": "GolfJoinAdmin/1.0"
+    },
+    redirect: "follow"
+  });
+  const text = await response.text();
+  res.status(response.status);
+  res.set("Content-Type", response.headers.get("content-type") || "application/json; charset=utf-8");
+  res.send(text);
+}
+
 async function proxySecretTourHtml(req, res) {
   if (!isAdminReadRequest(req)) {
     const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
@@ -1936,6 +2289,10 @@ async function proxyGet(req, res) {
   }
   if (req.query?.action === "secret_tour_goods_detail" || req.query?.action === "secret_tour_flight_schedule") {
     await proxySecretTourHtml(req, res);
+    return;
+  }
+  if (req.query?.action === "secret_tour_goods_list" || req.query?.action === "secret_tour_goods_events") {
+    await proxySecretTourJson(req, res);
     return;
   }
   const requestedSheet = resolveReadSheetAlias(req.query?.sheet || "");
@@ -2041,6 +2398,11 @@ async function proxyPost(req, res) {
     res.status(response.status);
     res.set("Content-Type", response.headers.get("content-type") || "application/json; charset=utf-8");
     res.send(text);
+    return;
+  }
+
+  if (req.query?.action === "refresh_secret_tour_products") {
+    await refreshSecretTourProducts(req, res);
     return;
   }
 

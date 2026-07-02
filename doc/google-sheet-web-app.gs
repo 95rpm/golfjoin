@@ -241,12 +241,21 @@ const SHEET_HEADERS = {
     "isPinned",
     "displayOrder",
     "badgeType",
+    "scheduleType",
+    "scheduleLabel",
+    "capacity",
+    "maxPeople",
     "packType",
     "packTypeName",
     "overrideTitle",
     "overrideImageUrl",
+    "country",
+    "region",
+    "airport",
+    "productPrice",
     "displayStartAt",
     "displayEndAt",
+    "tripSummary",
     "adminMemo",
     "updatedAt"
   ]
@@ -256,7 +265,18 @@ const TEXT_FORMAT_HEADERS = [
   "memberMobile",
   "applicantMobile",
   "creatorPhone",
-  "participantPhones"
+  "participantPhones",
+  "productPrice",
+  "departureDateFrom",
+  "departureDateTo",
+  "returnDateFrom",
+  "returnDateTo",
+  "departureDate",
+  "returnDate",
+  "displayStartAt",
+  "displayEndAt",
+  "capacity",
+  "maxPeople"
 ];
 
 const PHONE_VALUE_HEADERS = [
@@ -376,6 +396,44 @@ function setupGolfJoinSheets() {
   Object.keys(SHEET_HEADERS).forEach(function (sheetName) {
     ensureSheetHeaders_(sheetName, SHEET_HEADERS[sheetName]);
   });
+  repairNewScheduleValueFormatsOnce_();
+}
+
+function repairNewScheduleValueFormatsOnce_() {
+  const propertyKey = "newScheduleValueFormatRepairV1";
+  const properties = PropertiesService.getDocumentProperties();
+  if (properties.getProperty(propertyKey) === "done") return;
+  const sheet = getOrCreateSheet_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS);
+  const headers = SHEET_HEADERS[SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS];
+  if (sheet.getLastRow() < 2) {
+    properties.setProperty(propertyKey, "done");
+    return;
+  }
+  const priceIndex = headers.indexOf("productPrice");
+  const dateHeaders = ["departureDateFrom", "departureDateTo", "returnDateFrom", "returnDateTo"];
+  const dateIndexes = dateHeaders.map(function (header) { return headers.indexOf(header); }).filter(function (index) { return index !== -1; });
+  const range = sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length);
+  const rows = range.getValues();
+  let changed = false;
+  rows.forEach(function (row) {
+    if (priceIndex !== -1) {
+      const normalizedPrice = normalizePriceCell_(row[priceIndex]);
+      if (String(row[priceIndex] || "") !== normalizedPrice) {
+        row[priceIndex] = normalizedPrice;
+        changed = true;
+      }
+    }
+    dateIndexes.forEach(function (index) {
+      const normalizedDate = formatDateCellAsISODate_(row[index]);
+      if (String(row[index] || "") !== normalizedDate) {
+        row[index] = normalizedDate;
+        changed = true;
+      }
+    });
+  });
+  applyTextColumnFormats_(sheet, headers);
+  if (changed) range.setValues(rows);
+  properties.setProperty(propertyKey, "done");
 }
 
 function getOrCreateSheet_(sheetName) {
@@ -537,6 +595,44 @@ function applyTextColumnFormatsForRow_(sheet, headers, rowNumber) {
   });
 }
 
+function formatDateCellAsISODate_(value) {
+  if (!value) return "";
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  }
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  const parsed = new Date(text);
+  if (!isNaN(parsed.getTime())) {
+    return Utilities.formatDate(parsed, Session.getScriptTimeZone(), "yyyy-MM-dd");
+  }
+  return text.split("~")[0].trim();
+}
+
+function getSheetSerialFromDate_(value) {
+  const iso = formatDateCellAsISODate_(value);
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return "";
+  const utc = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const base = Date.UTC(1899, 11, 30);
+  return String(Math.round((utc - base) / 86400000));
+}
+
+function normalizePriceCell_(value) {
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    return getSheetSerialFromDate_(value);
+  }
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+    const parsed = new Date(text);
+    if (!isNaN(parsed.getTime())) return getSheetSerialFromDate_(parsed);
+  }
+  return text.replace(/[^\d.-]/g, "");
+}
+
 function migrateSheetToHeaders_(sheet, headers, mapper) {
   const values = sheet.getDataRange().getValues();
   if (!values.length) {
@@ -679,12 +775,21 @@ function getProductDisplayRuleValue_(payload, header) {
     isPinned: payload.isPinned === true || String(payload.isPinned || "").toLowerCase() === "true",
     displayOrder: payload.displayOrder || 0,
     badgeType: payload.badgeType || "recommended",
+    scheduleType: payload.scheduleType || "",
+    scheduleLabel: payload.scheduleLabel || "",
+    capacity: payload.capacity || payload.maxPeople || "",
+    maxPeople: payload.maxPeople || payload.capacity || "",
     packType: payload.packType || value_(payload, "product.packType") || "",
     packTypeName: payload.packTypeName || value_(payload, "product.packTypeName") || "",
     overrideTitle: payload.overrideTitle || value_(payload, "product.productName") || "",
     overrideImageUrl: payload.overrideImageUrl || value_(payload, "product.imageUrl") || "",
-    displayStartAt: payload.displayStartAt || value_(payload, "product.departureDate") || "",
-    displayEndAt: payload.displayEndAt || value_(payload, "product.returnDate") || payload.displayStartAt || value_(payload, "product.departureDate") || "",
+    country: payload.country || value_(payload, "product.country") || normalizeCountryName_(payload.region || value_(payload, "product.region")),
+    region: normalizeRegionName_(payload.region || value_(payload, "product.region")),
+    airport: payload.airport || value_(payload, "product.airport") || "",
+    productPrice: normalizePriceCell_(payload.productPrice || payload.price || value_(payload, "product.price")),
+    displayStartAt: formatDateCellAsISODate_(payload.displayStartAt || value_(payload, "product.departureDate") || ""),
+    displayEndAt: formatDateCellAsISODate_(payload.displayEndAt || value_(payload, "product.returnDate") || payload.displayStartAt || value_(payload, "product.departureDate") || ""),
+    tripSummary: payload.tripSummary || value_(payload, "product.tripSummary") || "",
     adminMemo: payload.adminMemo || "",
     updatedAt: updatedAt
   };
@@ -713,15 +818,19 @@ function buildRecommendedScheduleSummarySource_(rule) {
     productName: rule.overrideTitle || rule.productName || rule.erpProductId || "Recommended schedule",
     country: rule.country || "",
     region: rule.region || "",
-    departureDateFrom: rule.displayStartAt || "",
-    departureDateTo: rule.displayStartAt || "",
-    returnDateFrom: rule.displayEndAt || rule.displayStartAt || "",
-    returnDateTo: rule.displayEndAt || rule.displayStartAt || "",
+    departureDateFrom: formatDateCellAsISODate_(rule.displayStartAt || ""),
+    departureDateTo: formatDateCellAsISODate_(rule.displayStartAt || ""),
+    returnDateFrom: formatDateCellAsISODate_(rule.displayEndAt || rule.displayStartAt || ""),
+    returnDateTo: formatDateCellAsISODate_(rule.displayEndAt || rule.displayStartAt || ""),
     tripSummary: rule.tripSummary || "",
     packType: rule.packType || "",
     packTypeName: rule.packTypeName || "",
     applicantPeople: "0",
     creatorPeople: "0",
+    capacity: rule.capacity || rule.maxPeople || "4",
+    maxPeople: rule.maxPeople || rule.capacity || "4",
+    scheduleType: rule.scheduleType || "",
+    scheduleLabel: rule.scheduleLabel || "",
     status: "open",
     approvalStatus: "approved",
     displayStatus: "visible",
@@ -729,6 +838,11 @@ function buildRecommendedScheduleSummarySource_(rule) {
     erpEventSeq: rule.erpEventSeq || "",
     isAdminRecommendedSchedule: true
   };
+}
+
+function getScheduleCapacity_(schedule) {
+  const capacity = Number(String(schedule.capacity || schedule.maxPeople || "").replace(/\D/g, ""));
+  return Number.isFinite(capacity) && capacity > 0 ? capacity : 4;
 }
 
 function isJoinApplicationForSchedule_(join, schedule) {
@@ -787,14 +901,14 @@ function getNewScheduleApplicationValue_(payload, header) {
     erpProductId: value_(payload, "trip.erpProductId") || value_(payload, "trip.productId"),
     erpEventSeq: value_(payload, "trip.erpEventSeq") || value_(payload, "trip.eventSeq"),
     productName: value_(payload, "trip.productName"),
-    productPrice: value_(payload, "trip.productPrice") || payload.productPrice || payload.price,
+    productPrice: normalizePriceCell_(value_(payload, "trip.productPrice") || payload.productPrice || payload.price),
     packType: value_(payload, "trip.packType") || payload.packType,
     packTypeName: value_(payload, "trip.packTypeName") || payload.packTypeName,
     tripSummary: value_(payload, "trip.tripSummary"),
-    departureDateFrom: value_(payload, "trip.flexibleDays.startBefore") || firstListValue_(value_(payload, "trip.departureDates")) || value_(payload, "trip.startSummary"),
-    departureDateTo: value_(payload, "trip.flexibleDays.startAfter") || lastListValue_(value_(payload, "trip.departureDates")) || value_(payload, "trip.startSummary"),
-    returnDateFrom: value_(payload, "trip.flexibleDays.endBefore") || firstListValue_(value_(payload, "trip.returnDates")) || value_(payload, "trip.endSummary"),
-    returnDateTo: value_(payload, "trip.flexibleDays.endAfter") || lastListValue_(value_(payload, "trip.returnDates")) || value_(payload, "trip.endSummary"),
+    departureDateFrom: formatDateCellAsISODate_(value_(payload, "trip.flexibleDays.startBefore") || firstListValue_(value_(payload, "trip.departureDates")) || value_(payload, "trip.startSummary")),
+    departureDateTo: formatDateCellAsISODate_(value_(payload, "trip.flexibleDays.startAfter") || lastListValue_(value_(payload, "trip.departureDates")) || value_(payload, "trip.startSummary")),
+    returnDateFrom: formatDateCellAsISODate_(value_(payload, "trip.flexibleDays.endBefore") || firstListValue_(value_(payload, "trip.returnDates")) || value_(payload, "trip.endSummary")),
+    returnDateTo: formatDateCellAsISODate_(value_(payload, "trip.flexibleDays.endAfter") || lastListValue_(value_(payload, "trip.returnDates")) || value_(payload, "trip.endSummary")),
     participantStatus: payload.participantStatus || value_(payload, "payment.participantStatus") || "신청",
     quoteStatus: payload.quoteStatus || value_(payload, "payment.quoteStatus") || "",
     depositStatus: payload.depositStatus || value_(payload, "payment.depositStatus") || "",
@@ -998,7 +1112,7 @@ function refreshScheduleParticipantSummary_() {
     const normalizedCreatorPeople = schedule.isAdminRecommendedSchedule ? 0 : parsePeople_(schedule.applicantPeople || schedule.creatorPeople || "1");
     const normalizedJoinedPeople = confirmedJoins.reduce(function (sum, join) { return sum + parsePeople_(join.applicantPeople || join.people); }, 0);
     const rawConfirmedPeople = normalizedCreatorPeople + normalizedJoinedPeople;
-    const capacity = 4;
+    const capacity = getScheduleCapacity_(schedule);
     const confirmedPeople = Math.min(capacity, rawConfirmedPeople);
     const creatorParticipants = normalizedCreatorPeople > 0 ? [
       {
@@ -1115,8 +1229,8 @@ function summarize_(values) {
 }
 
 function dateRangeSummary_(from, to) {
-  const start = String(from || "").trim();
-  const end = String(to || "").trim();
+  const start = formatDateCellAsISODate_(from);
+  const end = formatDateCellAsISODate_(to);
   if (start && end && start !== end) return `${start} ~ ${end}`;
   return start || end || "";
 }
@@ -1347,11 +1461,6 @@ function readHomeBootstrapPayload_(params) {
 function readHomeBootstrapLightPayload_(params) {
   const newScheduleLimit = Math.min(Math.max(parsePositiveInteger_(params.newScheduleLimit) || 100, 1), 100);
   const joinApplicationLimit = Math.min(Math.max(parsePositiveInteger_(params.joinApplicationLimit) || 100, 1), 200);
-  const wishLimit = Math.min(Math.max(parsePositiveInteger_(params.wishLimit) || 200, 1), 200);
-  const memberSeq = String(params.memberSeq || "").trim();
-  const memberId = String(params.memberId || "").trim();
-  const memberMobile = normalizePhone_(params.memberMobile || params.phone || "");
-  const canReadWishes = memberMobile && (memberSeq || memberId);
   const newSchedules = filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS), {
     source: "new_schedule_builder",
     limit: newScheduleLimit
@@ -1365,16 +1474,6 @@ function readHomeBootstrapLightPayload_(params) {
   }).filter(function (row) {
     return String(row.section || "") === "available_schedule" && String(row.isVisible || "true").toLowerCase() !== "false";
   });
-  const wishes = canReadWishes
-    ? filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_WISHES), {
-      source: "join_wish",
-      status: "active",
-      memberSeq: memberSeq,
-      memberId: memberId,
-      memberMobile: memberMobile,
-      limit: wishLimit
-    })
-    : [];
 
   return {
     ok: true,
@@ -1383,9 +1482,9 @@ function readHomeBootstrapLightPayload_(params) {
     newScheduleSummaries: newSchedules.map(buildNewScheduleSummary_),
     participantSummaries: buildParticipantSummaries_(joinApplications),
     displayRules: displayRules.map(buildDisplayRuleSummary_),
-    wishTargetKeys: wishes.map(buildWishTargetKey_).filter(function (item) { return item.targetKey; }),
+    wishTargetKeys: [],
     memberBasic: {
-      hasMember: Boolean(memberSeq || memberId || memberMobile)
+      hasMember: false
     }
   };
 }
@@ -1454,7 +1553,7 @@ function buildParticipantPreviewList_(row, maxCount) {
 }
 
 function getFirstDateFromRange_(from, to) {
-  return String(from || to || "").split("~")[0].trim();
+  return formatDateCellAsISODate_(from || to || "");
 }
 
 function buildNewScheduleSummary_(row) {
@@ -1467,6 +1566,12 @@ function buildNewScheduleSummary_(row) {
     scheduleId: row.scheduleId || "",
     applicationId: row.applicationId || "",
     targetType: "new_schedule",
+    memberSeq: row.memberSeq || "",
+    memberId: row.memberId || "",
+    memberName: row.memberName || row.applicantName || "",
+    memberChannel: row.memberChannel || "",
+    memberMobile: row.memberMobile || row.applicantMobile || "",
+    memberEmail: row.memberEmail || "",
     erpProductId: row.erpProductId || "",
     erpEventSeq: row.erpEventSeq || "",
     title: row.productName || "",
@@ -1474,7 +1579,7 @@ function buildNewScheduleSummary_(row) {
     region: normalizeRegionName_(row.region),
     departureDate: departureDate,
     returnDate: returnDate,
-    price: row.productPrice || "",
+    price: normalizePriceCell_(row.productPrice),
     image: row.imageUrl || "",
     packType: row.packType || "",
     packTypeName: row.packTypeName || "",
@@ -1549,12 +1654,22 @@ function buildDisplayRuleSummary_(row) {
     displayOrder: row.displayOrder || "",
     badge: row.badgeType || "",
     badgeType: row.badgeType || "",
+    scheduleType: row.scheduleType || "",
+    scheduleLabel: row.scheduleLabel || "",
+    capacity: row.capacity || row.maxPeople || "",
+    maxPeople: row.maxPeople || row.capacity || "",
     packType: row.packType || "",
     packTypeName: row.packTypeName || "",
     overrideTitle: row.overrideTitle || "",
     overrideImageUrl: row.overrideImageUrl || "",
-    displayStartAt: row.displayStartAt || "",
-    displayEndAt: row.displayEndAt || "",
+    country: row.country || "",
+    region: row.region || "",
+    airport: row.airport || "",
+    productPrice: normalizePriceCell_(row.productPrice),
+    price: normalizePriceCell_(row.productPrice),
+    displayStartAt: formatDateCellAsISODate_(row.displayStartAt),
+    displayEndAt: formatDateCellAsISODate_(row.displayEndAt),
+    tripSummary: row.tripSummary || "",
     updatedAt: row.updatedAt || ""
   };
 }
@@ -1629,6 +1744,21 @@ function normalizeRowForJson_(row) {
 }
 
 function normalizeCellForJson_(value, key) {
+  if (key === "productPrice") {
+    return normalizePriceCell_(value);
+  }
+  if ([
+    "departureDateFrom",
+    "departureDateTo",
+    "returnDateFrom",
+    "returnDateTo",
+    "departureDate",
+    "returnDate",
+    "displayStartAt",
+    "displayEndAt"
+  ].indexOf(key) !== -1) {
+    return formatDateCellAsISODate_(value);
+  }
   if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
     return value.toISOString();
   }

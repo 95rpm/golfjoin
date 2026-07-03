@@ -252,6 +252,8 @@ const SHEET_HEADERS = {
     "country",
     "region",
     "airport",
+    "departureAirport",
+    "arrivalAirport",
     "productPrice",
     "displayStartAt",
     "displayEndAt",
@@ -660,7 +662,7 @@ function migrateSheetToHeaders_(sheet, headers, mapper) {
 
 function mapLegacyNewScheduleRow_(row, header, rowIndex) {
   const createdAt = row.createdAt || row.submittedAt || new Date().toISOString();
-  const applicationId = row.applicationId || buildId_("nsa", createdAt, row.applicantMobile || row.phone || row.creatorPhone || rowIndex + 1);
+  const applicationId = row.applicationId || buildId_("nsa", createdAt, row.memberSeq || row.memberId || row.applicantName || row.creatorName || rowIndex + 1);
   const scheduleId = row.scheduleId || buildId_("sch", applicationId);
   if (header === "country") return row.country || normalizeCountryName_(row.region) || normalizeCountryName_(row.regions);
   if (header === "region") return normalizeRegionName_(row.region);
@@ -785,7 +787,9 @@ function getProductDisplayRuleValue_(payload, header) {
     overrideImageUrl: payload.overrideImageUrl || value_(payload, "product.imageUrl") || "",
     country: payload.country || value_(payload, "product.country") || normalizeCountryName_(payload.region || value_(payload, "product.region")),
     region: normalizeRegionName_(payload.region || value_(payload, "product.region")),
-    airport: payload.airport || value_(payload, "product.airport") || "",
+    airport: payload.airport || payload.departureAirport || value_(payload, "product.airport") || value_(payload, "product.departureAirport") || "",
+    departureAirport: payload.departureAirport || payload.airport || value_(payload, "product.departureAirport") || value_(payload, "product.airport") || "",
+    arrivalAirport: payload.arrivalAirport || value_(payload, "product.arrivalAirport") || value_(payload, "product.region") || "",
     productPrice: normalizePriceCell_(payload.productPrice || payload.price || value_(payload, "product.price")),
     displayStartAt: formatDateCellAsISODate_(payload.displayStartAt || value_(payload, "product.departureDate") || ""),
     displayEndAt: formatDateCellAsISODate_(payload.displayEndAt || value_(payload, "product.returnDate") || payload.displayStartAt || value_(payload, "product.departureDate") || ""),
@@ -865,7 +869,7 @@ function isJoinApplicationForSchedule_(join, schedule) {
 
 function getNewScheduleApplicationValue_(payload, header) {
   const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
-  const applicationId = payload.applicationId || buildId_("nsa", createdAt, value_(payload, "applicant.phone"));
+  const applicationId = payload.applicationId || buildId_("nsa", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
   const scheduleId = payload.scheduleId || buildId_("sch", applicationId);
   const values = {
     applicationId: applicationId,
@@ -927,7 +931,7 @@ function getNewScheduleApplicationValue_(payload, header) {
 
 function getJoinApplicationValue_(payload, header) {
   const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
-  const applicationId = payload.applicationId || payload.joinApplyId || buildId_("join", createdAt, value_(payload, "applicant.phone"));
+  const applicationId = payload.applicationId || payload.joinApplyId || buildId_("join", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
   const values = {
     applicationId: applicationId,
     createdAt: createdAt,
@@ -985,7 +989,7 @@ function getJoinApplicationValue_(payload, header) {
 function getJoinMemberProfileValue_(payload, header) {
   const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
   const mobile = value_(payload, "member.memberMobile");
-  const profileId = payload.profileId || buildId_("jmp", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || mobile);
+  const profileId = payload.profileId || buildId_("jmp", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
   const values = {
     profileId: profileId,
     createdAt: createdAt,
@@ -1018,7 +1022,7 @@ function getJoinMemberProfileValue_(payload, header) {
 
 function getJoinReviewValue_(payload, header) {
   const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
-  const reviewId = payload.reviewId || buildId_("jr", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberMobile"), value_(payload, "product.erpProductId") || payload.erpProductId || value_(payload, "product.productName"));
+  const reviewId = payload.reviewId || buildId_("jr", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member", value_(payload, "product.erpProductId") || payload.erpProductId || value_(payload, "product.productName"));
   const values = {
     reviewId: reviewId,
     createdAt: createdAt,
@@ -1057,7 +1061,7 @@ function getJoinWishValue_(payload, header) {
   const createdAt = payload.createdAt || payload.savedAt || new Date().toISOString();
   const targetType = payload.targetType || value_(payload, "target.type") || "product";
   const targetKey = payload.targetKey || value_(payload, "target.targetKey") || value_(payload, "target.key") || value_(payload, "product.erpProductId") || value_(payload, "product.productId") || payload.erpProductId || payload.goodSeq || "";
-  const wishId = payload.wishId || buildId_("jw", value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberMobile"), targetType, targetKey);
+  const wishId = payload.wishId || buildId_("jw", value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member", targetType, targetKey);
   const values = {
     wishId: wishId,
     createdAt: createdAt,
@@ -1236,9 +1240,20 @@ function dateRangeSummary_(from, to) {
 }
 
 function buildId_(prefix) {
-  const parts = Array.prototype.slice.call(arguments, 1).join("-");
+  const parts = Array.prototype.slice.call(arguments, 1).map(function (part) {
+    return scrubPrivateIdSeed_(part);
+  }).join("-");
   const safe = String(parts || new Date().toISOString()).replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
   return `${prefix}_${safe}`;
+}
+
+function scrubPrivateIdSeed_(value) {
+  const text = String(value || "");
+  const digits = text.replace(/\D/g, "");
+  if (/^010\d{8}$/.test(digits)) return "private";
+  return text
+    .replace(/010[-\s]?\d{4}[-\s]?\d{4}/g, "private")
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "private");
 }
 
 function value_(object, path) {
@@ -1665,6 +1680,8 @@ function buildDisplayRuleSummary_(row) {
     country: row.country || "",
     region: row.region || "",
     airport: row.airport || "",
+    departureAirport: row.departureAirport || row.airport || "",
+    arrivalAirport: row.arrivalAirport || "",
     productPrice: normalizePriceCell_(row.productPrice),
     price: normalizePriceCell_(row.productPrice),
     displayStartAt: formatDateCellAsISODate_(row.displayStartAt),

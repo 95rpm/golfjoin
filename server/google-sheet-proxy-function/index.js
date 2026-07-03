@@ -901,6 +901,8 @@ function validateProductDisplayRulePayload(payload) {
   assertTextLength(payload.scheduleLabel, "scheduleLabel", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.country || getValue(payload, "product.country"), "country", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.region || getValue(payload, "product.region"), "region", MAX_STRING_LENGTHS.medium);
+  assertTextLength(payload.departureAirport || payload.airport || getValue(payload, "product.departureAirport") || getValue(payload, "product.airport"), "departureAirport", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.arrivalAirport || getValue(payload, "product.arrivalAirport") || getValue(payload, "product.region"), "arrivalAirport", MAX_STRING_LENGTHS.short);
   assertNumberRange(payload.capacity || payload.maxPeople || 4, "capacity", 1, 200);
   assertNumberRange(payload.maxPeople || payload.capacity || 4, "maxPeople", 1, 200);
   assertAllowedValue(payload.packType || getValue(payload, "product.packType") || "", "packType", new Set(["", "air", "golf", "항공팩", "골프팩"]));
@@ -1302,6 +1304,9 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
       title: asText(item.title),
       country: asText(item.country),
       region: asText(item.region),
+      airport: asText(item.airport),
+      departureAirport: asText(item.departureAirport || item.airport),
+      arrivalAirport: asText(item.arrivalAirport),
       departureDate: normalizeSheetDateText(item.departureDate),
       returnDate: normalizeSheetDateText(item.returnDate),
       price: normalizeSheetPriceText(item.price),
@@ -2031,6 +2036,8 @@ function normalizeSecretTourGoodsItem(item = {}, index = 0) {
     region: asText(item.tourCity || item.areaCdNm),
     category: asText(item.areaCdNm),
     airport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
+    departureAirport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
+    arrivalAirport: asText(item.arrivalAirport || item.arrAirport || item.toCity || item.arrivalCity || item.tourCity || item.areaCdNm),
     airline: normalizeSecretTourAirlineName(item.airline, item.airlineName, item.airlineNm, item.air2Nm, item.air2CdNm),
     departureDate,
     returnDate: addDaysToISO(departureDate, Math.max(dayCnt - 1, 0)),
@@ -2074,6 +2081,8 @@ function normalizeSecretTourGoodsEventItem(product = {}, event = {}, index = 0) 
     region: asText(product.tourCity || product.areaCdNm),
     category: asText(product.areaCdNm),
     airport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
+    departureAirport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
+    arrivalAirport: asText(event.arrivalAirport || event.arrAirport || event.toCity || event.arrivalCity || product.arrivalAirport || product.arrAirport || product.toCity || product.arrivalCity || product.tourCity || product.areaCdNm),
     airline: normalizeSecretTourAirlineName(event.airline, event.airlineName, event.airlineNm, event.air2Nm, product.airline, product.air2Nm, product.air2CdNm),
     departureDate,
     returnDate: returnDate || departureDate,

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko" style="--join-mobile-visual-bottom: 0px;"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -182,7 +182,7 @@
       --modal-close-size-pc: 38px;
       --modal-close-icon-size: 20px;
       --modal-close-icon-size-pc: 28px;
-      --join-pc-header-zone-offset: 0px;
+      --join-pc-header-zone-offset: 187px;
       --font-modal-value: 18px;
       --font-modal-price: 34px;
       --font-detail-main-title: 23px;
@@ -444,6 +444,13 @@
     }
     .section-head-row[hidden] {
       display: none !important;
+    }
+    #joinActiveSectionHead {
+      justify-content: center;
+      text-align: center;
+    }
+    #joinActiveSectionHead > div {
+      width: 100%;
     }
     .calendar-open-button {
       flex: 0 0 auto;
@@ -2727,7 +2734,7 @@
     @media (min-width: 641px) {
       .sgj-page .join-section-nav-slot {
         position: sticky;
-        top: 0;
+        top: var(--join-pc-header-zone-offset, 187px);
         z-index: 45;
         margin: 4px 0 22px;
         padding: 10px 0;
@@ -3154,18 +3161,24 @@
       text-align: center;
       backdrop-filter: blur(6px);
     }
+    .join-own-schedule-badge.is-created {
+      background: #0c91f8;
+    }
+    .join-own-schedule-badge.is-joined {
+      background: rgb(235 57 57 / 94%);
+    }
     .schedule-overlap-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       flex: 0 0 auto;
       max-width: 100%;
-      padding: 5px 8px 5px 6px;
+      padding: 5px 7px 3px 2px;
       border: 1px solid #e2e2e2;
       border-radius: 999px;
       background: #f8f8f8;
       color: #373a3c;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       line-height: 1.15;
       white-space: nowrap;
@@ -4067,7 +4080,9 @@
     }
     .calendar-month-label {
       grid-column: 2;
+      justify-self: center;
       min-width: 0;
+      text-align: center;
     }
     .calendar-month-nav {
       width: auto;
@@ -4239,6 +4254,9 @@
     .calendar-event + .calendar-event {
       top: calc(50% + 31px);
     }
+    .calendar-event + .calendar-event + .calendar-event {
+      top: calc(50% + 49px);
+    }
     @media (max-width: 640px) {
       .calendar-event {
         top: calc(50% + 8px);
@@ -4246,6 +4264,13 @@
       .calendar-event + .calendar-event {
         top: calc(50% + 26px);
       }
+      .calendar-event + .calendar-event + .calendar-event {
+        top: calc(50% + 44px);
+      }
+    }
+    .calendar-event.monthly {
+      background: #fff7ed;
+      color: #ea580c;
     }
     .calendar-event.domestic {
       background: #eff6ff;
@@ -4486,8 +4511,10 @@
       position: absolute;
       right: 0;
       bottom: 0;
-      width: min(46%, 122px);
-      height: auto;
+      width: 92px !important;
+      max-width: 36% !important;
+      height: auto !important;
+      max-height: 92px !important;
       display: block;
       object-fit: contain;
       pointer-events: none;
@@ -4497,12 +4524,16 @@
       .trust-card-image {
         right: clamp(7px, calc(7px + (100vw - 641px) * 0.02872), 18px);
         bottom: clamp(8px, calc(8px + (100vw - 641px) * 0.02611), 18px);
-        width: clamp(103px, calc(103px + (100vw - 641px) * 0.0705), 130px);
+        width: 92px !important;
+        max-width: 36% !important;
+        max-height: 92px !important;
       }
     }
     @media (min-width: 1025px) {
       .trust-card-image {
-        width: 92px;
+        width: 92px !important;
+        max-width: 36% !important;
+        max-height: 92px !important;
       }
     }
     .trust-icon {
@@ -5025,6 +5056,30 @@
       margin-bottom: 0;
       padding: 10px 0 6px;
     }
+    .builder-calendar-legend {
+      grid-column: 1;
+      justify-self: start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      color: #c2410c;
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .builder-calendar-legend[hidden] {
+      display: none !important;
+    }
+    .builder-calendar-legend-dot {
+      width: 12px;
+      height: 12px;
+      flex: 0 0 12px;
+      border-radius: 999px;
+      background: #fb923c;
+      box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.18);
+    }
     .builder-month-nav {
       grid-column: 2;
       display: inline-flex;
@@ -5305,6 +5360,8 @@
       right: 50%;
     }
     .builder-day.active-schedule .builder-day-number {
+      width: 34px;
+      height: 34px;
       color: #fff;
       background: #fb923c;
       box-shadow: inset 0 0 0 1px rgba(194, 65, 12, 0.18);
@@ -5313,14 +5370,6 @@
       color: #c2410c;
       background: transparent;
       box-shadow: none;
-    }
-    .builder-day-active-schedule-label {
-      max-width: 90%;
-      overflow: hidden;
-      color: #c2410c;
-      font-size: 12px;
-      font-weight: 800;
-      text-overflow: ellipsis;
     }
     .builder-day.range.flex .builder-day-number {
       color: #fff;
@@ -7247,12 +7296,8 @@
       line-height: 1.35;
       text-align: center;
       white-space: normal;
-    }
-    .join-action-loading-message-dots {
-      display: inline-block;
-      width: 1.2em;
-      text-align: left;
-      white-space: pre;
+      word-break: keep-all;
+      overflow-wrap: normal;
     }
     .join-action-loading-box.has-message .join-action-loading-message {
       display: block;
@@ -14479,7 +14524,7 @@
     }
     .detail-schedule-day-nav {
       position: sticky;
-      top: var(--detail-schedule-nav-top, -22px);
+      top: var(--detail-schedule-nav-top, 0px);
       z-index: 12;
       display: flex;
       justify-content: flex-start;
@@ -14960,7 +15005,9 @@
         right: 12px;
         top: 19px;
         bottom: auto;
-        width: clamp(60px, calc(60px + (100vw - 320px) * 0.125), 100px);
+        width: 68px !important;
+        max-width: 28% !important;
+        max-height: 68px !important;
       }
       .faq-question {
         font-size: 18px;
@@ -15669,6 +15716,7 @@
       max-width: var(--page-max-width);
       margin-left: auto;
       margin-right: auto;
+      overflow: visible;
     }
     .sgj-page .sgj-active-section > .page-container {
       width: 100%;
@@ -18520,8 +18568,10 @@
         inset: 0;
         width: 100vw;
         height: 100vh;
+        height: 100svh;
         height: 100dvh;
         min-height: 100vh;
+        min-height: 100svh;
         min-height: 100dvh;
         padding: 0;
         align-items: flex-end;
@@ -18541,11 +18591,12 @@
         width: 100vw;
         max-width: 100vw;
         height: auto;
-        max-height: min(88dvh, 720px);
-        padding: 0;
+        max-height: min(calc(88dvh + env(safe-area-inset-bottom, 0px)), 720px);
+        padding: 0 0 env(safe-area-inset-bottom, 0px);
         border: 0;
         border-radius: 22px 22px 0 0;
-        box-shadow: 0 -18px 45px rgba(15, 23, 42, 0.18);
+        background: #fff;
+        box-shadow: none !important;
         overflow: hidden;
         transform: translateY(100%);
         transition: transform .28s ease;
@@ -18600,7 +18651,7 @@
         min-height: 0;
         max-height: calc(min(88dvh, 720px) - 66px);
         gap: 0;
-        padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+        padding: 18px;
         overflow-y: auto;
         overscroll-behavior: contain;
       }
@@ -19180,6 +19231,10 @@
       background: #f3eeff;
       color: #8b40f0;
     }
+    .calendar-accordion-list .region-product-admin-badge.monthly {
+      background: #fff7ed;
+      color: #ea580c;
+    }
     @media (min-width: 641px) {
       .calendar-accordion-list .region-product-admin-badges {
         margin-left: 6px;
@@ -19243,6 +19298,52 @@
       display: flex;
       justify-content: flex-end;
       gap: 6px;
+    }
+    .calendar-accordion-list .region-product-team.monthly-summary {
+      display: block;
+      justify-content: stretch;
+      width: min(190px, 100%);
+    }
+    .calendar-monthly-participant-box {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px;
+      min-width: 0;
+      padding: 6px 8px;
+      border: 1px solid #e2e2e2;
+      border-radius: 10px;
+      background: #f8f8f8;
+      color: #373a3c;
+      text-align: center;
+      line-height: 1.15;
+    }
+    .calendar-monthly-participant-box::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 10%;
+      width: 1px;
+      height: 80%;
+      background: #e2e2e2;
+      transform: translateX(-50%);
+    }
+    .calendar-monthly-participant-item {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+    .calendar-monthly-participant-label {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .calendar-monthly-participant-value {
+      color: #373a3c;
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
     }
     .calendar-accordion-list .region-product-team.has-detail-button {
       width: 100%;
@@ -19840,6 +19941,14 @@
       .calendar-accordion-list .region-product-team {
         justify-content: flex-start;
       }
+      .calendar-accordion-list .region-product-team.monthly-summary {
+        width: 100%;
+        max-width: none;
+      }
+      .calendar-accordion-list .region-product-team.monthly-summary .calendar-monthly-participant-box {
+        width: 100%;
+        box-sizing: border-box;
+      }
       .calendar-accordion-list .region-product-team.has-detail-button {
         justify-content: space-between;
       }
@@ -19920,6 +20029,14 @@
       }
       .calendar-accordion-list .region-product-team {
         justify-content: flex-start;
+      }
+      .calendar-accordion-list .region-product-team.monthly-summary {
+        width: 100%;
+        max-width: none;
+      }
+      .calendar-accordion-list .region-product-team.monthly-summary .calendar-monthly-participant-box {
+        width: 100%;
+        box-sizing: border-box;
       }
       .calendar-accordion-list .region-product-team.has-detail-button {
         justify-content: space-between;
@@ -20915,7 +21032,7 @@
     .join-my-drawer-overlay {
       position: fixed;
       inset: 0;
-      z-index: 2147483610;
+      z-index: 2147483647 !important;
       display: flex;
       justify-content: flex-end;
       background: rgba(15, 23, 42, .34);
@@ -20930,6 +21047,8 @@
     }
 
     .join-my-drawer {
+      position: relative;
+      z-index: 2147483647 !important;
       width: 250px;
       height: 100%;
       padding: 22px 16px calc(22px + env(safe-area-inset-bottom, 0px));
@@ -21319,6 +21438,15 @@
       opacity: 1;
     }
 
+    #joinProfileManageForm .join-profile-info-row:not(.is-editing) .join-profile-manage-input,
+    #joinProfileManageForm .join-profile-info-row:not(.is-editing) .join-profile-manage-select,
+    #joinProfileManageForm .join-profile-info-row:not(.is-editing) .join-profile-manage-textarea {
+      border-color: transparent !important;
+      box-shadow: none !important;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
     .join-profile-manage-textarea {
       min-height: 72px;
       padding-top: 10px;
@@ -21329,7 +21457,7 @@
     .join-profile-info-row.is-editing .join-profile-manage-input,
     .join-profile-info-row.is-editing .join-profile-manage-select,
     .join-profile-info-row.is-editing .join-profile-manage-textarea {
-      border-color: #3689ff;
+      border-color: transparent !important;
       cursor: text;
     }
 
@@ -21363,6 +21491,7 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
+      position: relative;
       min-height: 40px;
       padding: 0 12px;
       border: 0;
@@ -21373,20 +21502,43 @@
       cursor: pointer;
     }
 
-    .join-profile-gender-option:has(input:checked) {
+    .join-profile-gender-option::before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 50%;
+      background: #fff;
+      box-sizing: border-box;
+    }
+
+    .join-profile-gender-option.is-selected {
       color: #3689ff;
+    }
+
+    .join-profile-gender-option.is-selected::before {
+      border-color: #3689ff;
+      box-shadow: inset 0 0 0 4px #fff;
+      background: #3689ff;
     }
 
     .join-profile-gender-option-text {
       color: #373a3c;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .join-profile-gender-option.is-selected .join-profile-gender-option-text {
+      color: #373a3c;
     }
 
     .join-profile-gender-option input {
-      position: relative;
-      top: -1px;
-      width: 16px;
-      height: 16px;
-      accent-color: #3689ff;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .join-profile-inline-picker {
@@ -21450,6 +21602,97 @@
       border-radius: 10px;
       font-size: 14px;
       font-weight: 700;
+    }
+
+    .join-profile-inline-picker .profession-chip:hover {
+      border-color: var(--border);
+      background: #fff;
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .join-profile-inline-picker .profession-chip.active,
+    .join-profile-inline-picker .profession-chip.active:hover {
+      border-color: #6b7280;
+      background: #f8fafc;
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px #6b7280;
+    }
+
+    .join-profile-custom-profession {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-style: dashed;
+      border-color: #54abff;
+      background: #fafafa;
+      color: #54abff;
+      gap: 6px;
+    }
+
+    .join-profile-custom-profession.has-value {
+      position: relative;
+      justify-content: space-between;
+      border-style: solid;
+      color: #212529;
+    }
+
+    .join-profile-custom-profession.is-editing {
+      display: none;
+    }
+
+    .join-profile-custom-profession-text {
+      min-width: 0;
+      width: 100%;
+      padding: 0 28px;
+      overflow: hidden;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .join-profile-custom-profession-edit {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      color: inherit;
+    }
+
+    .join-profile-custom-profession svg {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+    }
+
+    .join-profile-custom-profession-input {
+      width: 100%;
+      min-width: 0;
+      min-height: 44px;
+      padding: 8px 10px;
+      border: 1px dashed #54abff;
+      border-radius: 10px;
+      background: #fff;
+      color: #212529;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.2;
+      text-align: center;
+      outline: none !important;
+      box-shadow: none;
+    }
+
+    .join-profile-custom-profession-input:focus {
+      border-color: #54abff;
+      outline: none !important;
+      box-shadow: none !important;
     }
 
     .join-profile-info-row.is-editing .join-profile-manage-input:focus,
@@ -21524,17 +21767,42 @@
         padding: 0;
         align-items: stretch;
         justify-content: stretch;
+        height: var(--join-mobile-modal-height, 100dvh);
+        min-height: var(--join-mobile-modal-height, 100dvh);
+        max-height: none;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .join-profile-manage-overlay.open::after {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: -140px;
+        z-index: 0;
+        height: calc(140px + max(24px, env(safe-area-inset-bottom, 0px)));
+        background: #fff;
+        pointer-events: none;
       }
 
       .join-profile-manage-modal {
+        position: relative;
+        z-index: 1;
         width: 100vw;
-        height: 100dvh;
+        height: var(--join-mobile-modal-height, 100dvh);
+        min-height: var(--join-mobile-modal-height, 100dvh);
         max-height: none;
         border-radius: 0;
+        box-shadow: none;
       }
 
       .join-profile-manage-body {
         padding: 18px 18px 0;
+      }
+
+      .join-profile-manage-actions {
+        padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
       }
 
       .join-profile-info-row {
@@ -21671,6 +21939,10 @@
       color: var(--text-soft);
       font-size: 14px;
       line-height: 1.55;
+    }
+
+    .join-my-reservation-section > .join-my-state {
+      text-align: center;
     }
 
     .join-my-profile {
@@ -22724,6 +22996,11 @@
     }
 
     .join-my-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      gap: 18px;
       padding: 0;
       border: 0;
       border-radius: 16px;
@@ -22735,10 +23012,17 @@
       text-align: center;
     }
 
+    .join-my-empty-copy {
+      width: 100%;
+      text-align: center;
+    }
+
     .join-my-empty-box {
+      width: 100%;
       padding: 24px 16px;
       border-radius: 15px;
       background: #f5f6f7;
+      text-align: center;
     }
 
     .join-my-empty .region-result-empty-action {
@@ -22758,7 +23042,8 @@
     }
 
     #joinMyMenuModal .region-empty-recommend {
-      margin-top: 18px;
+      width: 100%;
+      margin-top: 0;
       text-align: left;
     }
 
@@ -24039,6 +24324,59 @@
       display: grid;
     }
 
+    .join-member-signup-alert {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.42);
+    }
+
+    .join-member-signup-alert.is-open {
+      display: flex;
+    }
+
+    .join-member-signup-alert-panel {
+      width: min(320px, 100%);
+      padding: 24px 22px 20px;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.24);
+      text-align: center;
+    }
+
+    .join-member-signup-alert-title {
+      color: #111827;
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .join-member-signup-alert-message {
+      margin-top: 10px;
+      color: #4b5563;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .join-member-signup-alert-button {
+      width: 100%;
+      min-height: 48px;
+      margin-top: 18px;
+      border-radius: 12px;
+      border: 1px solid #54abff;
+      background: #54abff;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
     .join-member-login-button {
       width: 100%;
       min-height: 52px;
@@ -24950,7 +25288,7 @@
       line-height: 1.45;
       text-align: left;
     }
-    .join-member-signup-form[data-step="6"] + .join-member-login-status:empty {
+    .join-member-signup-form[data-step="6"] + .join-member-login-status {
       display: none;
       min-height: 0;
     }
@@ -25254,6 +25592,23 @@
         background: #fff;
       }
 
+      body > #joinMyDrawerOverlay.sgj-portal-overlay {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: stretch !important;
+        min-height: 100dvh !important;
+        background: rgba(15, 23, 42, .34) !important;
+      }
+
+      body > #joinMyDrawerOverlay.sgj-portal-overlay .join-my-drawer {
+        width: 250px !important;
+        max-width: calc(100vw - 78px) !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        max-height: 100dvh !important;
+        background: #fff !important;
+      }
+
       body > .sgj-portal-overlay.open::before,
       body > .sgj-portal-overlay.overlay.open::before,
       body > .sgj-portal-overlay.calendar-sheet-overlay.open::before,
@@ -25462,10 +25817,9 @@
         left: 0 !important;
         top: 0 !important;
         width: 100vw !important;
-        height: 100vh;
-        height: 100dvh;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
         min-height: 100vh;
-        min-height: 100dvh;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
         padding: 0;
         align-items: flex-end;
         justify-content: center;
@@ -25487,6 +25841,24 @@
         display: none !important;
       }
 
+      #participantModal.participant-floating.open::after,
+      body > #participantModal.participant-floating.open::after,
+      body > .participant-floating.sgj-portal-overlay.open::after {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: -140px;
+        z-index: 0;
+        height: calc(140px + max(24px, env(safe-area-inset-bottom, 0px)));
+        background: #fff;
+        pointer-events: none;
+      }
+
+      body > #joinMyDrawerOverlay.sgj-portal-overlay.open::before {
+        content: none !important;
+      }
+
       #participantModal.participant-floating .participant-popover,
       body > #participantModal.participant-floating .participant-popover,
       body > .participant-floating.sgj-portal-overlay .participant-popover {
@@ -25499,9 +25871,10 @@
         height: auto !important;
         min-height: 0 !important;
         max-height: var(--participant-sheet-max-height) !important;
-        padding: 0;
+        padding: 0 0 env(safe-area-inset-bottom, 0px);
         border: 0;
         border-radius: 22px 22px 0 0;
+        background: #fff;
         box-shadow: 0 -18px 45px rgba(15, 23, 42, 0.18);
         overflow: hidden;
         transform: translateY(100%);
@@ -26161,7 +26534,7 @@
               <div class="join-my-drawer-dot" aria-hidden="true"></div>
               <div id="joinMyDrawerAge">50대</div>
             </div>
-            <button type="button" class="join-my-drawer-profile-manage" onclick="openJoinProfileManageModal()"><div class="join-my-drawer-profile-manage-text">프로필 관리</div></button>
+            <button type="button" class="join-my-drawer-profile-manage" onclick="closeJoinMyDrawer(); openJoinProfileManageModal()"><div class="join-my-drawer-profile-manage-text">프로필 관리</div></button>
           </div>
         </div>
       </div>
@@ -26183,11 +26556,11 @@
       <div class="join-my-drawer-divider"></div>
       <div class="join-my-drawer-section-title">고객지원</div>
       <div class="join-my-drawer-list">
-        <button type="button" class="join-my-drawer-item" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">
+        <button type="button" class="join-my-drawer-item" onclick="closeJoinMyDrawer(); openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">
           <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
           <div>채팅문의</div>
         </button>
-        <button type="button" class="join-my-drawer-item" onclick="handlePhoneContact()">
+        <button type="button" class="join-my-drawer-item" onclick="closeJoinMyDrawer(); handlePhoneContact()">
           <div class="join-my-drawer-icon" aria-hidden="true"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/callcenter.webp" alt=""></div>
           <div>전화문의</div>
         </button>
@@ -26236,13 +26609,13 @@
             <div class="join-member-login-copy-line dynamic">
               <div class="join-member-login-copy-rotator" aria-label="취향맞춤 비즈니스 골프친구">
                 <div class="join-member-login-copy-word taste">
-                  <div class="join-member-login-copy-text">취향맞춤 🎯</div>
+                  <div class="join-member-login-copy-text">취향맞춤 &#x1F3AF;</div>
                 </div>
                 <div class="join-member-login-copy-word business">
-                  <div class="join-member-login-copy-text">비즈니스 💼</div>
+                  <div class="join-member-login-copy-text">비즈니스 &#x1F4BC;</div>
                 </div>
                 <div class="join-member-login-copy-word romance">
-                  <div class="join-member-login-copy-text">골프친구 ⛳</div>
+                  <div class="join-member-login-copy-text">골프친구 &#x26F3;</div>
                 </div>
               </div>
               <div class="join-member-login-copy-fixed">인연 만들기</div>
@@ -26481,7 +26854,7 @@
                 <div class="join-member-email-label">아이디*</div>
                 <div class="join-member-signup-password-desc">영문, 숫자를 조합하여 6자리 이상 입력해주세요.</div>
                 <div class="join-member-email-input-wrap">
-                  <input type="text" id="joinMemberSignupEmail" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" oninput="normalizeJoinMemberSignupIdInput(this); setJoinMemberFieldInvalid('joinMemberSignupEmailField', 'joinMemberSignupEmailHelper', ''); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState()" onblur="normalizeJoinMemberSignupIdInput(this); validateJoinMemberSignupEmailField(false); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState()">
+                  <input type="text" id="joinMemberSignupEmail" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" oninput="normalizeJoinMemberSignupIdInput(this); setJoinMemberFieldInvalid('joinMemberSignupEmailField', 'joinMemberSignupEmailHelper', ''); clearJoinMemberSignupDuplicateLock('id'); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState(); scheduleJoinMemberSignupDuplicateCheck('id')" onblur="normalizeJoinMemberSignupIdInput(this); validateJoinMemberSignupEmailField(false); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState(); checkJoinMemberSignupFieldDuplicate('id')">
                 </div>
                 <div class="join-member-email-helper" id="joinMemberSignupEmailHelper" aria-live="polite"></div>
               </label>
@@ -26528,14 +26901,14 @@
               <label class="join-member-email-field join-member-signup-field join-member-signup-profile-field" data-signup-step="3" for="joinMemberSignupMobile" id="joinMemberSignupMobileField">
                 <div class="join-member-email-label">휴대폰번호*</div>
                 <div class="join-member-email-input-wrap">
-                  <input type="tel" id="joinMemberSignupMobile" autocomplete="tel" maxlength="13" inputmode="numeric" placeholder="휴대폰번호를 입력해 주세요" oninput="formatJoinMemberSignupMobile(this); setJoinMemberFieldInvalid('joinMemberSignupMobileField', 'joinMemberSignupMobileHelper', ''); updateJoinMemberSignupNavState()" onblur="validateJoinMemberSignupMobileField(false); updateJoinMemberSignupNavState()">
+                  <input type="tel" id="joinMemberSignupMobile" autocomplete="tel" maxlength="13" inputmode="numeric" placeholder="휴대폰번호를 입력해 주세요" oninput="formatJoinMemberSignupMobile(this); setJoinMemberFieldInvalid('joinMemberSignupMobileField', 'joinMemberSignupMobileHelper', ''); clearJoinMemberSignupDuplicateLock('mobile'); updateJoinMemberSignupNavState(); scheduleJoinMemberSignupDuplicateCheck('mobile')" onblur="validateJoinMemberSignupMobileField(false); updateJoinMemberSignupNavState(); checkJoinMemberSignupFieldDuplicate('mobile')">
                 </div>
                 <div class="join-member-email-helper" id="joinMemberSignupMobileHelper" aria-live="polite"></div>
               </label>
               <label class="join-member-email-field join-member-signup-field join-member-signup-profile-field" data-signup-step="3" for="joinMemberSignupContactEmail" id="joinMemberSignupContactEmailField">
                 <div class="join-member-email-label">이메일주소*</div>
                 <div class="join-member-email-input-wrap">
-                  <input type="text" id="joinMemberSignupContactEmail" autocomplete="email" maxlength="50" placeholder="이메일을 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberSignupContactEmailField', 'joinMemberSignupContactEmailHelper', ''); updateJoinMemberSignupNavState()" onblur="validateJoinMemberSignupContactEmailField(false); updateJoinMemberSignupNavState()">
+                  <input type="text" id="joinMemberSignupContactEmail" autocomplete="email" maxlength="50" placeholder="이메일을 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberSignupContactEmailField', 'joinMemberSignupContactEmailHelper', ''); clearJoinMemberSignupDuplicateLock('email'); updateJoinMemberSignupNavState(); scheduleJoinMemberSignupDuplicateCheck('email')" onblur="validateJoinMemberSignupContactEmailField(false); updateJoinMemberSignupNavState(); checkJoinMemberSignupFieldDuplicate('email')">
                 </div>
                 <div class="join-member-email-helper" id="joinMemberSignupContactEmailHelper" aria-live="polite"></div>
               </label>
@@ -26559,42 +26932,42 @@
               <div class="field full" data-signup-step="5">
                 <input id="joinMemberSignupProfession" type="hidden" value="">
                 <div class="profession-chip-row join-member-signup-chip-row" aria-label="직업/관심분야 빠른 선택">
-                  <button type="button" class="profession-chip" data-signup-profession-chip="경영" onclick="toggleJoinMemberSignupProfession('경영')">📊 경영</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="사업" onclick="toggleJoinMemberSignupProfession('사업')">💼 사업</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="부동산" onclick="toggleJoinMemberSignupProfession('부동산')">🏠 부동산</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="건설" onclick="toggleJoinMemberSignupProfession('건설')">🏗️ 건설</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="금융" onclick="toggleJoinMemberSignupProfession('금융')">🏦 금융</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="보험" onclick="toggleJoinMemberSignupProfession('보험')">🛡️ 보험</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="세무" onclick="toggleJoinMemberSignupProfession('세무')">🧾 세무</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="법률" onclick="toggleJoinMemberSignupProfession('법률')">⚖️ 법률</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="의료" onclick="toggleJoinMemberSignupProfession('의료')">⚕️ 의료</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="제조" onclick="toggleJoinMemberSignupProfession('제조')">🏭 제조</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="유통" onclick="toggleJoinMemberSignupProfession('유통')">📦 유통</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="무역" onclick="toggleJoinMemberSignupProfession('무역')">🌏 무역</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="영업" onclick="toggleJoinMemberSignupProfession('영업')">🤝 영업</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="교육" onclick="toggleJoinMemberSignupProfession('교육')">🎓 교육</button>
-                  <button type="button" class="profession-chip" data-signup-profession-chip="공공" onclick="toggleJoinMemberSignupProfession('공공')">🏛️ 공공</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="경영" onclick="toggleJoinMemberSignupProfession('경영')">&#x1F4CA; 경영</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="사업" onclick="toggleJoinMemberSignupProfession('사업')">&#x1F4BC; 사업</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="부동산" onclick="toggleJoinMemberSignupProfession('부동산')">&#x1F3E0; 부동산</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="건설" onclick="toggleJoinMemberSignupProfession('건설')">&#x1F3D7;&#xFE0F; 건설</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="금융" onclick="toggleJoinMemberSignupProfession('금융')">&#x1F3E6; 금융</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="보험" onclick="toggleJoinMemberSignupProfession('보험')">&#x1F6E1;&#xFE0F; 보험</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="세무" onclick="toggleJoinMemberSignupProfession('세무')">&#x1F9FE; 세무</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="법률" onclick="toggleJoinMemberSignupProfession('법률')">&#x2696;&#xFE0F; 법률</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="의료" onclick="toggleJoinMemberSignupProfession('의료')">&#x2695;&#xFE0F; 의료</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="제조" onclick="toggleJoinMemberSignupProfession('제조')">&#x1F3ED; 제조</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="유통" onclick="toggleJoinMemberSignupProfession('유통')">&#x1F4E6; 유통</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="무역" onclick="toggleJoinMemberSignupProfession('무역')">&#x1F30F; 무역</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="영업" onclick="toggleJoinMemberSignupProfession('영업')">&#x1F91D; 영업</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="교육" onclick="toggleJoinMemberSignupProfession('교육')">&#x1F393; 교육</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="공공" onclick="toggleJoinMemberSignupProfession('공공')">&#x1F3DB;&#xFE0F; 공공</button>
                   <div class="profession-chip join-member-signup-custom-profession" role="button" tabindex="0" onclick="handleJoinMemberSignupCustomProfessionClick(event, this)" onkeydown="handleJoinMemberSignupCustomProfessionKeydown(event, this)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg> 직접입력</div>
                 </div>
               </div>
               <div class="field full" data-signup-step="4">
                 <div class="apply-chip-group" data-chip-group="join-member-level">
-                  <button type="button" class="apply-chip" data-value="입문·초보입니다">🌱 입문·초보입니다</button>
-                  <button type="button" class="apply-chip" data-value="편안한 보기 플레이">🙂 편안한 보기 플레이</button>
-                  <button type="button" class="apply-chip" data-value="90대 정도입니다">🏌️ 90대 정도입니다</button>
-                  <button type="button" class="apply-chip" data-value="80대 정도입니다">⛳ 80대 정도입니다</button>
-                  <button type="button" class="apply-chip" data-value="싱글 수준입니다">🏆 싱글 수준입니다</button>
-                  <button type="button" class="apply-chip" data-value="골프 프로입니다">🎓 골프 프로입니다</button>
+                  <button type="button" class="apply-chip" data-value="입문·초보입니다">&#x1F331; 입문·초보입니다</button>
+                  <button type="button" class="apply-chip" data-value="편안한 보기 플레이">&#x1F642; 편안한 보기 플레이</button>
+                  <button type="button" class="apply-chip" data-value="90대 정도입니다">&#x1F3CC;&#xFE0F; 90대 정도입니다</button>
+                  <button type="button" class="apply-chip" data-value="80대 정도입니다">&#x26F3; 80대 정도입니다</button>
+                  <button type="button" class="apply-chip" data-value="싱글 수준입니다">&#x1F3C6; 싱글 수준입니다</button>
+                  <button type="button" class="apply-chip" data-value="골프 프로입니다">&#x1F393; 골프 프로입니다</button>
                 </div>
               </div>
               <div class="field full" data-signup-step="6">
                 <div class="apply-chip-group" data-chip-group="join-member-travel-style" data-multi="true" data-max="3" aria-label="라운딩 스타일">
-                  <button type="button" class="apply-chip" data-value="여유로운">여유로운 🍃</button>
-                  <button type="button" class="apply-chip" data-value="친목중심">친목중심 🤝</button>
-                  <button type="button" class="apply-chip" data-value="실력향상">실력향상 📈</button>
-                  <button type="button" class="apply-chip" data-value="맛집관광">맛집관광 🍽️</button>
-                  <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 😊</button>
-                  <button type="button" class="apply-chip" data-value="비즈니스">비즈니스 💼</button>
+                  <button type="button" class="apply-chip" data-value="여유로운">여유로운 &#x1F343;</button>
+                  <button type="button" class="apply-chip" data-value="친목중심">친목중심 &#x1F91D;</button>
+                  <button type="button" class="apply-chip" data-value="실력향상">실력향상 &#x1F4C8;</button>
+                  <button type="button" class="apply-chip" data-value="맛집관광">맛집관광 &#x1F37D;&#xFE0F;</button>
+                  <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 &#x1F60A;</button>
+                  <button type="button" class="apply-chip" data-value="비즈니스">비즈니스 &#x1F4BC;</button>
                 </div>
               </div>
               <div class="apply-agree-box join-member-signup-agree" data-signup-step="1">
@@ -26653,6 +27026,13 @@
               </div>
             </div>
             <div class="join-member-login-status" id="joinMemberLoginStatus" aria-live="polite"></div>
+            <div class="join-member-signup-alert" id="joinMemberSignupAlert" role="alertdialog" aria-modal="true" aria-labelledby="joinMemberSignupAlertTitle" aria-describedby="joinMemberSignupAlertMessage" hidden>
+              <div class="join-member-signup-alert-panel">
+                <div class="join-member-signup-alert-title" id="joinMemberSignupAlertTitle">이미 가입된 정보입니다</div>
+                <div class="join-member-signup-alert-message" id="joinMemberSignupAlertMessage"></div>
+                <button type="button" class="join-member-signup-alert-button" onclick="closeJoinMemberSignupAlert()">확인</button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="join-member-login-signup">
@@ -27458,42 +27838,42 @@
             <div class="region-search-quicklist region-search-hotlist is-sliding" id="regionHotList" style="--region-quick-slide-distance: 152px; --region-quick-slide-steps: 4; --region-quick-slide-duration: 12s;"><div class="region-search-quicktrack">
         <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('후쿠오카, 일본')">
           <span>후쿠오카(일본)</span>
-          <span class="region-search-quickmeta">한자리 남았어요.</span>
+          <span class="region-search-quickmeta">예약가능 일정 확인</span>
         </button>
       
         <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('나고야, 일본')">
           <span>나고야(일본)</span>
-          <span class="region-search-quickmeta">실력무관! 편하게 오세요.</span>
+          <span class="region-search-quickmeta">예약가능 일정 확인</span>
         </button>
       
         <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('방콕')">
           <span>방콕</span>
-          <span class="region-search-quickmeta">출발임박! 바로출발해요!</span>
+          <span class="region-search-quickmeta">예약가능 일정 확인</span>
         </button>
       
         <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('청도')">
           <span>청도</span>
-          <span class="region-search-quickmeta">지금 예약하면 좋은 가격이에요.</span>
+          <span class="region-search-quickmeta">예약가능 일정 확인</span>
         </button>
       
         <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('후쿠오카, 일본')">
           <span>후쿠오카(일본)</span>
-          <span class="region-search-quickmeta">한자리 남았어요.</span>
+          <span class="region-search-quickmeta">예약가능 일정 확인</span>
         </button>
       
         <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('나고야, 일본')">
           <span>나고야(일본)</span>
-          <span class="region-search-quickmeta">실력무관! 편하게 오세요.</span>
+          <span class="region-search-quickmeta">예약가능 일정 확인</span>
         </button>
       
         <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('방콕')">
           <span>방콕</span>
-          <span class="region-search-quickmeta">출발임박! 바로출발해요!</span>
+          <span class="region-search-quickmeta">예약가능 일정 확인</span>
         </button>
       
         <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('청도')">
           <span>청도</span>
-          <span class="region-search-quickmeta">지금 예약하면 좋은 가격이에요.</span>
+          <span class="region-search-quickmeta">예약가능 일정 확인</span>
         </button>
       </div></div>
           </div>
@@ -28125,11 +28505,6 @@
     let currentDetailJoinData = null;
     let currentSharePayload = null;
     const GOLFJOIN_KAKAO_COMMERCE_TEMPLATE_ID = 134859;
-    const GOLFJOIN_KAKAO_TEST_IMAGES = [
-      "https://secrettour.toursoft.co.kr/upload/secrettour/ckeditor/202603/secrettour_832fb8a67d6844b58d1283ac5ccf37a6.jpg",
-      "https://secrettour.toursoft.co.kr/upload/secrettour/ckeditor/202603/secrettour_8310c2e92e6f40b1a628ece50b8c6619.jpg",
-      "https://secrettour.toursoft.co.kr/upload/secrettour/ckeditor/202603/secrettour_cd99573fe92c4f9499d3e286414390ee.jpg"
-    ];
     let latestBuilderApplicationShareJoin = null;
     let currentDetailReturnContext = null;
     let currentMdPickProductGroupKey = "";
@@ -28181,6 +28556,7 @@
     let homeInitialExternalProductsLoadedOnce = false;
     let homeBootstrapLoading = false;
     let googleSheetBuilderApplicationsLoading = false;
+    let builderApplySubmitting = false;
     let googleSheetBuilderApplicationsReadCompleted = false;
     let googleSheetBuilderApplicationsReadFailed = false;
     let googleSheetJoinApplicationsLoading = false;
@@ -28214,6 +28590,7 @@
     const PROFILE_IMAGE_QUALITY = 0.68;
     const BUILDER_APPLICATION_JOIN_PREFIX = "sheet-builder-application-";
     const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
+    const BUILDER_APPLICATION_LOCAL_PRESERVE_MS = 7 * 24 * 60 * 60 * 1000;
     const JOIN_APPLICATIONS_STORAGE_KEY = "secretGolfJoinApplications";
     const JOIN_WISH_STORAGE_KEY = "secretGolfJoinWishProducts";
     const JOIN_RECENT_VIEW_STORAGE_KEY = "secretGolfJoinRecentViewedProducts";
@@ -28396,6 +28773,23 @@
       ));
     }
 
+    function setJoinHostHeaderCovered(covered = false) {
+      document.documentElement.classList.remove("join-my-menu-open");
+      document.body.classList.remove("join-my-menu-open");
+      document.querySelectorAll(".header_wrap, .mobile_mainmenu_zone, .mobile_mainmenu_wrap, .mainmenu_dim").forEach((element) => {
+        element.style.removeProperty("display");
+        element.style.removeProperty("opacity");
+        element.style.removeProperty("visibility");
+        element.style.removeProperty("pointer-events");
+        element.style.removeProperty("z-index");
+        element.style.removeProperty("height");
+        element.style.removeProperty("min-height");
+        element.style.removeProperty("margin");
+        element.style.removeProperty("padding");
+        element.style.removeProperty("overflow");
+      });
+    }
+
     function portalOverlayToBody(id) {
       const overlay = document.getElementById(id);
       overlay?.classList.add("sgj-portal-overlay");
@@ -28412,6 +28806,10 @@
                 ? "2147483800"
               : id === "joinMyReviewModal"
                 ? "2147483646"
+              : id === "joinMyDrawerOverlay"
+                ? "2147483647"
+              : id === "joinProfileManageOverlay"
+                ? "2147483960"
               : id === "joinMyMenuModal"
                 ? "2147483620"
                 : id === "joinMemberLoginModal"
@@ -28459,7 +28857,7 @@
       const base = normalizeLoadingMessageBase(baseMessage);
       if (!target || !base) return;
       const suffix = JOIN_LOADING_DOT_SUFFIXES[dotIndex % JOIN_LOADING_DOT_SUFFIXES.length] || "";
-      target.innerHTML = `${escapeHtml(base)}<span class="join-action-loading-message-dots" aria-hidden="true">${escapeHtml(suffix)}</span>`;
+      target.textContent = suffix ? `${base}\u2060${suffix}` : base;
     }
 
     function openHomeInitialLoading() {
@@ -28680,7 +29078,10 @@
       foundMemberId: "",
       findMemberName: "",
       findMemberMobile: "",
-      resetPasswordToken: null
+      resetPasswordToken: null,
+      signupDuplicateLocks: {},
+      signupDuplicateTimers: {},
+      signupDuplicateCheckedValues: {}
     };
     const JOIN_TEMP_ADMIN_LOGIN_KEY = "joinTempAdminLogin";
     const JOIN_SESSION_MEMBER_KEY = "joinSessionMember";
@@ -28781,6 +29182,12 @@
         profession: member.profession || "",
         level: member.level || "",
         travelStyles: member.travelStyles || member.styles || "",
+        profileImageUrl: member.profileImageUrl || "",
+        profileThumbnailUrl: member.profileThumbnailUrl || member.profileImageUrl || "",
+        profileImageObjectName: member.profileImageObjectName || "",
+        profileImageMimeType: member.profileImageMimeType || "",
+        profileImageSize: member.profileImageSize || "",
+        profileImageUpdatedAt: member.profileImageUpdatedAt || "",
         isSessionMember: true
       };
       try {
@@ -28915,6 +29322,29 @@
     function setJoinMemberLoginStatus(message = "") {
       const status = document.getElementById("joinMemberLoginStatus");
       if (status) status.textContent = message;
+    }
+
+    function showJoinMemberSignupAlert(message = "", focusTargetId = "") {
+      const alert = document.getElementById("joinMemberSignupAlert");
+      const messageEl = document.getElementById("joinMemberSignupAlertMessage");
+      if (!alert) {
+        window.alert(message);
+        return;
+      }
+      alert.dataset.focusTarget = focusTargetId || "";
+      if (messageEl) messageEl.textContent = message;
+      alert.hidden = false;
+      alert.classList.add("is-open");
+      requestAnimationFrame(() => alert.querySelector("button")?.focus());
+    }
+
+    function closeJoinMemberSignupAlert() {
+      const alert = document.getElementById("joinMemberSignupAlert");
+      if (!alert) return;
+      const focusTargetId = alert.dataset.focusTarget || "";
+      alert.classList.remove("is-open");
+      alert.hidden = true;
+      if (focusTargetId) requestAnimationFrame(() => document.getElementById(focusTargetId)?.focus());
     }
 
     function createJoinMemberApiError(message, details = {}) {
@@ -29272,6 +29702,10 @@
         continueDetailWishAfterLogin(params);
         return;
       }
+      if (afterLogin === "detail") {
+        continueJoinExternalDetailAfterLogin(params);
+        return;
+      }
       if (afterLogin === "profile-manage") {
         openJoinProfileManageModal();
         return;
@@ -29288,6 +29722,13 @@
       if (signupForm?.dataset.profileRequired === "true") {
         setJoinMemberLoginStatus("");
         return;
+      }
+      if (modal?.classList.contains("is-signup-mode") && signupForm?.classList.contains("is-open")) {
+        const currentStep = getJoinMemberSignupStep();
+        if (currentStep > 1) {
+          goJoinMemberSignupStep(-1);
+          return;
+        }
       }
       if (
         modal?.classList.contains("is-email-mode")
@@ -29593,6 +30034,103 @@
       return !message;
     }
 
+    function getJoinMemberSignupDuplicateValue(type) {
+      if (type === "id") return normalizeJoinMemberSignupIdInput(document.getElementById("joinMemberSignupEmail")).trim();
+      if (type === "mobile") return normalizeJoinMemberPhone(document.getElementById("joinMemberSignupMobile")?.value || "");
+      if (type === "email") return document.getElementById("joinMemberSignupContactEmail")?.value.trim() || "";
+      return "";
+    }
+
+    function isJoinMemberSignupDuplicateValueReady(type, value = getJoinMemberSignupDuplicateValue(type)) {
+      if (type === "id") return isValidJoinMemberSignupId(value);
+      if (type === "mobile") return /^01\d{8,9}$/.test(value);
+      if (type === "email") return isValidJoinMemberEmail(value);
+      return false;
+    }
+
+    function getJoinMemberSignupDuplicateFocusId(type) {
+      return {
+        id: "joinMemberSignupEmail",
+        mobile: "joinMemberSignupMobile",
+        email: "joinMemberSignupContactEmail"
+      }[type] || "";
+    }
+
+    function getJoinMemberSignupDuplicateMessage(type) {
+      return {
+        id: "이미 사용중이거나 탈퇴한 아이디입니다.",
+        mobile: "이미 사용중이거나 탈퇴한 휴대폰 번호입니다.",
+        email: "이미 사용중이거나 탈퇴한 이메일입니다."
+      }[type] || "이미 사용중인 정보입니다.";
+    }
+
+    function clearJoinMemberSignupDuplicateLock(type) {
+      window.clearTimeout(joinMyMenuState.signupDuplicateTimers?.[type]);
+      if (joinMyMenuState.signupDuplicateLocks) delete joinMyMenuState.signupDuplicateLocks[type];
+      if (joinMyMenuState.signupDuplicateCheckedValues) delete joinMyMenuState.signupDuplicateCheckedValues[type];
+    }
+
+    function hasJoinMemberSignupDuplicateLock(type) {
+      const value = getJoinMemberSignupDuplicateValue(type);
+      return Boolean(
+        joinMyMenuState.signupDuplicateLocks?.[type]
+        && joinMyMenuState.signupDuplicateCheckedValues?.[type] === value
+      );
+    }
+
+    async function checkJoinMemberSignupFieldDuplicate(type, options = {}) {
+      const value = getJoinMemberSignupDuplicateValue(type);
+      const silent = Boolean(options.silent);
+      if (!isJoinMemberSignupDuplicateValueReady(type, value)) return true;
+      if (!canUseSecretTourMemberApi()) return true;
+      if (joinMyMenuState.signupDuplicateCheckedValues?.[type] === value && !joinMyMenuState.signupDuplicateLocks?.[type]) {
+        return true;
+      }
+      if (hasJoinMemberSignupDuplicateLock(type)) {
+        if (!silent) showJoinMemberSignupAlert(getJoinMemberSignupDuplicateMessage(type), getJoinMemberSignupDuplicateFocusId(type));
+        return false;
+      }
+
+      try {
+        let result = null;
+        if (type === "id") {
+          result = await postJoinMemberForm("/member/getMemberIdCheck.json", { custId: value });
+        } else if (type === "mobile") {
+          result = await postJoinMemberForm("/member/getMemberMobileCheck.json", {
+            mobile1: value.substring(0, 3),
+            mobile2: value.substring(3, 7),
+            mobile3: value.substring(7, 11)
+          });
+        } else if (type === "email") {
+          result = await postJoinMemberForm("/member/getMemberEmailCheck.json", { email: value });
+        }
+
+        joinMyMenuState.signupDuplicateCheckedValues[type] = value;
+        if (Number(result?.count) !== 0) {
+          joinMyMenuState.signupDuplicateLocks[type] = true;
+          if (!silent) showJoinMemberSignupAlert(getJoinMemberSignupDuplicateMessage(type), getJoinMemberSignupDuplicateFocusId(type));
+          updateJoinMemberSignupNavState();
+          return false;
+        }
+        delete joinMyMenuState.signupDuplicateLocks[type];
+        updateJoinMemberSignupNavState();
+        return true;
+      } catch (error) {
+        console.warn("Signup duplicate check failed.", error);
+        if (!silent) showJoinMemberSignupAlert("중복 확인을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.", getJoinMemberSignupDuplicateFocusId(type));
+        return silent;
+      }
+    }
+
+    function scheduleJoinMemberSignupDuplicateCheck(type) {
+      window.clearTimeout(joinMyMenuState.signupDuplicateTimers?.[type]);
+      const value = getJoinMemberSignupDuplicateValue(type);
+      if (!isJoinMemberSignupDuplicateValueReady(type, value)) return;
+      joinMyMenuState.signupDuplicateTimers[type] = window.setTimeout(() => {
+        checkJoinMemberSignupFieldDuplicate(type, { silent: false });
+      }, 550);
+    }
+
     function joinMemberPasswordIconHtml(visible) {
       return visible
         ? `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.084 14.158a3 3 0 0 1-4.242-4.242" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="m2 2 20 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
@@ -29761,14 +30299,20 @@
         const signupId = document.getElementById("joinMemberSignupEmail")?.value.trim() || "";
         const password = document.getElementById("joinMemberSignupPassword")?.value || "";
         const passwordConfirm = document.getElementById("joinMemberSignupPasswordConfirm")?.value || "";
-        return isValidJoinMemberSignupId(signupId) && isValidJoinMemberPassword(password) && password === passwordConfirm;
+        return isValidJoinMemberSignupId(signupId) && !hasJoinMemberSignupDuplicateLock("id") && isValidJoinMemberPassword(password) && password === passwordConfirm;
       }
       if (step === 3) {
         const name = document.getElementById("joinMemberSignupName")?.value.trim() || "";
         const mobile = normalizeJoinMemberPhone(document.getElementById("joinMemberSignupMobile")?.value || "");
         const email = document.getElementById("joinMemberSignupContactEmail")?.value.trim() || "";
         const birthYear = document.getElementById("joinMemberSignupBirthYear")?.value || "";
-        return name.length >= 2 && /^01\d{8,9}$/.test(mobile) && isValidJoinMemberEmail(email) && /^\d{4}$/.test(birthYear) && Boolean(getJoinMemberSignupSelectedGender());
+        return name.length >= 2
+          && /^01\d{8,9}$/.test(mobile)
+          && !hasJoinMemberSignupDuplicateLock("mobile")
+          && isValidJoinMemberEmail(email)
+          && !hasJoinMemberSignupDuplicateLock("email")
+          && /^\d{4}$/.test(birthYear)
+          && Boolean(getJoinMemberSignupSelectedGender());
       }
       if (step === 4) {
         return Boolean(getJoinMemberSignupSelectedLevel());
@@ -29845,9 +30389,27 @@
       return true;
     }
 
-    function goJoinMemberSignupStep(direction) {
+    async function validateJoinMemberSignupDuplicateBeforeNext(step) {
+      const form = document.getElementById("joinMemberSignupForm");
+      if (!form || form.dataset.profileOnly === "true" || form.dataset.profileRequired === "true") return true;
+      if (step === 2) {
+        window.clearTimeout(joinMyMenuState.signupDuplicateTimers?.id);
+        return checkJoinMemberSignupFieldDuplicate("id");
+      }
+      if (step === 3) {
+        window.clearTimeout(joinMyMenuState.signupDuplicateTimers?.mobile);
+        window.clearTimeout(joinMyMenuState.signupDuplicateTimers?.email);
+        const mobileOk = await checkJoinMemberSignupFieldDuplicate("mobile");
+        if (!mobileOk) return false;
+        return checkJoinMemberSignupFieldDuplicate("email");
+      }
+      return true;
+    }
+
+    async function goJoinMemberSignupStep(direction) {
       const current = getJoinMemberSignupStep();
       if (direction > 0 && !validateJoinMemberSignupStep(current)) return;
+      if (direction > 0 && !(await validateJoinMemberSignupDuplicateBeforeNext(current))) return;
       setJoinMemberLoginStatus("");
       const form = document.getElementById("joinMemberSignupForm");
       const profileOnly = form?.dataset.profileOnly === "true";
@@ -30133,7 +30695,7 @@
           ...profile,
           memberSeq: member.memberSeq || profile.memberSeq || "",
           memberId: member.memberId || profile.memberId || "",
-          memberName: member.memberName || profile.memberName || profile.name || "",
+          memberName: profile.memberName || profile.name || member.memberName || "",
           memberMobile: memberMobile || profileMobile || "",
           memberEmail: member.memberEmail || profile.memberEmail || profile.email || "",
           memberChannel: member.memberChannel || profile.memberChannel || "",
@@ -30261,6 +30823,7 @@
         profileImageObjectName: row.profileImageObjectName || profile.profileImageObjectName || row.objectName || "",
         profileImageMimeType: row.profileImageMimeType || profile.profileImageMimeType || row.photoMimeType || "",
         profileImageSize: row.profileImageSize || profile.profileImageSize || row.photoSize || "",
+        profileImageUpdatedAt: row.profileImageUpdatedAt || profile.profileImageUpdatedAt || row.updatedAt || row.submittedAt || "",
         updatedAt: row.updatedAt || row.submittedAt || ""
       };
     }
@@ -30313,7 +30876,7 @@
       const profileMobile = normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || "");
       return {
         ...member,
-        memberName: member.memberName || profile.memberName || profile.name || "",
+        memberName: profile.memberName || profile.name || member.memberName || "",
         memberMobile: memberMobile || profileMobile || "",
         memberEmail: member.memberEmail || profile.memberEmail || profile.email || "",
         gender: profile.gender || member.gender || "",
@@ -30326,7 +30889,8 @@
         profileThumbnailUrl: profile.profileThumbnailUrl || member.profileThumbnailUrl || profile.profileImageUrl || member.profileImageUrl || "",
         profileImageObjectName: profile.profileImageObjectName || member.profileImageObjectName || "",
         profileImageMimeType: profile.profileImageMimeType || member.profileImageMimeType || "",
-        profileImageSize: profile.profileImageSize || member.profileImageSize || ""
+        profileImageSize: profile.profileImageSize || member.profileImageSize || "",
+        profileImageUpdatedAt: profile.profileImageUpdatedAt || member.profileImageUpdatedAt || profile.updatedAt || ""
       };
     }
 
@@ -30336,7 +30900,7 @@
     }
 
     function preloadJoinProfileImage(member = {}) {
-      const imageUrl = member.profileThumbnailUrl || member.profileImageUrl || "";
+      const imageUrl = getJoinProfileImageDisplayUrl(member);
       if (!imageUrl || typeof Image === "undefined") return;
       const image = new Image();
       image.decoding = "async";
@@ -30357,6 +30921,7 @@
         profileImageObjectName,
         profileImageMimeType,
         profileImageSize,
+        profileImageUpdatedAt,
         ...baseMember
       } = member || {};
       return baseMember;
@@ -30533,6 +31098,10 @@
         continueDetailWishAfterLogin(params, { skipProfileCheck: true });
         return;
       }
+      if (afterLogin === "detail") {
+        continueJoinExternalDetailAfterLogin(params);
+        return;
+      }
       if (afterLogin === "profile-manage") {
         openJoinProfileManageModal();
         return;
@@ -30549,6 +31118,11 @@
 
     function resetJoinMemberSignupValidation() {
       document.getElementById("joinMemberSignupForm")?.classList.remove("is-email-valid");
+      Object.values(joinMyMenuState.signupDuplicateTimers || {}).forEach((timer) => window.clearTimeout(timer));
+      joinMyMenuState.signupDuplicateLocks = {};
+      joinMyMenuState.signupDuplicateTimers = {};
+      joinMyMenuState.signupDuplicateCheckedValues = {};
+      closeJoinMemberSignupAlert();
       [
         ["joinMemberSignupEmailField", "joinMemberSignupEmailHelper"],
         ["joinMemberSignupPasswordField", "joinMemberSignupPasswordHelper"],
@@ -30902,6 +31476,17 @@
         sheet: "join_member_profiles",
         submittedAt,
         pageUrl: location.href,
+        memberSeq: member.memberSeq || "",
+        memberId: member.memberId || pendingKakao.kakaoId || "",
+        memberName: name,
+        memberChannel: member.memberChannel || (pendingKakao.kakaoId ? "KAKAO" : "HOME"),
+        memberMobile: mobile,
+        memberEmail: email,
+        birthYear,
+        gender,
+        profession,
+        level,
+        travelStyles,
         member: {
           memberSeq: member.memberSeq || "",
           memberId: member.memberId || pendingKakao.kakaoId || "",
@@ -31144,7 +31729,11 @@
         const duplicateMessage = await checkJoinMemberSignupDuplicates(data);
         if (duplicateMessage) {
           joinMyMenuState.loginRedirecting = false;
-          setJoinMemberLoginStatus(duplicateMessage);
+          setJoinMemberLoginStatus("");
+          const focusTargetId = duplicateMessage.includes("휴대폰")
+            ? "joinMemberSignupMobile"
+            : (duplicateMessage.includes("이메일") ? "joinMemberSignupContactEmail" : "joinMemberSignupEmail");
+          showJoinMemberSignupAlert(duplicateMessage, focusTargetId);
           return;
         }
         setJoinMemberLoginStatus("회원가입을 진행하고 있어요.");
@@ -31378,13 +31967,20 @@
       return getJoinMemberWithCachedProfile(loginState.member || {});
     }
 
-    function refreshJoinMemberInBackground(onReady) {
-      getJoinCurrentMember({ refresh: true })
+    function refreshJoinMemberInBackground(onReady, options = {}) {
+      const cached = getJoinCachedCurrentMember();
+      if (!options.force && isJoinMemberProfileComplete(cached)) {
+        if (typeof onReady === "function") onReady(cached);
+        return Promise.resolve(cached);
+      }
+      return getJoinCurrentMember({ refresh: Boolean(options.force) })
         .then((member) => {
           if (member && typeof onReady === "function") onReady(member);
+          return member;
         })
         .catch((error) => {
           console.warn("Failed to refresh join member in background.", error);
+          return null;
         });
     }
 
@@ -31405,9 +32001,12 @@
     }
 
     function showJoinMyDrawer(member = {}) {
-      const overlay = document.getElementById("joinMyDrawerOverlay");
+      const overlay = portalOverlayToBody("joinMyDrawerOverlay");
+      setJoinHostHeaderCovered(true);
       updateJoinMyDrawerHeaderOffset();
       updateJoinMyDrawerProfile(member);
+      overlay?.style.setProperty("z-index", "2147483647", "important");
+      overlay?.querySelector(".join-my-drawer")?.style.setProperty("z-index", "2147483647", "important");
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
       document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
@@ -31423,7 +32022,9 @@
         redirectToJoinLogin("my-drawer");
         return;
       }
-      const member = await getJoinCurrentMember({ refresh: true });
+      const member = isJoinMemberProfileComplete(cachedMember)
+        ? cachedMember
+        : await getJoinCurrentMember({ refresh: false });
       if (!member) {
         redirectToJoinLogin("my-drawer");
         return;
@@ -31446,6 +32047,7 @@
       overlay?.classList.remove("open");
       overlay?.setAttribute("aria-hidden", "true");
       if (!document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
+        setJoinHostHeaderCovered(false);
         document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
         setJoinMobileBottomNavVisible(true);
       }
@@ -31461,6 +32063,7 @@
     }
 
     function handleJoinMyRecentClick() {
+      closeJoinMyDrawer();
       openJoinMyRecentMenu();
     }
 
@@ -31550,7 +32153,7 @@
 
     function renderJoinMyRecentEmptyState(tabKey = "product") {
       const message = tabKey === "join_schedule" ? "최근 본 조인모임이 없어요." : "최근 본 상품이 없어요.";
-      return `<div class="join-my-empty"><div class="join-my-empty-box"><div>${escapeHtml(message)}</div></div></div>`;
+      return `<div class="join-my-empty"><div class="join-my-empty-box"><div class="join-my-empty-copy">${escapeHtml(message)}</div></div></div>`;
     }
 
     function renderJoinMyRecentCards(items = [], tabKey = "product") {
@@ -31718,6 +32321,7 @@
         goodSeq: row.goodSeq || row.erpProductId || "",
         eventSeq: row.eventSeq || row.erpEventSeq || "",
         title: row.title || row.productName || "",
+        country: row.country || row.countryName || getNestedValue(row, "product.country") || "",
         region: row.region || row.category || "",
         image: row.image || row.imageUrl || "",
         price: Number(row.price || 0),
@@ -31761,6 +32365,7 @@
             erpProductId: normalized.goodSeq || normalized.productId || (normalized.wishType === "product" ? targetKey : ""),
             erpEventSeq: normalized.eventSeq || "",
             productName: normalized.title || "",
+            country: normalized.country || "",
             imageUrl: normalized.image || "",
             updatedAt: new Date().toISOString()
           });
@@ -31808,6 +32413,7 @@
         goodSeq,
         eventSeq,
         title: join.title || "골프여행 상품",
+        country: getJoinWishCountry(join),
         region: join.region || join.category || "골프여행",
         image: join.image || getDetailSlides(join)[0] || "",
         price: Number(join.price || 0),
@@ -31820,11 +32426,19 @@
       };
     }
 
+    function getJoinWishCountry(item = {}) {
+      const direct = String(item.country || item.countryName || item.nation || item.productCountry || item.erpCountry || "").trim();
+      if (direct) return direct;
+      const region = String(item.region || item.countryRegion || item.location || item.category || "").replace(/\s*,\s*/g, " ").trim();
+      return inferDetailCountryName(region, item);
+    }
+
     function buildJoinWishSheetPayload(item = {}, status = "active", member = getJoinCachedCurrentMember()) {
       const normalizedMember = getJoinMemberWithCachedProfile(member || {});
       const wishType = item.wishType || item.targetType || "product";
       const targetKey = getJoinWishTargetKey({ ...item, wishType });
       const savedAt = item.savedAt || item.createdAt || new Date().toISOString();
+      const country = getJoinWishCountry(item);
       return {
         source: "join_wish",
         sheet: "join_wishes",
@@ -31855,6 +32469,7 @@
           departureDate: item.departureDate || "",
           returnDate: item.returnDate || "",
           category: item.category || "",
+          country,
           region: item.region || item.countryRegion || "",
           imageUrl: item.image || "",
           price: item.price || ""
@@ -31862,6 +32477,7 @@
         productName: item.title || "",
         departureDate: item.departureDate || "",
         returnDate: item.returnDate || "",
+        country,
         region: item.region || item.countryRegion || "",
         imageUrl: item.image || "",
         price: item.price || "",
@@ -32170,6 +32786,7 @@
     }
 
     async function handleJoinMyWishClick() {
+      closeJoinMyDrawer();
       const overlay = portalOverlayToBody("joinMyMenuModal");
       const body = document.getElementById("joinMyMenuBody");
       document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜");
@@ -32223,6 +32840,7 @@
     }
 
     function handleJoinMyTripClick() {
+      closeJoinMyDrawer();
       openJoinMyMenu({ skipProfileCheck: true, member: getJoinCachedCurrentMember() });
     }
 
@@ -32233,6 +32851,7 @@
     }
 
     async function handleJoinMyLogout() {
+      closeJoinMyDrawer();
       try {
         await fetch(getJoinLogoutUrl(), {
           method: "GET",
@@ -32877,7 +33496,7 @@
     function getActiveJoinMySchedulesUncached() {
       const member = typeof getJoinCachedCurrentMember === "function" ? getJoinCachedCurrentMember() : null;
       if (!member) return [];
-      const groups = getJoinMyReservationGroups(member);
+      const groups = applyJoinMyCreatedReservationRenderCache(member, getJoinMyReservationGroups(member));
       return [...(groups.created || []), ...(groups.joined || [])]
         .filter((item) => !isInactiveJoinMySchedule(item))
         .map((item, index) => {
@@ -32962,13 +33581,22 @@
       }) || null;
     }
 
+    function isCurrentMemberCreatedJoinSchedule(join = {}) {
+      const member = typeof getJoinCachedCurrentMember === "function" ? getJoinCachedCurrentMember() : null;
+      return Boolean(member && isJoinMyCreatedScheduleForMember(join, member));
+    }
+
     function getBlockingActiveJoinSchedule(join = {}) {
-      return findOwnActiveJoinSchedule(join) || findOverlappingActiveJoinSchedule(join);
+      return findOverlappingActiveJoinSchedule(join);
     }
 
     function renderJoinOwnScheduleBadge(join = {}) {
-      if (findOwnActiveJoinSchedule(join)) return '<div class="join-badge-wrap"><div class="join-own-schedule-badge">&#xCC38;&#xC5EC;&#xC911;</div></div>';
-      return findOwnActiveJoinSchedule(join) ? '<div class="join-badge-wrap"><div class="join-own-schedule-badge">참여중</div></div>' : "";
+      const ownSchedule = findOwnActiveJoinSchedule(join);
+      if (!ownSchedule) return "";
+      const isCreated = ownSchedule.scheduleGroup === "created" || isCurrentMemberCreatedJoinSchedule(join);
+      const label = isCreated ? "내모임" : "참여중";
+      const stateClass = isCreated ? "is-created" : "is-joined";
+      return `<div class="join-badge-wrap"><div class="join-own-schedule-badge ${stateClass}">${escapeHtml(label)}</div></div>`;
     }
 
     function renderScheduleOverlapBadgeHtml(extraClass = "") {
@@ -32976,6 +33604,7 @@
     }
 
     function renderScheduleOverlapBadge(join = {}, extraClass = "", options = {}) {
+      if (isCurrentMemberCreatedJoinSchedule(join)) return "";
       if (options.includeOwn && getBlockingActiveJoinSchedule(join)) return renderScheduleOverlapBadgeHtml(extraClass);
       if (findOverlappingActiveJoinSchedule(join)) return renderScheduleOverlapBadgeHtml(extraClass);
       return "";
@@ -33903,18 +34532,49 @@
       return items;
     }
 
-    async function uploadJoinReviewImageToGcs(upload, image) {
-      const response = await fetch(upload.uploadUrl || upload.signedUrl || upload.url, {
-        method: upload.method || "PUT",
-        headers: {
-          "Content-Type": image.mimeType
-        },
-        body: image.blob
+    function verifyJoinUploadedImagePublicUrl(url = "") {
+      const publicUrl = String(url || "").trim();
+      if (!publicUrl || typeof Image === "undefined") return Promise.resolve(false);
+      return new Promise((resolve) => {
+        const image = new Image();
+        const timer = setTimeout(() => {
+          image.onload = null;
+          image.onerror = null;
+          resolve(false);
+        }, 5000);
+        image.onload = () => {
+          clearTimeout(timer);
+          resolve(true);
+        };
+        image.onerror = () => {
+          clearTimeout(timer);
+          resolve(false);
+        };
+        image.src = `${publicUrl}${publicUrl.includes("?") ? "&" : "?"}v=${Date.now()}`;
       });
-      if (!response.ok) throw new Error(`Image upload failed: ${response.status}`);
+    }
+
+    async function uploadJoinReviewImageToGcs(upload, image) {
+      const publicUrl = upload.publicUrl || upload.imageUrl || upload.downloadUrl || "";
+      try {
+        const response = await fetch(upload.uploadUrl || upload.signedUrl || upload.url, {
+          method: upload.method || "PUT",
+          headers: {
+            "Content-Type": image.mimeType
+          },
+          body: image.blob
+        });
+        if (!response.ok) throw new Error(`Image upload failed: ${response.status}`);
+      } catch (error) {
+        const looksLikeCorsBlocked = error?.name === "TypeError" || /fetch|cors|network/i.test(String(error?.message || ""));
+        if (!looksLikeCorsBlocked || !publicUrl || !(await verifyJoinUploadedImagePublicUrl(publicUrl))) {
+          throw error;
+        }
+        console.warn("GCS upload response was blocked, but public image URL loaded successfully.", error);
+      }
       return {
         ...image,
-        imageUrl: upload.publicUrl || upload.imageUrl || upload.downloadUrl || "",
+        imageUrl: publicUrl,
         objectName: upload.objectName || "",
         gcsBucket: upload.bucket || ""
       };
@@ -33978,9 +34638,24 @@
       return Array.from(name)[0] || "회";
     }
 
+    function getJoinProfileImageDisplayUrl(member = {}) {
+      const imageUrl = member.profileThumbnailUrl || member.profileImageUrl || "";
+      if (!imageUrl) return "";
+      const version = String(member.profileImageUpdatedAt || member.updatedAt || "").trim();
+      if (!version || imageUrl.startsWith("blob:") || imageUrl.startsWith("data:")) return imageUrl;
+      try {
+        const url = new URL(imageUrl, location.href);
+        url.searchParams.set("v", version);
+        return url.toString();
+      } catch (error) {
+        const joiner = imageUrl.includes("?") ? "&" : "?";
+        return `${imageUrl}${joiner}v=${encodeURIComponent(version)}`;
+      }
+    }
+
     function renderJoinProfileImage(target, member = {}) {
       if (!target) return;
-      const imageUrl = member.profileThumbnailUrl || member.profileImageUrl || "";
+      const imageUrl = getJoinProfileImageDisplayUrl(member);
       if (imageUrl) {
         const currentImage = target.querySelector("img");
         if (currentImage?.getAttribute("src") === imageUrl) return;
@@ -33996,11 +34671,11 @@
       let overlay = document.getElementById("joinProfileManageOverlay");
       if (overlay) {
         upgradeJoinProfileManageModalMarkup(overlay);
-        return overlay;
+        return portalOverlayToBody("joinProfileManageOverlay") || overlay;
       }
       overlay = document.createElement("div");
       overlay.id = "joinProfileManageOverlay";
-      overlay.className = "join-profile-manage-overlay";
+      overlay.className = "join-profile-manage-overlay sgj-portal-overlay";
       overlay.setAttribute("aria-hidden", "true");
       overlay.onclick = (event) => {
         if (event.target.id === "joinProfileManageOverlay") closeJoinProfileManageModal();
@@ -34165,7 +34840,7 @@
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageName" autocomplete="name" required oninput="syncJoinProfileManageSummary()"></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageName')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel" maxlength="11" oninput="handleJoinProfileManageMobileInput(this)"><div class="join-profile-info-error" id="joinProfileManageMobileError"></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageMobile')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageEmail" type="email" autocomplete="email" oninput="setJoinProfileManageFieldError('joinProfileManageEmail', '')"><div class="join-profile-info-error" id="joinProfileManageEmailError"></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageEmail')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><div class="join-profile-gender-control"><input class="join-profile-manage-input" id="joinProfileManageGender" readonly onchange="syncJoinProfileManageSummary()"><div class="join-profile-gender-radios" role="radiogroup"><label class="join-profile-gender-option"><input type="radio" name="joinProfileManageGenderRadio" value="\uB0A8\uC131" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="male"></div></label><label class="join-profile-gender-option"><input type="radio" name="joinProfileManageGenderRadio" value="\uC5EC\uC131" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="female"></div></label></div></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageGender')"></button></div>
+              <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><div class="join-profile-gender-control"><input class="join-profile-manage-input" id="joinProfileManageGender" readonly onchange="syncJoinProfileManageSummary()"><div class="join-profile-gender-radios" role="radiogroup"><div class="join-profile-gender-option" role="radio" tabindex="0" data-gender-value="\uB0A8\uC131" onclick="selectJoinProfileManageGender(this.dataset.genderValue)" onkeydown="if(event.key === 'Enter' || event.key === ' '){event.preventDefault(); selectJoinProfileManageGender(this.dataset.genderValue)}"><input type="radio" name="joinProfileManageGenderRadio" value="\uB0A8\uC131" tabindex="-1" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="male"></div></div><div class="join-profile-gender-option" role="radio" tabindex="0" data-gender-value="\uC5EC\uC131" onclick="selectJoinProfileManageGender(this.dataset.genderValue)" onkeydown="if(event.key === 'Enter' || event.key === ' '){event.preventDefault(); selectJoinProfileManageGender(this.dataset.genderValue)}"><input type="radio" name="joinProfileManageGenderRadio" value="\uC5EC\uC131" tabindex="-1" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="female"></div></div></div></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageGender')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" oninput="handleJoinProfileManageBirthYearInput(this)"></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageLevel" readonly></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageLevel')"></button><div class="join-profile-inline-picker" id="joinProfileManageLevelPicker"></div></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageProfession" oninput="syncJoinProfileManagePickerActiveStates()"></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageProfession')"></button><div class="join-profile-inline-picker" id="joinProfileManageProfessionPicker"></div></div>
@@ -34218,6 +34893,14 @@
         button.setAttribute("aria-label", "\uBCC0\uACBD");
         button.setAttribute("title", "\uBCC0\uACBD");
       });
+      const nameChangeButton = overlay.querySelector(".join-profile-info-row:nth-child(1) .join-profile-info-change");
+      if (nameChangeButton) {
+        nameChangeButton.setAttribute("disabled", "disabled");
+        nameChangeButton.hidden = true;
+        nameChangeButton.style.display = "none";
+        nameChangeButton.setAttribute("aria-label", "\uC774\uB984\uC740 \uBCC0\uACBD\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4");
+        nameChangeButton.setAttribute("title", "\uC774\uB984\uC740 \uBCC0\uACBD\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4");
+      }
       setText("#joinProfileManageSave", "\uC800\uC7A5");
       const gender = overlay.querySelector("#joinProfileManageGender");
       if (gender) {
@@ -34331,7 +35014,11 @@
     function syncJoinProfileManageGenderRadios() {
       const value = document.getElementById("joinProfileManageGender")?.value || "";
       document.querySelectorAll('input[name="joinProfileManageGenderRadio"]').forEach((radio) => {
-        radio.checked = radio.value === value;
+        const checked = radio.value === value;
+        const option = radio.closest(".join-profile-gender-option");
+        radio.checked = checked;
+        option?.classList.toggle("is-selected", checked);
+        option?.setAttribute("aria-checked", checked ? "true" : "false");
       });
     }
 
@@ -34387,9 +35074,10 @@
       if (professionPicker) {
         professionPicker.innerHTML = `
           <div class="join-profile-picker-help">직업은 최대 3개까지 선택할 수 있어요.</div>
-          <div class="profession-chip-row join-profile-profession-picker">${JOIN_PROFILE_MANAGE_PROFESSION_OPTIONS.map(([value, label]) => `<button type="button" class="profession-chip" data-value="${escapeHtml(value)}" onclick="toggleJoinProfileManageProfession('${escapeJsString(value)}')">${label}</button>`).join("")}</div>
+          <div class="profession-chip-row join-profile-profession-picker">${JOIN_PROFILE_MANAGE_PROFESSION_OPTIONS.map(([value, label]) => `<button type="button" class="profession-chip" data-value="${escapeHtml(value)}" onclick="toggleJoinProfileManageProfession('${escapeJsString(value)}')">${label}</button>`).join("")}<div class="profession-chip join-profile-custom-profession" role="button" tabindex="0" onclick="handleJoinProfileCustomProfessionClick(event, this)" onkeydown="handleJoinProfileCustomProfessionKeydown(event, this)">${joinProfileCustomProfessionDefaultHtml()}</div></div>
           <button type="button" class="join-profile-picker-done" onclick="closeJoinProfileManagePicker(document.getElementById('joinProfileManageProfession'))">선택 완료</button>
         `;
+        renderJoinProfileCustomProfession(getJoinProfileCustomProfessionValue());
       }
       const stylePicker = document.getElementById("joinProfileManageTravelStylesPicker");
       if (stylePicker) {
@@ -34420,6 +35108,20 @@
       document.getElementById("joinProfileManageProfessionPicker")?.querySelectorAll("[data-value]").forEach((chip) => {
         chip.classList.toggle("active", selectedProfessions.has(chip.dataset.value));
       });
+      const customChip = document.querySelector("#joinProfileManageProfessionPicker .join-profile-custom-profession");
+      if (customChip) {
+        const syncedCustomValue = getJoinProfileCustomProfessionValue();
+        if (!customChip.classList.contains("is-editing") && customChip.dataset.value !== syncedCustomValue) {
+          renderJoinProfileCustomProfession(syncedCustomValue);
+        }
+        const customValue = customChip.dataset.value || "";
+        const active = Boolean(customValue) && selectedProfessions.has(customValue);
+        const disabled = selectedProfessions.size >= 3 && !active;
+        customChip.classList.toggle("active", active);
+        customChip.classList.toggle("is-disabled", disabled);
+        customChip.setAttribute("aria-disabled", disabled ? "true" : "false");
+        customChip.tabIndex = disabled ? -1 : 0;
+      }
     }
 
     function closeJoinProfileManagePicker(field) {
@@ -34456,6 +35158,140 @@
       if (selected.length >= 3) {
         setTimeout(() => closeJoinProfileManagePicker(field), 120);
       }
+    }
+
+    function joinProfileCustomProfessionDefaultHtml() {
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg> 직접입력`;
+    }
+
+    function joinProfileCustomProfessionEditHtml() {
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen" aria-hidden="true"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"></path></svg>`;
+    }
+
+    function getJoinProfileCustomProfessionValue() {
+      const selected = getJoinProfileManageSelectedProfessionValues();
+      const predefined = new Set(JOIN_PROFILE_MANAGE_PROFESSION_OPTIONS.map(([value]) => value));
+      return selected.find((value) => !predefined.has(value)) || "";
+    }
+
+    function renderJoinProfileCustomProfession(value = "") {
+      const chip = document.querySelector("#joinProfileManageProfessionPicker .join-profile-custom-profession");
+      if (!chip) return;
+      const normalized = String(value || "").trim().slice(0, 20);
+      if (!normalized) {
+        delete chip.dataset.value;
+        chip.classList.remove("has-value", "active");
+        chip.innerHTML = joinProfileCustomProfessionDefaultHtml();
+        return;
+      }
+      chip.dataset.value = normalized;
+      chip.classList.add("has-value");
+      chip.innerHTML = `<span class="join-profile-custom-profession-text">${escapeHtml(normalized)}</span><span class="join-profile-custom-profession-edit" role="button" tabindex="0" aria-label="직업 수정" onclick="event.stopPropagation(); startJoinProfileCustomProfessionInput(this.closest('.join-profile-custom-profession'), true)" onkeydown="if(event.key === 'Enter' || event.key === ' '){event.preventDefault(); event.stopPropagation(); startJoinProfileCustomProfessionInput(this.closest('.join-profile-custom-profession'), true)}">${joinProfileCustomProfessionEditHtml()}</span>`;
+    }
+
+    function addJoinProfileCustomProfession(value, previousValue = "") {
+      const normalized = String(value || "").trim().slice(0, 20);
+      if (!normalized) return false;
+      const current = getJoinProfileManageSelectedProfessionValues().filter((item) => item !== previousValue && item !== normalized);
+      if (current.length >= 3) {
+        renderJoinProfileCustomProfession(previousValue);
+        syncJoinProfileManagePickerActiveStates();
+        return false;
+      }
+      const field = document.getElementById("joinProfileManageProfession");
+      if (!field) return false;
+      field.value = [...current, normalized].slice(0, 3).join(", ");
+      renderJoinProfileCustomProfession(normalized);
+      syncJoinProfileManagePickerActiveStates();
+      return true;
+    }
+
+    function handleJoinProfileCustomProfessionClick(event, chip) {
+      event?.preventDefault?.();
+      if (chip?.classList.contains("is-disabled") || chip?.getAttribute("aria-disabled") === "true") return;
+      const value = chip?.dataset.value || "";
+      if (!value) {
+        startJoinProfileCustomProfessionInput(chip);
+        return;
+      }
+      toggleJoinProfileManageProfession(value);
+    }
+
+    function handleJoinProfileCustomProfessionKeydown(event, chip) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      handleJoinProfileCustomProfessionClick(event, chip);
+    }
+
+    function scrollJoinProfileCustomProfessionInputIntoView(input) {
+      if (!input) return;
+      if (typeof scheduleJoinMobileVisualViewportVarsUpdate === "function") {
+        scheduleJoinMobileVisualViewportVarsUpdate();
+      }
+      const scrollBox = input.closest(".join-profile-manage-body");
+      const inputRect = input.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop || 0;
+      const viewportHeight = viewport?.height || window.innerHeight || document.documentElement.clientHeight || 0;
+      const keyboardSafeBottom = viewportTop + viewportHeight - 96;
+      const keyboardSafeTop = viewportTop + 72;
+      if (scrollBox) {
+        if (inputRect.bottom > keyboardSafeBottom) {
+          scrollBox.scrollTop += inputRect.bottom - keyboardSafeBottom;
+        } else if (inputRect.top < keyboardSafeTop) {
+          scrollBox.scrollTop -= keyboardSafeTop - inputRect.top;
+        }
+      }
+      input.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+    }
+
+    function startJoinProfileCustomProfessionInput(button, edit = false) {
+      const row = button?.closest(".join-profile-profession-picker");
+      if (!row || row.querySelector(".join-profile-custom-profession-input")) return;
+      const previousValue = button.dataset.value || "";
+      button.classList.add("is-editing");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "join-profile-custom-profession-input";
+      input.maxLength = 20;
+      input.placeholder = "직접입력";
+      input.value = edit ? previousValue : "";
+      input.setAttribute("aria-label", "직업 직접입력");
+      let finished = false;
+      const finish = (commit = true) => {
+        if (finished) return;
+        finished = true;
+        const value = input.value.trim();
+        if (commit && value) {
+          addJoinProfileCustomProfession(value, previousValue);
+        } else {
+          renderJoinProfileCustomProfession(previousValue);
+          syncJoinProfileManagePickerActiveStates();
+        }
+        input.remove();
+        button.classList.remove("is-editing");
+      };
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          finish(true);
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          finish(false);
+        }
+      });
+      input.addEventListener("blur", () => finish(true));
+      row.insertBefore(input, button);
+      input.focus({ preventScroll: true });
+      input.select();
+      scrollJoinProfileCustomProfessionInputIntoView(input);
+      requestAnimationFrame(() => {
+        if (document.activeElement !== input) input.focus({ preventScroll: true });
+        scrollJoinProfileCustomProfessionInputIntoView(input);
+      });
+      setTimeout(() => scrollJoinProfileCustomProfessionInputIntoView(input), 180);
+      setTimeout(() => scrollJoinProfileCustomProfessionInputIntoView(input), 360);
     }
 
     function normalizeJoinProfileManageLevelValue(value = "") {
@@ -34573,6 +35409,12 @@
 
     function unlockJoinProfileManageField(field) {
       if (!field) return;
+      if (field.id === "joinProfileManageName") {
+        field.setAttribute("readonly", "readonly");
+        field.closest(".join-profile-info-row")?.classList.remove("is-editing", "is-picker-open");
+        setJoinProfileManageStatus("\uC774\uB984\uC740 \uD68C\uC6D0 \uBCF8\uC778\uD655\uC778 \uC815\uBCF4\uB85C \uC218\uC815\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.");
+        return false;
+      }
       const row = field.closest(".join-profile-info-row");
       if (!validateJoinProfileManageContactFieldsBeforeExit(row)) return false;
       lockInactiveJoinProfileManageFields(row);
@@ -34581,11 +35423,8 @@
           if (row !== field.closest(".join-profile-info-row")) row.classList.remove("is-picker-open", "is-editing");
         });
         row?.classList.add("is-editing", "is-picker-open");
-        if (field.id === "joinProfileManageProfession") {
-          field.removeAttribute("readonly");
-          field.removeAttribute("disabled");
-          field.style.cursor = "text";
-        }
+        field.setAttribute("readonly", "readonly");
+        field.style.cursor = "";
         syncJoinProfileManagePickerActiveStates();
         return true;
       }
@@ -34608,17 +35447,13 @@
       if (!unlockJoinProfileManageField(field)) return;
       if (["joinProfileManageLevel", "joinProfileManageProfession", "joinProfileManageTravelStyles"].includes(id)) {
         field.closest(".join-profile-info-row")?.scrollIntoView({ block: "center", behavior: "smooth" });
-        if (id === "joinProfileManageProfession") {
-          field.focus({ preventScroll: true });
-        } else {
-          field.closest(".join-profile-info-row")?.querySelector(".join-profile-inline-picker button")?.focus({ preventScroll: true });
-        }
+        field.closest(".join-profile-info-row")?.querySelector(".join-profile-inline-picker button, .join-profile-inline-picker [role='button']")?.focus({ preventScroll: true });
         return;
       }
       if (id === "joinProfileManageGender") {
         const activeRadio = document.querySelector('input[name="joinProfileManageGenderRadio"]:checked')
           || document.querySelector('input[name="joinProfileManageGenderRadio"]');
-        activeRadio?.focus({ preventScroll: true });
+        (activeRadio?.closest(".join-profile-gender-option") || activeRadio)?.focus({ preventScroll: true });
         field.closest(".join-profile-info-row")?.scrollIntoView({ block: "center", behavior: "smooth" });
         return;
       }
@@ -34662,6 +35497,11 @@
         const node = document.getElementById(id);
         if (node) node.value = value || "";
       });
+      const nameField = document.getElementById("joinProfileManageName");
+      if (nameField) {
+        nameField.setAttribute("readonly", "readonly");
+        nameField.setAttribute("aria-readonly", "true");
+      }
       lockJoinProfileManageFields();
       syncJoinProfileManageGenderRadios();
       syncJoinProfileManagePickerActiveStates();
@@ -34700,8 +35540,12 @@
         redirectToJoinLogin("profile-manage");
         return;
       }
-      const overlay = ensureJoinProfileManageModal();
+      const overlay = portalOverlayToBody("joinProfileManageOverlay") || ensureJoinProfileManageModal();
       fillJoinProfileManageForm(cached);
+      if (typeof scheduleJoinMobileVisualViewportVarsUpdate === "function") {
+        scheduleJoinMobileVisualViewportVarsUpdate();
+      }
+      overlay.style.setProperty("z-index", "2147483960", "important");
       overlay.classList.add("open");
       overlay.setAttribute("aria-hidden", "false");
       setWidgetModalOpen(true);
@@ -34804,19 +35648,21 @@
       const uploads = await requestJoinProfileUploadUrls({ profileId, images: [image] });
       const upload = uploads.find((item) => item.role === image.role || item.fileName === image.fileName) || uploads[0];
       const uploaded = await uploadJoinReviewImageToGcs(upload, image);
+      const imageUrl = uploaded.imageUrl || uploaded.publicUrl || uploaded.downloadUrl || upload.publicUrl || upload.imageUrl || upload.downloadUrl || "";
       return {
-        profileImageUrl: uploaded.imageUrl,
-        profileThumbnailUrl: uploaded.imageUrl,
+        profileImageUrl: imageUrl,
+        profileThumbnailUrl: imageUrl,
         profileImageObjectName: uploaded.objectName || "",
         profileImageMimeType: uploaded.mimeType,
-        profileImageSize: uploaded.blob.size
+        profileImageSize: uploaded.blob.size,
+        profileImageUpdatedAt: new Date().toISOString()
       };
     }
 
     function buildJoinProfileManagePayload(member = {}, image = null) {
       const submittedAt = new Date().toISOString();
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinProfileManageMobile")?.value || member.memberMobile || "");
-      const name = document.getElementById("joinProfileManageName")?.value.trim() || member.memberName || "";
+      const name = String(member.memberName || member.name || "").trim();
       const email = document.getElementById("joinProfileManageEmail")?.value.trim() || member.memberEmail || "";
       const birthYear = document.getElementById("joinProfileManageBirthYear")?.value.trim() || "";
       const profileId = getStableJoinMemberProfileId({
@@ -34826,9 +35672,7 @@
       }, mobile);
       const profileImage = image || {
         profileImageUrl: member.profileImageUrl || "",
-        profileThumbnailUrl: member.profileThumbnailUrl || member.profileImageUrl || "",
         profileImageObjectName: member.profileImageObjectName || "",
-        profileImageMimeType: member.profileImageMimeType || "",
         profileImageSize: member.profileImageSize || ""
       };
       return {
@@ -34840,6 +35684,20 @@
         sheet: "join_member_profiles",
         submittedAt,
         pageUrl: location.href,
+        memberSeq: member.memberSeq || "",
+        memberId: member.memberId || "",
+        memberName: name,
+        memberChannel: member.memberChannel || "HOME",
+        memberMobile: mobile,
+        memberEmail: email,
+        birthYear,
+        gender: document.getElementById("joinProfileManageGender")?.value || "",
+        profession: document.getElementById("joinProfileManageProfession")?.value.trim() || "",
+        level: document.getElementById("joinProfileManageLevel")?.value || "",
+        travelStyles: document.getElementById("joinProfileManageTravelStyles")?.value.trim() || "",
+        profileImageUrl: profileImage.profileImageUrl || "",
+        profileImageObjectName: profileImage.profileImageObjectName || "",
+        profileImageSize: profileImage.profileImageSize || "",
         member: {
           memberSeq: member.memberSeq || "",
           memberId: member.memberId || "",
@@ -34857,7 +35715,9 @@
           requiredAgreed: true,
           marketingAgreed: Boolean(member.marketingAgreed),
           termsAgreedAt: submittedAt,
-          ...profileImage
+          profileImageUrl: profileImage.profileImageUrl || "",
+          profileImageObjectName: profileImage.profileImageObjectName || "",
+          profileImageSize: profileImage.profileImageSize || ""
         },
         kakao: {
           kakaoId: member.kakaoId || "",
@@ -34907,7 +35767,8 @@
     }
 
     function canUseSecretTourMemberApi() {
-      return location.hostname === "www.secret-tour.com" || location.hostname === "secret-tour.com";
+      const hostname = String(location.hostname || "").toLowerCase();
+      return hostname === "secret-tour.com" || hostname.endsWith(".secret-tour.com");
     }
 
     async function checkSecretTourMemberMobileDuplicate(parts = {}) {
@@ -34919,16 +35780,44 @@
       return Number(result?.count || 0) !== 0;
     }
 
-    function buildSecretTourMemberUpdateBody(payload = {}, member = {}) {
+    async function readSecretTourMemberUpdateBaseParams() {
+      const params = new URLSearchParams();
+      try {
+        const response = await fetch("/mypage/member", { credentials: "include", cache: "no-store" });
+        if (!response.ok) return params;
+        if (response.url && /\/member\/login/i.test(response.url)) return params;
+        const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+        doc.querySelectorAll("input, select, textarea").forEach((field) => {
+          const key = field.getAttribute("name") || field.id || "";
+          if (!key) return;
+          const type = String(field.getAttribute("type") || "").toLowerCase();
+          if ((type === "checkbox" || type === "radio") && !field.checked) return;
+          params.set(key, field.value || field.textContent || "");
+        });
+      } catch (error) {
+        console.warn("Failed to read Secret Tour member update form.", error);
+      }
+      return params;
+    }
+
+    function buildSecretTourMemberUpdateBody(payload = {}, member = {}, baseParams = null) {
       const mobile = payload.member?.memberMobile || member.memberMobile || member.mobile || "";
       const parts = splitJoinMemberMobileParts(mobile);
+      const name = String(payload.member?.memberName || payload.memberName || member.memberName || member.name || "").trim();
       const email = payload.member?.memberEmail || member.memberEmail || member.email || "";
-      const birthday = String(member.birthday || payload.profile?.birthday || payload.profile?.birthYear || "").trim();
+      const birthday = String(payload.profile?.birthday || payload.profile?.birthYear || member.birthday || "").trim();
       const mobileChanged = isSecretTourMemberMobileChanged(payload, member);
       const currentEmail = String(member.memberEmail || member.email || "").trim();
       const emailChanged = Boolean(email && currentEmail && email !== currentEmail);
       const gender = getSecretTourGenderCode(payload.profile?.gender || member.gender || "");
-      const params = new URLSearchParams();
+      const params = new URLSearchParams(baseParams || "");
+      ["custNm", "userNm", "memberName", "memberNm", "mberNm", "custName", "userName"].forEach((key) => {
+        params.set(key, name);
+      });
+      if (member.memberSeq) {
+        params.set("userSeq", member.memberSeq);
+        params.set("memberSeq", member.memberSeq);
+      }
       params.set("mobile1", parts.mobile1 || "");
       params.set("mobile2", parts.mobile2 || "");
       params.set("mobile3", parts.mobile3 || "");
@@ -34954,6 +35843,28 @@
       return params;
     }
 
+    function parseSecretTourMemberUpdateResponse(responseData) {
+      if (typeof responseData === "string") {
+        try {
+          return JSON.parse(responseData);
+        } catch (error) {
+          return { raw: responseData };
+        }
+      }
+      return responseData || {};
+    }
+
+    function isSecretTourMemberUpdateSuccess(responseData) {
+      const data = parseSecretTourMemberUpdateResponse(responseData);
+      const message = String(data.message || data.result || data.status || data.code || "").trim().toUpperCase();
+      if (!message) return true;
+      return ["SUCCESS", "OK", "TRUE", "1", "200"].includes(message);
+    }
+
+    function normalizeSecretTourMemberCompareName(value = "") {
+      return String(value || "").replace(/\s+/g, "").trim();
+    }
+
     async function updateSecretTourMemberProfile(payload = {}, member = {}) {
       if (!canUseSecretTourMemberApi()) {
         console.warn("Secret Tour member API skipped outside secret-tour.com.", location.origin);
@@ -34966,6 +35877,7 @@
         error.code = "DUPLICATE_MOBILE";
         throw error;
       }
+      const baseParams = await readSecretTourMemberUpdateBaseParams();
       const response = await fetch("/mypage/updateMember.json", {
         method: "POST",
         credentials: "include",
@@ -34975,11 +35887,32 @@
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
           "X-Requested-With": "XMLHttpRequest"
         },
-        body: buildSecretTourMemberUpdateBody(payload, member)
+        body: buildSecretTourMemberUpdateBody(payload, member, baseParams)
       });
       if (!response.ok) throw new Error(`Secret Tour member update failed: ${response.status}`);
       const contentType = response.headers.get("content-type") || "";
-      return contentType.includes("application/json") ? response.json() : response.text();
+      const result = contentType.includes("application/json") ? await response.json() : await response.text();
+      if (!isSecretTourMemberUpdateSuccess(result)) {
+        const error = new Error("Secret Tour member update returned failure");
+        error.code = "ERP_UPDATE_FAILED";
+        error.responseData = result;
+        throw error;
+      }
+      const nextName = normalizeSecretTourMemberCompareName(payload.member?.memberName || payload.memberName || "");
+      const prevName = normalizeSecretTourMemberCompareName(member.memberName || member.name || "");
+      if (nextName && nextName !== prevName) {
+        const detail = await fetchJoinMemberDetail();
+        const savedName = normalizeSecretTourMemberCompareName(detail.memberName || "");
+        if (savedName && savedName !== nextName) {
+          const error = new Error("Secret Tour member name was not updated");
+          error.code = "ERP_NAME_NOT_UPDATED";
+          error.expectedName = payload.member?.memberName || payload.memberName || "";
+          error.actualName = detail.memberName || "";
+          error.responseData = result;
+          throw error;
+        }
+      }
+      return result;
     }
 
     function validateJoinProfileManageForm() {
@@ -35039,21 +35972,51 @@
             ...payload.profile,
             ...image
           };
+          payload.profileImageUrl = image.profileImageUrl || payload.profileImageUrl || "";
+          payload.profileImageObjectName = image.profileImageObjectName || payload.profileImageObjectName || "";
+          payload.profileImageSize = image.profileImageSize || payload.profileImageSize || "";
         }
-        await Promise.all([
-          saveJoinMemberProfileToGoogleSheet(payload),
-          updateSecretTourMemberProfile(payload, member)
-        ]);
+        const hasProfileImageSave = Boolean(image?.profileImageUrl);
+        if (hasProfileImageSave) {
+          saveJoinMemberProfileToGoogleSheetInBackground(payload);
+          try {
+            await updateSecretTourMemberProfile(payload, member);
+          } catch (error) {
+            if (error?.code === "DUPLICATE_MOBILE" || ["ERP_UPDATE_FAILED", "ERP_NAME_NOT_UPDATED"].includes(error?.code)) {
+              throw error;
+            }
+            console.warn("Secret Tour member update failed after profile image save.", error);
+          }
+        } else {
+          const saveResults = await Promise.allSettled([
+            saveJoinMemberProfileToGoogleSheet(payload),
+            updateSecretTourMemberProfile(payload, member)
+          ]);
+          if (saveResults[0].status === "rejected") {
+            throw saveResults[0].reason;
+          }
+          if (saveResults[1].status === "rejected") {
+            if (saveResults[1].reason?.code === "DUPLICATE_MOBILE") {
+              throw saveResults[1].reason;
+            }
+            if (["ERP_UPDATE_FAILED", "ERP_NAME_NOT_UPDATED"].includes(saveResults[1].reason?.code)) {
+              throw saveResults[1].reason;
+            }
+            console.warn("Secret Tour member update failed after profile save.", saveResults[1].reason);
+          }
+        }
         const mergedProfile = normalizeJoinMemberProfileRow({
           ...payload.member,
           ...payload.profile,
           profileId: payload.profileId,
           submittedAt: payload.submittedAt
         });
+        joinMemberProfileLookupResults.clear();
+        joinMemberProfileLookupPromises.clear();
         rememberJoinMemberProfileLocally(payload.member, mergedProfile);
         const updatedMember = mergeJoinMemberWithProfile(member, mergedProfile);
         rememberJoinMemberProfileLocally(member, updatedMember);
-        joinMyMenuState.memberPromise = Promise.resolve(updatedMember);
+        setJoinSessionMember(updatedMember);
         updateJoinMyDrawerProfile(updatedMember);
         closeJoinProfileManageModal();
       } catch (error) {
@@ -35062,6 +36025,14 @@
           const duplicateMessage = "\uC774\uBBF8 \uC0AC\uC6A9\uC911\uC774\uAC70\uB098 \uD0C8\uD1F4\uD55C \uD734\uB300\uD3F0 \uBC88\uD638\uC785\uB2C8\uB2E4.";
           alert(duplicateMessage);
           setJoinProfileManageStatus(duplicateMessage);
+          return;
+        }
+        if (error?.code === "ERP_NAME_NOT_UPDATED") {
+          setJoinProfileManageStatus("\uAD6C\uAE00\uC2DC\uD2B8\uB294 \uC800\uC7A5\uB410\uC9C0\uB9CC ERP \uC774\uB984 \uBCC0\uACBD\uC774 \uBC18\uC601\uB418\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4. ERP \uC751\uB2F5\uC744 \uD655\uC778\uD574 \uC8FC\uC138\uC694.");
+          return;
+        }
+        if (error?.code === "ERP_UPDATE_FAILED") {
+          setJoinProfileManageStatus("ERP \uD68C\uC6D0\uC815\uBCF4 \uC800\uC7A5\uC774 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. \uC7A0\uC2DC \uD6C4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.");
           return;
         }
         setJoinProfileManageStatus(joinProfileManageSelectedFile && !REVIEW_IMAGE_SIGN_ENDPOINT
@@ -35292,6 +36263,34 @@
     }
 
     let joinMyReservationActiveTab = "created";
+    let joinMyCreatedReservationRenderCache = {
+      key: "",
+      items: []
+    };
+
+    function getJoinMyReservationRenderCacheKey(member = {}) {
+      const identity = getJoinMyMemberIdentity(member);
+      return [identity.seq, identity.id, identity.phone, identity.email].filter(Boolean).join("|");
+    }
+
+    function applyJoinMyCreatedReservationRenderCache(member = {}, groups = {}) {
+      const key = getJoinMyReservationRenderCacheKey(member);
+      if (!key) return groups;
+      if ((groups.created || []).length) {
+        joinMyCreatedReservationRenderCache = {
+          key,
+          items: groups.created
+        };
+        return groups;
+      }
+      if (joinMyCreatedReservationRenderCache.key === key && joinMyCreatedReservationRenderCache.items.length) {
+        return {
+          ...groups,
+          created: joinMyCreatedReservationRenderCache.items
+        };
+      }
+      return groups;
+    }
 
     function switchJoinMyTab(tabKey) {
       if (["created", "joined", "completed"].includes(tabKey)) {
@@ -35385,6 +36384,7 @@
       document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "내 예약");
       if (!wasOpen) joinMyReservationActiveTab = "created";
       overlay?.classList.add("open");
+      setJoinHostHeaderCovered(true);
       document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
       setJoinMobileBottomNavVisible(false);
       setWidgetModalOpen(true);
@@ -35410,6 +36410,9 @@
       resetModalRuntimeState(modal);
       modal?.classList.remove("open");
       if (!document.getElementById("joinMyDrawerOverlay")?.classList.contains("open")) {
+        setJoinHostHeaderCovered(false);
+      }
+      if (!document.getElementById("joinMyDrawerOverlay")?.classList.contains("open")) {
         document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
         setJoinMobileBottomNavVisible(true);
       }
@@ -35419,6 +36422,7 @@
     function handleJoinMyButtonClick() {
       setJoinMobileNavActive("my");
       if (!requireJoinLogin("my-drawer")) return;
+      setJoinHostHeaderCovered(true);
       openJoinMyDrawer();
     }
 
@@ -35611,9 +36615,14 @@
     async function resumeJoinMyMenuAfterLogin() {
       const params = new URLSearchParams(location.search);
       const afterLogin = params.get("afterLogin");
-      if (!["my-menu", "my-drawer", "builder", "apply", "detail-wish", "profile-manage", "return-url"].includes(afterLogin)) return false;
+      if (!["my-menu", "my-drawer", "builder", "apply", "detail", "detail-wish", "profile-manage", "return-url"].includes(afterLogin)) return false;
       const applyJoinId = params.get("applyJoinId") || "";
       const wishJoinId = params.get("wishJoinId") || "";
+      const joinId = params.get("joinId") || "";
+      const scheduleId = params.get("scheduleId") || "";
+      const productId = params.get("productId") || "";
+      const goodSeq = params.get("goodSeq") || "";
+      const eventSeq = params.get("eventSeq") || "";
       const builderAction = params.get("builderAction") || "";
       const builderProductId = params.get("builderProductId") || "";
       const productGroupKey = params.get("productGroupKey") || "";
@@ -35622,6 +36631,11 @@
       params.delete("afterLogin");
       params.delete("applyJoinId");
       params.delete("wishJoinId");
+      params.delete("joinId");
+      params.delete("scheduleId");
+      params.delete("productId");
+      params.delete("goodSeq");
+      params.delete("eventSeq");
       params.delete("builderAction");
       params.delete("builderProductId");
       params.delete("productGroupKey");
@@ -35637,6 +36651,10 @@
       }
       if (afterLogin === "detail-wish") {
         await continueDetailWishAfterLogin(wishJoinId ? { wishJoinId } : {});
+        return true;
+      }
+      if (afterLogin === "detail") {
+        await continueJoinExternalDetailAfterLogin({ joinId, scheduleId, productId, goodSeq, eventSeq });
         return true;
       }
       if (afterLogin === "profile-manage") {
@@ -35688,14 +36706,42 @@
       history.replaceState(null, "", cleanUrl);
     }
 
+    function getJoinCanonicalPageUrl() {
+      const url = new URL(location.href);
+      [
+        "golfjoinOpen",
+        "joinOpen",
+        "joinId",
+        "scheduleId",
+        "productId",
+        "goodSeq",
+        "eventSeq",
+        "afterLogin",
+        "applyJoinId",
+        "wishJoinId",
+        "builderAction",
+        "builderProductId",
+        "productGroupKey",
+        "countryKey",
+        "returnUrl"
+      ].forEach((key) => url.searchParams.delete(key));
+      return url.toString();
+    }
+
+    function getJoinDeepLinkParam(params, key) {
+      if (!params) return "";
+      if (typeof params.get === "function") return String(params.get(key) || "").trim();
+      return String(params[key] || "").trim();
+    }
+
     function findJoinExternalDeepLinkDetailTarget(params = new URLSearchParams(location.search)) {
-      const joinId = String(params.get("joinId") || params.get("scheduleId") || "").trim();
+      const joinId = String(getJoinDeepLinkParam(params, "joinId") || getJoinDeepLinkParam(params, "scheduleId") || "").trim();
       if (joinId) {
         const direct = joins.find((item) => String(item.id || item.scheduleId || "") === joinId);
         if (direct && shouldDisplayJoinProduct(direct)) return direct;
       }
-      const productId = String(params.get("productId") || params.get("goodSeq") || "").trim();
-      const eventSeq = String(params.get("eventSeq") || "").trim();
+      const productId = String(getJoinDeepLinkParam(params, "productId") || getJoinDeepLinkParam(params, "goodSeq") || "").trim();
+      const eventSeq = String(getJoinDeepLinkParam(params, "eventSeq") || "").trim();
       if (!productId) return null;
       return joins.find((item) => {
         if (!shouldDisplayJoinProduct(item)) return false;
@@ -35706,6 +36752,16 @@
         if (itemGoodSeq !== productId) return false;
         return !eventSeq || itemEventSeq === eventSeq;
       }) || null;
+    }
+
+    async function continueJoinExternalDetailAfterLogin(params = {}) {
+      const join = findJoinExternalDeepLinkDetailTarget(params);
+      if (!join) return false;
+      setJoinMobileNavActive("");
+      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+      closeJoinMyMenu?.();
+      openDetail(join.id);
+      return true;
     }
 
     async function resumeJoinExternalDeepLink() {
@@ -35719,6 +36775,19 @@
         return true;
       }
       if (target === "detail") {
+        if (!getJoinLoginState().isLogin) {
+          const params = new URLSearchParams(location.search);
+          const loginParams = {
+            joinId: params.get("joinId") || "",
+            scheduleId: params.get("scheduleId") || "",
+            productId: params.get("productId") || "",
+            goodSeq: params.get("goodSeq") || "",
+            eventSeq: params.get("eventSeq") || ""
+          };
+          clearJoinExternalDeepLinkTarget();
+          requireJoinLogin("detail", loginParams);
+          return true;
+        }
         const join = findJoinExternalDeepLinkDetailTarget();
         if (!join) return false;
         clearJoinExternalDeepLinkTarget();
@@ -35833,7 +36902,7 @@
       };
       const startLabel = formatCompact(start);
       const endLabel = formatCompact(end);
-      const range = startLabel === endLabel ? startLabel : `${startLabel} ~ ${endLabel}`;
+      const range = startLabel === endLabel ? startLabel : `${startLabel}~${endLabel}`;
       return range;
     }
 
@@ -38624,6 +39693,16 @@
       return [getJoinRegionLabel(join), getJoinAirportDepartureLabel(join)].filter(Boolean).join(" · ");
     }
 
+    function getRegionProductLocationLabel(join = {}) {
+      const region = getJoinRegionLabel(join);
+      const country = inferDetailCountryName(region, join);
+      const regionCountry = [region, country]
+        .map((value) => String(value || "").trim())
+        .filter((value, index, values) => value && values.indexOf(value) === index)
+        .join(" ");
+      return [regionCountry || region || country, getJoinAirportDepartureLabel(join)].filter(Boolean).join(" · ");
+    }
+
     function getApplyJoinLocationLabel(join = {}) {
       const explicitLocation = String(join.countryRegion || "").replace(/\s*,\s*/g, " ").trim();
       if (explicitLocation) return explicitLocation;
@@ -38660,10 +39739,14 @@
 
     function getCalendarEventSummary(events) {
       return events.reduce((summary, join) => {
+        if (isMonthlyRecommendationJoin(join)) {
+          summary.monthly += 1;
+          return summary;
+        }
         const key = getJoinCategoryClass(join);
         summary[key] += 1;
         return summary;
-      }, { domestic: 0, overseas: 0 });
+      }, { monthly: 0, domestic: 0, overseas: 0 });
     }
 
     function formatCalendarAccordionDate(dateKey) {
@@ -39088,6 +40171,7 @@
                 <strong>${displayDayNumber}</strong>
                 ${dateKey === todayKey ? `<div class="calendar-today-label">TODAY</div>` : ""}
                 ${holidayName && dateKey !== todayKey ? `<div class="calendar-holiday-label">${escapeHtml(holidayName)}</div>` : ""}
+                ${summary.monthly ? `<div class="calendar-event monthly">월례회 ${summary.monthly}</div>` : ""}
                 ${summary.domestic ? `<div class="calendar-event domestic">국내 ${summary.domestic}</div>` : ""}
                 ${summary.overseas ? `<div class="calendar-event overseas">해외 ${summary.overseas}</div>` : ""}
               </button>
@@ -39441,6 +40525,7 @@
       const endFlexStart = hasEnd ? addDays(endDate, -builderState.endBefore) : null;
       const endFlexEnd = hasEnd ? addDays(endDate, builderState.endAfter) : null;
       const todayStamp = toStamp(new Date());
+      let hasActiveScheduleInCalendar = false;
       const renderCell = ({ day, dayOffset, date, muted, index }) => {
         const weekday = index % 7;
         const stamp = toStamp(date);
@@ -39463,6 +40548,7 @@
         const holidayName = getKoreanHolidayMap(date.getFullYear()).get(iso) || "";
         const isHoliday = Boolean(holidayName);
         const activeSchedule = getBuilderActiveScheduleForDate(date);
+        if (activeSchedule && !muted) hasActiveScheduleInCalendar = true;
         const activeRange = activeSchedule?.range || null;
         const activeStartTime = activeRange?.startTime;
         const activeEndTime = activeRange?.endTime;
@@ -39488,7 +40574,7 @@
         const cls = ["builder-day", muted ? "muted" : "", displayUnavailable ? "unavailable" : "", isToday ? "today" : "", weekday === 0 ? "sunday" : "", weekday === 6 ? "saturday" : "", isHoliday ? "holiday" : "", ...activeScheduleClasses, ...new Set(flexClasses), isRange ? "range" : "", hasStart && hasEnd && !displayUnavailable && (isStart || isEnd) ? "linked" : "", !displayUnavailable && isStart ? "start" : "", !displayUnavailable && isEnd ? "end" : ""].filter(Boolean).join(" ");
         const departurePriceLabel = !displayUnavailable && !hasStart ? getBuilderDepartureDatePriceLabel(iso) : "";
         const returnPriceLabel = !displayUnavailable && !isStart && hasStart && !hasEnd ? getBuilderReturnDatePriceLabel(iso) : "";
-        const label = activeSchedule ? '<div class="builder-day-label builder-day-active-schedule-label">참여중인 일정</div>' : !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : departurePriceLabel ? `<div class="builder-day-label">${departurePriceLabel}</div>` : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : holidayName ? `<div class="builder-day-holiday-label">${escapeHtml(holidayName)}</div>` : "";
+        const label = activeSchedule ? "" : !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : departurePriceLabel ? `<div class="builder-day-label">${departurePriceLabel}</div>` : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : holidayName ? `<div class="builder-day-holiday-label">${escapeHtml(holidayName)}</div>` : "";
         const canClick = !isLoadingDates && (activeSchedule || !unavailable || isStart || isEnd);
         const click = activeSchedule
           ? `openBuilderActiveScheduleSheet('${escapeJsString(activeSchedule.key)}', '${iso}')`
@@ -39515,6 +40601,8 @@
       }
       grid.closest(".builder-calendar-card")?.classList.toggle("has-six-weeks", weeks.length >= 6);
       grid.innerHTML = weeks.join("");
+      const activeScheduleLegend = document.getElementById("builderActiveScheduleLegend");
+      if (activeScheduleLegend) activeScheduleLegend.hidden = !hasActiveScheduleInCalendar;
       resetBuilderCalendarButtonMargins();
       updateBuilderSummary();
       updateBuilderNotice();
@@ -40865,7 +41953,7 @@
         scheduleId,
         source: "new_schedule_builder",
         submittedAt,
-        pageUrl: location.href,
+        pageUrl: getJoinCanonicalPageUrl(),
         member: {
           memberSeq: memberProfile.member?.memberSeq || "",
           memberId: memberProfile.member?.memberId || "",
@@ -41052,12 +42140,47 @@
       return postGolfJoinSheetPayload(payload, "Join apply");
     }
 
+    async function confirmJoinApplySavedToGoogleSheet(payload = {}) {
+      const targetId = String(payload.joinApplyId || payload.applicationId || "").trim();
+      if (!targetId || !GOLFJOIN_SHEET_API_ENDPOINT) return false;
+      try {
+        const rows = await fetchGolfJoinSheetRows({
+          sheet: "join_applications",
+          source: "join_apply",
+          limit: "20"
+        }, "Join apply confirmation");
+        return rows.some((row) => String(row.applicationId || row.joinApplyId || "").trim() === targetId);
+      } catch (error) {
+        console.warn("Failed to confirm join apply save from Google Sheet.", error);
+        return false;
+      }
+    }
+
     async function saveJoinReviewToGoogleSheet(payload) {
       return postGolfJoinSheetPayload(payload, "Join review");
     }
 
     async function saveJoinMemberProfileToGoogleSheet(payload) {
       return postGolfJoinSheetPayload(payload, "Member profile");
+    }
+
+    function saveJoinMemberProfileToGoogleSheetInBackground(payload) {
+      const promise = saveJoinMemberProfileToGoogleSheet(payload);
+      promise.catch((error) => {
+        console.warn("Member profile background save failed.", error);
+        try {
+          const pending = JSON.parse(localStorage.getItem("joinMemberProfilePendingSaves") || "[]");
+          pending.unshift({
+            payload,
+            failedAt: new Date().toISOString(),
+            message: error?.message || ""
+          });
+          localStorage.setItem("joinMemberProfilePendingSaves", JSON.stringify(pending.slice(0, 5)));
+        } catch (storageError) {
+          console.warn("Failed to cache pending member profile save.", storageError);
+        }
+      });
+      return promise;
     }
 
     function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
@@ -41796,6 +42919,31 @@
       const currentIndex = joins.findIndex((item) => item.id === join.id);
       if (currentIndex >= 0) {
         const existingJoin = joins[currentIndex];
+        if (options.source === "sheet") {
+          const nextIdentity = getJoinMyBuilderApplicationIdentity(join);
+          const existingApplication = existingJoin.sheetApplication || {};
+          const nextApplication = join.sheetApplication || {};
+          if (!nextIdentity.seq && getNestedValue(existingApplication, "member.memberSeq")) {
+            nextApplication.member = { ...(nextApplication.member || {}), memberSeq: getNestedValue(existingApplication, "member.memberSeq") };
+          }
+          if (!nextIdentity.id && getNestedValue(existingApplication, "member.memberId")) {
+            nextApplication.member = { ...(nextApplication.member || {}), memberId: getNestedValue(existingApplication, "member.memberId") };
+          }
+          if (!nextIdentity.phone && (getNestedValue(existingApplication, "member.memberMobile") || getNestedValue(existingApplication, "applicant.phone"))) {
+            nextApplication.member = {
+              ...(nextApplication.member || {}),
+              memberMobile: getNestedValue(existingApplication, "member.memberMobile") || getNestedValue(existingApplication, "applicant.phone")
+            };
+            nextApplication.applicant = {
+              ...(nextApplication.applicant || {}),
+              phone: getNestedValue(nextApplication, "applicant.phone") || getNestedValue(existingApplication, "applicant.phone") || getNestedValue(existingApplication, "member.memberMobile")
+            };
+          }
+          if (!nextIdentity.email && getNestedValue(existingApplication, "member.memberEmail")) {
+            nextApplication.member = { ...(nextApplication.member || {}), memberEmail: getNestedValue(existingApplication, "member.memberEmail") };
+          }
+          join.sheetApplication = nextApplication;
+        }
         const baseParticipantIds = new Set((join.participants || []).map((participant) => String(participant.id || "")));
         const appliedParticipants = (existingJoin.participants || [])
           .filter((participant) => {
@@ -41840,9 +42988,48 @@
       ].map((value) => String(value || "").trim()).filter(Boolean);
     }
 
-    function clearBuilderApplicationLocalCache() {
+    function getBuilderApplicationSubmittedTime(source = {}) {
+      const submittedAt = source.submittedAt || source.createdAt || source.updatedAt || getNestedValue(source, "sheetApplication.submittedAt");
+      const time = new Date(submittedAt || 0).getTime();
+      return Number.isFinite(time) ? time : 0;
+    }
+
+    function isRecentBuilderApplicationSource(source = {}) {
+      const submittedTime = getBuilderApplicationSubmittedTime(source);
+      return Boolean(submittedTime && Date.now() - submittedTime <= BUILDER_APPLICATION_LOCAL_PRESERVE_MS);
+    }
+
+    function shouldPreserveLocalBuilderApplicationJoin(join = {}) {
+      if (join.builderApplicationSource !== "local") return false;
+      if (!isRecentBuilderApplicationSource(join.sheetApplication || join)) return false;
+      const member = getJoinCachedCurrentMember?.();
+      return !member || isJoinMyCreatedScheduleForMember(join, member);
+    }
+
+    function pruneBuilderApplicationLocalPayloads(validKeys = new Set()) {
       try {
-        localStorage.removeItem(BUILDER_APPLICATIONS_STORAGE_KEY);
+        const cached = JSON.parse(localStorage.getItem(BUILDER_APPLICATIONS_STORAGE_KEY) || "[]");
+        if (!Array.isArray(cached) || !cached.length) return;
+        const next = cached.filter((payload) => {
+          const keys = getBuilderPayloadIdentityKeys(payload);
+          if (keys.some((key) => validKeys.has(key))) return false;
+          return isRecentBuilderApplicationSource(payload);
+        }).slice(0, 10);
+        if (next.length) localStorage.setItem(BUILDER_APPLICATIONS_STORAGE_KEY, JSON.stringify(next));
+        else localStorage.removeItem(BUILDER_APPLICATIONS_STORAGE_KEY);
+      } catch (error) {
+        console.warn("Failed to prune builder application cache.", error);
+      }
+    }
+
+    function clearBuilderApplicationLocalCache(options = {}) {
+      try {
+        const validKeys = new Set((options.authoritativeKeys || []).map((key) => String(key || "").trim()).filter(Boolean));
+        if (options.preserveRecentLocal) {
+          pruneBuilderApplicationLocalPayloads(validKeys);
+        } else {
+          localStorage.removeItem(BUILDER_APPLICATIONS_STORAGE_KEY);
+        }
         localStorage.removeItem(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY);
       } catch (error) {
         console.warn("Failed to clear builder application cache.", error);
@@ -41856,6 +43043,7 @@
         if (!join?.isBuilderApplicationJoin) continue;
         const keys = getBuilderApplicationIdentityKeys(join);
         const shouldKeep = keys.some((key) => validKeys.has(key));
+        if (!shouldKeep && shouldPreserveLocalBuilderApplicationJoin(join)) continue;
         if (!shouldKeep) joins.splice(index, 1);
       }
       return before !== joins.length;
@@ -41875,7 +43063,6 @@
       const display = String(item.displayStatus || "").trim().toLowerCase();
       if (["rejected", "deleted", "hidden", "inactive", "cancelled"].includes(approval)) return false;
       if (["hidden", "deleted", "inactive", "false", "0"].includes(display)) return false;
-      if (approval === "pending" && !isJoinTempAdminMember()) return false;
       return true;
     }
 
@@ -42094,8 +43281,9 @@
       if (!hasAuthoritativeScheduleList && options.fromCache !== true && signature === homeBootstrapLightApplySignature) return data;
       homeBootstrapLightApplySignature = signature;
       if (hasAuthoritativeScheduleList) {
-        clearBuilderApplicationLocalCache();
-        syncBuilderApplicationJoinsWithAuthoritativeKeys(newScheduleSummaries.flatMap(getBuilderApplicationIdentityKeys));
+        const authoritativeKeys = newScheduleSummaries.flatMap(getBuilderApplicationIdentityKeys);
+        clearBuilderApplicationLocalCache({ preserveRecentLocal: true, authoritativeKeys });
+        syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys);
       }
       googleSheetBuilderApplicationsLoading = false;
       googleSheetJoinApplicationsLoading = false;
@@ -42286,8 +43474,9 @@
     }
 
     function applyBuilderApplicationsFromGoogleSheetRows(rows = []) {
-      clearBuilderApplicationLocalCache();
-      syncBuilderApplicationJoinsWithAuthoritativeKeys(rows.flatMap(getBuilderPayloadIdentityKeys));
+      const authoritativeKeys = rows.flatMap(getBuilderPayloadIdentityKeys);
+      clearBuilderApplicationLocalCache({ preserveRecentLocal: true, authoritativeKeys });
+      syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys);
       writeGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, rows);
       rows.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
       googleSheetBuilderApplicationsReadCompleted = true;
@@ -42333,8 +43522,9 @@
           source: "new_schedule_builder",
           limit: "100"
         }, "Builder applications");
-        clearBuilderApplicationLocalCache();
-        syncBuilderApplicationJoinsWithAuthoritativeKeys(rows.flatMap(getBuilderPayloadIdentityKeys));
+        const authoritativeKeys = rows.flatMap(getBuilderPayloadIdentityKeys);
+        clearBuilderApplicationLocalCache({ preserveRecentLocal: true, authoritativeKeys });
+        syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys);
         writeGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, rows);
         rows.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
         googleSheetBuilderApplicationsReadCompleted = true;
@@ -42353,7 +43543,9 @@
     }
 
     async function submitBuilderApply() {
+      if (builderApplySubmitting) return false;
       if (!validateBuilderApplyStyleSelection()) return false;
+      builderApplySubmitting = true;
       const next = document.getElementById("builderNextButton");
       const previousText = next?.textContent || "";
       try {
@@ -42379,6 +43571,7 @@
         openBuilderAlert(`신청 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.${detailMessage}`);
         return false;
       } finally {
+        builderApplySubmitting = false;
         if (next && builderStep === 3) {
           next.disabled = false;
           next.textContent = previousText || "신청하기";
@@ -45021,40 +46214,26 @@
       `;
     }
 
-    const regionHotMessages = [
-      "한자리 남았어요.",
-      "60대 전용 모임이에요.",
-      "실력무관! 편하게 오세요.",
-      "최저가 보장 상품이에요.",
-      "출발임박! 바로출발해요!",
-      "혼자라도 바로 합류해요.",
-      "지금 예약하면 좋은 가격이에요.",
-      "매너 좋은 팀에 합류하세요."
-    ];
-
     function getRegionSearchHotRegions() {
-      const seen = new Set();
-      const visibleJoins = getVisibleJoinProducts();
-      const hotRegions = visibleJoins
-        .filter((join) => Number(join.emptySlots) === 1 && join.region)
-        .map((join, index) => ({
-          name: join.region,
-          message: regionHotMessages[index % regionHotMessages.length]
-        }))
-        .filter((item) => {
-          if (seen.has(item.name)) return false;
-          seen.add(item.name);
-          return true;
-        });
-      visibleJoins.forEach((join, index) => {
-        if (hotRegions.length >= 4 || !join.region || seen.has(join.region)) return;
-        seen.add(join.region);
-        hotRegions.push({
-          name: join.region,
-          message: regionHotMessages[(hotRegions.length + index) % regionHotMessages.length]
-        });
+      const regionMap = new Map();
+      getVisibleJoinProducts().forEach((join) => {
+        const region = String(join.region || "").trim();
+        if (!region) return;
+        if (!regionMap.has(region)) {
+          regionMap.set(region, { name: region, count: 0, earliest: "9999-12-31" });
+        }
+        const item = regionMap.get(region);
+        item.count += 1;
+        const departureDate = String(join.departureDate || "");
+        if (departureDate && departureDate < item.earliest) item.earliest = departureDate;
       });
-      return hotRegions.slice(0, 4);
+      return Array.from(regionMap.values())
+        .sort((a, b) => b.count - a.count || a.earliest.localeCompare(b.earliest) || a.name.localeCompare(b.name, "ko"))
+        .slice(0, 4)
+        .map((item) => ({
+          name: item.name,
+          message: `예약가능 일정 ${item.count}개`
+        }));
     }
 
     function regionQuickItemHtml(item) {
@@ -45464,9 +46643,10 @@
     }
 
     function renderRegionProductCard(join, options = {}) {
+      const showMonthlyParticipantSummary = options.showDetailButton && isMonthlyRecommendationJoin(join);
       const adminRecommendedBadges = join.isAdminRecommendedSchedule
         ? (isMonthlyRecommendationJoin(join)
-          ? '<div class="region-product-admin-badges"><span class="region-product-admin-badge recommended">\uC6D4\uB840\uD68C</span></div>'
+          ? '<div class="region-product-admin-badges"><div class="region-product-admin-badge recommended monthly">\uC6D4\uB840\uD68C</div></div>'
           : '<div class="region-product-admin-badges"><span class="region-product-admin-badge lowest-price">\uCD5C\uC800\uAC00</span><span class="region-product-admin-badge recommended">\uCD94\uCC9C\uC77C\uC815</span></div>')
         : "";
       return `
@@ -45480,7 +46660,7 @@
                 <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"/>
               </svg>
-              <div class="region-product-location">${getJoinLocationLabel(join)}</div>
+              <div class="region-product-location">${getRegionProductLocationLabel(join)}</div>
               ${adminRecommendedBadges}
             </div>
             <div class="region-product-name">${join.title}</div>
@@ -45491,8 +46671,8 @@
               <div class="region-product-price-value">${formatPrice(join.price)}</div>
               <div class="region-product-price-unit">원</div>
             </div>
-            <div class="region-product-team">
-              ${renderCardTeamSlots(join)}
+            <div class="region-product-team${showMonthlyParticipantSummary ? " monthly-summary" : ""}">
+              ${showMonthlyParticipantSummary ? renderMonthlyCalendarParticipantSummary(join) : renderCardTeamSlots(join)}
             </div>
           </div>
         </article>
@@ -46789,7 +47969,13 @@
       openJoinActionLoading();
       try {
         const applyPayload = buildJoinApplyPayload(applyData);
-        await saveJoinApplyToGoogleSheet(applyPayload);
+        try {
+          await saveJoinApplyToGoogleSheet(applyPayload);
+        } catch (error) {
+          const confirmed = await confirmJoinApplySavedToGoogleSheet(applyPayload);
+          if (!confirmed) throw error;
+          console.warn("Join apply save response failed, but the row was confirmed in Google Sheet.", error);
+        }
         invalidateHomeBootstrapLightCache();
         applyJoinApplicationPayload(applyPayload, { persist: true });
         if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinId === getNestedValue(applyPayload, "join.id")) {
@@ -47294,6 +48480,23 @@
         renderGroupedParticipantsHtml(confirmedParticipants, join.id, compact),
         ...Array.from({ length: emptyCount }).map(() => emptySlotHtml(compact, join.id, { disabled: !options.allowEmptySlots }))
       ].join("");
+    }
+
+    function renderMonthlyCalendarParticipantSummary(join) {
+      const currentCount = getConfirmedParticipants(join).length;
+      const capacity = getJoinRecruitmentCapacity(join, Number(join.maxCapacity || join.capacity || JOIN_MAX_CAPACITY) || JOIN_MAX_CAPACITY);
+      return `
+        <div class="calendar-monthly-participant-box">
+          <div class="calendar-monthly-participant-item">
+            <div class="calendar-monthly-participant-label">현재인원</div>
+            <div class="calendar-monthly-participant-value">${currentCount}명</div>
+          </div>
+          <div class="calendar-monthly-participant-item">
+            <div class="calendar-monthly-participant-label">모집인원</div>
+            <div class="calendar-monthly-participant-value">${capacity}명</div>
+          </div>
+        </div>
+      `;
     }
 
     function getCardTeamCapacity(join, maxSlots = 4) {
@@ -47895,18 +49098,7 @@
     }
 
     function startMdPickThemeAutoSlide(options = {}) {
-      const section = document.getElementById("join-section-mdpick-theme");
-      if (!section?.querySelector(".join-mdpick-theme-card")) {
-        stopMdPickThemeAutoSlide();
-        return;
-      }
-      if (getVisibleMdPickThemes().length <= 1) {
-        stopMdPickThemeAutoSlide();
-        return;
-      }
-      if (mdPickThemeAutoTimer && !options.reset) return;
       stopMdPickThemeAutoSlide();
-      mdPickThemeAutoTimer = setInterval(advanceMdPickThemeAuto, MD_PICK_THEME_AUTO_INTERVAL_MS);
     }
 
     function updateMdPickSlideDots() {
@@ -48607,6 +49799,8 @@
     let mdPickThemeAutoTimer = null;
     const MD_PICK_THEME_AUTO_INTERVAL_MS = 5000;
     const mdPickPreloadedImages = new Set();
+    const mdPickListElementCache = new Map();
+    let mdPickListCacheSourceSignature = "";
     const MD_PICK_COUNTRIES = [
       { key: "thailand", name: "태국", tokens: ["태국", "방콕", "파타야", "치앙마이", "후아힌"] },
       { key: "japan", name: "일본", tokens: ["일본", "후쿠오카", "기타큐슈", "나고야", "가고시마", "오사카", "삿포로", "구마모토", "나리타"] },
@@ -48624,6 +49818,15 @@
       return "golf";
     }
 
+    function syncMdPickListCacheWithProductSource() {
+      const signature = getBuilderProductSource()
+        .map((product) => [product.id, product.goodSeq, product.eventSeq, product.departureDate, product.price, product.image].filter(Boolean).join(":"))
+        .join("|");
+      if (signature === mdPickListCacheSourceSignature) return;
+      mdPickListCacheSourceSignature = signature;
+      mdPickListElementCache.clear();
+    }
+
     function productMatchesMdPickCountry(product, country) {
       const haystack = normalizeRegionKeyword([product.title, product.region, product.category, product.airport].filter(Boolean).join(" "));
       return country.tokens.some((token) => haystack.includes(normalizeRegionKeyword(token)));
@@ -48636,7 +49839,7 @@
       return [item.countryKey || "", packType, title || region].join("|");
     }
 
-    function getMdPickRepresentativeProducts(country) {
+    function getMdPickRepresentativeProducts(country, packTypeOverride = "") {
       const minDepartureIso = getBuilderMinDepartureISO();
       const groups = new Map();
       getBuilderProductSource().forEach((product) => {
@@ -48645,7 +49848,7 @@
         if (!product.returnDate) return;
         if (!(Number(product.price) > 0)) return;
         const packType = getMdPickPackType(product);
-        const activePack = mdPickPackFilters[country.key] || "golf";
+        const activePack = packTypeOverride || mdPickPackFilters[country.key] || "golf";
         if (activePack && packType !== activePack) return;
         const key = getProductGroupKey(product);
         if (!groups.has(key)) {
@@ -48805,17 +50008,23 @@
       if (!MD_PICK_THEMES.some((theme) => theme.key === themeKey)) return;
       mdPickActiveThemeKey = themeKey;
       const themeSection = document.getElementById("join-section-mdpick-theme");
-      const themeSectionHtml = renderMdPickThemeSection();
-      if (themeSection && themeSectionHtml) {
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = themeSectionHtml.trim();
-        const next = wrapper.firstElementChild;
-        if (next) themeSection.replaceWith(next);
+      if (themeSection) {
+        themeSection.querySelectorAll("[data-mdpick-theme-group]").forEach((group) => {
+          const active = group.dataset.mdpickThemeGroup === themeKey;
+          group.classList.toggle("active", active);
+          group.querySelectorAll(".join-mdpick-theme-tab").forEach((tab) => {
+            const target = (tab.getAttribute("onclick") || "").match(/setMdPickTheme\('([^']+)'\)/)?.[1] || "";
+            const isCurrent = target === themeKey;
+            tab.classList.toggle("active", isCurrent);
+            tab.setAttribute("aria-selected", isCurrent ? "true" : "false");
+          });
+        });
         updateJoinSectionNavFixed();
         requestAnimationFrame(updateMdPickSlideDots);
         startMdPickThemeAutoSlide({ reset: true });
         return;
       }
+      const themeSectionHtml = renderMdPickThemeSection();
       if (themeSection && !themeSectionHtml) {
         themeSection.remove();
         updateJoinSectionNavFixed();
@@ -49122,10 +50331,12 @@
       const tooltip = current.querySelector(".join-mdpick-pack-tooltip");
       if (tooltip) tooltip.id = `mdPickPackTooltip-${country.key}`;
       const currentList = getMdPickListNode(current);
-      const listWrapper = document.createElement("div");
-      listWrapper.innerHTML = renderMdPickListHtml(country).trim();
-      if (!currentList || !listWrapper.firstElementChild) return false;
-      currentList.replaceWith(listWrapper.firstElementChild);
+      const currentListKey = currentList?.dataset?.mdpickListKey;
+      if (currentListKey) mdPickListElementCache.set(currentListKey, currentList);
+      const nextList = getMdPickListElement(country, mdPickPackFilters[country.key] || "golf");
+      if (!currentList || !nextList) return false;
+      if (currentList === nextList) return true;
+      currentList.replaceWith(nextList);
       requestAnimationFrame(updateMdPickCountryDots);
       return true;
     }
@@ -49133,13 +50344,13 @@
     function preloadMdPickCountryImages(countryKey) {
       const country = MD_PICK_COUNTRIES.find((item) => item.key === countryKey);
       if (!country) return;
-      getMdPickRepresentativeProducts(country).forEach((item) => {
+      ["golf", "air"].forEach((packType) => getMdPickRepresentativeProducts(country, packType).forEach((item) => {
         if (!item.image || mdPickPreloadedImages.has(item.image)) return;
         mdPickPreloadedImages.add(item.image);
         const image = new Image();
         image.decoding = "async";
         image.src = item.image;
-      });
+      }));
     }
 
     function scheduleMdPickImagePreload() {
@@ -49164,7 +50375,7 @@
         return;
       }
       const currentCountry = document.querySelector(".join-mdpick-country");
-      const nextListHtml = renderMdPickListHtml(nextCountry);
+      const nextListHtml = renderMdPickListHtml(nextCountry, mdPickPackFilters[nextCountry.key] || "golf");
       const viewport = document.createElement("div");
       const track = document.createElement("div");
       mdPickListAnimating = true;
@@ -49231,11 +50442,28 @@
       changeMdPickCountryBySwipe(deltaX < 0 ? 1 : -1);
     }
 
-    function renderMdPickListHtml(country) {
-      const items = getMdPickRepresentativeProducts(country);
+    function getMdPickListCacheKey(country, packType = "") {
+      return `${country?.key || ""}:${packType || mdPickPackFilters[country?.key] || "golf"}`;
+    }
+
+    function renderMdPickListHtml(country, packType = "") {
+      const activePack = packType || mdPickPackFilters[country.key] || "golf";
+      const items = getMdPickRepresentativeProducts(country, activePack);
       return items.length
-        ? `<div class="join-mdpick-list" ontouchstart="handleMdPickListTouchStart(event)" ontouchmove="handleMdPickListTouchMove(event)" ontouchend="handleMdPickListTouchEnd(event)">${items.map(renderMdPickCard).join("")}</div>`
-        : `<div class="join-mdpick-empty">추천 가능한 상품을 확인하고 있어요.</div>`;
+        ? `<div class="join-mdpick-list" data-mdpick-list-key="${escapeHtml(getMdPickListCacheKey(country, activePack))}" ontouchstart="handleMdPickListTouchStart(event)" ontouchmove="handleMdPickListTouchMove(event)" ontouchend="handleMdPickListTouchEnd(event)">${items.map(renderMdPickCard).join("")}</div>`
+        : `<div class="join-mdpick-empty" data-mdpick-list-key="${escapeHtml(getMdPickListCacheKey(country, activePack))}">추천 가능한 상품을 확인하고 있어요.</div>`;
+    }
+
+    function getMdPickListElement(country, packType = "") {
+      const activePack = packType || mdPickPackFilters[country.key] || "golf";
+      const key = getMdPickListCacheKey(country, activePack);
+      const cached = mdPickListElementCache.get(key);
+      if (cached) return cached;
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = renderMdPickListHtml(country, activePack).trim();
+      const node = wrapper.firstElementChild;
+      if (node) mdPickListElementCache.set(key, node);
+      return node;
     }
 
     function renderMdPickCountry(country) {
@@ -49303,7 +50531,7 @@
               </div>
             </div>
           </div>
-          ${renderMdPickListHtml(country)}
+          ${renderMdPickListHtml(country, activePack)}
         </div>
       `;
     }
@@ -49316,6 +50544,9 @@
         renderJoins();
         return;
       }
+      const currentList = getMdPickListNode(current);
+      const currentListKey = currentList?.dataset?.mdpickListKey;
+      if (currentListKey) mdPickListElementCache.set(currentListKey, currentList);
       const wrapper = document.createElement("div");
       wrapper.innerHTML = renderMdPickCountry(country).trim();
       const next = wrapper.firstElementChild;
@@ -49324,6 +50555,7 @@
     }
 
     function renderMdPickSection() {
+      syncMdPickListCacheWithProductSource();
       const themeSectionHtml = renderMdPickThemeSection();
       const hasProducts = MD_PICK_COUNTRIES.some((country) => getMdPickRepresentativeProducts(country).length);
       if (!hasProducts && !themeSectionHtml && !isMdPickProductsLoading()) return "";
@@ -49650,9 +50882,11 @@
       const positions = getQuickMobileCarouselPositions(grid);
       if (positions.length < 2) return;
       const realCount = getQuickMobileCarouselRealCount(grid);
-      const current = getNearestQuickMobileCarouselIndex(grid, positions);
-      if (current >= positions.length - (realCount * 2)) {
-        appendQuickMobileCarouselCloneSet(grid, 3);
+      let current = getNearestQuickMobileCarouselIndex(grid, positions);
+      if (realCount > 0 && current >= positions.length - realCount) {
+        const resetIndex = Math.min(realCount, positions.length - 1);
+        grid.scrollTo({ left: positions[resetIndex], behavior: "auto" });
+        current = resetIndex;
       }
       const nextPositions = getQuickMobileCarouselPositions(grid);
       const next = Math.min(current + 1, positions.length - 1);
@@ -49709,8 +50943,8 @@
             const positions = getQuickMobileCarouselPositions(grid);
             const realCount = getQuickMobileCarouselRealCount(grid);
             const nearest = getNearestQuickMobileCarouselIndex(grid, positions);
-            if (nearest >= positions.length - (realCount * 2)) {
-              appendQuickMobileCarouselCloneSet(grid, 3);
+            if (realCount > 0 && nearest >= positions.length - realCount) {
+              grid.scrollTo({ left: positions[Math.min(realCount, positions.length - 1)], behavior: "auto" });
             }
           }, 140);
         }, { passive: true });
@@ -49816,8 +51050,9 @@
     function getJoinSectionNavScrollOffset(nav) {
       const root = document.getElementById("secret-golf-join") || document.documentElement;
       const mobileHeaderOffset = Number.parseFloat(getComputedStyle(root).getPropertyValue("--mobile-home-header-height")) || 0;
+      const pcHeaderOffset = Number.parseFloat(getComputedStyle(root).getPropertyValue("--join-pc-header-zone-offset")) || 187;
       const navHeight = nav?.offsetHeight || 0;
-      if (window.innerWidth > 640) return navHeight + 32;
+      if (window.innerWidth > 640) return pcHeaderOffset + navHeight + 32;
       return mobileHeaderOffset + navHeight + 12;
     }
 
@@ -50390,7 +51625,7 @@
       overlay.className = "detail-share-overlay";
       overlay.setAttribute("onclick", "handleDetailShareBackdrop(event)");
       document.body.appendChild(overlay);
-      return overlay;
+      return portalOverlayToBody("joinProfileManageOverlay") || overlay;
     }
 
     function handleDetailShareBackdrop(event) {
@@ -50492,18 +51727,22 @@
       }
     }
 
-    function getKakaoCommerceImages(payload = {}, join = {}) {
-      if (Array.isArray(GOLFJOIN_KAKAO_TEST_IMAGES) && GOLFJOIN_KAKAO_TEST_IMAGES.length >= 3) {
-        return GOLFJOIN_KAKAO_TEST_IMAGES.slice(0, 3);
-      }
+    function getKakaoCommerceImageCandidates(source = {}) {
       const candidates = [
-        payload.imageUrl,
-        payload.image,
-        ...getDetailSlides(payload),
-        join.imageUrl,
-        join.image,
-        ...getDetailSlides(join)
+        source.imageUrl,
+        source.image,
+        source.goodsImage,
+        ...(Array.isArray(source.slides) ? source.slides : []),
+        ...(Array.isArray(source.introImages) ? source.introImages : [])
       ].filter((image) => /^https?:\/\//i.test(String(image || "").trim()));
+      return [...new Set(candidates.map((image) => String(image).trim()))];
+    }
+
+    function getKakaoCommerceImages(payload = {}, join = {}) {
+      const candidates = [
+        ...getKakaoCommerceImageCandidates(payload),
+        ...getKakaoCommerceImageCandidates(join)
+      ];
       const images = [...new Set(candidates.map((image) => String(image).trim()))];
       const fallback = "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner1.webp";
       while (images.length < 3) images.push(images[images.length - 1] || fallback);
@@ -50568,9 +51807,21 @@
     }
 
     async function shareDetailToKakao() {
-      const join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
-      const payload = currentSharePayload || join;
+      let join = currentDetailJoinData || joins.find((item) => item.id === currentDetailJoinId) || {};
+      let payload = currentSharePayload || join;
       const url = payload.sourceUrl || payload.url || document.getElementById("detailShareUrlInput")?.value || buildDetailGoodsSourceUrl(join);
+      if (join?.goodSeq && join?.eventSeq && !join.secretTourDetailLoaded) {
+        try {
+          const detail = await loadSecretTourGoodsDetail(join);
+          const enrichedJoin = mergeSecretTourGoodsDetail(join, detail);
+          Object.assign(join, enrichedJoin, { secretTourDetailLoaded: true });
+          if (currentDetailJoinData?.id === join.id) currentDetailJoinData = join;
+          payload = { ...payload, ...enrichedJoin };
+          if (currentSharePayload) currentSharePayload = { ...currentSharePayload, ...enrichedJoin };
+        } catch (error) {
+          console.warn("Failed to load share images from Secret Tour detail.", error);
+        }
+      }
       let KakaoSdk = window.Kakao;
       if (!KakaoSdk?.Share?.sendCustom && !KakaoSdk?.Link?.sendCustom) {
         try {
@@ -51041,6 +52292,7 @@
 
       if (isMobileParticipantSheet()) {
         activeParticipantTrigger = trigger;
+        scheduleJoinMobileVisualViewportVarsUpdate();
         setWidgetModalOpen(true);
         requestAnimationFrame(() => floating.classList.add("sheet-open"));
         return;
@@ -51809,6 +53061,10 @@
         <div class="builder-step" data-builder-step="1">
           <div class="builder-card builder-calendar-card">
             <div class="builder-calendar-head">
+              <div class="builder-calendar-legend" id="builderActiveScheduleLegend" hidden>
+                <div class="builder-calendar-legend-dot" aria-hidden="true"></div>
+                <div>참여중</div>
+              </div>
               <div class="builder-month-nav">
                 <button type="button" class="builder-month-button" onclick="changeBuilderMonth(-1)" aria-label="이전 달" style="margin-right: 0px !important;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
                 <div class="builder-calendar-month" id="builderCalendarMonth">2026년 6월</div>

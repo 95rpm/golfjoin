@@ -49,6 +49,7 @@ const ALIGO_SENDERKEY = String(process.env.ALIGO_SENDERKEY || "").trim();
 const ALIGO_SENDER = String(process.env.ALIGO_SENDER || process.env.SENDER || "0234461119").trim();
 const ALIGO_TESTMODE = String(process.env.ALIGO_TESTMODE || process.env.TESTMODE || "N").trim();
 const ALIGO_ENABLED = String(process.env.ALIGO_ENABLED || "N").trim().toUpperCase() === "Y";
+const ALIGO_REQUEST_TIMEOUT_MS = Number(process.env.ALIGO_REQUEST_TIMEOUT_MS || 8000);
 const GOLFJOIN_MY_PAGE_PC_URL = String(process.env.GOLFJOIN_MY_PAGE_PC_URL || "https://www.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1&golfjoinOpen=my").trim();
 const GOLFJOIN_MY_PAGE_MO_URL = String(process.env.GOLFJOIN_MY_PAGE_MO_URL || "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1&golfjoinOpen=my").trim();
 const ALIGO_ALIMTALK_SEND_URL = "https://kakaoapi.aligo.in/akv10/alimtalk/send/";
@@ -549,7 +550,41 @@ function buildMyPageUrl(baseUrl = "") {
   return url.toString();
 }
 
-function getAlimtalkButtons() {
+function parseGolfjoinProductReference(value = "", eventSeqValue = "") {
+  const raw = asText(value);
+  const explicitEventSeq = asText(eventSeqValue);
+  const compositeMatch = raw.match(/(?:secret-tour-|erp-)?(\d{5,})-(\d{5,})/);
+  if (compositeMatch) {
+    return {
+      goodSeq: compositeMatch[1],
+      eventSeq: compositeMatch[2]
+    };
+  }
+  return {
+    goodSeq: /^\d+$/.test(raw) ? raw : "",
+    eventSeq: explicitEventSeq
+  };
+}
+
+function buildAlimtalkDetailUrl(baseUrl = "", info = {}) {
+  const url = new URL(baseUrl);
+  const reference = parseGolfjoinProductReference(info.productId || info.erpProductId || info.goodSeq, info.eventSeq || info.erpEventSeq);
+  const goodSeq = asText(info.goodSeq || reference.goodSeq || info.erpProductId);
+  const eventSeq = asText(info.eventSeq || reference.eventSeq || info.erpEventSeq);
+  if (!goodSeq) return buildMyPageUrl(baseUrl);
+  url.searchParams.set("golfjoinOpen", "detail");
+  url.searchParams.set("goodSeq", goodSeq);
+  if (eventSeq) url.searchParams.set("eventSeq", eventSeq);
+  return url.toString();
+}
+
+function getAlimtalkButtons(info = {}) {
+  const linkPc = info?.linkMode === "detail"
+    ? buildAlimtalkDetailUrl(GOLFJOIN_MY_PAGE_PC_URL, info)
+    : buildMyPageUrl(GOLFJOIN_MY_PAGE_PC_URL);
+  const linkMo = info?.linkMode === "detail"
+    ? buildAlimtalkDetailUrl(GOLFJOIN_MY_PAGE_MO_URL, info)
+    : buildMyPageUrl(GOLFJOIN_MY_PAGE_MO_URL);
   return JSON.stringify({
     button: [
       {
@@ -561,8 +596,8 @@ function getAlimtalkButtons() {
         name: "조인 모임 확인하기",
         linkType: "WL",
         linkTypeName: "웹링크",
-        linkPc: buildMyPageUrl(GOLFJOIN_MY_PAGE_PC_URL),
-        linkMo: buildMyPageUrl(GOLFJOIN_MY_PAGE_MO_URL)
+        linkPc,
+        linkMo
       }
     ]
   });
@@ -587,6 +622,10 @@ function getAlimtalkTripInfo(payload = {}, summary = {}) {
   return {
     customerName: firstText(getValue(payload, "applicant.name"), getValue(payload, "member.memberName"), summary.creatorName, "고객"),
     phone: normalizePhone(getValue(payload, "applicant.phone") || getValue(payload, "member.memberMobile")),
+    linkMode: isBuilder ? "detail" : "my",
+    productId: firstText(getValue(payload, "trip.productId"), getValue(payload, "product.id"), getValue(payload, "product.productId"), payload.productId),
+    goodSeq: firstText(getValue(payload, "trip.goodSeq"), getValue(payload, "product.goodSeq"), getValue(payload, "product.erpProductId"), payload.goodSeq, payload.erpProductId),
+    eventSeq: firstText(getValue(payload, "trip.eventSeq"), getValue(payload, "trip.erpEventSeq"), getValue(payload, "product.eventSeq"), getValue(payload, "product.erpEventSeq"), payload.eventSeq, payload.erpEventSeq),
     productName: firstText(getValue(payload, "trip.productName"), getValue(payload, "product.productName"), payload.productName, summary.title, "골프조인 상품"),
     region: formatAlimtalkRegion(country, region),
     departureDate: formatAlimtalkDate(firstText(
@@ -635,9 +674,10 @@ async function sendGolfjoinAlimtalk(type, info = {}) {
     receiver_1: receiver,
     subject_1: template.templateName || template.subject,
     message_1: message,
-    button_1: getAlimtalkButtons(),
+    button_1: getAlimtalkButtons(info),
     testMode: ALIGO_TESTMODE,
     failover: "Y",
+    fsubject_1: template.subject || template.templateName || "시크릿투어 알림",
     fmessage_1: message
   });
   const response = await fetchWithTimeout(ALIGO_ALIMTALK_SEND_URL, {
@@ -645,7 +685,7 @@ async function sendGolfjoinAlimtalk(type, info = {}) {
     headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
     body,
     redirect: "follow"
-  });
+  }, ALIGO_REQUEST_TIMEOUT_MS);
   const text = await response.text();
   let payload = {};
   try {

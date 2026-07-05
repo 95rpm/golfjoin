@@ -34,6 +34,18 @@ Read security:
     - `gs://golfjoin-bucket/web/golfjoin_local_data.json`
   - Override with `GOLFJOIN_PRODUCTS_BUCKET`, `GOLFJOIN_PRODUCTS_PREFIX`, and `SECRET_TOUR_GOODS_CATEGORY_ROOTS`.
 
+Alimtalk:
+
+- `new_schedule_builder` and `join_apply` writes send Alimtalk after the Google Sheet write succeeds.
+- The write response includes a `notifications` array with the actual send result or skip/failure reason.
+- Required production env vars:
+  - `ALIGO_ENABLED=Y`
+  - `ALIGO_USERID`
+  - `ALIGO_APIKEY`
+  - `ALIGO_SENDERKEY`
+  - `ALIGO_SENDER=0234461119`
+  - Optional: `ALIGO_TESTMODE=N`, `ALIGO_REQUEST_TIMEOUT_MS=8000`
+
 Write security:
 
 - If `WRITE_TOKEN` is configured, all `POST` writes require the `X-Golfjoin-Write-Token` request header.

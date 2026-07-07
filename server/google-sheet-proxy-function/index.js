@@ -16,6 +16,7 @@ const ALLOWED_READ_SHEETS = new Set([
   "join_reviews",
   "join_wishes",
   "schedule_participant_summary",
+  "recommended_schedules",
   "product_display_rules",
   "new_schedule",
   "builder",
@@ -35,6 +36,7 @@ const PUBLIC_READ_SHEETS = new Set([
   "join_applications",
   "join_reviews",
   "schedule_participant_summary",
+  "recommended_schedules",
   "product_display_rules"
 ]);
 const ADMIN_READ_TOKEN = String(process.env.ADMIN_READ_TOKEN || "").trim();
@@ -149,7 +151,8 @@ const ALLOWED_WRITE_SHEETS_BY_SOURCE = {
   join_member_profile: "join_member_profiles",
   join_review: "join_reviews",
   join_wish: "join_wishes",
-  product_display_rule: "product_display_rules"
+  product_display_rule: "recommended_schedules",
+  recommended_schedule: "recommended_schedules"
 };
 const ALLOWED_ACTIONS = new Set(["", "upsert"]);
 const ALLOWED_ROOM_TYPES = new Set(["2인1실", "1인1실"]);
@@ -325,7 +328,9 @@ function resolveReadSheetAlias(sheet = "") {
     join_wish: "join_wishes",
     wishes: "join_wishes",
     summary: "schedule_participant_summary",
-    display_rules: "product_display_rules"
+    display_rules: "recommended_schedules",
+    product_display_rules: "recommended_schedules",
+    recommended_schedule: "recommended_schedules"
   };
   return aliases[requested] || requested;
 }
@@ -622,7 +627,7 @@ function getAlimtalkTripInfo(payload = {}, summary = {}) {
   return {
     customerName: firstText(getValue(payload, "applicant.name"), getValue(payload, "member.memberName"), summary.creatorName, "고객"),
     phone: normalizePhone(getValue(payload, "applicant.phone") || getValue(payload, "member.memberMobile")),
-    linkMode: isBuilder ? "detail" : "my",
+    linkMode: "my",
     productId: firstText(getValue(payload, "trip.productId"), getValue(payload, "product.id"), getValue(payload, "product.productId"), payload.productId),
     goodSeq: firstText(getValue(payload, "trip.goodSeq"), getValue(payload, "product.goodSeq"), getValue(payload, "product.erpProductId"), payload.goodSeq, payload.erpProductId),
     eventSeq: firstText(getValue(payload, "trip.eventSeq"), getValue(payload, "trip.erpEventSeq"), getValue(payload, "product.eventSeq"), getValue(payload, "product.erpEventSeq"), payload.eventSeq, payload.erpEventSeq),
@@ -701,6 +706,7 @@ async function sendGolfjoinAlimtalk(type, info = {}) {
 
 function splitNamesAndPhones(names = "", phones = "") {
   const nameList = asText(names).split(",").map(asText);
+  const seenPhones = new Set();
   return asText(phones)
     .split(",")
     .map(normalizePhone)
@@ -708,7 +714,12 @@ function splitNamesAndPhones(names = "", phones = "") {
     .map((phone, index) => ({
       phone,
       customerName: nameList[index] || "고객"
-    }));
+    }))
+    .filter((recipient) => {
+      if (seenPhones.has(recipient.phone)) return false;
+      seenPhones.add(recipient.phone);
+      return true;
+    });
 }
 
 function assertPhone(value, field = "phone") {
@@ -814,9 +825,9 @@ function assertWriteSourceAndSheet(payload) {
   const expectedSheet = ALLOWED_WRITE_SHEETS_BY_SOURCE[source];
   if (!expectedSheet) throw createHttpError("source is not allowed");
   const sheet = normalizeSheetName(payload.sheet || "");
-  if (sheet && sheet !== expectedSheet) throw createHttpError("sheet does not match source");
+  if (sheet && resolveReadSheetAlias(sheet) !== expectedSheet) throw createHttpError("sheet does not match source");
   if (!ALLOWED_ACTIONS.has(asText(payload.action))) throw createHttpError("action is not allowed");
-  if (payload.keyField && !["profileId", "applicationId", "reviewId", "wishId", "displayRuleId"].includes(asText(payload.keyField))) {
+  if (payload.keyField && !["profileId", "applicationId", "reviewId", "wishId", "displayRuleId", "recommendedScheduleId"].includes(asText(payload.keyField))) {
     throw createHttpError("keyField is not allowed");
   }
   return source;
@@ -855,6 +866,9 @@ function validateApplicationPayload(payload, options = {}) {
   }
   if (options.requireTrip) {
     assertTextLength(getValue(payload, "trip.region") || normalizeList(getValue(payload, "trip.regions")).join(","), "trip.region", MAX_STRING_LENGTHS.medium, { required: true });
+    assertTextLength(getValue(payload, "trip.airline") || getValue(payload, "product.airline") || getValue(payload, "product.air2Nm") || getValue(payload, "product.air2CdNm"), "trip.airline", MAX_STRING_LENGTHS.short);
+    assertTextLength(getValue(payload, "trip.departureAirport") || getValue(payload, "product.departureAirport") || getValue(payload, "product.airport"), "trip.departureAirport", MAX_STRING_LENGTHS.short);
+    assertTextLength(getValue(payload, "trip.arrivalAirport") || getValue(payload, "product.arrivalAirport"), "trip.arrivalAirport", MAX_STRING_LENGTHS.short);
     assertAllowedValue(getValue(payload, "trip.packType"), "trip.packType", new Set(["air", "golf"]));
     assertTextLength(getValue(payload, "trip.packTypeName"), "trip.packTypeName", MAX_STRING_LENGTHS.short);
   } else {
@@ -930,7 +944,7 @@ function validateProductDisplayRulePayload(payload) {
   assertTextLength(payload.erpProductId || getValue(payload, "product.erpProductId") || payload.goodSeq, "erpProductId", MAX_STRING_LENGTHS.short, { required: true });
   assertTextLength(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || payload.eventSeq, "erpEventSeq", MAX_STRING_LENGTHS.short, { required: true });
   assertAllowedValue(payload.section || "available_schedule", "section", new Set(["available_schedule"]), { required: true });
-  assertTextLength(payload.displayRuleId, "displayRuleId", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.recommendedScheduleId || payload.displayRuleId, "recommendedScheduleId", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.overrideTitle || getValue(payload, "product.productName"), "overrideTitle", MAX_STRING_LENGTHS.medium);
   assertTextLength(payload.overrideImageUrl || getValue(payload, "product.imageUrl"), "overrideImageUrl", MAX_STRING_LENGTHS.url);
   assertTextLength(payload.displayStartAt, "displayStartAt", MAX_STRING_LENGTHS.short);
@@ -941,7 +955,8 @@ function validateProductDisplayRulePayload(payload) {
   assertTextLength(payload.scheduleLabel, "scheduleLabel", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.country || getValue(payload, "product.country"), "country", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.region || getValue(payload, "product.region"), "region", MAX_STRING_LENGTHS.medium);
-  assertTextLength(payload.departureAirport || payload.airport || getValue(payload, "product.departureAirport") || getValue(payload, "product.airport"), "departureAirport", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.departureAirport || getValue(payload, "product.departureAirport") || getValue(payload, "product.airport"), "departureAirport", MAX_STRING_LENGTHS.short);
+  assertTextLength(payload.airline || getValue(payload, "product.airline") || getValue(payload, "product.air2Nm") || getValue(payload, "product.air2CdNm"), "airline", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.arrivalAirport || getValue(payload, "product.arrivalAirport") || getValue(payload, "product.region"), "arrivalAirport", MAX_STRING_LENGTHS.short);
   assertNumberRange(payload.capacity || payload.maxPeople || 4, "capacity", 1, 200);
   assertNumberRange(payload.maxPeople || payload.capacity || 4, "maxPeople", 1, 200);
@@ -974,7 +989,7 @@ function validateWritePayload(payload) {
     validateWishPayload(payload);
     return;
   }
-  if (source === "product_display_rule") {
+  if (source === "product_display_rule" || source === "recommended_schedule") {
     validateProductDisplayRulePayload(payload);
   }
 }
@@ -1344,8 +1359,8 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
       title: asText(item.title),
       country: asText(item.country),
       region: asText(item.region),
-      airport: asText(item.airport),
-      departureAirport: asText(item.departureAirport || item.airport),
+      airline: asText(item.airline),
+      departureAirport: asText(item.departureAirport),
       arrivalAirport: asText(item.arrivalAirport),
       departureDate: normalizeSheetDateText(item.departureDate),
       returnDate: normalizeSheetDateText(item.returnDate),
@@ -1661,7 +1676,7 @@ async function readHomeBootstrapUncached(params = {}) {
       limit: Math.min(Math.max(Number(params?.reviewLimit || 200), 1), 200)
     }).then((rows) => rows.map(sanitizePublicRow))),
     readHomeBootstrapPart("displayRules", () => readSheetRowsDirect({
-      sheet: "product_display_rules",
+      sheet: "recommended_schedules",
       section: "available_schedule",
       limit: Math.min(Math.max(Number(params?.displayRuleLimit || 100), 1), 100)
     }).then((rows) => rows.map(sanitizePublicRow))),
@@ -1778,6 +1793,15 @@ function refreshHomeBootstrapLightCache(cacheKey, params = {}) {
 }
 
 async function proxyHomeBootstrap(params, res) {
+  const noStore = String(params?.cache || params?.cacheMode || "").toLowerCase() === "no-store";
+  if (noStore) {
+    const payload = await readHomeBootstrapUncached(params);
+    res.status(200).json({
+      ...cloneHomeBootstrapPayload(payload),
+      cache: { status: "bypass", ageMs: 0 }
+    });
+    return;
+  }
   const cacheKey = createHomeBootstrapCacheKey(params);
   const cached = getHomeBootstrapCacheEntry(cacheKey);
   if (cached && cached.ageMs <= HOME_BOOTSTRAP_CACHE_TTL_MS) {
@@ -1820,6 +1844,15 @@ async function proxyHomeBootstrap(params, res) {
 }
 
 async function proxyHomeBootstrapLight(params, res) {
+  const noStore = String(params?.cache || params?.cacheMode || "").toLowerCase() === "no-store";
+  if (noStore) {
+    const payload = await readHomeBootstrapLightUncached(params);
+    res.status(200).json({
+      ...cloneHomeBootstrapLightPayload(payload),
+      cache: { status: "bypass", ageMs: 0 }
+    });
+    return;
+  }
   const cacheKey = createHomeBootstrapLightCacheKey(params);
   const cached = getHomeBootstrapLightCacheEntry(cacheKey);
   if (cached && cached.ageMs <= HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS) {
@@ -2468,7 +2501,7 @@ async function proxyPost(req, res) {
     throw error;
   }
   const source = asText(payload.source);
-  if (!isWriteRequestAuthorized(req) && !(source === "product_display_rule" && isAdminReadRequest(req))) {
+  if (!isWriteRequestAuthorized(req) && !((source === "product_display_rule" || source === "recommended_schedule") && isAdminReadRequest(req))) {
     const error = new Error("Write token is required");
     error.status = 403;
     throw error;

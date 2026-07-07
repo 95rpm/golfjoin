@@ -1227,7 +1227,7 @@
     }
     .participant-table th:nth-child(7),
     .participant-table td:nth-child(7) {
-      width: 104px;
+      width: 124px;
     }
     .participant-table th:nth-child(8),
     .participant-table td:nth-child(8) {
@@ -1239,19 +1239,19 @@
     }
     .participant-table th:nth-child(10),
     .participant-table td:nth-child(10) {
-      width: 76px;
+      width: 72px;
     }
     .participant-table th:nth-child(11),
     .participant-table td:nth-child(11) {
-      width: 166px;
+      width: 160px;
     }
     .participant-table th:nth-child(12),
     .participant-table td:nth-child(12) {
-      width: 166px;
+      width: 160px;
     }
     .participant-table th:nth-child(13),
     .participant-table td:nth-child(13) {
-      width: 166px;
+      width: 162px;
     }
     .participant-table th:nth-child(14),
     .participant-table td:nth-child(14) {
@@ -1903,9 +1903,13 @@
       return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
     }
 
+    function isIndividualAirlineName(value) {
+      return /개\s*별\s*항\s*공|individual\s*air/i.test(asText(value));
+    }
+
     function normalizeSecretTourAirportName(...values) {
       for (const rawValue of values.map(asText)) {
-        if (!rawValue || isSecretTourAirlineName(rawValue)) continue;
+        if (!rawValue || isSecretTourAirlineName(rawValue) || isIndividualAirlineName(rawValue)) continue;
         const value = cleanSecretTourDetailText(rawValue)
           .replace(/\s*(국제)?공항\s*/g, " ")
           .replace(/\s*(출발|도착)\s*/g, " ")
@@ -1917,7 +1921,7 @@
     }
 
     function normalizeSecretTourAirlineName(...values) {
-      return values.map(asText).find(isSecretTourAirlineName) || "";
+      return values.map(asText).find((value) => isSecretTourAirlineName(value) || isIndividualAirlineName(value)) || "";
     }
 
     function normalizeSecretTourGoodsItem(item, index) {
@@ -2758,7 +2762,7 @@
         fetchSheet("new_schedule_applications", { limit: "1000" }),
         fetchSheet("join_applications", { limit: "1000" }),
         fetchSheet("join_member_profiles", { limit: "1000" }),
-        fetchSheet("product_display_rules", { limit: "1000" })
+        fetchSheet("recommended_schedules", { limit: "1000" })
       ]);
       return { builderRows, joinRows, profileRows, displayRuleRows };
     }
@@ -2845,25 +2849,106 @@
       return asText(product.category) === "국내" ? "한국" : "-";
     }
 
+    function normalizePackTypeValue(value) {
+      const normalized = asText(value).replace(/\s+/g, "").toLowerCase();
+      if (!normalized) return "";
+      if (/^(air|항공팩|항공포함|에어텔|airpack|airtour|flightincluded|includedflight|y|yes|true|1|포함|include|included)$/.test(normalized)) return "air";
+      if (/^(golf|골프팩|골프텔|항공불포함|항공별도|golfpack|golftel|landonly|land|n|no|false|0|불포함|별도|exclude|excluded)$/.test(normalized)) return "golf";
+      if (/항공팩|항공포함|에어텔|airpack|airtour|flightincluded|includedflight/.test(normalized)) return "air";
+      if (/골프팩|골프텔|항공불포함|항공별도|golfpack|golftel|landonly|land/.test(normalized)) return "golf";
+      return "";
+    }
+
+    function inferPackTypeFromText(...values) {
+      const text = values.flat(Infinity).map(asText).filter(Boolean).join(" ");
+      if (!text) return "";
+      if (/\[\s*항공팩|항공팩|왕복\s*항공|왕복항공권|항공권\s*\([^)]*포함\)|항공권\s*포함|항공\s*포함/i.test(text)) return "air";
+      if (/골프팩|골프텔|항공\s*불포함|항공별도|항공권\s*불포함/i.test(text)) return "golf";
+      return "";
+    }
+
+    function hasAirPackEvidence(product = {}) {
+      const airline = normalizeSecretTourAirlineName(product.airline, product.airlineName, product.airlineNm, product.air2Nm, product.air2CdNm);
+      if (airline && !isIndividualAirlineName(airline)) return true;
+      const airCode = asText(product.air2Cd).toUpperCase();
+      if (airCode && airCode !== "XX") return true;
+      if (asText(product.goodTransportSeq)) return true;
+      if (Array.isArray(product.flightScheduleItems) && product.flightScheduleItems.length) return true;
+      return false;
+    }
+
+    function hasIndividualAirlineEvidence(product = {}) {
+      return [product.airline, product.airlineName, product.airlineNm, product.air2Nm, product.air2CdNm].some(isIndividualAirlineName);
+    }
+
     function getPackType(row = {}, product = {}) {
-      const savedType = asText(
+      const explicitType = normalizePackTypeValue(
         getNestedValue(row, "trip.packType")
         || row.packType
         || getNestedValue(row, "product.packType")
-        || product.packType
-      ).toLowerCase();
-      if (savedType === "air" || savedType === "항공팩") return "air";
-      if (savedType === "golf" || savedType === "골프팩") return "golf";
-      const savedTypeName = asText(
+      );
+      if (explicitType) return explicitType;
+
+      const explicitTypeName = normalizePackTypeValue(
         getNestedValue(row, "trip.packTypeName")
         || row.packTypeName
         || getNestedValue(row, "product.packTypeName")
-        || product.packTypeName
       );
-      if (savedTypeName.includes("항공")) return "air";
-      if (savedTypeName.includes("골프")) return "golf";
-      const text = `${getTitle(row)} ${asText(row.tripSummary)} ${asText(product.title)} ${asText(product.badge)} ${asText(product.airport)}`;
-      if (/항공|항공권/i.test(text)) return "air";
+      if (explicitTypeName) return explicitTypeName;
+      if (hasIndividualAirlineEvidence(product)) return "golf";
+
+      const inferredType = inferPackTypeFromText(
+        getTitle(row),
+        row.tripSummary,
+        product.title,
+        product.badge,
+        product.airport,
+        product.includes,
+        product.notes,
+        product.schedule,
+        product.flightScheduleItems,
+        product.productType,
+        product.productTypeName,
+        product.goodsType,
+        product.goodsTypeName,
+        product.goodType,
+        product.goodTypeName,
+        product.goodKind,
+        product.goodKindName,
+        product.goodDetailCdNm,
+        product.goodDetailName,
+        product.packageType,
+        product.packageTypeName,
+        product.tourType,
+        product.tourTypeName
+      );
+      if (inferredType) return inferredType;
+
+      const productFieldType = [
+        product.productType,
+        product.productTypeName,
+        product.goodsType,
+        product.goodsTypeName,
+        product.goodType,
+        product.goodTypeName,
+        product.goodKind,
+        product.goodKindName,
+        product.goodDetailCdNm,
+        product.goodDetailName,
+        product.packageType,
+        product.packageTypeName,
+        product.tourType,
+        product.tourTypeName,
+        product.airProductYn,
+        product.airYn,
+        product.flightYn,
+        product.includeAirYn,
+        product.flightIncludedYn,
+        product.packTypeName,
+        product.packType
+      ].map(normalizePackTypeValue).find(Boolean);
+      if (productFieldType) return productFieldType;
+      if (hasAirPackEvidence(product)) return "air";
       return "golf";
     }
 
@@ -3091,7 +3176,7 @@
     }
 
     function getRecommendationDisplayRuleId(rule = {}) {
-      return asText(rule.displayRuleId) || `pdr-${asText(rule.erpProductId || rule.goodSeq)}-${asText(rule.erpEventSeq || rule.eventSeq)}`;
+      return asText(rule.recommendedScheduleId || rule.displayRuleId) || `rs-${asText(rule.erpProductId || rule.goodSeq)}-${asText(rule.erpEventSeq || rule.eventSeq)}`;
     }
 
     function getRecommendationScheduleKey(rule = {}) {
@@ -3122,7 +3207,7 @@
       return {
         applicationId: getRecommendationDisplayRuleId(rule),
         scheduleId: getRecommendationScheduleKey(rule),
-        source: "product_display_rule",
+        source: "recommended_schedule",
         applicationStatus: "open",
         displayStatus: rule.isVisible === false ? "hidden" : "visible",
         approvalStatus: "approved",
@@ -3134,8 +3219,7 @@
         eventSeq: rule.erpEventSeq || product.eventSeq || "",
         country: rule.country || getRecommendationProductCountry(product),
         region: rule.region || product.region || "",
-        airport: rule.airport || product.airport || "",
-        departureAirport: rule.departureAirport || rule.airport || product.departureAirport || product.airport || "",
+        departureAirport: rule.departureAirport || product.departureAirport || product.airport || "",
         arrivalAirport: rule.arrivalAirport || product.arrivalAirport || product.region || "",
         departureDate: rule.displayStartAt || product.departureDate || "",
         returnDate: rule.displayEndAt || product.returnDate || product.departureDate || "",
@@ -3737,7 +3821,7 @@
                   const product = findProductForDisplayRule(rule);
                   const title = rule.overrideTitle || product.title || "상품명 없음";
                   return `
-                    <tr data-display-rule-id="${escapeHtml(rule.displayRuleId || "")}" data-erp-product-id="${escapeHtml(rule.erpProductId || "")}" data-erp-event-seq="${escapeHtml(rule.erpEventSeq || "")}">
+                    <tr data-recommended-schedule-id="${escapeHtml(getRecommendationDisplayRuleId(rule))}" data-erp-product-id="${escapeHtml(rule.erpProductId || "")}" data-erp-event-seq="${escapeHtml(rule.erpEventSeq || "")}">
                       <td>${escapeHtml(rule.displayOrder || "0")}</td>
                       <td class="product-cell">${escapeHtml(title)}</td>
                       <td>${escapeHtml(formatDate(rule.displayStartAt || product.departureDate))}</td>
@@ -5045,7 +5129,7 @@
         excludes: parseList(actualDetail.excludes).length ? parseList(actualDetail.excludes) : excludes,
         notes: parseList(actualDetail.notes).length ? parseList(actualDetail.notes) : notes,
         schedule: Array.isArray(actualDetail.schedule) && actualDetail.schedule.length ? actualDetail.schedule : schedule,
-        departureAirport: normalizeSecretTourAirportName(actualDetail.departureAirport, row.departureAirport, row.airport, product.departureAirport, product.airport),
+        departureAirport: normalizeSecretTourAirportName(actualDetail.departureAirport, row.departureAirport, product.departureAirport, product.airport),
         arrivalAirport: asText(actualDetail.arrivalAirport || row.arrivalAirport || product.arrivalAirport || product.arrAirport || product.toCity || product.arrivalCity),
         airline: normalizeSecretTourAirlineName(actualDetail.airline, row.airline, product.airline, product.air2Nm, product.air2CdNm),
         flightScheduleItems: parseList(actualDetail.flightScheduleItems),
@@ -5272,11 +5356,11 @@
         },
         body: JSON.stringify({
           ...payload,
-          source: "product_display_rule",
-          sheet: "product_display_rules",
+          source: "recommended_schedule",
+          sheet: "recommended_schedules",
           action: "upsert",
-          keyField: "displayRuleId",
-          keyValue: payload.displayRuleId
+          keyField: "recommendedScheduleId",
+          keyValue: payload.recommendedScheduleId
         })
       });
       if (!response.ok) throw new Error(`추천 일정 저장 실패: ${response.status}`);
@@ -5292,11 +5376,11 @@
         return;
       }
       const product = selected.product;
-      const displayRuleId = `pdr-${selected.goodSeq}-${selected.eventSeq}`;
-      const existingRule = state.displayRules.find((rule) => asText(rule.displayRuleId) === displayRuleId);
-      const productPackType = product.packType || getPackType({}, product);
-      const productPackTypeName = product.packTypeName || getPackLabel(productPackType);
+      const recommendedScheduleId = `rs-${selected.goodSeq}-${selected.eventSeq}`;
+      const existingRule = state.displayRules.find((rule) => getRecommendationDisplayRuleId(rule) === recommendedScheduleId);
       const actualDetail = await loadSecretTourGoodsDetail({}, product);
+      const productPackType = getPackType({}, { ...product, ...actualDetail });
+      const productPackTypeName = getPackLabel(productPackType);
       const departureAirport = normalizeSecretTourAirportName(actualDetail.departureAirport, product.departureAirport, product.depAirport, product.airport, product.airportName);
       const arrivalAirport = asText(actualDetail.arrivalAirport || product.arrivalAirport || product.arrAirport || product.toCity || product.arrivalCity);
       const airline = normalizeSecretTourAirlineName(actualDetail.airline, product.airline, product.air2Nm, product.air2CdNm);
@@ -5305,7 +5389,7 @@
       const tripSummary = extractTripSummaryPeriod({ productName: product.title || "", title: product.title || "", tripSummary: product.tripSummary || product.dayNightCnt || product.duration || "" }, product)
         || formatTripNightsDays(product.departureDate || "", product.returnDate || product.departureDate || "");
       const payload = {
-        displayRuleId,
+        recommendedScheduleId,
         erpProductId: selected.goodSeq,
         erpEventSeq: selected.eventSeq,
         section: "available_schedule",
@@ -5323,7 +5407,6 @@
         overrideImageUrl: product.image || "",
         country: getRecommendationProductCountry(product),
         region: product.region || product.category || "",
-        airport: departureAirport,
         departureAirport,
         arrivalAirport,
         airline,
@@ -5334,7 +5417,7 @@
         adminMemo: existingRule?.adminMemo || ""
       };
       await submitProductDisplayRule(payload);
-      const currentIndex = state.displayRules.findIndex((rule) => asText(rule.displayRuleId) === displayRuleId);
+      const currentIndex = state.displayRules.findIndex((rule) => getRecommendationDisplayRuleId(rule) === recommendedScheduleId);
       if (currentIndex >= 0) state.displayRules.splice(currentIndex, 1, { ...state.displayRules[currentIndex], ...payload, updatedAt: new Date().toISOString() });
       else state.displayRules.unshift({ ...payload, updatedAt: new Date().toISOString() });
       renderMetrics();
@@ -5427,15 +5510,15 @@
     }
 
     async function hideRecommendationSchedule(button) {
-      const row = button.closest("tr[data-display-rule-id]");
+      const row = button.closest("tr[data-recommended-schedule-id]");
       if (!row) return;
-      const displayRuleId = row.dataset.displayRuleId || `pdr-${row.dataset.erpProductId}-${row.dataset.erpEventSeq}`;
-      const current = state.displayRules.find((rule) => asText(rule.displayRuleId) === displayRuleId)
+      const recommendedScheduleId = row.dataset.recommendedScheduleId || `rs-${row.dataset.erpProductId}-${row.dataset.erpEventSeq}`;
+      const current = state.displayRules.find((rule) => getRecommendationDisplayRuleId(rule) === recommendedScheduleId)
         || state.displayRules.find((rule) => asText(rule.erpProductId) === asText(row.dataset.erpProductId) && asText(rule.erpEventSeq) === asText(row.dataset.erpEventSeq));
       if (!current) return;
       await submitProductDisplayRule({
         ...current,
-        displayRuleId,
+        recommendedScheduleId,
         isVisible: false
       });
       current.isVisible = false;

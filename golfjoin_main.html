@@ -228,7 +228,7 @@
       --calendar-product-price-weight: 800;
       --calendar-product-price-unit-font: 14px;
       --calendar-product-price-unit-weight: 500;
-      --calendar-product-avatar-size: 34px;
+      --calendar-product-avatar-size: 48px;
       --calendar-product-card-mobile-padding: 15px;
       --calendar-product-card-mobile-gap: 10px;
       --calendar-product-title-mobile-font: 15px;
@@ -241,7 +241,7 @@
       --calendar-product-price-mobile-weight: 800;
       --calendar-product-price-unit-mobile-font: 14px;
       --calendar-product-price-unit-mobile-weight: 500;
-      --calendar-product-avatar-mobile-size: 32px;
+      --calendar-product-avatar-mobile-size: 48px;
       --font-detail-schedule-hotel: 16px;
       --font-weight-detail-schedule-hotel: 600;
       --font-detail-schedule-meal: 16px;
@@ -3421,9 +3421,10 @@
       font-weight: 800;
     }
     .team-row {
+      --team-slot-gap: 10px;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: var(--team-slot-gap);
       padding-top: 15px;
       margin-top: 16px;
       border-top: 1px solid #edf2f7;
@@ -3431,7 +3432,9 @@
     .team-avatar-wrap {
       position: relative;
       display: inline-flex;
-      flex: 0 0 auto;
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
     }
     .team-avatar,
     .team-empty {
@@ -3511,7 +3514,7 @@
       position: relative;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: var(--team-slot-gap, 10px);
       height: var(--team-avatar-size);
       padding: 0;
       box-sizing: border-box;
@@ -3531,7 +3534,8 @@
       z-index: 0;
     }
     .team-couple-wrap .team-avatar-wrap,
-    .team-couple-wrap .team-avatar {
+    .team-couple-wrap .team-avatar,
+    .team-couple-wrap .team-empty {
       width: 48px;
       height: 48px;
       flex-basis: 48px;
@@ -3540,34 +3544,101 @@
       z-index: 1;
     }
     .team-row.monthly-card-team {
-      flex-wrap: nowrap;
-      align-items: center;
-      gap: 10px;
+      display: block;
+      padding-top: 12px;
+      margin-top: 16px;
+      border-top: 1px solid #edf2f7;
     }
-    .monthly-card-participant-rail {
+    .monthly-card-participant-summary {
+      display: grid;
+      gap: 8px;
+      width: 100%;
+    }
+    .monthly-card-participant-head {
       display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .monthly-card-participant-left {
+      display: inline-flex;
+      align-items: center;
+      min-width: 0;
+    }
+    .monthly-card-thumb-stack {
+      display: inline-flex;
+      align-items: center;
       flex: 0 0 auto;
-      width: 164px;
-      max-width: 164px;
-      overflow: hidden;
+      margin-right: 7px;
     }
-    .monthly-card-participant-track {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-width: 100%;
+    .monthly-card-thumb {
+      position: relative;
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+      min-width: 30px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid #f1f1f1;
+      background: #eaf2ff;
+      box-shadow: 2px 3px 10px rgba(15, 23, 42, 0.05);
+    }
+    .monthly-card-thumb:nth-child(1) {
+      z-index: 1;
+    }
+    .monthly-card-thumb:nth-child(2) {
+      z-index: 2;
+    }
+    .monthly-card-thumb:nth-child(3) {
+      z-index: 3;
+    }
+    .monthly-card-thumb:nth-child(4) {
+      z-index: 4;
+    }
+    .monthly-card-thumb + .monthly-card-thumb {
+      margin-left: -7px;
+    }
+    .monthly-card-thumb img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      transform: translate(var(--hero-calendar-thumb-img-x, 0), var(--hero-calendar-thumb-img-y, 5px)) scale(var(--hero-calendar-thumb-img-scale, 1.35));
+      transform-origin: center;
+    }
+    .monthly-card-participant-label {
+      color: #373A3C;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.25;
+      white-space: nowrap;
     }
     .monthly-card-count {
-      margin-left: auto;
-      color: #334155;
-      font-size: 14px;
+      margin-right: 3px;
+      color: #0c91f8;
+      font-size: 16px;
       font-weight: 800;
-      line-height: 1;
+      line-height: 1.25;
       white-space: nowrap;
+    }
+    .monthly-card-progress-track {
+      width: 98%;
+      height: 8px;
+      margin: 0 auto;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e2e8f0;
+    }
+    .monthly-card-progress-fill {
+      width: var(--monthly-card-progress, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #54abff 0%, #1f91ff 55%, #0c63d4 100%);
     }
     .detail-team .team-couple-wrap {
       --team-avatar-size: 56px;
       height: var(--team-avatar-size);
+      gap: 10px;
     }
     .detail-team .team-couple-wrap .team-avatar-wrap,
     .detail-team .team-couple-wrap .team-avatar {
@@ -3874,6 +3945,17 @@
     }
     .calendar-cell.has-data {
       background: transparent;
+    }
+    .calendar-cell.has-data .calendar-day-button strong::after {
+      content: "";
+      position: absolute;
+      right: -5px;
+      top: -5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 0 2px #ffffff;
     }
     .calendar-cell.can-create:not(.has-data) .calendar-day-button strong {
       color: var(--text);
@@ -4479,29 +4561,29 @@
     .calendar-product-participants {
       display: flex;
       justify-content: flex-end;
-      gap: 4px;
+      gap: 10px;
       max-width: 100%;
       overflow: hidden;
     }
     .calendar-product-participants .team-couple-wrap {
       --team-avatar-size: var(--calendar-product-avatar-size);
-      --team-connector-thickness: 1px;
+      --team-connector-thickness: 2px;
       height: var(--team-avatar-size);
-      gap: 5px;
+      gap: 10px;
     }
     .calendar-product-participants .team-avatar {
       width: var(--calendar-product-avatar-size);
       height: var(--calendar-product-avatar-size);
       flex-basis: var(--calendar-product-avatar-size);
-      border-width: 1px;
-      border-radius: 8px;
+      border-width: 2px;
+      border-radius: 12px;
     }
     .calendar-product-participants .team-empty {
       width: var(--calendar-product-avatar-size);
       height: var(--calendar-product-avatar-size);
       flex-basis: var(--calendar-product-avatar-size);
-      border-width: 1px;
-      border-radius: 8px;
+      border-width: 2px;
+      border-radius: 12px;
       font-size: 15px;
     }
     .calendar-product-participants .participant-badge {
@@ -7417,6 +7499,37 @@
     }
     .join-action-loading-box.has-message .join-action-loading-message {
       display: block;
+    }
+    .join-loading-text {
+      display: inline;
+    }
+    .join-loading-dots {
+      display: inline-flex;
+      align-items: flex-end;
+      width: 1.35em;
+      margin-left: 1px;
+      vertical-align: baseline;
+    }
+    .join-loading-dot {
+      display: inline-block;
+      animation: joinLoadingDotPulse 1.05s ease-in-out infinite;
+      line-height: 1;
+    }
+    .join-loading-dot:nth-child(2) {
+      animation-delay: .16s;
+    }
+    .join-loading-dot:nth-child(3) {
+      animation-delay: .32s;
+    }
+    @keyframes joinLoadingDotPulse {
+      0%, 80%, 100% {
+        opacity: .28;
+        transform: translateY(0);
+      }
+      40% {
+        opacity: 1;
+        transform: translateY(-3px);
+      }
     }
     .home-initial-loading-overlay .join-action-loading-message {
       display: block;
@@ -11059,6 +11172,40 @@
       text-align: center;
       word-break: keep-all;
     }
+    .apply-chip,
+    .profession-chip,
+    .apply-template,
+    .join-profile-custom-profession {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    @media (hover: none), (pointer: coarse) {
+      .apply-chip:not(.active):hover,
+      .apply-chip:not(.active):active,
+      .profession-chip:not(.active):hover,
+      .profession-chip:not(.active):active,
+      .apply-template:hover,
+      .apply-template:active,
+      .join-profile-custom-profession:not(.has-value):hover,
+      .join-profile-custom-profession:not(.has-value):active {
+        border-color: var(--border);
+        background: #fff;
+        color: var(--text);
+        box-shadow: none;
+        transform: none;
+      }
+      .join-member-signup-chip-row .profession-chip:not(.active):hover,
+      .join-member-signup-chip-row .profession-chip:not(.active):active {
+        background: #fafafa;
+      }
+      .traveler-gender-select .apply-chip:not(.active):hover,
+      .traveler-gender-select .apply-chip:not(.active):active {
+        border-color: transparent;
+        background: transparent;
+        color: #64748b;
+        box-shadow: none;
+      }
+    }
     .apply-agree-box {
       display: grid;
       gap: 6px;
@@ -12045,6 +12192,182 @@
     .apply-participant-rail.existing-divider-3::after {
       left: calc(75% + 2.5px);
     }
+    .apply-participant-rail.monthly {
+      --apply-monthly-slot-width: calc((100% - 30px) / 4);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 10px;
+    }
+    .apply-participant-rail.monthly::after {
+      display: none;
+    }
+    .apply-participant-rail.monthly .apply-participant-slot {
+      width: var(--apply-monthly-slot-width);
+      min-height: 90px;
+      flex: 0 0 var(--apply-monthly-slot-width);
+      max-width: var(--apply-monthly-slot-width);
+      padding: 9px 0;
+    }
+    .apply-participant-rail.monthly .apply-participant-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+    }
+    .apply-participant-rail.monthly .apply-participant-label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .apply-monthly-status {
+      --apply-monthly-status-gap: 8px;
+      --apply-monthly-meta-gap: 12px;
+      display: grid;
+      gap: var(--apply-monthly-status-gap);
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+    #globalApplyPanel .apply-companion-list:has(.apply-monthly-status) {
+      border: 0;
+      background: #f8fafc;
+    }
+    .apply-monthly-recruit-box {
+      display: grid;
+      gap: 0px;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #ffffff;
+    }
+    .apply-monthly-status-head {
+      display: block;
+    }
+    .apply-monthly-status-title {
+      color: #334155;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    .apply-monthly-status-count {
+      position: absolute;
+      right: 0;
+      top: -7px;
+      color: #0c91f8;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .apply-monthly-status-meta {
+      position: relative;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #ffffff;
+    }
+    .apply-monthly-application-label {
+      color: #334155;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.25;
+      padding-right: 76px;
+    }
+    .apply-monthly-application-count {
+      position: absolute;
+      right: 12px;
+      top: 17px;
+      color: #0c91f8;
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .apply-monthly-application-genders {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+      min-width: 0;
+      padding: 0;
+      overflow: visible;
+      background: transparent;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .apply-monthly-application-gender {
+      position: relative;
+      min-width: 0;
+      min-height: 48px;
+      padding: 7px 8px;
+      border-radius: 10px;
+      background: #f8fafc;
+      white-space: nowrap;
+    }
+    .apply-monthly-application-gender-label {
+      position: absolute;
+      left: 11px;
+      top: 11px;
+      color: #64748b;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+    .apply-monthly-application-gender-count {
+      position: absolute;
+      right: 11px;
+      bottom: 9px;
+      color: #334155;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .apply-monthly-progress-track {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      margin-top: 18px;
+      margin-bottom: var(--apply-monthly-meta-gap);
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e5edf7;
+    }
+    .apply-monthly-progress-fill {
+      width: var(--apply-monthly-progress, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #54abff 0%, #0c91f8 100%);
+    }
+    .apply-monthly-gauge {
+      position: relative;
+      min-width: 0;
+    }
+    @media (min-width: 641px) {
+      .apply-monthly-status {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: 14px;
+        row-gap: 8px;
+        align-items: stretch;
+      }
+      .apply-monthly-recruit-box {
+        grid-column: 1;
+      }
+      .apply-monthly-status-meta {
+        grid-column: 2;
+        grid-row: 1;
+        background: #ffffff;
+      }
+      .apply-monthly-progress-track {
+        margin-bottom: 0;
+      }
+    }
     .apply-participant-slot {
       position: relative;
       min-height: 90px;
@@ -12084,6 +12407,12 @@
       border-style: dashed;
       border-color: #cbd5e1;
       background: #f8fafc;
+    }
+    .apply-participant-slot.empty .apply-participant-avatar svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2;
+      color: #9ca3af;
     }
     .apply-participant-avatar img {
       width: 100%;
@@ -13904,7 +14233,7 @@
       padding-top: 27px;
     }
     .detail-participant-match-gauge .detail-participant-gauge-track {
-      margin-top: 0;
+      margin-top: 5px;
     }
     .detail-participant-match-summary {
       position: absolute;
@@ -13980,7 +14309,7 @@
       padding: 13px 14px;
       border: 1px solid #e6edf7;
       border-radius: 12px;
-      background: #f7fbff;
+      background: #f9f9f9;
       color: #334155;
       font-size: 13px;
       font-weight: 700;
@@ -14117,7 +14446,7 @@
         padding-top: 10px;
       }
       .detail-participant-match-summary {
-        top: -16px;
+        top: -11px;
       }
       .detail-participant-match-reasons {
         display: grid;
@@ -18027,43 +18356,35 @@
         font-weight: 800;
       }
       .sgj-page .join-card .team-row {
+        --team-slot-gap: 8px;
         display: flex;
         flex-wrap: nowrap;
-        gap: 8px;
+        gap: var(--team-slot-gap);
         padding-top: 15px;
         margin-top: 12px;
         border-top: 1px solid #edf2f7;
         overflow: visible;
       }
       .sgj-page .join-card .team-row.monthly-card-team {
-        gap: 8px;
-        overflow: hidden;
+        display: block;
+        padding-top: 12px;
+        margin-top: 16px;
+        overflow: visible;
       }
-      .sgj-page .monthly-card-participant-rail {
-        width: 160px;
-        max-width: 160px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x proximity;
-        scroll-behavior: smooth;
-        overscroll-behavior-x: contain;
-        scrollbar-width: none;
+      .sgj-page .monthly-card-participant-label {
+        font-size: 15px;
       }
-      .sgj-page .monthly-card-participant-rail::-webkit-scrollbar {
-        display: none;
+      .sgj-page .monthly-card-thumb {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        min-width: 30px;
       }
-      .sgj-page .monthly-card-participant-track {
-        gap: 8px;
-        padding-right: 1px;
+      .sgj-page .monthly-card-thumb + .monthly-card-thumb {
+        margin-left: -7px;
       }
-      .sgj-page .monthly-card-participant-track > .team-avatar-wrap,
-      .sgj-page .monthly-card-participant-track > .team-empty,
-      .sgj-page .monthly-card-participant-track > .team-couple-wrap {
-        scroll-snap-align: start;
-      }
-      .sgj-page .monthly-card-count {
-        font-size: 13px;
+      .sgj-page .monthly-card-progress-track {
+        height: 8px;
       }
       .sgj-page .join-soon-compact-team {
         flex-wrap: nowrap;
@@ -18074,6 +18395,8 @@
         width: 48px;
         height: 48px;
         flex: 0 0 48px;
+        min-width: 48px;
+        max-width: 48px;
       }
       .sgj-page .team-couple-wrap .team-avatar-wrap {
         flex: 0 0 48px;
@@ -19061,10 +19384,11 @@
       font-size: 16px;
       font-weight: 600;
       line-height: 1.35;
+      transform: translateX(-3px);
     }
     #regionSearchModal .region-search-shell.has-region-query .region-search-field input {
       flex: 0 1 auto;
-      width: min(var(--region-search-input-width), calc(100% - 30px));
+      width: min(calc(var(--region-search-input-width) + 3px), calc(100% - 30px));
       max-width: calc(100% - 30px);
     }
     #regionSearchModal .region-search-clear-input {
@@ -19377,19 +19701,27 @@
       height: 38px;
       flex-basis: 38px;
     }
-    #regionSearchModal .region-product-team .team-couple-wrap,
-    .calendar-accordion-list .region-product-team .team-couple-wrap {
+    #regionSearchModal .region-product-team .team-couple-wrap {
       --team-avatar-size: 38px;
       height: var(--team-avatar-size);
       gap: 6px;
     }
     #regionSearchModal .region-product-team .team-couple-wrap .team-avatar-wrap,
-    #regionSearchModal .region-product-team .team-couple-wrap .team-avatar,
-    .calendar-accordion-list .region-product-team .team-couple-wrap .team-avatar-wrap,
-    .calendar-accordion-list .region-product-team .team-couple-wrap .team-avatar {
+    #regionSearchModal .region-product-team .team-couple-wrap .team-avatar {
       width: 38px;
       height: 38px;
       flex-basis: 38px;
+    }
+    .calendar-accordion-list .region-product-team .team-couple-wrap {
+      --team-avatar-size: 48px;
+      height: var(--team-avatar-size);
+      gap: 10px;
+    }
+    .calendar-accordion-list .region-product-team .team-couple-wrap .team-avatar-wrap,
+    .calendar-accordion-list .region-product-team .team-couple-wrap .team-avatar {
+      width: 48px;
+      height: 48px;
+      flex-basis: 48px;
     }
     .calendar-accordion-list .region-product-card {
       width: 100%;
@@ -19539,7 +19871,7 @@
     .calendar-accordion-list .region-product-team {
       display: flex;
       justify-content: flex-end;
-      gap: 6px;
+      gap: 10px;
     }
     .calendar-accordion-list .region-product-team.monthly-summary {
       display: block;
@@ -19605,13 +19937,15 @@
       min-width: 0;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
     }
     .calendar-accordion-list .region-product-team .team-avatar,
     .calendar-accordion-list .region-product-team .team-empty {
-      width: 38px;
-      height: 38px;
-      flex-basis: 38px;
+      width: 48px;
+      height: 48px;
+      flex-basis: 48px;
+      border-width: 2px;
+      border-radius: 12px;
     }
     #regionSearchModal .region-result-empty {
       padding: 28px 12px;
@@ -20545,7 +20879,7 @@
         display: flex !important;
         flex-wrap: nowrap !important;
         justify-content: center !important;
-        gap: 6px !important;
+        gap: 10px !important;
         margin: 0 !important;
         overflow: visible !important;
       }
@@ -20592,7 +20926,7 @@
       #detailModal.open .detail-participant-status-card .team-couple-wrap,
       body > #detailModal.sgj-portal-overlay.open .detail-participant-status-card .team-couple-wrap {
         --team-avatar-size: clamp(46px, 14.5vw, 50px);
-        gap: 6px !important;
+        gap: 10px !important;
         height: clamp(46px, 14.5vw, 50px) !important;
         flex: 0 0 auto !important;
       }
@@ -25093,6 +25427,11 @@
       box-shadow: 0 0 0 3px rgba(54, 137, 255, .12);
     }
 
+    .join-member-login-body.has-signup-keyboard-focus {
+      padding-bottom: calc(34px + var(--join-mobile-keyboard-gap, 0px) + 160px);
+      scroll-padding-bottom: calc(var(--join-mobile-keyboard-gap, 0px) + 180px);
+    }
+
     .join-member-signup-complete {
       position: relative;
       min-height: 380px;
@@ -25916,6 +26255,17 @@
       body > #builderAlertModal.builder-alert-overlay.sgj-portal-overlay {
         background: rgba(15, 23, 42, .34) !important;
       }
+      body > #applySubmitConfirmModal.sgj-portal-overlay.open::before {
+        content: none !important;
+      }
+      body > #applySubmitConfirmModal.apply-submit-confirm-overlay.sgj-portal-overlay {
+        background: rgba(15, 23, 42, .42) !important;
+      }
+      body > #builderAlertModal.sgj-portal-overlay .builder-alert-modal,
+      body > #applySubmitConfirmModal.sgj-portal-overlay .apply-submit-confirm-modal {
+        position: relative;
+        z-index: 1;
+      }
 
       body > .sgj-portal-overlay .modal,
       body > .sgj-portal-overlay .calendar-sheet,
@@ -25930,6 +26280,36 @@
         height: var(--join-mobile-modal-height, 100dvh) !important;
         min-height: var(--join-mobile-modal-height, 100dvh) !important;
         max-height: none !important;
+      }
+
+      body > .sgj-portal-overlay.calendar-sheet-overlay {
+        overflow: hidden !important;
+        background: #fff !important;
+      }
+
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        max-height: var(--join-mobile-modal-height, 100dvh) !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+      }
+
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-body {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        background: #fff !important;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-mobile-selection,
+      body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-mobile-selected-panel {
+        background: #fff !important;
       }
     }
 
@@ -26013,6 +26393,12 @@
         position: static !important;
         grid-column: auto !important;
         grid-row: auto !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #373A3C !important;
+        opacity: 1 !important;
+        visibility: visible !important;
       }
       #joinMemberLoginModal .join-member-login-header {
         width: min(100%, var(--join-member-login-content-width)) !important;
@@ -27780,12 +28166,7 @@
           <button type="button" class="detail-mobile-header-button" aria-label="공유하기">
             <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
           </button>
-          <button type="button" class="modal-close-icon modal-back-icon" onclick="closeModal('detailModal')" aria-label="닫기">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
-              <path d="m12 19-7-7 7-7"></path>
-              <path d="M19 12H5"></path>
-            </svg>
-          </button>
+          <button type="button" class="modal-close-icon" onclick="closeModal('detailModal')" aria-label="닫기"></button>
         </div>
       </div>
       <div class="modal-body" id="detailContent">
@@ -28132,98 +28513,14 @@
                   <path d="M12.1 19c-1.8 0-3.1-1.2-3.1-3 0-1.3.8-2.3 1.8-3.2.9-.8 1.5-1.7 1.4-3 1.9 1 3 2.5 2.8 4.5.6-.4 1-.9 1.2-1.6.9 1 1.4 2.1 1.4 3.3 0 1.9-1.6 3-5.5 3Z" fill="#ffd166"></path>
                 </svg></div>
             </div>
-            <div class="region-search-quicklist region-search-hotlist is-sliding" id="regionHotList" style="--region-quick-slide-distance: 152px; --region-quick-slide-steps: 4; --region-quick-slide-duration: 12s;"><div class="region-search-quicktrack">
-        <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('후쿠오카, 일본')">
-          <span>후쿠오카(일본)</span>
-          <span class="region-search-quickmeta">예약가능 일정 확인</span>
-        </button>
-      
-        <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('나고야, 일본')">
-          <span>나고야(일본)</span>
-          <span class="region-search-quickmeta">예약가능 일정 확인</span>
-        </button>
-      
-        <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('방콕')">
-          <span>방콕</span>
-          <span class="region-search-quickmeta">예약가능 일정 확인</span>
-        </button>
-      
-        <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('청도')">
-          <span>청도</span>
-          <span class="region-search-quickmeta">예약가능 일정 확인</span>
-        </button>
-      
-        <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('후쿠오카, 일본')">
-          <span>후쿠오카(일본)</span>
-          <span class="region-search-quickmeta">예약가능 일정 확인</span>
-        </button>
-      
-        <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('나고야, 일본')">
-          <span>나고야(일본)</span>
-          <span class="region-search-quickmeta">예약가능 일정 확인</span>
-        </button>
-      
-        <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('방콕')">
-          <span>방콕</span>
-          <span class="region-search-quickmeta">예약가능 일정 확인</span>
-        </button>
-      
-        <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('청도')">
-          <span>청도</span>
-          <span class="region-search-quickmeta">예약가능 일정 확인</span>
-        </button>
-      </div></div>
+            <div class="region-search-quicklist region-search-hotlist" id="regionHotList"></div>
           </div>
           <div class="region-search-quickcol">
             <div class="region-search-quickhead">
               <div class="region-search-quicktitle">최근 검색한 지역</div>
               <button type="button" class="region-search-clear" onclick="clearRegionRecent()">전체삭제</button>
             </div>
-            <div class="region-search-quicklist region-search-recentlist" id="regionQuickRecentList">
-        <div class="region-search-recentrow">
-          <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('미야자키')">
-            <span>미야자키</span>
-          </button>
-          <button type="button" class="region-search-remove" onclick="event.stopPropagation(); removeRegionRecent(0)" aria-label="최근 검색 지역 삭제">
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-            </svg>
-          </button>
-        </div>
-      
-        <div class="region-search-recentrow">
-          <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('다낭')">
-            <span>다낭</span>
-          </button>
-          <button type="button" class="region-search-remove" onclick="event.stopPropagation(); removeRegionRecent(1)" aria-label="최근 검색 지역 삭제">
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-            </svg>
-          </button>
-        </div>
-      
-        <div class="region-search-recentrow">
-          <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('클락')">
-            <span>클락</span>
-          </button>
-          <button type="button" class="region-search-remove" onclick="event.stopPropagation(); removeRegionRecent(2)" aria-label="최근 검색 지역 삭제">
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-            </svg>
-          </button>
-        </div>
-      
-        <div class="region-search-recentrow">
-          <button type="button" class="region-search-quickitem" onclick="selectDesktopRegion('방콕')">
-            <span>방콕</span>
-          </button>
-          <button type="button" class="region-search-remove" onclick="event.stopPropagation(); removeRegionRecent(3)" aria-label="최근 검색 지역 삭제">
-            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
+            <div class="region-search-quicklist region-search-recentlist" id="regionQuickRecentList"></div>
           </div>
         </div>
         <div class="region-desktop-header">
@@ -28241,43 +28538,7 @@
             </div>
             <div class="region-selection-col">
               <div class="region-recent-head"><div>최근 검색 지역</div></div>
-              <div class="region-recent-list region-hot-window" id="regionRecentList">
-        <div class="region-hot-track">
-          
-            <button type="button" class="region-recent-item region-hot-row" onclick="selectDesktopRegion('방콕, 태국')">
-              <div><div>방콕</div><div class="region-country-muted">(태국)</div></div>
-            </button>
-          
-            <button type="button" class="region-recent-item region-hot-row" onclick="selectDesktopRegion('다낭, 베트남')">
-              <div><div>다낭</div><div class="region-country-muted">(베트남)</div></div>
-            </button>
-          
-            <button type="button" class="region-recent-item region-hot-row" onclick="selectDesktopRegion('푸꾸옥, 베트남')">
-              <div><div>푸꾸옥</div><div class="region-country-muted">(베트남)</div></div>
-            </button>
-          
-            <button type="button" class="region-recent-item region-hot-row" onclick="selectDesktopRegion('클락, 필리핀')">
-              <div><div>클락</div><div class="region-country-muted">(필리핀)</div></div>
-            </button>
-          
-            <button type="button" class="region-recent-item region-hot-row" onclick="selectDesktopRegion('괌')">
-              <div><div>괌</div></div>
-            </button>
-          
-            <button type="button" class="region-recent-item region-hot-row" onclick="selectDesktopRegion('후쿠오카, 일본')">
-              <div><div>후쿠오카</div><div class="region-country-muted">(일본)</div></div>
-            </button>
-          
-            <button type="button" class="region-recent-item region-hot-row" onclick="selectDesktopRegion('방콕, 태국')">
-              <div><div>방콕</div><div class="region-country-muted">(태국)</div></div>
-            </button>
-          
-            <button type="button" class="region-recent-item region-hot-row" onclick="selectDesktopRegion('다낭, 베트남')">
-              <div><div>다낭</div><div class="region-country-muted">(베트남)</div></div>
-            </button>
-          
-        </div>
-      </div>
+              <div class="region-recent-list region-hot-window" id="regionRecentList"></div>
             </div>
           </div>
           <div class="region-desktop-title">주요도시</div>
@@ -28502,6 +28763,7 @@
     const GOLFJOIN_SHEET_API_ENDPOINT = window.GOLFJOIN_SHEET_API_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
     const GOLFJOIN_SHEET_READ_TIMEOUT_MS = 20000;
     const GOLFJOIN_PRODUCTS_DATA_VERSION = window.GOLFJOIN_PRODUCTS_DATA_VERSION || "20260512095231";
+    const GOLFJOIN_PRODUCTS_SUMMARY_VERSION = window.GOLFJOIN_PRODUCTS_SUMMARY_VERSION || "202607070902";
 
     const BADGE_IMAGES = {
       justgo: "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/badge_justgo.png",
@@ -28849,12 +29111,14 @@
     let externalGolfJoinProductsLoadPromise = null;
     let externalGolfJoinProductsLoadFailed = false;
     let externalGolfJoinProductsLoading = false;
+    let golfJoinDestinationSummary = null;
     let homeInitialExternalProductsLoading = false;
     let homeInitialExternalProductsLoadedOnce = false;
     let homeBootstrapLoading = false;
     let googleSheetBuilderApplicationsLoading = false;
     let builderApplySubmitting = false;
     let pendingApplySubmitConfirmType = "";
+    let applySubmitConfirmOpenedAt = 0;
     let googleSheetBuilderApplicationsReadCompleted = false;
     let googleSheetBuilderApplicationsReadFailed = false;
     let googleSheetJoinApplicationsLoading = false;
@@ -29158,8 +29422,9 @@
       const target = document.getElementById(elementId);
       const base = normalizeLoadingMessageBase(baseMessage);
       if (!target || !base) return;
-      const suffix = JOIN_LOADING_DOT_SUFFIXES[dotIndex % JOIN_LOADING_DOT_SUFFIXES.length] || "";
-      target.textContent = suffix ? `${base}\u2060${suffix}` : base;
+      if (target.dataset.loadingBase === base && target.querySelector(".join-loading-dots")) return;
+      target.dataset.loadingBase = base;
+      target.innerHTML = `<span class="join-loading-text">${escapeHtml(base)}</span><span class="join-loading-dots" aria-hidden="true"><span class="join-loading-dot">.</span><span class="join-loading-dot">.</span><span class="join-loading-dot">.</span></span>`;
     }
 
     function openHomeInitialLoading() {
@@ -29369,6 +29634,8 @@
         if (lastJoinAsyncClickButton === button) lastJoinAsyncClickButton = null;
       }, 1000);
     }, true);
+    document.addEventListener("pointerup", handleGlobalApplySubmitButtonActivation, true);
+    document.addEventListener("click", handleGlobalApplySubmitButtonActivation, true);
 
     const joinMyMenuState = {
       memberPromise: null,
@@ -30026,7 +30293,7 @@
       }
       if (afterLogin === "my-drawer") {
         setJoinMobileNavActive("my");
-        openJoinMyDrawer({ forceProfileRefresh: true });
+        openJoinMyDrawer();
         return;
       }
       if (afterLogin === "detail-wish") {
@@ -30043,7 +30310,7 @@
       }
       if (afterLogin === "my-menu") {
         setJoinMobileNavActive("my");
-        openJoinMyMenu({ forceProfileRefresh: true });
+        openJoinMyMenu();
       }
     }
 
@@ -30885,6 +31152,29 @@
       handleJoinMemberSignupCustomProfessionClick(event, chip);
     }
 
+    function scrollJoinMemberSignupCustomProfessionInputIntoView(input) {
+      if (!input) return;
+      if (typeof scheduleJoinMobileVisualViewportVarsUpdate === "function") {
+        scheduleJoinMobileVisualViewportVarsUpdate();
+      }
+      const scrollBox = input.closest(".join-member-login-body");
+      scrollBox?.classList.add("has-signup-keyboard-focus");
+      const inputRect = input.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop || 0;
+      const viewportHeight = viewport?.height || window.innerHeight || document.documentElement.clientHeight || 0;
+      const keyboardSafeBottom = viewportTop + viewportHeight - 112;
+      const keyboardSafeTop = viewportTop + 72;
+      if (scrollBox) {
+        if (inputRect.bottom > keyboardSafeBottom) {
+          scrollBox.scrollTop += inputRect.bottom - keyboardSafeBottom;
+        } else if (inputRect.top < keyboardSafeTop) {
+          scrollBox.scrollTop -= keyboardSafeTop - inputRect.top;
+        }
+      }
+      input.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+    }
+
     function startJoinMemberSignupCustomProfessionInput(button, edit = false) {
       const row = button?.closest(".join-member-signup-chip-row");
       if (!row || row.querySelector(".join-member-signup-custom-profession-input")) return;
@@ -30901,6 +31191,7 @@
       const finish = (commit = true) => {
         if (finished) return;
         finished = true;
+        input.closest(".join-member-login-body")?.classList.remove("has-signup-keyboard-focus");
         const value = input.value.trim();
         if (commit && value) {
           addJoinMemberSignupCustomProfession(value, previousValue);
@@ -30923,13 +31214,22 @@
           finish(false);
         }
       });
+      input.addEventListener("focus", () => {
+        scrollJoinMemberSignupCustomProfessionInputIntoView(input);
+        setTimeout(() => scrollJoinMemberSignupCustomProfessionInputIntoView(input), 220);
+        setTimeout(() => scrollJoinMemberSignupCustomProfessionInputIntoView(input), 420);
+      });
       input.addEventListener("blur", () => finish(true));
       row.insertBefore(input, button);
       input.focus({ preventScroll: true });
       input.select();
+      scrollJoinMemberSignupCustomProfessionInputIntoView(input);
       requestAnimationFrame(() => {
         if (document.activeElement !== input) input.focus({ preventScroll: true });
+        scrollJoinMemberSignupCustomProfessionInputIntoView(input);
       });
+      setTimeout(() => scrollJoinMemberSignupCustomProfessionInputIntoView(input), 180);
+      setTimeout(() => scrollJoinMemberSignupCustomProfessionInputIntoView(input), 360);
     }
 
     function getJoinMemberSignupSelectedLevel() {
@@ -32517,6 +32817,29 @@
         });
     }
 
+    function scheduleJoinMyMemberPreload() {
+      const run = () => {
+        if (!getJoinLoginState().isLogin) return;
+        const cached = getJoinCachedCurrentMember();
+        if (cached && isJoinMemberProfileComplete(cached)) {
+          preloadJoinProfileImage(cached);
+          return;
+        }
+        getJoinCurrentMember({ refresh: false })
+          .then((member) => {
+            if (member) preloadJoinProfileImage(member);
+          })
+          .catch((error) => {
+            console.warn("Failed to preload join member profile.", error);
+          });
+      };
+      if (window.requestIdleCallback) {
+        window.requestIdleCallback(run, { timeout: 2000 });
+      } else {
+        window.setTimeout(run, 800);
+      }
+    }
+
     function updateJoinMyDrawerHeaderOffset() {
       const overlay = document.getElementById("joinMyDrawerOverlay");
       if (!overlay) return;
@@ -33292,6 +33615,44 @@
       if (!cached?.payload) return false;
       applyHomeBootstrapLightRows(cached.payload, { fromCache: true });
       return true;
+    }
+
+    function getGolfJoinHomeSummaryUrls() {
+      const summaryCacheBust = `v=${encodeURIComponent(GOLFJOIN_PRODUCTS_SUMMARY_VERSION)}`;
+      return [
+        `web/golfjoin_home_summary.json?${summaryCacheBust}`,
+        `https://storage.googleapis.com/golfjoin-bucket/web/golfjoin_home_summary.json?${summaryCacheBust}`
+      ];
+    }
+
+    function applyHomeBootstrapLightFromHomeSummaryPayload(payload = {}, options = {}) {
+      let applied = false;
+      if (payload?.destinations && Array.isArray(payload.destinations.countries)) {
+        golfJoinDestinationSummary = payload.destinations;
+        applied = true;
+      }
+      const data = payload?.homeBootstrapLight;
+      if (!data || !Array.isArray(data.newScheduleSummaries)) return applied;
+      writeJoinJsonCache(HOME_BOOTSTRAP_LIGHT_CACHE_KEY, data);
+      applyHomeBootstrapLightRows(data, { fromCache: true, ...options });
+      return true;
+    }
+
+    function hydrateHomeBootstrapLightFromHomeSummaryJson() {
+      return getGolfJoinHomeSummaryUrls().reduce((promise, url) => {
+        return promise.catch(() => fetch(url, { cache: "no-cache" }).then((response) => {
+          if (!response.ok) throw new Error(`Home summary bootstrap load failed: ${response.status}`);
+          return response.json();
+        }).then((payload) => {
+          if (!applyHomeBootstrapLightFromHomeSummaryPayload(payload, { source: "home-summary" })) {
+            throw new Error(`Home summary bootstrap payload is empty: ${url}`);
+          }
+          return payload.homeBootstrapLight;
+        }));
+      }, Promise.reject(new Error("Home summary bootstrap load not started."))).catch((error) => {
+        console.warn("Failed to load home bootstrap from home summary JSON.", error);
+        return null;
+      });
     }
 
     async function hydrateHomeBootstrapLightFromGoogleSheet() {
@@ -34303,7 +34664,7 @@
       const flowDelayStyle = getParticipantFlowDelayStyle(participant, joinId);
       const badge = options.isHost
         ? '<div class="join-my-card-participant-me-badge host">모임장</div>'
-        : (options.isMe ? '<div class="join-my-card-participant-me-badge">나</div>' : "");
+        : "";
       return `<div class="join-my-card-participant-slot">
         <div class="team-avatar-wrap">
           <button type="button" class="team-avatar participant-flow-avatar ${genderFlowClass}" data-participant="${payload}" data-participant-gender="${escapeHtml(participant.gender || "")}" style="${flowDelayStyle}" onclick="event.stopPropagation(); handleParticipantClick(this)" title="${escapeHtml(participant.name || "")} / ${escapeHtml(participant.age || "")} / ${escapeHtml(participant.handicap || "")}" aria-label="${escapeHtml(participant.name || "참여자")} 참여자 정보">
@@ -36991,7 +37352,7 @@
       setJoinMobileNavActive("my");
       if (!requireJoinLogin("my-drawer")) return;
       setJoinHostHeaderCovered(true);
-      openJoinMyDrawer({ forceProfileRefresh: true });
+      openJoinMyDrawer();
     }
 
     window.addEventListener("resize", () => {
@@ -38064,25 +38425,33 @@
     function getScheduleExtraInfo(join, index) {
       const scheduleExtra = join.schedule?.[index]?.extra || {};
       return {
-        hotel: scheduleExtra.hotel || join.region || "",
+        hotel: scheduleExtra.hotel || "",
         meals: Array.isArray(scheduleExtra.meals) ? scheduleExtra.meals : []
       };
     }
 
     function renderScheduleExtraInfo(join, index) {
       const extra = getScheduleExtraInfo(join, index);
+      const hotel = cleanSecretTourDetailText(extra.hotel);
+      const meals = extra.meals
+        .map((meal) => ({
+          label: cleanSecretTourDetailText(meal?.label),
+          menu: cleanSecretTourDetailText(meal?.menu)
+        }))
+        .filter((meal) => meal.label || meal.menu);
+      if (!hotel && !meals.length) return "";
       return `
         <div class="detail-schedule-extra">
-          <div class="detail-schedule-extra-row">
+          ${hotel ? `<div class="detail-schedule-extra-row">
             <div class="detail-schedule-extra-icon hotel" aria-hidden="true"></div>
-            <div class="detail-schedule-extra-title">${extra.hotel}</div>
-          </div>
-          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-title">${escapeHtml(hotel)}</div>
+          </div>` : ""}
+          ${meals.length ? `<div class="detail-schedule-extra-row">
             <div class="detail-schedule-extra-icon meal" aria-hidden="true"></div>
             <div class="detail-meal-list">
-              ${extra.meals.map((meal) => `<div class="detail-meal-item"><div class="detail-meal-label">${meal.label}</div><div class="detail-meal-menu">${meal.menu}</div></div>`).join("")}
+              ${meals.map((meal) => `<div class="detail-meal-item"><div class="detail-meal-label">${escapeHtml(meal.label)}</div><div class="detail-meal-menu">${escapeHtml(meal.menu)}</div></div>`).join("")}
             </div>
-          </div>
+          </div>` : ""}
         </div>
       `;
     }
@@ -42214,21 +42583,22 @@
     function renderApplyParticipantSlot(participant, index, scope) {
       const participantKey = escapeHtml(getApplyParticipantKey(participant));
       if (!participant) {
-        return `<div class="apply-participant-slot empty" data-participant-key="${participantKey}"><div class="apply-participant-avatar">+</div><div class="apply-participant-label">빈자리</div></div>`;
+        return `<div class="apply-participant-slot empty" data-participant-key="${participantKey}"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="apply-participant-label">빈자리</div></div>`;
       }
       const removable = participant.type === "companion";
       return `
         <div class="apply-participant-slot filled ${participant.type === "existing" ? "is-existing" : ""}" data-apply-participant-index="${index}" data-participant-key="${participantKey}">
-          ${removable ? `<button type="button" class="apply-participant-remove" onclick="removeCompanionGender('${scope}', ${participant.companionIndex})" aria-label="동반자 삭제"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 4.5l11 11M15.5 4.5l-11 11" stroke="currentColor" stroke-linecap="round"/></svg></button>` : ""}
+          ${removable ? `<button type="button" class="apply-participant-remove" onclick="removeCompanionGender('${scope}', ${participant.companionIndex})" aria-label="${escapeHtml(participant.label || "일행")} 삭제"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 4.5l11 11M15.5 4.5l-11 11" stroke="currentColor" stroke-linecap="round"/></svg></button>` : ""}
           <div class="apply-participant-avatar"><img src="${participant.gif}" alt="${escapeHtml(participant.label)}"></div>
           <div class="apply-participant-label">${renderApplyParticipantLabel(participant)}</div>
         </div>
       `;
     }
 
-    function syncApplyParticipantRail(rail, slots, scope, existingDividerIndex = 0) {
+    function syncApplyParticipantRail(rail, slots, scope, existingDividerIndex = 0, options = {}) {
       if (!rail) return false;
-      rail.className = `apply-participant-rail${existingDividerIndex ? ` has-existing-divider existing-divider-${existingDividerIndex}` : ""}`;
+      const extraClass = options.className ? ` ${options.className}` : "";
+      rail.className = `apply-participant-rail${extraClass}${existingDividerIndex ? ` has-existing-divider existing-divider-${existingDividerIndex}` : ""}`;
       slots.forEach((participant, index) => {
         const current = rail.children[index];
         if (!current) {
@@ -42251,6 +42621,8 @@
 
     function renderCompanionGenderRows(scope, overrideGenders = null) {
       const config = getCompanionScopeConfig(scope);
+      const join = scope === "global" ? getCurrentApplyJoin() : null;
+      const isMonthlyApply = scope === "global" && isMonthlyRecommendationJoin(join);
       const availablePeople = getApplyAvailablePeople(scope);
       const totalPeople = Math.min(getCompanionPeople(scope), availablePeople);
       const companionCount = Math.max(0, totalPeople - 1);
@@ -42281,23 +42653,69 @@
       const companions = genders.map((gender, index) => ({
         type: "companion",
         companionIndex: index,
-        label: "동반자",
+        label: `일행${index + 1}`,
         gender,
         gif: getBuilderApplicationGenderIcon(gender, null, `${scope}-companion-${index}-${gender}`)
       }));
-      const visibleParticipants = [...existing, applicant, ...companions].slice(0, JOIN_MAX_CAPACITY);
-      const slots = [
-        ...visibleParticipants,
-        ...Array.from({ length: Math.max(0, JOIN_MAX_CAPACITY - visibleParticipants.length) }).map(() => null)
-      ];
-      const existingDividerIndex = existing.length > 0 && existing.length < JOIN_MAX_CAPACITY ? existing.length : 0;
+      const monthlyCapacity = isMonthlyApply
+        ? getJoinRecruitmentCapacity(join, Number(join?.maxCapacity || join?.capacity || JOIN_MAX_CAPACITY) || JOIN_MAX_CAPACITY)
+        : JOIN_MAX_CAPACITY;
+      const monthlyCurrentCount = isMonthlyApply ? getConfirmedParticipants(join).length : 0;
+      const monthlyAfterCount = Math.min(Math.max(monthlyCapacity, monthlyCurrentCount), monthlyCurrentCount + totalPeople);
+      const monthlyProgressBase = Math.max(monthlyCapacity, monthlyCurrentCount || 0, 1);
+      const monthlyProgress = isMonthlyApply ? Math.max(0, Math.min(100, Math.round((monthlyAfterCount / monthlyProgressBase) * 100))) : 0;
+      const monthlySlotCount = Math.max(1, availablePeople);
+      const visibleParticipants = isMonthlyApply
+        ? [applicant, ...companions].slice(0, monthlySlotCount)
+        : [...existing, applicant, ...companions].slice(0, JOIN_MAX_CAPACITY);
+      const slots = isMonthlyApply
+        ? [
+            ...visibleParticipants,
+            ...Array.from({ length: Math.max(0, monthlySlotCount - visibleParticipants.length) }).map(() => null)
+          ]
+        : [
+            ...visibleParticipants,
+            ...Array.from({ length: Math.max(0, JOIN_MAX_CAPACITY - visibleParticipants.length) }).map(() => null)
+          ];
+      const existingDividerIndex = !isMonthlyApply && existing.length > 0 && existing.length < JOIN_MAX_CAPACITY ? existing.length : 0;
       const canAdd = genders.length < Math.max(0, availablePeople - 1);
       const newParticipants = [applicant, ...companions];
+      const monthlyNewGenderCounts = isMonthlyApply
+        ? newParticipants.reduce((acc, participant) => {
+            const label = getParticipantGenderLabel(participant.gender);
+            if (label.includes("여")) acc.female += 1;
+            else if (label.includes("남")) acc.male += 1;
+            return acc;
+          }, { male: 0, female: 0 })
+        : { male: 0, female: 0 };
       const statusDivider = `<svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg>`;
-      const existingStatusLine = scope === "global"
+      const existingStatusLine = scope === "global" && !isMonthlyApply
         ? `<div class="apply-companion-status-line"><div class="apply-companion-status-label">기존</div>${statusDivider}<div class="apply-companion-status-count">총 ${existing.length}명</div>${statusDivider}<div class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(existing)}</div></div>`
         : "";
-      const statusHtml = `
+      const statusHtml = isMonthlyApply
+        ? `
+        <div class="apply-companion-status apply-monthly-status">
+          <div class="apply-monthly-recruit-box">
+            <div class="apply-monthly-status-head">
+              <div class="apply-monthly-status-title">모집현황</div>
+            </div>
+            <div class="apply-monthly-gauge">
+              <div class="apply-monthly-status-count">${monthlyAfterCount}/${monthlyProgressBase}명</div>
+              <div class="apply-monthly-progress-track" aria-hidden="true">
+                <div class="apply-monthly-progress-fill" style="--apply-monthly-progress:${monthlyProgress}%;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="apply-monthly-status-meta">
+            <div class="apply-monthly-application-label">나의 신청</div>
+            <div class="apply-monthly-application-count">총 ${newParticipants.length}명</div>
+            <div class="apply-monthly-application-genders">
+              <div class="apply-monthly-application-gender"><span class="apply-monthly-application-gender-label">남성</span><span class="apply-monthly-application-gender-count">${monthlyNewGenderCounts.male}명</span></div>
+              <div class="apply-monthly-application-gender"><span class="apply-monthly-application-gender-label">여성</span><span class="apply-monthly-application-gender-count">${monthlyNewGenderCounts.female}명</span></div>
+            </div>
+          </div>
+        </div>`
+        : `
         <div class="apply-companion-status">
           ${existingStatusLine}
           <div class="apply-companion-status-line"><div class="apply-companion-status-label">신규</div>${statusDivider}<div class="apply-companion-status-count">총 ${newParticipants.length}명</div>${statusDivider}<div class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(newParticipants)}</div></div>
@@ -42321,7 +42739,7 @@
         rail = document.createElement("div");
         list.querySelector(":scope > .apply-companion-status")?.after(rail);
       }
-      syncApplyParticipantRail(rail, slots, scope, existingDividerIndex);
+      syncApplyParticipantRail(rail, slots, scope, existingDividerIndex, { className: isMonthlyApply ? "monthly" : "" });
       list.querySelectorAll(":scope > .apply-companion-card").forEach((card) => card.remove());
       rail.insertAdjacentHTML("afterend", companionCardsHtml);
       document.querySelectorAll(`${config.modeSelector} .apply-people-inline-add-button`).forEach((button) => {
@@ -43214,7 +43632,7 @@
         } : {};
         return {
           id: participantId,
-          name: index === 0 ? maskApplyName(applicant.name) : `동반자${index}`,
+          name: index === 0 ? maskApplyName(applicant.name) : `일행${index}`,
           gender,
           ...memberIdentity,
           companionGroup: participantCount > 1 ? `${recordId}-companions` : "",
@@ -43585,7 +44003,7 @@
       const participantCount = getBuilderApplicationPeopleCount(payload);
       return Array.from({ length: participantCount }, (_, index) => ({
         id: `${BUILDER_APPLICATION_JOIN_PREFIX}${idSeed || "application"}-p${index + 1}`,
-        name: index === 0 ? participantName : `동반자${index}`,
+        name: index === 0 ? participantName : `일행${index}`,
         gender: index === 0 ? applicantGender : (companionGenders[index - 1] || applicantGender),
         ...(index === 0 ? {
           memberSeq: getNestedValue(payload, "member.memberSeq") || "",
@@ -44526,18 +44944,19 @@
 
     function openApplySubmitConfirmModal(type = "apply") {
       pendingApplySubmitConfirmType = type;
+      applySubmitConfirmOpenedAt = Date.now();
       const isBuilder = type === "builder";
       const overlay = portalOverlayToBody("applySubmitConfirmModal");
       const title = document.getElementById("applySubmitConfirmTitle");
       const message = document.getElementById("applySubmitConfirmMessage");
       const button = document.getElementById("applySubmitConfirmButton");
-      if (title) title.textContent = isBuilder ? "새 모임을 만들까요?" : "참여 신청을 진행할까요?";
+      if (title) title.textContent = isBuilder ? "새 모임을 만들까요?" : "참여 신청할까요?";
       if (message) {
         message.textContent = isBuilder
-          ? "입력한 참여자 정보와 선택한 상품 정보로 새 모임을 생성합니다."
-          : "입력한 참여자 정보로 이 모임에 참여 신청을 전송합니다.";
+          ? "선택한 상품과 입력한 정보로 새 모임을 등록합니다."
+          : "입력한 정보로 모임 참여를 신청합니다.";
       }
-      if (button) button.textContent = isBuilder ? "모임 만들기" : "참여 신청하기";
+      if (button) button.textContent = isBuilder ? "모임 만들기" : "신청하기";
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
       setWidgetModalOpen(true);
@@ -44549,10 +44968,31 @@
       overlay?.classList.remove("open");
       overlay?.setAttribute("aria-hidden", "true");
       pendingApplySubmitConfirmType = "";
+      applySubmitConfirmOpenedAt = 0;
       setWidgetModalOpen(hasOpenBlockingModal());
     }
 
+    let lastGlobalApplySubmitTouchAt = 0;
+
+    function handleGlobalApplySubmitButtonActivation(event) {
+      const button = event.target?.closest?.("#globalApplySubmitButton");
+      if (!button || button.disabled) return;
+      const now = Date.now();
+      if (event.type === "click" && now - lastGlobalApplySubmitTouchAt < 700) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+      if (event.type === "pointerup") {
+        lastGlobalApplySubmitTouchAt = now;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      submitGlobalApply();
+    }
+
     async function confirmApplySubmitModal() {
+      if (applySubmitConfirmOpenedAt && Date.now() - applySubmitConfirmOpenedAt < 450) return;
       const type = pendingApplySubmitConfirmType;
       closeApplySubmitConfirmModal();
       if (type === "builder") {
@@ -44932,6 +45372,15 @@
       if (shouldShowLoading) openJoinActionLoading();
       try {
         await new Promise((resolve) => requestAnimationFrame(resolve));
+        if (!golfJoinDestinationSummary) {
+          void hydrateHomeBootstrapLightFromHomeSummaryJson().then(() => {
+            if (!document.getElementById("regionSearchModal")?.classList.contains("open")) return;
+            renderRegionSearchResults(document.getElementById("regionSearchInput")?.value || "");
+            renderRegionDesktop();
+            renderRegionMobile();
+            renderRegionQuickbar();
+          });
+        }
         regionSearchContext = context;
         selectedRegionSearchName = "";
         regionProductSort = "recommended";
@@ -45020,20 +45469,6 @@
       return true;
     }
 
-    const regionSearchItems = [
-      ["라오스", "해외"], ["비엔티안, 라오스", "해외"],
-      ["말레이시아", "해외"], ["조호바루, 말레이시아", "해외"], ["코타키나발루, 말레이시아", "해외"],
-      ["미얀마", "해외"], ["양곤, 미얀마", "해외"],
-      ["베트남", "해외"], ["다낭, 베트남", "해외"], ["푸꾸옥, 베트남", "해외"], ["하노이, 베트남", "해외"], ["호치민, 베트남", "해외"],
-      ["브루나이", "해외"], ["엠파이어 호텔 컨트리클럽, 브루나이", "해외"],
-      ["인도네시아", "해외"], ["발리, 인도네시아", "해외"], ["롬복, 인도네시아", "해외"], ["자카르타, 인도네시아", "해외"], ["바탐, 인도네시아", "해외"],
-      ["태국", "해외"], ["방콕, 태국", "해외"], ["파타야, 태국", "해외"], ["후아힌, 태국", "해외"], ["치앙마이, 태국", "해외"], ["카오야이, 태국", "해외"], ["푸켓, 태국", "해외"],
-      ["필리핀", "해외"], ["마닐라, 필리핀", "해외"], ["세부, 필리핀", "해외"], ["클락, 필리핀", "해외"],
-      ["일본", "해외"], ["구마모토, 일본", "해외"], ["가고시마, 일본", "해외"], ["기타큐슈, 일본", "해외"], ["나가사키, 일본", "해외"], ["나고야, 일본", "해외"], ["미야자키, 일본", "해외"], ["오키나와, 일본", "해외"], ["아오모리, 일본", "해외"], ["후쿠오카, 일본", "해외"], ["이바라키, 일본", "해외"], ["시즈오카, 일본", "해외"],
-      ["대만", "해외"], ["가오슝, 대만", "해외"],
-      ["중국", "해외"], ["계림, 중국", "해외"], ["곤명, 중국", "해외"], ["남경, 중국", "해외"], ["대련, 중국", "해외"], ["베이징, 중국", "해외"], ["상해, 중국", "해외"], ["심천, 중국", "해외"], ["청도, 중국", "해외"], ["해구, 중국", "해외"], ["황산, 중국", "해외"], ["연길, 중국", "해외"], ["장가계, 중국", "해외"], ["위해, 중국", "해외"], ["하문, 중국", "해외"], ["심양, 중국", "해외"],
-      ["괌", "해외"], ["사이판", "해외"], ["제주", "국내"]
-    ];
     const regionTree = [
       {
         category: "동남아/서남아",
@@ -45042,7 +45477,7 @@
           { name: "말레이시아", cities: ["조호바루", "코타키나발루"] },
           { name: "미얀마", cities: ["양곤"] },
           { name: "베트남", cities: ["다낭", "푸꾸옥", "하노이", "호치민"] },
-          { name: "브루나이", cities: ["엠파이어 호텔 컨트리클럽"] },
+          { name: "브루나이", cities: ["반다르"] },
           { name: "인도네시아", cities: ["발리", "롬복", "자카르타", "바탐"] },
           { name: "태국", cities: ["방콕", "파타야", "후아힌", "치앙마이", "카오야이", "푸켓"] },
           { name: "필리핀", cities: ["마닐라", "세부", "클락"] }
@@ -45095,12 +45530,12 @@
       searchItems: null,
       themeCandidates: null
     };
-    let regionRecent = ["미야자키", "다낭", "클락", "방콕"];
+    let regionRecent = [];
 
     function getJoinRegionSearchNames(join) {
       const names = new Set([join.region, join.category].filter(Boolean));
       const joinRegionKey = normalizeRegionKeyword(join.region);
-      regionTree.forEach((category) => {
+      getActiveRegionTree().forEach((category) => {
         (category.countries || []).forEach((country) => {
           const countryKey = normalizeRegionKeyword(country.name);
           if (joinRegionKey && joinRegionKey === countryKey) {
@@ -45126,7 +45561,7 @@
     function getRegionSearchItemType(name, fallback = "") {
       const key = normalizeRegionKeyword(name);
       if (key === normalizeRegionKeyword("국내") || key === normalizeRegionKeyword("해외")) return "구분";
-      for (const category of regionTree) {
+      for (const category of getActiveRegionTree()) {
         if (key === normalizeRegionKeyword(category.category)) return "권역";
         for (const country of (category.countries || [])) {
           if (key === normalizeRegionKeyword(country.name)) return category.category;
@@ -45142,16 +45577,7 @@
 
     function getMainJoinRegionSearchItems() {
       if (regionSearchContext === "mdpick") return getMdPickRegionSearchItems();
-      const items = new Map();
-      getVisibleJoinProducts().forEach((join) => {
-        if (!join.region) return;
-        getJoinRegionSearchNames(join).forEach((name) => {
-          const key = normalizeRegionKeyword(name);
-          if (!key || items.has(key)) return;
-          items.set(key, [name, getRegionSearchItemType(name, join.category || "")]);
-        });
-      });
-      return [...items.values()].sort((a, b) => a[0].localeCompare(b[0], "ko"));
+      return getRegionBodySearchItems().map(([name, type]) => [name, type]);
     }
 
     function getRegionBodySearchItems() {
@@ -45226,7 +45652,7 @@
       getMdPickRegionProductSource();
       if (mdPickRegionCache.searchItems) return mdPickRegionCache.searchItems;
       const items = new Map();
-      regionTree.forEach((category) => {
+      getActiveRegionTree().forEach((category) => {
         if (isDomesticRegionCategory(category)) return;
         (category.countries || []).forEach((country) => {
           if (hasMdPickRegionProducts(country.name, { country: true })) {
@@ -45254,6 +45680,95 @@
       return city && city !== country ? `${city}, ${country}` : country;
     }
 
+    function getRegionTreeCountryCategory(countryName = "") {
+      const countryKey = normalizeRegionKeyword(countryName);
+      if (!countryKey) return "";
+      for (const category of (regionTree || [])) {
+        if ((category.countries || []).some((country) => normalizeRegionKeyword(country.name) === countryKey)) {
+          return category.category || "";
+        }
+      }
+      return "";
+    }
+
+    function getErpRegisteredRegionProducts() {
+      if (!externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed) {
+        ensureExternalGolfJoinProductsLoaded();
+      }
+      return Array.isArray(externalGolfJoinProducts) ? externalGolfJoinProducts : [];
+    }
+
+    function getDestinationSummaryRegionTree() {
+      const countries = Array.isArray(golfJoinDestinationSummary?.countries) ? golfJoinDestinationSummary.countries : [];
+      if (!countries.length) return [];
+      const categories = new Map();
+      countries.forEach((country) => {
+        const countryName = String(country.name || "").trim();
+        if (!countryName) return;
+        const categoryName = getRegionTreeCountryCategory(countryName) || country.category || "기타";
+        const categoryKey = normalizeRegionKeyword(categoryName) || "etc";
+        if (!categories.has(categoryKey)) {
+          categories.set(categoryKey, { category: categoryName, countries: [] });
+        }
+        categories.get(categoryKey).countries.push({
+          name: countryName,
+          count: Number(country.count) || 0,
+          earliestDepartureDate: country.earliestDepartureDate || "",
+          cities: (Array.isArray(country.regions) ? country.regions : [])
+            .map((region) => String(region.name || "").trim())
+            .filter(Boolean)
+            .sort((a, b) => a.localeCompare(b, "ko"))
+        });
+      });
+      return [...categories.values()].map((category) => ({
+        category: category.category,
+        countries: category.countries.sort((a, b) => a.name.localeCompare(b.name, "ko"))
+      })).sort((a, b) => a.category.localeCompare(b.category, "ko"));
+    }
+
+    function getErpRegisteredProductRegionTree() {
+      const categories = new Map();
+      getErpRegisteredRegionProducts().forEach((product) => {
+        const regionName = String(product.region || product.city || product.area || product.location || "").split(",")[0]?.trim() || "";
+        const countryName = String(product.country || product.countryName || product.nation || product.productCountry || product.erpCountry || inferDetailCountryName(regionName, product) || "").trim();
+        if (!regionName && !countryName) return;
+        const categoryName = getRegionTreeCountryCategory(countryName) || product.regionGroup || product.categoryGroup || product.category || "기타";
+        const categoryKey = normalizeRegionKeyword(categoryName) || "etc";
+        if (!categories.has(categoryKey)) {
+          categories.set(categoryKey, {
+            category: categoryName,
+            countries: new Map()
+          });
+        }
+        const category = categories.get(categoryKey);
+        const countryDisplay = countryName || regionName;
+        const countryKey = normalizeRegionKeyword(countryDisplay);
+        if (!countryKey) return;
+        if (!category.countries.has(countryKey)) {
+          category.countries.set(countryKey, {
+            name: countryDisplay,
+            cities: new Set()
+          });
+        }
+        const country = category.countries.get(countryKey);
+        if (regionName && normalizeRegionKeyword(regionName) !== normalizeRegionKeyword(countryDisplay)) {
+          country.cities.add(regionName);
+        }
+      });
+      return [...categories.values()].map((category) => ({
+        category: category.category,
+        countries: [...category.countries.values()].map((country) => ({
+          name: country.name,
+          cities: [...country.cities].sort((a, b) => a.localeCompare(b, "ko"))
+        })).sort((a, b) => a.name.localeCompare(b.name, "ko"))
+      })).sort((a, b) => a.category.localeCompare(b.category, "ko"));
+    }
+
+    function getActiveRegionTree() {
+      const summaryTree = getDestinationSummaryRegionTree();
+      return summaryTree.length ? summaryTree : getErpRegisteredProductRegionTree();
+    }
+
     function formatRegionDisplayName(name) {
       const parts = String(name || "").split(",").map((part) => part.trim()).filter(Boolean);
       if (parts.length >= 2) return `${parts[0]}(${parts.slice(1).join(", ")})`;
@@ -45274,26 +45789,59 @@
 
     function getRegionDisplayCategories({ builderContext = false } = {}) {
       const mdPickContext = regionSearchContext === "mdpick";
-      return regionTree
+      return getActiveRegionTree()
         .map((item, index) => ({ item, index }))
         .filter(({ item }) => !isDomesticRegionCategory(item))
         .filter(({ item }) => !builderContext || isBuilderCategoryAvailable(item))
         .filter(({ item }) => !mdPickContext || isMdPickCategoryAvailable(item));
     }
 
+    function isUserCreatedJoinSchedule(join = {}) {
+      return Boolean(join.isBuilderApplicationJoin || join.lightSummary || join.sheetApplication || join.sourceApplicationId || join.scheduleId);
+    }
+
+    function getUserCreatedRegionHotMap() {
+      const map = new Map();
+      joins.filter(isUserCreatedJoinSchedule).forEach((join) => {
+        const regionName = String(join.region || "").split(",")[0]?.trim() || "";
+        const countryName = String(join.country || join.countryName || inferDetailCountryName(regionName, join) || "").trim();
+        const labels = [
+          countryName,
+          regionName,
+          regionLabel(regionName, countryName)
+        ].filter(Boolean);
+        labels.forEach((label) => {
+          const key = normalizeRegionKeyword(label);
+          if (!key) return;
+          if (!map.has(key)) {
+            map.set(key, { name: label, count: 0, earliest: "9999-12-31" });
+          }
+          const item = map.get(key);
+          item.count += 1;
+          const departureDate = String(join.departureDate || "");
+          if (departureDate && departureDate < item.earliest) item.earliest = departureDate;
+        });
+      });
+      return map;
+    }
+
+    function hasUserCreatedRegionSchedule(name) {
+      return getUserCreatedRegionHotMap().has(normalizeRegionKeyword(name));
+    }
+
     function getRegionScheduledLeafNames() {
       const names = new Set();
-      regionTree.forEach((category) => {
+      getActiveRegionTree().forEach((category) => {
         if (isDomesticRegionCategory(category)) return;
         (category.countries || []).forEach((country) => {
           const cities = Array.isArray(country.cities) ? country.cities : [];
           if (!cities.length) {
-            if (hasRegisteredRegionSchedule(country.name)) names.add(normalizeRegionKeyword(country.name));
+            if (hasUserCreatedRegionSchedule(country.name)) names.add(normalizeRegionKeyword(country.name));
             return;
           }
           cities.forEach((city) => {
             const label = regionLabel(city, country.name);
-            if (hasRegisteredRegionSchedule(label)) names.add(normalizeRegionKeyword(label));
+            if (hasUserCreatedRegionSchedule(label)) names.add(normalizeRegionKeyword(label));
           });
         });
       });
@@ -45306,7 +45854,7 @@
 
     function hasRegisteredRegionSubregionSchedule(country) {
       const cities = Array.isArray(country?.cities) ? country.cities : [];
-      return cities.some((city) => hasRegisteredRegionLeafSchedule(regionLabel(city, country.name)));
+      return hasUserCreatedRegionSchedule(country?.name) || cities.some((city) => hasRegisteredRegionLeafSchedule(regionLabel(city, country.name)));
     }
 
     function hasRegisteredRegionSchedule(name) {
@@ -45336,9 +45884,9 @@
       if (!displayCategories.some(({ index }) => index === activeRegionCategoryIndex)) {
         activeRegionCategoryIndex = displayCategories[0]?.index || 0;
         activeRegionCountryIndex = builderContext
-          ? getFirstBuilderAvailableCountryIndex(regionTree[activeRegionCategoryIndex])
+          ? getFirstBuilderAvailableCountryIndex(getActiveRegionTree()[activeRegionCategoryIndex])
           : mdPickContext
-            ? getFirstMdPickAvailableCountryIndex(regionTree[activeRegionCategoryIndex])
+            ? getFirstMdPickAvailableCountryIndex(getActiveRegionTree()[activeRegionCategoryIndex])
             : 0;
       }
       const activeCategory = displayCategories.find(({ index }) => index === activeRegionCategoryIndex)?.item || displayCategories[0]?.item;
@@ -45468,7 +46016,7 @@
     }
 
     function getDefaultMobileRegionCountryKey(categoryIndex) {
-      const category = regionTree[categoryIndex];
+      const category = getActiveRegionTree()[categoryIndex];
       const firstCountry = category?.countries?.[0];
       if (category?.category === "일본" && Array.isArray(firstCountry?.cities) && firstCountry.cities.length) {
         return `${categoryIndex}:0`;
@@ -45704,6 +46252,23 @@
         .trim();
     }
 
+    function isSecretTourMealScheduleText(value) {
+      const text = cleanSecretTourDetailText(value);
+      return /(\uc2dd\uc0ac|\uc870\uc2dd|\uc911\uc2dd|\uc11d\uc2dd|\uc544\uce68|\uc810\uc2ec|\uc800\ub141)\s*[:\uff1a]?/.test(text)
+        || /(\ud638\ud154\uc2dd|\uae30\ub0b4\uc2dd|\ud074\ub7fd\ud558\uc6b0\uc2a4|\ubd88\ud3ec\ud568|\uc790\uc720\uc2dd|\ud604\uc9c0\uc2dd)/.test(text);
+    }
+
+    function hasSecretTourLodgingText(value) {
+      return /(\uc219\uc18c|\ud638\ud154(?!\uc2dd)|\ub9ac\uc870\ud2b8|\uace8\ud504\ud154|\ucf58\ub3c4|\ube4c\ub77c|hotel|resort)/i.test(cleanSecretTourDetailText(value));
+    }
+
+    function normalizeSecretTourScheduleHotel(value) {
+      const text = cleanSecretTourDetailText(value);
+      if (!text) return "";
+      if (isSecretTourMealScheduleText(text) && !hasSecretTourLodgingText(text)) return "";
+      return text;
+    }
+
     function getSecretTourDetailList(container) {
       if (!container) return [];
       const nodes = [...container.querySelectorAll("p, li")];
@@ -45761,7 +46326,8 @@
       const cleanValue = cleanSecretTourDetailText(value);
       if (!cleanLabel || !cleanValue) return;
       if ((cleanLabel.includes("\uc219\uc18c") || cleanLabel.includes("\ud638\ud154")) && !extra.hotel) {
-        extra.hotel = cleanValue;
+        const hotel = normalizeSecretTourScheduleHotel(cleanValue);
+        if (hotel) extra.hotel = hotel;
       }
       if (cleanLabel.includes("\uc2dd\uc0ac") || cleanLabel.includes("\uc870\uc2dd") || cleanLabel.includes("\uc911\uc2dd") || cleanLabel.includes("\uc11d\uc2dd")) {
         const meals = parseSecretTourMeals(cleanValue);
@@ -45779,7 +46345,10 @@
         const hadMeals = Boolean(extra.meals?.length);
         applySecretTourScheduleExtra(extra, label, value);
         if (row.closest(".elsedata_tb")) {
-          if (!hadHotel && !extra.hotel && rowIndex === 0 && value) extra.hotel = value;
+          if (!hadHotel && !extra.hotel && rowIndex === 0 && value) {
+            const hotel = normalizeSecretTourScheduleHotel(value);
+            if (hotel && hasSecretTourLodgingText(hotel)) extra.hotel = hotel;
+          }
           if (!hadMeals && !extra.meals?.length && rowIndex === 1 && value) {
             const meals = parseSecretTourMeals(value);
             if (meals.length) extra.meals = meals;
@@ -45789,8 +46358,13 @@
       item.querySelectorAll(".timeline_elsedata_row, .elsedata_tb, .elsedata, .schedule_info, .timeline_info, .stay_info, .hotel_info, .meal_info").forEach((block) => {
         const text = cleanSecretTourDetailText(block.textContent);
         if (!text) return;
-        const hotelMatch = text.match(/(?:\uc219\uc18c|\ud638\ud154)\s*[:\uff1a]?\s*([^|]+?)(?=\s*(?:\||\uc2dd\uc0ac|\uc870\uc2dd|\uc911\uc2dd|\uc11d\uc2dd|\uc544\uce68|\uc810\uc2ec|\uc800\ub141|$))/);
-        if (hotelMatch && !extra.hotel) extra.hotel = cleanSecretTourDetailText(hotelMatch[1]);
+        const hotelMatch = text.match(/(\uc219\uc18c|\ud638\ud154)\s*([:\uff1a]|\s)\s*([^|]+?)(?=\s*(?:\||\uc2dd\uc0ac|\uc870\uc2dd|\uc911\uc2dd|\uc11d\uc2dd|\uc544\uce68|\uc810\uc2ec|\uc800\ub141|$))/);
+        if (hotelMatch && !extra.hotel) {
+          const hotel = normalizeSecretTourScheduleHotel(hotelMatch[3]);
+          const hasExplicitSeparator = Boolean(hotelMatch[2].trim());
+          const isStayLabel = hotelMatch[1].includes("\uc219\uc18c");
+          if (hotel && (hasExplicitSeparator || isStayLabel || hasSecretTourLodgingText(hotel))) extra.hotel = hotel;
+        }
         const mealMatch = text.match(/\uc2dd\uc0ac\s*[:\uff1a]?\s*(.+)$/);
         if (mealMatch) {
           const meals = parseSecretTourMeals(mealMatch[1]);
@@ -46170,10 +46744,11 @@
     }
 
     function loadLocalGolfJoinProductsData() {
-      const cacheBust = `v=${encodeURIComponent(GOLFJOIN_PRODUCTS_DATA_VERSION)}`;
+      const fullCacheBust = `v=${encodeURIComponent(GOLFJOIN_PRODUCTS_DATA_VERSION)}`;
       const urls = [
-        `web/golfjoin_local_data.json?${cacheBust}`,
-        `https://storage.googleapis.com/golfjoin-bucket/web/golfjoin_local_data.json?${cacheBust}`
+        ...getGolfJoinHomeSummaryUrls(),
+        `web/golfjoin_local_data.json?${fullCacheBust}`,
+        `https://storage.googleapis.com/golfjoin-bucket/web/golfjoin_local_data.json?${fullCacheBust}`
       ];
       const loadPayload = (url) => fetch(url, { cache: "force-cache" }).then((response) => {
         if (!response.ok) throw new Error(`Local golf join products load failed: ${response.status}`);
@@ -46184,7 +46759,7 @@
           if (!Array.isArray(payload?.items) || !payload.items.length) {
             throw new Error(`Golf join products payload is empty: ${url}`);
           }
-          return payload.items;
+          return payload;
         }));
       }, Promise.reject(new Error("Golf join products load not started.")));
     }
@@ -46215,6 +46790,8 @@
       const badgeKind = item.badgeKind || "";
       const duration = getExplicitTripDuration(item) || extractDurationFromProductText(item) || getExplicitTripDuration(fallback);
       const productReference = getSecretTourProductReference(item);
+      const normalizedRegion = item.region || fallback.region || "";
+      const normalizedCountry = item.country || item.countryName || item.nation || item.productCountry || item.erpCountry || inferDetailCountryName(normalizedRegion, item) || "";
       return {
         ...fallback,
         ...item,
@@ -46231,7 +46808,8 @@
         air2CdNm: item.air2CdNm || fallback.air2CdNm || "",
         air2Nm: item.air2Nm || item.air2CdNm || fallback.air2Nm || fallback.air2CdNm || "",
         title: item.title || fallback.title || "골프 조인 상품",
-        region: item.region || fallback.region || "",
+        country: normalizedCountry,
+        region: normalizedRegion,
         category: item.category || (normalizeSecretTourAirportName(item.airport, item.air2CdNm) ? "해외" : "국내"),
         airport: normalizeSecretTourAirportName(item.airport, item.departureAirport, item.depAirport, item.airportName, item.air2CdNm, fallback.airport),
         departureAirport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm, fallback.departureAirport, fallback.airport),
@@ -46318,11 +46896,13 @@
         externalGolfJoinProductsLoadPromise = loadLocalGolfJoinProductsData()
           .catch((error) => {
             const inlineItems = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items) ? window.SECRET_GOLF_JOIN_PRODUCTS.items : [];
-            if (inlineItems.length) return inlineItems;
+            if (inlineItems.length) return { items: inlineItems };
             console.warn("Failed to load local golf join products. Falling back to live products.", error);
-            return loadSecretTourGoodsProducts();
+            return loadSecretTourGoodsProducts().then((items) => ({ items }));
           })
-          .then((items) => {
+          .then((payload) => {
+            applyHomeBootstrapLightFromHomeSummaryPayload(payload, { source: "products-load" });
+            const items = Array.isArray(payload?.items) ? payload.items : [];
             externalGolfJoinProducts = items.map(normalizeExternalGolfJoinProduct);
             hydrateOverseasJoinsWithSecretProducts();
             renderJoins();
@@ -46686,7 +47266,7 @@
     }
 
     function getDefaultBuilderRegionCountryKey(categoryIndex) {
-      const category = regionTree[categoryIndex];
+      const category = getActiveRegionTree()[categoryIndex];
       if (!category || category.category !== "일본") return "";
       const countryIndex = getFirstBuilderAvailableCountryIndex(category);
       const country = category.countries?.[countryIndex];
@@ -47079,7 +47659,7 @@
     function renderRegionRecent() {
       const list = document.getElementById("regionRecentList");
       if (!list) return;
-      const hotRegions = ["방콕, 태국", "다낭, 베트남", "푸꾸옥, 베트남", "클락, 필리핀", "괌", "후쿠오카, 일본"];
+      const hotRegions = getRegionSearchHotRegions().map((item) => item.name);
       const slideRegions = [...hotRegions, ...hotRegions.slice(0, 2)];
       list.classList.add("region-hot-window");
       list.innerHTML = `
@@ -47095,13 +47675,15 @@
 
     function getRegionSearchHotRegions() {
       const regionMap = new Map();
-      getVisibleJoinProducts().forEach((join) => {
-        const region = String(join.region || "").trim();
-        if (!region) return;
-        if (!regionMap.has(region)) {
-          regionMap.set(region, { name: region, count: 0, earliest: "9999-12-31" });
+      joins.filter(isUserCreatedJoinSchedule).forEach((join) => {
+        const region = String(join.region || "").split(",")[0]?.trim() || "";
+        const country = String(join.country || join.countryName || inferDetailCountryName(region, join) || "").trim();
+        const name = regionLabel(region, country) || country || region;
+        if (!name) return;
+        if (!regionMap.has(name)) {
+          regionMap.set(name, { name, count: 0, earliest: "9999-12-31" });
         }
-        const item = regionMap.get(region);
+        const item = regionMap.get(name);
         item.count += 1;
         const departureDate = String(join.departureDate || "");
         if (departureDate && departureDate < item.earliest) item.earliest = departureDate;
@@ -47111,7 +47693,7 @@
         .slice(0, 4)
         .map((item) => ({
           name: item.name,
-          message: `예약가능 일정 ${item.count}개`
+          message: `생성 모임 ${item.count}개`
         }));
     }
 
@@ -47189,9 +47771,9 @@
     function selectRegionCategory(index) {
       activeRegionCategoryIndex = index;
       activeRegionCountryIndex = regionSearchContext === "builder"
-        ? getFirstBuilderAvailableCountryIndex(regionTree[index])
+        ? getFirstBuilderAvailableCountryIndex(getActiveRegionTree()[index])
         : regionSearchContext === "mdpick"
-          ? getFirstMdPickAvailableCountryIndex(regionTree[index])
+          ? getFirstMdPickAvailableCountryIndex(getActiveRegionTree()[index])
         : 0;
       renderRegionDesktop();
     }
@@ -47421,7 +48003,7 @@
 
     function auditGolfJoinRegionMaster() {
       const countryMap = getRegionMasterCountryMap();
-      const searchItemKeys = new Set((regionSearchItems || []).map(([name]) => normalizeRegionKeyword(name)));
+      const searchItemKeys = new Set(getRegionBodySearchItems().map(([name]) => normalizeRegionKeyword(name)));
       const products = (typeof getBuilderProductSource === "function" ? getBuilderProductSource() : [])
         .filter((product) => product && (product.title || product.productName || product.region));
       const missingCountries = new Map();
@@ -48376,7 +48958,6 @@
         }
         overlay.style.setProperty("z-index", "2147483650", "important");
         panel.style.setProperty("z-index", "2147483651", "important");
-        if (applyJoin) await enrichOpenDetailWithSecretTourData(applyJoin, { preserveScroll: true });
         renderGlobalApplyJoinSummary();
         clearApplyErrors();
         document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip.active').forEach((chip) => chip.classList.remove("active"));
@@ -48432,9 +49013,27 @@
         updateApplyBookingOptions("global");
         updateApplyProgressive();
         document.querySelectorAll("#globalApplyPanel .traveler-field input").forEach(updateTravelerFieldState);
+        refreshGlobalApplyProductDataInBackground(applyJoin, applyJoinId);
       } finally {
         openGlobalApply.isOpening = false;
       }
+    }
+
+    function refreshGlobalApplyProductDataInBackground(applyJoin, applyJoinId = "") {
+      if (!applyJoin || applyJoin.secretTourDetailLoaded || typeof enrichOpenDetailWithSecretTourData !== "function") return;
+      enrichOpenDetailWithSecretTourData(applyJoin, { preserveScroll: true })
+        .then(() => {
+          const overlay = document.getElementById("globalApplyOverlay");
+          const panel = document.getElementById("globalApplyPanel");
+          if (!overlay?.classList.contains("open") || panel?.classList.contains("is-complete")) return;
+          if (applyJoinId && currentDetailJoinId !== applyJoinId) return;
+          renderGlobalApplyJoinSummary();
+          updateApplyBookingOptions("global");
+          updateGlobalApplyRemainingSeat();
+        })
+        .catch((error) => {
+          console.warn("Failed to refresh apply product data in background.", error);
+        });
     }
 
     function showGlobalApplyCompleteState() {
@@ -48643,7 +49242,7 @@
         const gender = index === 0 ? data.gender : (companionGenders[index - 1] || data.gender);
         return {
           id: participantId,
-          name: index === 0 ? maskApplyName(data.name) : `동반자${index}`,
+          name: index === 0 ? maskApplyName(data.name) : `일행${index}`,
           gender,
           companionGroup: participantCount > 1 ? `${participantSeed}-companions` : "",
           age: data.age,
@@ -48850,7 +49449,7 @@
       if (submitButton) {
         submitButton.disabled = true;
       }
-      openJoinActionLoading();
+      openJoinActionLoading("참여 신청을 접수하고 있어요");
       try {
         const applyPayload = buildJoinApplyPayload(applyData);
         try {
@@ -49283,7 +49882,7 @@
       const payload = encodeURIComponent(JSON.stringify({ joinId, participantId: participant.id }));
       const genderFlowClass = getParticipantGenderFlowClass(participant.gender);
       const flowDelayStyle = getParticipantFlowDelayStyle(participant, joinId);
-      const meBadge = isJoinParticipantForCurrentMember(participant)
+      const meBadge = !compact && isJoinParticipantForCurrentMember(participant)
         ? '<div class="join-my-card-participant-me-badge detail-me-badge">나</div>'
         : "";
       return `<div class="team-avatar-wrap">
@@ -49348,22 +49947,26 @@
 
     function emptySlotHtml(compact = true, joinId = "", options = {}) {
       if (options.disabled) {
-        return `<button type="button" class="team-empty${compact ? "" : " detail-empty"} is-disabled" disabled aria-label="빈 인원 슬롯">
+        return `<div class="team-avatar-wrap">
+          <button type="button" class="team-empty${compact ? "" : " detail-empty"} is-disabled" disabled aria-label="빈 인원 슬롯">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true">
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
           </svg>
-        </button>`;
+          </button>
+        </div>`;
       }
       const action = `openGlobalApplyFor('${joinId}')`;
-      return `<button type="button" class="team-empty${compact ? "" : " detail-empty"}" onclick="event.stopPropagation(); ${action}" aria-label="참여 신청">
+      return `<div class="team-avatar-wrap">
+        <button type="button" class="team-empty${compact ? "" : " detail-empty"}" onclick="event.stopPropagation(); ${action}" aria-label="참여 신청">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-icon lucide-user-plus" aria-hidden="true">
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
           <circle cx="9" cy="7" r="4"/>
           <path d="M19 8v6"/>
           <path d="M22 11h-6"/>
         </svg>
-      </button>`;
+        </button>
+      </div>`;
     }
 
     function renderCardTeamSlots(join, compact = true, maxSlots = 4, options = {}) {
@@ -49376,20 +49979,57 @@
       ].join("");
     }
 
+    function getMonthlyCardParticipantCount(join = {}) {
+      const values = [
+        join.lightSummary?.confirmedCount,
+        join.participantSummary?.confirmedCount,
+        join.confirmedCount,
+        join.currentCount,
+        join.participantCount,
+        getConfirmedParticipants(join).length
+      ];
+      const count = values.map(Number).find((value) => Number.isFinite(value) && value >= 0);
+      return Math.max(0, count || 0);
+    }
+
+    function renderMonthlyCardThumbStack(join = {}, count = 0) {
+      const visibleCount = Math.min(4, Math.max(0, Number(count) || 0));
+      if (!visibleCount) return "";
+      const participants = getUniqueCardParticipants(getConfirmedParticipants(join), join.id || "").slice(0, visibleCount);
+      const fallbackIcons = [
+        BUILDER_APPLICATION_GENDER_ICON_POOLS.male[0],
+        BUILDER_APPLICATION_GENDER_ICON_POOLS.female[0],
+        BUILDER_APPLICATION_GENDER_ICON_POOLS.male[1],
+        BUILDER_APPLICATION_GENDER_ICON_POOLS.female[1]
+      ];
+      const thumbs = Array.from({ length: visibleCount }).map((_, index) => {
+        const participant = participants[index] || {};
+        const src = participant.gif || fallbackIcons[index % fallbackIcons.length] || BUILDER_APPLICATION_GENDER_ICON_POOLS.male[0];
+        const alt = participant.name ? `${participant.name} 참여자` : "참여자";
+        return `<div class="monthly-card-thumb"><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}"></div>`;
+      }).join("");
+      return `<div class="monthly-card-thumb-stack" aria-hidden="true">${thumbs}</div>`;
+    }
+
     function renderMonthlyCardTeamSlots(join, compact = true) {
-      const confirmedParticipants = getUniqueCardParticipants(getConfirmedParticipants(join), join.id);
       const capacity = getJoinRecruitmentCapacity(join, Number(join.maxCapacity || join.capacity || JOIN_MAX_CAPACITY) || JOIN_MAX_CAPACITY);
-      const displayCapacity = Math.max(capacity, confirmedParticipants.length || 0);
-      const emptyCount = Math.max(0, Math.min(3, displayCapacity - confirmedParticipants.length));
-      const participantItems = confirmedParticipants.map((participant) => participantButtonHtml(participant, join.id, compact)).join("");
-      const emptyItems = Array.from({ length: emptyCount }).map(() => emptySlotHtml(compact, join.id, { disabled: true })).join("");
+      const currentCount = getMonthlyCardParticipantCount(join);
+      const displayCapacity = Math.max(capacity, currentCount || 0);
+      const progress = displayCapacity > 0 ? Math.max(0, Math.min(100, Math.round((currentCount / displayCapacity) * 100))) : 0;
+      const participantLabel = currentCount > 0 ? `현재 ${currentCount}명 참여중` : "&#x1F525; 모집중";
       return `
-        <div class="monthly-card-participant-rail" onclick="event.stopPropagation();" aria-label="월례회 참여자 목록">
-          <div class="monthly-card-participant-track">
-            ${participantItems}${emptyItems}
+        <div class="monthly-card-participant-summary" aria-label="월례회 참여 현황">
+          <div class="monthly-card-participant-head">
+            <div class="monthly-card-participant-left">
+              ${renderMonthlyCardThumbStack(join, currentCount)}
+              <div class="monthly-card-participant-label">${participantLabel}</div>
+            </div>
+            <div class="monthly-card-count">${currentCount}/${displayCapacity}명</div>
+          </div>
+          <div class="monthly-card-progress-track" aria-hidden="true">
+            <div class="monthly-card-progress-fill" style="--monthly-card-progress: ${progress}%;"></div>
           </div>
         </div>
-        <div class="monthly-card-count">${confirmedParticipants.length}/${displayCapacity}</div>
       `;
     }
 
@@ -49427,7 +50067,7 @@
     function getJoinReservationDeadlineTimestamp(join) {
       const departure = parseJoinDate(join.departureDate);
       departure.setDate(departure.getDate() - 7);
-      departure.setHours(16, 0, 0, 0);
+      departure.setHours(23, 59, 59, 999);
       return departure.getTime();
     }
 
@@ -49469,6 +50109,7 @@
     }
 
     function renderJoinCard(join, options = {}) {
+      const isMonthlyCard = isMonthlyRecommendationJoin(join);
       const cardClass = ["join-card", options.cardClass].filter(Boolean).join(" ");
       const shortDate = options.shortDate || "";
       const isSoonCard = Boolean(shortDate);
@@ -49512,8 +50153,8 @@
               <div class="join-price-unit">원</div>
             </div>
             ${options.showReviewNote && reviewCount ? `<div class="join-card-review-note">후기 ${reviewCount}개로 검증</div>` : ""}
-            <div class="team-row${isMonthlyRecommendationJoin(join) ? " monthly-card-team" : ""}">
-              ${isMonthlyRecommendationJoin(join) ? renderMonthlyCardTeamSlots(join) : renderCardTeamSlots(join)}
+            <div class="team-row${isMonthlyCard ? " monthly-card-team" : ""}">
+              ${isMonthlyCard ? renderMonthlyCardTeamSlots(join) : renderCardTeamSlots(join)}
             </div>
           </div>
         </article>
@@ -53474,8 +54115,10 @@
     window.closeModal = closeModal;
     window.__golfjoinMainReady = true;
     openBuilderProductDetailModal = wrapJoinAsyncFunction(openBuilderProductDetailModal);
-    openGlobalApply = wrapJoinAsyncFunction(openGlobalApply);
-    submitGlobalApply = wrapJoinAsyncFunction(submitGlobalApply);
+    window.openGlobalApply = openGlobalApply;
+    window.submitGlobalApply = submitGlobalApply;
+    window.confirmApplySubmitModal = confirmApplySubmitModal;
+    window.closeApplySubmitConfirmModal = closeApplySubmitConfirmModal;
     openMdPickProductDetail = wrapJoinAsyncFunction(openMdPickProductDetail);
     handleDetailWish = wrapJoinAsyncFunction(handleDetailWish);
     window.handleDetailShare = handleDetailShare;
@@ -53664,6 +54307,7 @@
       hydrateJoinReviewsFromLocalCache();
       hydrateOverseasJoinsWithSecretProducts();
       hydrateHomeBootstrapLightFromLocalCache();
+      void hydrateHomeBootstrapLightFromHomeSummaryJson();
       homeInitialExternalProductsLoading = false;
       homeInitialExternalProductsLoadedOnce = true;
       homeBootstrapLoading = false;
@@ -53672,6 +54316,7 @@
       scheduleHomeSlideDotsRefresh();
       window.refreshInitialJoinSlideDots?.();
       closeHomeInitialLoading();
+      scheduleJoinMyMemberPreload();
       const startupParams = new URLSearchParams(location.search);
       const startupAfterLogin = startupParams.get("afterLogin");
       const startupAfterLoginParams = getJoinAfterLoginExtraParams(startupParams);
@@ -53856,7 +54501,6 @@
           <button type="button" class="team-avatar participant-flow-avatar participant-gender-male" data-participant="%7B%22joinId%22%3A%22j3%22%2C%22participantId%22%3A%22j3p1%22%7D" data-participant-gender="남성" style="--participant-flow-delay:-6.68s;" onclick="event.stopPropagation(); handleParticipantClick(this)" title="한** / 40대 / 82타" aria-label="한** 참여자 정보">
             <img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man2.webp" alt="한**">
           </button>
-          <div class="join-my-card-participant-me-badge">나</div>
         </div>
       </div><div class="join-my-card-participant-slot">
         <div class="join-my-empty-slot" aria-label="빈 인원 슬롯">
@@ -54351,8 +54995,8 @@
           <div class="apply-participant-avatar"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt="나"></div>
           <div class="apply-participant-label"><span aria-hidden="true">👑</span><span>나</span></div>
         </div>
-        <div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar">+</div><div class="apply-participant-label">빈자리</div></div>
-      <div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar">+</div><div class="apply-participant-label">빈자리</div></div><div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar">+</div><div class="apply-participant-label">빈자리</div></div></div>
+        <div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div>
+      <div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div><div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div></div>
           
         </div>
                         <div class="apply-companion-error">모든 동반자 성별을 선택해 주세요.</div>

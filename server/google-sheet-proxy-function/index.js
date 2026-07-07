@@ -2262,6 +2262,154 @@ function buildGolfJoinProductsPayload(items = []) {
   };
 }
 
+const GOLFJOIN_HOME_SUMMARY_RANGE_DAYS = 240;
+const GOLFJOIN_HOME_SUMMARY_FIELDS = [
+  "id",
+  "source",
+  "goodSeq",
+  "eventSeq",
+  "basePriceSeq",
+  "title",
+  "country",
+  "countryName",
+  "nation",
+  "productCountry",
+  "erpCountry",
+  "region",
+  "category",
+  "departureDate",
+  "returnDate",
+  "date",
+  "dayCnt",
+  "dayNight",
+  "duration",
+  "dayNightCnt",
+  "price",
+  "airport",
+  "departureAirport",
+  "arrivalAirport",
+  "airline",
+  "badge",
+  "badgeKind",
+  "status",
+  "priceDesc",
+  "groupCd",
+  "image",
+  "emptySlots",
+  "productType",
+  "goodsType",
+  "goodDetailCdNm",
+  "airProductYn",
+  "air2Cd",
+  "air2CdNm",
+  "air2Nm"
+];
+
+function addDaysToISODate(isoDate = "", days = 0) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(isoDate || ""));
+  if (!match) return "";
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  if (Number.isNaN(date.getTime())) return "";
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function compactGolfJoinHomeSummaryItem(item = {}) {
+  return GOLFJOIN_HOME_SUMMARY_FIELDS.reduce((acc, key) => {
+    const value = item[key];
+    if (value === undefined || value === "" || (Array.isArray(value) && !value.length)) return acc;
+    acc[key] = value;
+    return acc;
+  }, {});
+}
+
+const GOLFJOIN_DESTINATION_COUNTRIES = [
+  "라오스", "말레이시아", "미얀마", "베트남", "브루나이", "인도네시아", "태국", "필리핀",
+  "일본", "중국", "대만", "괌", "사이판", "제주"
+];
+
+function normalizeGolfJoinDestinationKey(value = "") {
+  return asText(value).replace(/\s+/g, "").replace(/[(),·/]/g, "").toLowerCase();
+}
+
+function inferGolfJoinDestinationCountry(item = {}, regionName = "") {
+  const direct = firstText(item.country, item.countryName, item.nation, item.productCountry, item.erpCountry);
+  if (direct) return direct;
+  const regionKey = normalizeGolfJoinDestinationKey(regionName);
+  const haystack = [item.title, item.productName, item.goodName, item.region, item.location].map(asText).join(" ");
+  return GOLFJOIN_DESTINATION_COUNTRIES.find((country) => haystack.includes(country) && normalizeGolfJoinDestinationKey(country) !== regionKey) || "";
+}
+
+function buildGolfJoinDestinationSummary(items = []) {
+  const countries = new Map();
+  items.forEach((item) => {
+    const regionName = asText(item.region || item.city || item.area || item.location).split(",")[0]?.trim() || "";
+    const countryName = inferGolfJoinDestinationCountry(item, regionName);
+    if (!regionName && !countryName) return;
+    const countryDisplay = countryName || regionName;
+    const countryKey = normalizeGolfJoinDestinationKey(countryDisplay);
+    if (!countryKey) return;
+    if (!countries.has(countryKey)) {
+      countries.set(countryKey, {
+        name: countryDisplay,
+        category: asText(item.category),
+        count: 0,
+        earliestDepartureDate: "",
+        regions: new Map()
+      });
+    }
+    const country = countries.get(countryKey);
+    country.count += 1;
+    if (item.departureDate && (!country.earliestDepartureDate || item.departureDate < country.earliestDepartureDate)) {
+      country.earliestDepartureDate = item.departureDate;
+    }
+    if (regionName && normalizeGolfJoinDestinationKey(regionName) !== countryKey) {
+      const regionKey = normalizeGolfJoinDestinationKey(regionName);
+      if (!country.regions.has(regionKey)) {
+        country.regions.set(regionKey, { name: regionName, count: 0, earliestDepartureDate: "" });
+      }
+      const region = country.regions.get(regionKey);
+      region.count += 1;
+      if (item.departureDate && (!region.earliestDepartureDate || item.departureDate < region.earliestDepartureDate)) {
+        region.earliestDepartureDate = item.departureDate;
+      }
+    }
+  });
+  return {
+    countries: [...countries.values()].map((country) => ({
+      name: country.name,
+      category: country.category,
+      count: country.count,
+      earliestDepartureDate: country.earliestDepartureDate,
+      regions: [...country.regions.values()].sort((a, b) => a.name.localeCompare(b.name, "ko"))
+    })).sort((a, b) => a.name.localeCompare(b.name, "ko"))
+  };
+}
+
+function buildGolfJoinHomeSummaryPayload(payload = {}, options = {}) {
+  const generatedDate = String(payload.generatedAt || nowKstISOString()).slice(0, 10);
+  const startDate = generatedDate || payload.range?.startDate || "";
+  const endDate = addDaysToISODate(startDate, GOLFJOIN_HOME_SUMMARY_RANGE_DAYS) || payload.range?.endDate || "";
+  const sourceItems = Array.isArray(payload.items) ? payload.items : [];
+  const items = sourceItems
+    .filter((item) => !item.departureDate || (item.departureDate >= startDate && item.departureDate <= endDate))
+    .map(compactGolfJoinHomeSummaryItem);
+  return {
+    schema: "secret-golf-join-home-summary-v1",
+    generatedAt: payload.generatedAt || nowKstISOString(),
+    sourceGeneratedAt: payload.generatedAt || "",
+    range: { startDate, endDate },
+    sourceCount: sourceItems.length,
+    count: items.length,
+    items,
+    destinations: buildGolfJoinDestinationSummary(items),
+    ...(options.homeBootstrapLight ? {
+      homeBootstrapLight: options.homeBootstrapLight,
+      homeBootstrapLightUpdatedAt: options.homeBootstrapLight.updatedAt || options.homeBootstrapLight.serverTime || nowKstISOString()
+    } : {})
+  };
+}
+
 function getGolfJoinProductObjectName(fileName) {
   return `${GOLFJOIN_PRODUCTS_PREFIX ? `${GOLFJOIN_PRODUCTS_PREFIX}/` : ""}${fileName}`;
 }
@@ -2270,6 +2418,14 @@ async function saveGolfJoinProductsPayload(payload) {
   const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
   const jsonText = `${JSON.stringify(payload, null, 2)}\n`;
   const jsText = `window.SECRET_GOLF_JOIN_PRODUCTS = ${jsonText};\n`;
+  let homeBootstrapLight = null;
+  try {
+    homeBootstrapLight = await readHomeBootstrapLightDirect({ newScheduleLimit: 100, joinApplicationLimit: 100 });
+  } catch (error) {
+    console.warn("Failed to include home bootstrap light in product summary.", error);
+  }
+  const summaryPayload = buildGolfJoinHomeSummaryPayload(payload, { homeBootstrapLight });
+  const summaryText = `${JSON.stringify(summaryPayload)}\n`;
   const options = {
     resumable: false,
     metadata: {
@@ -2277,6 +2433,7 @@ async function saveGolfJoinProductsPayload(payload) {
       contentType: "application/json; charset=utf-8"
     }
   };
+  await bucket.file(getGolfJoinProductObjectName("golfjoin_home_summary.json")).save(summaryText, options);
   await bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.json")).save(jsonText, options);
   await bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.js")).save(jsText, {
     ...options,
@@ -2285,6 +2442,53 @@ async function saveGolfJoinProductsPayload(payload) {
       contentType: "application/javascript; charset=utf-8"
     }
   });
+}
+
+async function readGolfJoinProductsPayloadFromStorage() {
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const file = bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.json"));
+  const [buffer] = await file.download();
+  const payload = JSON.parse(buffer.toString("utf8") || "{}");
+  if (!Array.isArray(payload.items) || !payload.items.length) {
+    throw createHttpError("Stored golfjoin product payload is empty", 502);
+  }
+  return payload;
+}
+
+async function refreshGolfJoinHomeSummaryFromCurrentData(reason = "manual") {
+  const [productsPayload, homeBootstrapLight] = await Promise.all([
+    readGolfJoinProductsPayloadFromStorage(),
+    readHomeBootstrapLightDirect({ newScheduleLimit: 100, joinApplicationLimit: 100 })
+  ]);
+  const summaryPayload = buildGolfJoinHomeSummaryPayload(productsPayload, { homeBootstrapLight });
+  summaryPayload.refreshReason = asText(reason) || "manual";
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  await bucket.file(getGolfJoinProductObjectName("golfjoin_home_summary.json")).save(`${JSON.stringify(summaryPayload)}\n`, {
+    resumable: false,
+    metadata: {
+      cacheControl: "public, max-age=60",
+      contentType: "application/json; charset=utf-8"
+    }
+  });
+  return summaryPayload;
+}
+
+function refreshGolfJoinHomeSummaryInBackground(reason = "write") {
+  refreshGolfJoinHomeSummaryFromCurrentData(reason)
+    .then((summary) => {
+      console.log("golfjoin home summary refreshed", {
+        reason,
+        count: summary.count,
+        newScheduleCount: summary.homeBootstrapLight?.newScheduleSummaries?.length || 0,
+        participantSummaryCount: summary.homeBootstrapLight?.participantSummaries?.length || 0
+      });
+    })
+    .catch((error) => {
+      console.warn("Failed to refresh golfjoin home summary in background.", {
+        reason,
+        message: error?.message || String(error)
+      });
+    });
 }
 
 async function refreshSecretTourProducts(req, res) {
@@ -2297,16 +2501,20 @@ async function refreshSecretTourProducts(req, res) {
   if (!items.length) throw createHttpError("No Secret Tour products were loaded", 502);
   const payload = buildGolfJoinProductsPayload(items);
   await saveGolfJoinProductsPayload(payload);
+  const summaryPayload = buildGolfJoinHomeSummaryPayload(payload);
   res.status(200).json({
     ok: true,
     saved: true,
     bucket: GOLFJOIN_PRODUCTS_BUCKET,
     files: [
+      getGolfJoinProductObjectName("golfjoin_home_summary.json"),
       getGolfJoinProductObjectName("golfjoin_local_data.js"),
       getGolfJoinProductObjectName("golfjoin_local_data.json")
     ],
     generatedAt: payload.generatedAt,
     range: payload.range,
+    summaryRange: summaryPayload.range,
+    summaryCount: summaryPayload.count,
     count: payload.count,
     items: payload.items
   });
@@ -2559,6 +2767,7 @@ async function proxyPost(req, res) {
   try {
     const savedPayload = JSON.parse(text || "{}");
     sendGolfjoinApplicationNotificationsInBackground(payload, notificationScheduleId, requestId);
+    refreshGolfJoinHomeSummaryInBackground(source);
     res.send(JSON.stringify({
       ...savedPayload,
       notifications: ALIGO_ENABLED

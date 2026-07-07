@@ -5,7 +5,11 @@ const SHEET_NAMES = {
   JOIN_REVIEWS: "join_reviews",
   JOIN_WISHES: "join_wishes",
   SCHEDULE_PARTICIPANT_SUMMARY: "schedule_participant_summary",
-  PRODUCT_DISPLAY_RULES: "product_display_rules"
+  PRODUCT_DISPLAY_RULES: "recommended_schedules"
+};
+
+const LEGACY_SHEET_NAMES = {
+  [SHEET_NAMES.PRODUCT_DISPLAY_RULES]: ["product_display_rules"]
 };
 
 const SHEET_HEADERS = {
@@ -40,6 +44,9 @@ const SHEET_HEADERS = {
     "singleRoomSurchargeStatus",
     "country",
     "region",
+    "airline",
+    "departureAirport",
+    "arrivalAirport",
     "erpProductId",
     "erpEventSeq",
     "productName",
@@ -86,7 +93,9 @@ const SHEET_HEADERS = {
     "category",
     "country",
     "region",
-    "airport",
+    "airline",
+    "departureAirport",
+    "arrivalAirport",
     "applicantName",
     "applicantGender",
     "applicantBirthYear",
@@ -233,7 +242,7 @@ const SHEET_HEADERS = {
     "updatedAt"
   ],
   [SHEET_NAMES.PRODUCT_DISPLAY_RULES]: [
-    "displayRuleId",
+    "recommendedScheduleId",
     "erpProductId",
     "erpEventSeq",
     "section",
@@ -251,7 +260,7 @@ const SHEET_HEADERS = {
     "overrideImageUrl",
     "country",
     "region",
-    "airport",
+    "airline",
     "departureAirport",
     "arrivalAirport",
     "productPrice",
@@ -319,7 +328,7 @@ function doPost(e) {
         ? SHEET_NAMES.JOIN_REVIEWS
         : source === "join_wish"
           ? SHEET_NAMES.JOIN_WISHES
-          : source === "product_display_rule"
+          : source === "product_display_rule" || source === "recommended_schedule"
             ? SHEET_NAMES.PRODUCT_DISPLAY_RULES
           : SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS;
   const headers = SHEET_HEADERS[sheetName];
@@ -440,7 +449,17 @@ function repairNewScheduleValueFormatsOnce_() {
 
 function getOrCreateSheet_(sheetName) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  return spreadsheet.getSheetByName(sheetName) || spreadsheet.insertSheet(sheetName);
+  const sheet = spreadsheet.getSheetByName(sheetName);
+  if (sheet) return sheet;
+  const legacyNames = LEGACY_SHEET_NAMES[sheetName] || [];
+  for (let index = 0; index < legacyNames.length; index += 1) {
+    const legacySheet = spreadsheet.getSheetByName(legacyNames[index]);
+    if (legacySheet) {
+      legacySheet.setName(sheetName);
+      return legacySheet;
+    }
+  }
+  return spreadsheet.insertSheet(sheetName);
 }
 
 function writeSheetRow_(sheetName, headers, row, payload) {
@@ -732,8 +751,11 @@ function mapLegacyGenericRow_(row, header) {
     isPinned: row.isPinned !== undefined ? row.isPinned : row.pinned,
     displayOrder: row.displayOrder || row.sortOrder,
     badgeType: row.badgeType || row.badgeKind,
+    recommendedScheduleId: row.recommendedScheduleId || row.displayRuleId,
     overrideTitle: row.overrideTitle || row.customTitle,
-    overrideImageUrl: row.overrideImageUrl || row.customImage
+    overrideImageUrl: row.overrideImageUrl || row.customImage,
+    departureAirport: row.departureAirport,
+    airline: row.airline || row.airlineName || row.airlineNm || row.air2Nm || row.air2CdNm
   };
   return aliases[header] !== undefined ? aliases[header] : row[header] || "";
 }
@@ -767,9 +789,9 @@ function getProductDisplayRuleValue_(payload, header) {
   const updatedAt = new Date().toISOString();
   const erpProductId = value_(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq || "";
   const erpEventSeq = value_(payload, "product.erpEventSeq") || payload.erpEventSeq || payload.eventSeq || "";
-  const displayRuleId = payload.displayRuleId || buildId_("pdr", erpProductId, erpEventSeq, payload.section || "available_schedule");
+  const recommendedScheduleId = payload.recommendedScheduleId || payload.displayRuleId || buildId_("rs", erpProductId, erpEventSeq, payload.section || "available_schedule");
   const values = {
-    displayRuleId: displayRuleId,
+    recommendedScheduleId: recommendedScheduleId,
     erpProductId: erpProductId,
     erpEventSeq: erpEventSeq,
     section: payload.section || "available_schedule",
@@ -787,8 +809,8 @@ function getProductDisplayRuleValue_(payload, header) {
     overrideImageUrl: payload.overrideImageUrl || value_(payload, "product.imageUrl") || "",
     country: payload.country || value_(payload, "product.country") || normalizeCountryName_(payload.region || value_(payload, "product.region")),
     region: normalizeRegionName_(payload.region || value_(payload, "product.region")),
-    airport: payload.airport || payload.departureAirport || value_(payload, "product.airport") || value_(payload, "product.departureAirport") || "",
-    departureAirport: payload.departureAirport || payload.airport || value_(payload, "product.departureAirport") || value_(payload, "product.airport") || "",
+    airline: payload.airline || value_(payload, "product.airline") || value_(payload, "product.airlineName") || value_(payload, "product.airlineNm") || value_(payload, "product.air2Nm") || value_(payload, "product.air2CdNm") || "",
+    departureAirport: payload.departureAirport || value_(payload, "product.departureAirport") || value_(payload, "product.airport") || "",
     arrivalAirport: payload.arrivalAirport || value_(payload, "product.arrivalAirport") || value_(payload, "product.region") || "",
     productPrice: normalizePriceCell_(payload.productPrice || payload.price || value_(payload, "product.price")),
     displayStartAt: formatDateCellAsISODate_(payload.displayStartAt || value_(payload, "product.departureDate") || ""),
@@ -808,7 +830,7 @@ function isActiveRecommendedScheduleRule_(rule) {
 }
 
 function buildRecommendedScheduleId_(rule) {
-  const idSeed = rule.displayRuleId || [rule.erpProductId, rule.erpEventSeq, rule.displayStartAt].filter(Boolean).join("-") || "rule";
+  const idSeed = rule.recommendedScheduleId || rule.displayRuleId || [rule.erpProductId, rule.erpEventSeq, rule.displayStartAt].filter(Boolean).join("-") || "rule";
   const safe = String(idSeed).replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "");
   return `admin-recommended-${safe || "rule"}`;
 }
@@ -817,8 +839,8 @@ function buildRecommendedScheduleSummarySource_(rule) {
   const scheduleId = buildRecommendedScheduleId_(rule);
   return {
     scheduleId: scheduleId,
-    sourceApplicationId: rule.displayRuleId || "",
-    applicationId: rule.displayRuleId || "",
+    sourceApplicationId: rule.recommendedScheduleId || rule.displayRuleId || "",
+    applicationId: rule.recommendedScheduleId || rule.displayRuleId || "",
     productName: rule.overrideTitle || rule.productName || rule.erpProductId || "Recommended schedule",
     country: rule.country || "",
     region: rule.region || "",
@@ -871,6 +893,11 @@ function getNewScheduleApplicationValue_(payload, header) {
   const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
   const applicationId = payload.applicationId || buildId_("nsa", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
   const scheduleId = payload.scheduleId || buildId_("sch", applicationId);
+  const packTypeValue = value_(payload, "trip.packType") || payload.packType;
+  const packTypeNameValue = value_(payload, "trip.packTypeName") || payload.packTypeName;
+  const rawAirlineValue = value_(payload, "trip.airline") || value_(payload, "product.airline") || value_(payload, "product.airlineName") || value_(payload, "product.airlineNm") || value_(payload, "product.air2Nm") || value_(payload, "product.air2CdNm");
+  const rawDepartureAirportValue = value_(payload, "trip.departureAirport") || value_(payload, "product.departureAirport") || value_(payload, "product.airport");
+  const isGolfPack = String(packTypeValue || "").toLowerCase() === "golf" || String(packTypeNameValue || "").indexOf("골프팩") >= 0;
   const values = {
     applicationId: applicationId,
     scheduleId: scheduleId,
@@ -902,12 +929,15 @@ function getNewScheduleApplicationValue_(payload, header) {
     singleRoomSurchargeStatus: value_(payload, "applicant.singleRoomSurchargeStatus"),
     country: value_(payload, "trip.country") || normalizeCountryName_(value_(payload, "trip.region")) || normalizeCountryList_(value_(payload, "trip.regions")),
     region: normalizeRegionName_(value_(payload, "trip.region")),
+    airline: isGolfPack ? (rawAirlineValue || "개별항공") : rawAirlineValue,
+    departureAirport: isGolfPack ? "" : rawDepartureAirportValue,
+    arrivalAirport: value_(payload, "trip.arrivalAirport") || value_(payload, "product.arrivalAirport") || value_(payload, "product.region"),
     erpProductId: value_(payload, "trip.erpProductId") || value_(payload, "trip.productId"),
     erpEventSeq: value_(payload, "trip.erpEventSeq") || value_(payload, "trip.eventSeq"),
     productName: value_(payload, "trip.productName"),
     productPrice: normalizePriceCell_(value_(payload, "trip.productPrice") || payload.productPrice || payload.price),
-    packType: value_(payload, "trip.packType") || payload.packType,
-    packTypeName: value_(payload, "trip.packTypeName") || payload.packTypeName,
+    packType: packTypeValue,
+    packTypeName: packTypeNameValue,
     tripSummary: value_(payload, "trip.tripSummary"),
     departureDateFrom: formatDateCellAsISODate_(value_(payload, "trip.flexibleDays.startBefore") || firstListValue_(value_(payload, "trip.departureDates")) || value_(payload, "trip.startSummary")),
     departureDateTo: formatDateCellAsISODate_(value_(payload, "trip.flexibleDays.startAfter") || lastListValue_(value_(payload, "trip.departureDates")) || value_(payload, "trip.startSummary")),
@@ -952,9 +982,11 @@ function getJoinApplicationValue_(payload, header) {
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
     category: value_(payload, "product.category") || payload.category,
-    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.region") || payload.region),
+    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.countryRegion") || value_(payload, "join.countryRegion") || value_(payload, "product.region") || payload.region),
     region: normalizeRegionName_(value_(payload, "product.region") || payload.region),
-    airport: value_(payload, "product.airport") || payload.airport,
+    airline: value_(payload, "product.airline") || value_(payload, "product.airlineName") || value_(payload, "product.airlineNm") || value_(payload, "product.air2Nm") || value_(payload, "product.air2CdNm"),
+    departureAirport: value_(payload, "product.departureAirport") || payload.departureAirport,
+    arrivalAirport: value_(payload, "product.arrivalAirport") || payload.arrivalAirport || value_(payload, "product.region"),
     applicantName: value_(payload, "applicant.name"),
     applicantGender: value_(payload, "applicant.gender"),
     applicantBirthYear: value_(payload, "applicant.birthYear"),
@@ -1041,7 +1073,7 @@ function getJoinReviewValue_(payload, header) {
     productName: value_(payload, "product.productName") || payload.productName,
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
-    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.region") || payload.region),
+    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.countryRegion") || value_(payload, "join.countryRegion") || value_(payload, "product.region") || payload.region),
     region: normalizeRegionName_(value_(payload, "product.region") || payload.region),
     rating: payload.rating || value_(payload, "review.rating"),
     tags: join_(payload.tags || value_(payload, "review.tags")),
@@ -1083,7 +1115,7 @@ function getJoinWishValue_(payload, header) {
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
     category: value_(payload, "product.category") || payload.category,
-    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.region") || payload.region),
+    country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.countryRegion") || value_(payload, "join.countryRegion") || value_(payload, "product.region") || payload.region),
     region: normalizeRegionName_(value_(payload, "product.region") || payload.region),
     imageUrl: value_(payload, "product.imageUrl") || payload.imageUrl,
     price: value_(payload, "product.price") || payload.price,
@@ -1347,6 +1379,8 @@ function resolveReadSheetName_(value) {
     wishes: SHEET_NAMES.JOIN_WISHES,
     schedule_participant_summary: SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY,
     summary: SHEET_NAMES.SCHEDULE_PARTICIPANT_SUMMARY,
+    recommended_schedules: SHEET_NAMES.PRODUCT_DISPLAY_RULES,
+    recommended_schedule: SHEET_NAMES.PRODUCT_DISPLAY_RULES,
     product_display_rules: SHEET_NAMES.PRODUCT_DISPLAY_RULES,
     display_rules: SHEET_NAMES.PRODUCT_DISPLAY_RULES
   };
@@ -1382,13 +1416,16 @@ function filterRowsForRequest_(rows, params) {
   if (approvalStatus) {
     filtered = filtered.filter(function (row) { return String(row.approvalStatus || "") === approvalStatus; });
   }
-  if (memberSeq) {
-    filtered = filtered.filter(function (row) { return String(row.memberSeq || "") === memberSeq; });
-  } else if (memberId) {
-    filtered = filtered.filter(function (row) { return String(row.memberId || "") === memberId; });
-  } else if (memberMobile) {
+  if (memberSeq || memberId || memberMobile) {
     filtered = filtered.filter(function (row) {
-      return normalizePhone_(row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone || "") === memberMobile;
+      const rowMemberSeq = String(row.memberSeq || "").trim();
+      const rowMemberId = String(row.memberId || "").trim();
+      const rowMemberMobile = normalizePhone_(row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone || "");
+      return Boolean(
+        (memberSeq && rowMemberSeq && rowMemberSeq === memberSeq)
+        || (memberId && rowMemberId && rowMemberId === memberId)
+        || (memberMobile && rowMemberMobile && rowMemberMobile === memberMobile)
+      );
     });
   }
   if (scheduleId) {
@@ -1518,6 +1555,7 @@ function buildPreviewSeed_(row, fallback) {
 
 function buildParticipantPreview_(row, index) {
   return {
+    displayName: row.applicantName || row.creatorName || row.memberName || row.name || "",
     gender: row.applicantGender || row.creatorGender || row.gender || "",
     ageDisplay: row.applicantAgeBand || row.creatorAgeDisplay || row.ageDisplay || "",
     profession: row.applicantProfession || row.creatorProfession || row.profession || "",
@@ -1536,6 +1574,7 @@ function splitList_(value) {
 
 function buildCompanionPreview_(row, companion, index) {
   return {
+    displayName: companion.name || companion.displayName || `동반자${index + 1}`,
     gender: companion.gender || companion || row.applicantGender || "",
     ageDisplay: row.applicantAgeBand || "",
     profession: row.applicantProfession || "",
@@ -1592,6 +1631,9 @@ function buildNewScheduleSummary_(row) {
     title: row.productName || "",
     country: row.country || normalizeCountryName_(row.region),
     region: normalizeRegionName_(row.region),
+    airline: row.airline || "",
+    departureAirport: row.departureAirport || "",
+    arrivalAirport: row.arrivalAirport || "",
     departureDate: departureDate,
     returnDate: returnDate,
     price: normalizePriceCell_(row.productPrice),
@@ -1654,9 +1696,9 @@ function buildParticipantSummaries_(rows) {
 
 function buildDisplayRuleSummary_(row) {
   return {
-    displayRuleId: row.displayRuleId || "",
-    targetType: "display_rule",
-    targetId: row.displayRuleId || row.erpProductId || "",
+    recommendedScheduleId: row.recommendedScheduleId || row.displayRuleId || "",
+    targetType: "recommended_schedule",
+    targetId: row.recommendedScheduleId || row.displayRuleId || row.erpProductId || "",
     erpProductId: row.erpProductId || "",
     erpEventSeq: row.erpEventSeq || "",
     section: row.section || "",
@@ -1679,8 +1721,8 @@ function buildDisplayRuleSummary_(row) {
     overrideImageUrl: row.overrideImageUrl || "",
     country: row.country || "",
     region: row.region || "",
-    airport: row.airport || "",
-    departureAirport: row.departureAirport || row.airport || "",
+    airline: row.airline || "",
+    departureAirport: row.departureAirport || "",
     arrivalAirport: row.arrivalAirport || "",
     productPrice: normalizePriceCell_(row.productPrice),
     price: normalizePriceCell_(row.productPrice),

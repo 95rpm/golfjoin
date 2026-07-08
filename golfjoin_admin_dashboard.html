@@ -1924,11 +1924,57 @@
       return values.map(asText).find((value) => isSecretTourAirlineName(value) || isIndividualAirlineName(value)) || "";
     }
 
+    const SECRET_TOUR_TITLE_COUNTRIES = [
+      "라오스", "말레이시아", "미얀마", "베트남", "브루나이", "인도네시아", "태국", "필리핀",
+      "일본", "중국", "대만", "괌", "사이판", "제주", "한국"
+    ];
+    const SECRET_TOUR_TITLE_COUNTRY_ALIASES = {
+      "말레이지아": "말레이시아"
+    };
+    const SECRET_TOUR_REGION_COUNTRY_MAP = {
+      "조호바루": "말레이시아",
+      "코타키나발루": "말레이시아"
+    };
+
+    function normalizeRecommendationText(value) {
+      const text = asText(value);
+      return text && text !== "-" ? text : "";
+    }
+
+    function inferSecretTourCountryFromRegion(...regions) {
+      for (const region of regions.map(normalizeRecommendationText).filter(Boolean)) {
+        const key = region.split(",").map((part) => part.trim()).filter(Boolean)[0] || region;
+        const country = SECRET_TOUR_REGION_COUNTRY_MAP[key];
+        if (country) return country;
+      }
+      return "";
+    }
+
+    function parseSecretTourTitleDestination(...titles) {
+      for (const title of titles.map(asText).filter(Boolean)) {
+        const normalized = title
+          .replace(/^\[[^\]]+\]\s*/, "")
+          .replace(/\s+/g, " ")
+          .trim();
+        const parts = normalized.split(" ").filter(Boolean);
+        const countryIndex = parts.findIndex((part) => SECRET_TOUR_TITLE_COUNTRIES.includes(part) || SECRET_TOUR_TITLE_COUNTRY_ALIASES[part]);
+        if (countryIndex < 0) continue;
+        const country = SECRET_TOUR_TITLE_COUNTRY_ALIASES[parts[countryIndex]] || parts[countryIndex];
+        return {
+          country,
+          region: asText(parts[countryIndex + 1] || "").replace(/[()[\],]/g, "")
+        };
+      }
+      return { country: "", region: "" };
+    }
+
     function normalizeSecretTourGoodsItem(item, index) {
       const departureDate = secretTourDateToISO(item.minStartDay);
       const dayCnt = Number(item.dayCnt) || 1;
       const price = Number(item.dpPrice) || Number(item.minPrice) || 0;
       const productType = item.productType || item.goodsType || item.goodType || item.goodKind || item.goodDetailCdNm || item.goodDetailName || item.packageType || item.packType || item.tourType || item.airProductYn || item.airYn || item.flightYn || item.includeAirYn || "";
+      const title = item.goodNm || "Golf join product";
+      const destination = parseSecretTourTitleDestination(title);
       return {
         id: item.goodSeq ? `secret-tour-${item.goodSeq}` : `secret-tour-product-${index}`,
         goodSeq: item.goodSeq,
@@ -1941,8 +1987,9 @@
         air2Cd: item.air2Cd || "",
         air2CdNm: item.air2CdNm || "",
         air2Nm: item.air2Nm || item.air2CdNm || "",
-        title: item.goodNm || "Golf join product",
-        region: item.tourCity || item.areaCdNm || "",
+        title,
+        country: destination.country,
+        region: destination.region || item.tourCity || item.areaCdNm || "",
         category: item.areaCdNm || "",
         airport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
         departureAirport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
@@ -1969,6 +2016,8 @@
       const price = Number(event.adultPrice) || Number(event.minPrice) || Number(product.minPrice) || 0;
       const restCnt = Number(event.restCnt);
       const productType = event.productType || event.goodsType || event.goodType || event.goodKind || event.goodDetailCdNm || event.goodDetailName || event.packageType || event.packType || event.tourType || event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.productType || product.goodsType || product.goodType || product.goodKind || product.goodDetailCdNm || product.goodDetailName || product.packageType || product.packType || product.tourType || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn || "";
+      const title = event.eventNm || product.goodNm || "Golf join product";
+      const destination = parseSecretTourTitleDestination(title, product.goodNm);
       return {
         id: event.eventSeq ? `secret-tour-${product.goodSeq}-${event.eventSeq}` : `secret-tour-${product.goodSeq}-event-${index}`,
         goodSeq: product.goodSeq,
@@ -1982,8 +2031,9 @@
         air2Cd: event.air2Cd || product.air2Cd || "",
         air2CdNm: product.air2CdNm || "",
         air2Nm: event.air2Nm || product.air2Nm || product.air2CdNm || "",
-        title: event.eventNm || product.goodNm || "Golf join product",
-        region: product.tourCity || product.areaCdNm || "",
+        title,
+        country: destination.country,
+        region: destination.region || product.tourCity || product.areaCdNm || "",
         category: product.areaCdNm || "",
         airport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
         departureAirport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
@@ -2810,7 +2860,9 @@
     }
 
     function getRegion(row = {}) {
+      const parsed = parseSecretTourTitleDestination(getTitle(row), getNestedValue(row, "product.title"), row.productName);
       const region = firstText(
+        parsed.region,
         getNestedValue(row, "trip.region"),
         getNestedValue(row, "product.region"),
         getNestedValue(row, "join.region"),
@@ -2829,24 +2881,44 @@
         product.country
       );
       if (savedCountry) return savedCountry;
+      const parsed = parseSecretTourTitleDestination(getTitle(row), product.title);
+      if (parsed.country) return parsed.country;
       const title = `${getTitle(row)} ${getRegion(row)} ${asText(product.region)} ${asText(product.category)}`;
-      const countries = ["한국", "일본", "중국", "베트남", "태국", "라오스", "대만", "말레이시아", "인도네시아", "필리핀"];
-      return countries.find((country) => title.includes(country)) || (asText(product.category) === "국내" ? "한국" : "-");
+      return SECRET_TOUR_TITLE_COUNTRIES.find((country) => title.includes(country)) || (asText(product.category) === "국내" ? "한국" : "-");
     }
 
     function getRecommendationProductCountry(product = {}) {
-      const savedCountry = asText(product.country);
+      const savedCountry = normalizeRecommendationText(product.country);
       if (savedCountry) return savedCountry;
+      const parsed = parseSecretTourTitleDestination(product.title);
+      if (parsed.country) return parsed.country;
+      const regionCountry = inferSecretTourCountryFromRegion(product.region, product.area, product.city, product.location);
+      if (regionCountry) return regionCountry;
       const text = [
         product.title,
         product.region,
         product.category,
         product.airport
       ].map(asText).join(" ");
-      const countries = ["한국", "일본", "중국", "베트남", "태국", "라오스", "대만", "말레이시아", "인도네시아", "필리핀"];
-      const matched = countries.find((country) => text.includes(country));
+      const matched = SECRET_TOUR_TITLE_COUNTRIES.find((country) => text.includes(country));
       if (matched) return matched;
       return asText(product.category) === "국내" ? "한국" : "-";
+    }
+
+    function getRecommendationProductRegion(product = {}) {
+      const parsed = parseSecretTourTitleDestination(product.title);
+      return parsed.region || asText(product.region || product.category);
+    }
+
+    function getRecommendationRuleCountry(rule = {}, product = {}) {
+      const parsed = parseSecretTourTitleDestination(rule.overrideTitle, product.title);
+      const regionCountry = inferSecretTourCountryFromRegion(rule.region, product.region, parsed.region);
+      return parsed.country || regionCountry || normalizeRecommendationText(rule.country) || getRecommendationProductCountry(product);
+    }
+
+    function getRecommendationRuleRegion(rule = {}, product = {}) {
+      const parsed = parseSecretTourTitleDestination(rule.overrideTitle, product.title);
+      return parsed.region || asText(rule.region) || getRecommendationProductRegion(product);
     }
 
     function normalizePackTypeValue(value) {
@@ -3217,8 +3289,8 @@
         erpEventSeq: rule.erpEventSeq || product.eventSeq || product.erpEventSeq || "",
         goodSeq: rule.erpProductId || product.goodSeq || "",
         eventSeq: rule.erpEventSeq || product.eventSeq || "",
-        country: rule.country || getRecommendationProductCountry(product),
-        region: rule.region || product.region || "",
+        country: getRecommendationRuleCountry(rule, product),
+        region: getRecommendationRuleRegion(rule, product),
         departureAirport: rule.departureAirport || product.departureAirport || product.airport || "",
         arrivalAirport: rule.arrivalAirport || product.arrivalAirport || product.region || "",
         departureDate: rule.displayStartAt || product.departureDate || "",
@@ -3576,7 +3648,7 @@
             title: asText(item.product.title) || "상품명 없음",
             packType: getPackType({}, item.product),
             country: getRecommendationProductCountry(item.product),
-            region: asText(item.product.region),
+            region: getRecommendationProductRegion(item.product),
             category: asText(item.product.category),
             period: extractTripSummaryPeriod({ productName: item.product.title, title: item.product.title }, item.product) || formatTripNightsDays(item.product.departureDate, item.product.returnDate),
             items: []
@@ -3794,6 +3866,8 @@
         return [
           rule.overrideTitle,
           product.title,
+          getRecommendationRuleCountry(rule, product),
+          getRecommendationRuleRegion(rule, product),
           rule.erpProductId,
           rule.erpEventSeq,
           rule.displayStartAt
@@ -3806,6 +3880,8 @@
               <thead>
                 <tr>
                   <th>순서</th>
+                  <th>국가</th>
+                  <th>지역</th>
                   <th>상품명</th>
                   <th>출발일</th>
                   <th>도착일</th>
@@ -3820,9 +3896,13 @@
                 ${activeRules.map((rule) => {
                   const product = findProductForDisplayRule(rule);
                   const title = rule.overrideTitle || product.title || "상품명 없음";
+                  const country = getRecommendationRuleCountry(rule, product);
+                  const region = getRecommendationRuleRegion(rule, product);
                   return `
                     <tr data-recommended-schedule-id="${escapeHtml(getRecommendationDisplayRuleId(rule))}" data-erp-product-id="${escapeHtml(rule.erpProductId || "")}" data-erp-event-seq="${escapeHtml(rule.erpEventSeq || "")}">
                       <td>${escapeHtml(rule.displayOrder || "0")}</td>
+                      <td>${escapeHtml(country || "-")}</td>
+                      <td>${escapeHtml(region || "-")}</td>
                       <td class="product-cell">${escapeHtml(title)}</td>
                       <td>${escapeHtml(formatDate(rule.displayStartAt || product.departureDate))}</td>
                       <td>${escapeHtml(formatDate(rule.displayEndAt || product.returnDate))}</td>
@@ -5406,7 +5486,7 @@
         overrideTitle: product.title || "",
         overrideImageUrl: product.image || "",
         country: getRecommendationProductCountry(product),
-        region: product.region || product.category || "",
+        region: getRecommendationProductRegion(product),
         departureAirport,
         arrivalAirport,
         airline,
@@ -5439,7 +5519,7 @@
           goodSeq: selected.goodSeq,
           eventSeq: selected.eventSeq,
           country: product.country || "",
-          region: product.region || "",
+          region: getRecommendationProductRegion(product),
           departureDate: product.departureDate || "",
           returnDate: product.returnDate || product.departureDate || "",
           productPrice: product.price || "",

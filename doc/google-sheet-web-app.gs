@@ -1396,6 +1396,8 @@ function filterRowsForRequest_(rows, params) {
   const memberSeq = String(params.memberSeq || "").trim();
   const memberId = String(params.memberId || "").trim();
   const memberMobile = normalizePhone_(params.memberMobile || params.phone || "");
+  const memberEmail = String(params.memberEmail || params.email || "").trim();
+  const kakaoId = String(params.kakaoId || "").trim();
   const scheduleId = String(params.scheduleId || params.targetScheduleId || "").trim();
   const erpProductId = String(params.erpProductId || params.productId || "").trim();
   const erpEventSeq = String(params.erpEventSeq || params.eventSeq || "").trim();
@@ -1416,15 +1418,19 @@ function filterRowsForRequest_(rows, params) {
   if (approvalStatus) {
     filtered = filtered.filter(function (row) { return String(row.approvalStatus || "") === approvalStatus; });
   }
-  if (memberSeq || memberId || memberMobile) {
+  if (memberSeq || memberId || memberMobile || memberEmail || kakaoId) {
     filtered = filtered.filter(function (row) {
       const rowMemberSeq = String(row.memberSeq || "").trim();
       const rowMemberId = String(row.memberId || "").trim();
       const rowMemberMobile = normalizePhone_(row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone || "");
+      const rowMemberEmail = String(row.memberEmail || row.email || "").trim();
+      const rowKakaoId = String(row.kakaoId || "").trim();
       return Boolean(
         (memberSeq && rowMemberSeq && rowMemberSeq === memberSeq)
         || (memberId && rowMemberId && rowMemberId === memberId)
         || (memberMobile && rowMemberMobile && rowMemberMobile === memberMobile)
+        || (memberEmail && rowMemberEmail && rowMemberEmail === memberEmail)
+        || (kakaoId && rowKakaoId && rowKakaoId === kakaoId)
       );
     });
   }

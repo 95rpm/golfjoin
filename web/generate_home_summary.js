@@ -5,7 +5,9 @@ const inputPath = path.join(__dirname, "golfjoin_local_data.json");
 const outputPath = path.join(__dirname, "golfjoin_home_summary.json");
 const prettyOutputPath = path.join(__dirname, "golfjoin_home_summary.pretty.json");
 const today = new Date();
-const startDate = process.argv[2] || today.toISOString().slice(0, 10);
+const defaultStart = new Date(today);
+defaultStart.setDate(defaultStart.getDate() + 7);
+const startDate = process.argv[2] || defaultStart.toISOString().slice(0, 10);
 const rangeDays = Number(process.argv[3] || 240);
 const writePretty = process.argv.includes("--pretty");
 const end = new Date(`${startDate}T00:00:00`);
@@ -64,11 +66,45 @@ function compactItem(item) {
 
 const knownCountries = [
   "라오스", "말레이시아", "미얀마", "베트남", "브루나이", "인도네시아", "태국", "필리핀",
-  "일본", "중국", "대만", "괌", "사이판", "제주"
+  "일본", "중국", "대만", "괌", "사이판", "제주", "한국"
 ];
+const countryAliases = {
+  "말레이지아": "말레이시아"
+};
+const regionCountryMap = {
+  "조호바루": "말레이시아",
+  "코타키나발루": "말레이시아"
+};
+
+function inferCountryFromRegion(...regions) {
+  for (const region of regions.map((value) => String(value || "").trim()).filter(Boolean)) {
+    const key = region.split(",").map((part) => part.trim()).filter(Boolean)[0] || region;
+    const country = regionCountryMap[key];
+    if (country) return country;
+  }
+  return "";
+}
 
 function normalizeRegionKeyword(value) {
   return String(value || "").replace(/\s+/g, "").replace(/[(),·/]/g, "").toLowerCase();
+}
+
+function parseSecretTourTitleDestination(...titles) {
+  for (const title of titles.map((value) => String(value || "").trim()).filter(Boolean)) {
+    const normalized = title
+      .replace(/^\[[^\]]+\]\s*/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    const parts = normalized.split(" ").filter(Boolean);
+    const countryIndex = parts.findIndex((part) => knownCountries.includes(part) || countryAliases[part]);
+    if (countryIndex < 0) continue;
+    const country = countryAliases[parts[countryIndex]] || parts[countryIndex];
+    return {
+      country,
+      region: String(parts[countryIndex + 1] || "").trim().replace(/[()[\],]/g, "")
+    };
+  }
+  return { country: "", region: "" };
 }
 
 function inferCountry(item = {}, regionName = "") {
@@ -76,6 +112,10 @@ function inferCountry(item = {}, regionName = "") {
     .map((value) => String(value || "").trim())
     .find(Boolean);
   if (direct) return direct;
+  const parsed = parseSecretTourTitleDestination(item.title, item.productName, item.goodName);
+  if (parsed.country) return parsed.country;
+  const regionCountry = inferCountryFromRegion(regionName, item.region, item.city, item.area, item.location);
+  if (regionCountry) return regionCountry;
   const regionKey = normalizeRegionKeyword(regionName);
   const haystack = [item.title, item.productName, item.goodName, item.region, item.location]
     .map((value) => String(value || ""))
@@ -86,7 +126,8 @@ function inferCountry(item = {}, regionName = "") {
 function buildDestinationSummary(items = []) {
   const countries = new Map();
   items.forEach((item) => {
-    const regionName = String(item.region || item.city || item.area || item.location || "").split(",")[0]?.trim() || "";
+    const parsed = parseSecretTourTitleDestination(item.title, item.productName, item.goodName);
+    const regionName = String(parsed.region || item.region || item.city || item.area || item.location || "").split(",")[0]?.trim() || "";
     const countryName = inferCountry(item, regionName);
     if (!regionName && !countryName) return;
     const countryDisplay = countryName || regionName;

@@ -2,6 +2,29 @@
 
 This function keeps the Apps Script Web App URL out of the browser HTML.
 
+Fast Google Sheets API reads/writes:
+
+- `GOOGLE_SHEET_ID` enables direct Google Sheets API reads from this Cloud Function.
+- Join completion checks now calculate `schedule_participant_summary` directly from Sheets API data before falling back to Apps Script.
+- Generic `GET ?sheet=...` reads use the Sheets API first, including fresh `schedule_participant_summary` calculation.
+- Migrated read actions:
+  - `POST ?action=member_profile_lookup`
+  - `POST ?action=home_bootstrap`
+  - `POST ?action=home_bootstrap_light`
+  - `POST ?action=join_wishes_lookup`
+  - `GET ?action=admin_bootstrap`
+- Migrated write sources:
+  - `source=new_schedule_builder`
+  - `source=join_apply`
+  - `source=join_member_profile`
+  - `source=join_review`
+  - `source=join_wish`
+  - `source=product_display_rule`
+  - `source=recommended_schedule`
+  - `POST ?action=admin_status_update`
+- Share the spreadsheet with the Cloud Function service account as an editor.
+- If a direct Sheets API operation fails, the migrated actions fall back to the existing Apps Script Web App path while `SHEET_WEB_APP_URL` is configured.
+
 The proxy validates write requests before forwarding them to Apps Script:
 
 - Allowed write sources only:
@@ -9,6 +32,9 @@ The proxy validates write requests before forwarding them to Apps Script:
   - `join_apply`
   - `join_member_profile`
   - `join_review`
+  - `join_wish`
+  - `product_display_rule`
+  - `recommended_schedule`
 - The optional `sheet` value must match the source.
 - Applicant/profile phone numbers must be Korean mobile numbers in `010########` format.
 - Applicant/profile name, birth year, gender, level, styles, and required agreement are checked.
@@ -64,7 +90,7 @@ gcloud functions deploy golfjoin-sheet-api \
   --timeout=540s \
   --memory=1GiB \
   --allow-unauthenticated \
-  '--set-env-vars=^|^SHEET_WEB_APP_URL=https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com,http://localhost:8000,http://192.168.1.119:8000|ADMIN_READ_TOKEN=REPLACE_WITH_ADMIN_TOKEN|GOLFJOIN_PRODUCTS_BUCKET=golfjoin-bucket|GOLFJOIN_PRODUCTS_PREFIX=web|SECRET_TOUR_GOODS_CATEGORY_ROOTS=1,2,3,5'
+  '--set-env-vars=^|^SHEET_WEB_APP_URL=https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec|GOOGLE_SHEET_ID=REPLACE_WITH_SPREADSHEET_ID|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com,http://localhost:8000,http://192.168.1.119:8000|ADMIN_READ_TOKEN=REPLACE_WITH_ADMIN_TOKEN|GOLFJOIN_PRODUCTS_BUCKET=golfjoin-bucket|GOLFJOIN_PRODUCTS_PREFIX=web|SECRET_TOUR_GOODS_CATEGORY_ROOTS=1,2,3,5'
 ```
 
 For production, remove local test origins:
@@ -80,7 +106,10 @@ gcloud functions deploy golfjoin-sheet-api \
   --timeout=540s \
   --memory=1GiB \
   --allow-unauthenticated \
-  '--set-env-vars=^|^SHEET_WEB_APP_URL=https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com|ADMIN_READ_TOKEN=REPLACE_WITH_ADMIN_TOKEN|WRITE_TOKEN=REPLACE_WITH_WRITE_TOKEN|GOLFJOIN_PRODUCTS_BUCKET=golfjoin-bucket|GOLFJOIN_PRODUCTS_PREFIX=web|SECRET_TOUR_GOODS_CATEGORY_ROOTS=1,2,3,5'
+  '--set-env-vars=^|^SHEET_WEB_APP_URL=https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec|GOOGLE_SHEET_ID=REPLACE_WITH_SPREADSHEET_ID|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com|ADMIN_READ_TOKEN=REPLACE_WITH_ADMIN_TOKEN|WRITE_TOKEN=REPLACE_WITH_WRITE_TOKEN|GOLFJOIN_PRODUCTS_BUCKET=golfjoin-bucket|GOLFJOIN_PRODUCTS_PREFIX=web|SECRET_TOUR_GOODS_CATEGORY_ROOTS=1,2,3,5'
 ```
 
 After deployment, set `GOLFJOIN_SHEET_API_ENDPOINT` in `golfjoin_main.html` if the function URL differs from the default.
+
+For the Golfjoin admin dashboard and product summary refresh deployment sequence, see
+`doc/golfjoin-deploy-commands.md`.

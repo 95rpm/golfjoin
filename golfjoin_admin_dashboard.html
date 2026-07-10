@@ -975,6 +975,10 @@
       background: var(--red-soft);
       color: var(--red);
     }
+    .badge.secret {
+      background: #eaf2ff;
+      color: #2f80ed;
+    }
     .empty,
     .error {
       padding: 30px;
@@ -1239,7 +1243,7 @@
     }
     .participant-table th:nth-child(10),
     .participant-table td:nth-child(10) {
-      width: 72px;
+      width: 135px;
     }
     .participant-table th:nth-child(11),
     .participant-table td:nth-child(11) {
@@ -1318,11 +1322,14 @@
     .schedule-people-text {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      min-width: 42px;
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 800;
+      justify-content: flex-start;
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      gap: 0;
+      color: #2f80ed;
+      font-size: 16px;
+      font-weight: 700;
       white-space: nowrap;
     }
     .participant-people-cell {
@@ -1577,6 +1584,18 @@
       gap: 8px;
       margin-top: 20px;
     }
+    .confirm-actions .participant-status-action {
+      min-width: 96px;
+      height: 44px;
+      padding: 0 18px;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .confirm-actions #confirmOkButton {
+      border: 0;
+      background: #2f80ed;
+      color: #fff;
+    }
     .confirm-dialog.recommendation-confirm-dialog {
       padding: 22px;
     }
@@ -1597,8 +1616,8 @@
       font-weight: 800;
     }
     .confirm-dialog.recommendation-confirm-dialog #confirmOkButton {
-      border-color: #54abff;
-      background: #54abff;
+      border: 0;
+      background: #2f80ed;
       color: #fff;
     }
     .info-grid {
@@ -1900,7 +1919,7 @@
     }
 
     function isSecretTourAirlineName(value) {
-      return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
+      return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|산동항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
     }
 
     function isIndividualAirlineName(value) {
@@ -2588,28 +2607,40 @@
       return `${dateText} ${timeText}`;
     }
 
+    function nowKstISOString() {
+      const date = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}T${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}:${String(date.getUTCSeconds()).padStart(2, "0")}+09:00`;
+    }
+
     function parseDateTime(value) {
       const text = asText(value);
       if (!text) return null;
-      const date = new Date(text);
-      if (!Number.isNaN(date.getTime())) return date;
       const match = text.match(/(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})(?:\D+(\d{1,2}):(\d{1,2}))?/);
-      if (!match) return null;
-      const parsed = new Date(
-        Number(match[1]),
-        Number(match[2]) - 1,
-        Number(match[3]),
-        Number(match[4] || 0),
-        Number(match[5] || 0)
-      );
-      return Number.isNaN(parsed.getTime()) ? null : parsed;
+      if (match) {
+        const parsed = new Date(
+          Number(match[1]),
+          Number(match[2]) - 1,
+          Number(match[3]),
+          Number(match[4] || 0),
+          Number(match[5] || 0)
+        );
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+      const date = new Date(text);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function hasExplicitTime(value) {
+      return /(?:T|\s)\d{1,2}:\d{2}/.test(asText(value));
     }
 
     function formatScheduleCreatedDateTime(row = {}) {
-      const date = parseDateTime(firstText(row.createdAt, row.submittedAt, row.updatedAt));
+      const sourceValue = firstText(row.createdAt, row.submittedAt, row.updatedAt);
+      const date = parseDateTime(sourceValue);
       if (!date) return "-";
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
       const dateText = `${String(date.getFullYear()).slice(2)}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+      if (!hasExplicitTime(sourceValue)) return `${dateText}(${weekdays[date.getDay()]})`;
       const timeText = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
       return `${dateText}(${weekdays[date.getDay()]}) ${timeText}`;
     }
@@ -2619,6 +2650,7 @@
       if (!date) return "-";
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
       const dateText = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
+      if (!hasExplicitTime(value)) return `${dateText}(${weekdays[date.getDay()]})`;
       const timeText = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
       return `${dateText}(${weekdays[date.getDay()]}) ${timeText}`;
     }
@@ -3127,11 +3159,14 @@
       ) || "2인1실";
     }
 
-    function getParticipantFlightRequestType(row = {}) {
-      return firstText(
+    function getParticipantFlightRequestType(row = {}, schedule = {}) {
+      const requestType = firstText(
         getNestedValue(row, "applicant.flightRequestType"),
         row.flightRequestType
       );
+      if (requestType) return requestType;
+      const packType = schedule.packType || getPackType(row, schedule.product || findProduct(row));
+      return packType === "air" ? "대행요청" : "";
     }
 
     function getParticipantSingleRoomSurcharge(row = {}) {
@@ -3588,7 +3623,7 @@
             "Content-Type": "application/json",
             "X-Golfjoin-Admin-Token": auth.token || ""
           },
-          body: JSON.stringify({ requestedAt: new Date().toISOString() })
+          body: JSON.stringify({ requestedAt: nowKstISOString() })
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.ok) {
@@ -3601,7 +3636,7 @@
         productDataInfo = {
           source: "live",
           generatedAt: data.generatedAt || "",
-          refreshedAt: data.generatedAt || new Date().toISOString(),
+          refreshedAt: data.generatedAt || nowKstISOString(),
           count: Number(data.count || products.length) || products.length
         };
         secretTourGoodsDetailCache.clear();
@@ -3714,13 +3749,17 @@
       return picker?.dataset.selectedKey || select?.value || "";
     }
 
+    function normalizeRecommendationCapacity(value, fallback = 4) {
+      const number = Number(String(value ?? "").replace(/[^0-9.-]/g, ""));
+      const parsed = Number.isFinite(number) && number > 0 ? number : fallback;
+      return Math.max(1, Math.min(200, Math.round(parsed)));
+    }
+
     function getRecommendationRowOptions(row) {
       const monthly = Boolean(row?.querySelector("[data-recommendation-monthly]")?.checked);
       const input = row?.querySelector("[data-recommendation-capacity]");
-      const parsedCapacity = Number(input?.value || 0);
-      const capacity = Number.isFinite(parsedCapacity) && parsedCapacity > 0
-        ? Math.max(1, Math.min(200, Math.round(parsedCapacity)))
-        : (monthly ? 40 : 4);
+      const capacity = normalizeRecommendationCapacity(input?.value, monthly ? 40 : 4);
+      if (input) input.value = String(capacity);
       return {
         monthly,
         capacity
@@ -3983,7 +4022,7 @@
                           </label>
                         </div>
                       </td>
-                      <td><input class="recommendation-capacity-input" type="number" min="1" max="200" step="1" value="4" data-recommendation-capacity aria-label="정원"></td>
+                      <td><input class="recommendation-capacity-input" type="text" inputmode="numeric" pattern="[0-9]*" value="4" data-recommendation-capacity aria-label="정원"></td>
                       <td>${activeCount ? `<span class="badge status-open">${escapeHtml(`${activeCount}개 등록`)}</span>` : '<span class="badge">미등록</span>'}</td>
                       <td>
                         <div class="row-actions">
@@ -4316,7 +4355,7 @@
           <td>${renderScheduleDateCell(getDeparture(row, product))}</td>
           <td>${renderScheduleDateCell(getReturn(row, product))}</td>
           <td>${renderSchedulePeopleIcons(schedule)}</td>
-          <td>${escapeHtml(getParticipantName(row))}</td>
+          <td>${renderScheduleCreatorCell(schedule)}</td>
           <td>${renderSchedulePaymentCell(schedule, "deposit")}</td>
           <td>${renderSchedulePaymentCell(schedule, "balance")}</td>
           <td>
@@ -4328,6 +4367,13 @@
         </tr>
         ${isParticipantsExpanded ? renderParticipantAccordionRow(schedule) : ""}
       `;
+    }
+
+    function renderScheduleCreatorCell(schedule = {}) {
+      if (schedule.isRecommendationSchedule || schedule.row?.isRecommendationSchedule) {
+        return '<span class="badge secret">시크릿</span>';
+      }
+      return escapeHtml(getParticipantName(schedule.row || {}));
     }
 
     function normalizeParticipantGenderType(value) {
@@ -4800,7 +4846,7 @@
         updatedAt: participant.updatedAt
       };
       button.disabled = true;
-      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      Object.assign(participant, fields, { updatedAt: nowKstISOString() });
       renderMetrics();
       renderTable();
       try {
@@ -4825,7 +4871,7 @@
         if (!response.ok) throw new Error(`저장 실패: ${response.status}`);
         const result = await response.json();
         if (!result.ok) throw new Error(result.error || "저장에 실패했습니다.");
-        Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+        Object.assign(participant, fields, { updatedAt: nowKstISOString() });
         renderMetrics();
         renderTable();
       } catch (error) {
@@ -4875,7 +4921,7 @@
         participantStatus: participant.participantStatus,
         updatedAt: participant.updatedAt
       };
-      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      Object.assign(participant, fields, { updatedAt: nowKstISOString() });
       button.classList.add("completed");
       button.innerHTML = `${renderCheckIcon()}<span>완료</span>`;
       renderMetrics();
@@ -4906,7 +4952,7 @@
         if (!response.ok) throw new Error(`저장 실패: ${response.status}`);
         const result = await response.json();
         if (!result.ok) throw new Error(result.error || "저장에 실패했습니다.");
-        Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+        Object.assign(participant, fields, { updatedAt: nowKstISOString() });
         button.classList.add("completed");
         button.innerHTML = `${renderCheckIcon()}<span>완료</span>`;
         renderMetrics();
@@ -4960,7 +5006,7 @@
               </tr>
             </thead>
             <tbody>
-              ${participants.map((item) => renderParticipantRow(item.row, schedule.key, item.index, item.companions)).join("")}
+              ${participants.map((item) => renderParticipantRow(item.row, schedule, item.index, item.companions)).join("")}
             </tbody>
           </table>
         </div>
@@ -4995,7 +5041,8 @@
       return rows;
     }
 
-    function renderParticipantRow(row, scheduleKey, index, companionRows = []) {
+    function renderParticipantRow(row, schedule, index, companionRows = []) {
+      const scheduleKey = schedule?.key || "";
       const birthYear = getParticipantBirthYear(row);
       const age = calculateAge(birthYear);
       const role = getParticipantRole(row);
@@ -5012,7 +5059,7 @@
           <td>${escapeHtml(`${getParticipantPeopleTotal(row, companionRows)}명`)}</td>
           <td>${renderParticipantGenderIcons(row, companionRows)}</td>
           <td>${renderParticipantRoomType(row)}</td>
-          <td>${escapeHtml(getParticipantFlightRequestType(row) || "-")}</td>
+          <td>${escapeHtml(getParticipantFlightRequestType(row, schedule) || "-")}</td>
           <td>${escapeHtml(getParticipantGender(row) || "-")}</td>
           <td>${escapeHtml(age ? `${age}세` : "-")}</td>
           <td>${escapeHtml(getParticipantHandicap(row) || "-")}</td>
@@ -5320,7 +5367,7 @@
           roundStyle: getProfileRoundStyle(profile)
         }));
         if (!rows.length) return;
-        downloadRowsAsCsv(rows, `golfjoin-participants-${new Date().toISOString().slice(0, 10)}.csv`);
+        downloadRowsAsCsv(rows, `golfjoin-participants-${nowKstISOString().slice(0, 10)}.csv`);
         return;
       }
       const rows = filterSchedules().map((schedule) => {
@@ -5341,7 +5388,7 @@
         };
       });
       if (!rows.length) return;
-      downloadRowsAsCsv(rows, `golfjoin-schedules-${new Date().toISOString().slice(0, 10)}.csv`);
+      downloadRowsAsCsv(rows, `golfjoin-schedules-${nowKstISOString().slice(0, 10)}.csv`);
     }
 
     function downloadRowsAsCsv(rows, filename) {
@@ -5464,7 +5511,7 @@
       const departureAirport = normalizeSecretTourAirportName(actualDetail.departureAirport, product.departureAirport, product.depAirport, product.airport, product.airportName);
       const arrivalAirport = asText(actualDetail.arrivalAirport || product.arrivalAirport || product.arrAirport || product.toCity || product.arrivalCity);
       const airline = normalizeSecretTourAirlineName(actualDetail.airline, product.airline, product.air2Nm, product.air2CdNm);
-      const capacity = Math.max(1, Math.min(200, Math.round(Number(options.capacity || existingRule?.capacity || 4) || 4)));
+      const capacity = normalizeRecommendationCapacity(options.capacity || existingRule?.capacity, 4);
       const isMonthly = Boolean(options.monthly) || isMonthlyRecommendationRule(existingRule);
       const tripSummary = extractTripSummaryPeriod({ productName: product.title || "", title: product.title || "", tripSummary: product.tripSummary || product.dayNightCnt || product.duration || "" }, product)
         || formatTripNightsDays(product.departureDate || "", product.returnDate || product.departureDate || "");
@@ -5479,8 +5526,8 @@
         badgeType: isMonthly ? "monthly" : "recommended",
         scheduleType: isMonthly ? "monthly" : "",
         scheduleLabel: isMonthly ? "월례회" : "",
-        capacity,
-        maxPeople: capacity,
+        capacity: String(capacity),
+        maxPeople: String(capacity),
         packType: productPackType,
         packTypeName: productPackTypeName,
         overrideTitle: product.title || "",
@@ -5498,8 +5545,8 @@
       };
       await submitProductDisplayRule(payload);
       const currentIndex = state.displayRules.findIndex((rule) => getRecommendationDisplayRuleId(rule) === recommendedScheduleId);
-      if (currentIndex >= 0) state.displayRules.splice(currentIndex, 1, { ...state.displayRules[currentIndex], ...payload, updatedAt: new Date().toISOString() });
-      else state.displayRules.unshift({ ...payload, updatedAt: new Date().toISOString() });
+      if (currentIndex >= 0) state.displayRules.splice(currentIndex, 1, { ...state.displayRules[currentIndex], ...payload, updatedAt: nowKstISOString() });
+      else state.displayRules.unshift({ ...payload, updatedAt: nowKstISOString() });
       renderMetrics();
       renderTable();
     }
@@ -5602,7 +5649,7 @@
         isVisible: false
       });
       current.isVisible = false;
-      current.updatedAt = new Date().toISOString();
+      current.updatedAt = nowKstISOString();
       renderMetrics();
       renderTable();
     }
@@ -5662,7 +5709,7 @@
         participantStatus: participant.participantStatus,
         updatedAt: participant.updatedAt
       };
-      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      Object.assign(participant, fields, { updatedAt: nowKstISOString() });
       renderMetrics();
       renderTable();
       try {
@@ -5695,7 +5742,7 @@
         participantStatus: participant.participantStatus,
         updatedAt: participant.updatedAt
       };
-      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      Object.assign(participant, fields, { updatedAt: nowKstISOString() });
       renderMetrics();
       if (state.currentSchedulePanel === "consultation") renderTable();
       try {
@@ -5734,7 +5781,7 @@
         participantStatus: participant.participantStatus,
         updatedAt: participant.updatedAt
       };
-      Object.assign(participant, fields, { updatedAt: new Date().toISOString() });
+      Object.assign(participant, fields, { updatedAt: nowKstISOString() });
       renderMetrics();
       if (state.currentSchedulePanel === "consultation") renderTable();
       try {

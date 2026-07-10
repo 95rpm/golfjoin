@@ -338,14 +338,22 @@ function doPost(e) {
 
   LockService.getScriptLock().waitLock(30000);
   let writeResult = { action: "append" };
+  let capacityError = null;
   try {
-    writeResult = writeSheetRow_(sheetName, headers, row, payload);
-    if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS || sheetName === SHEET_NAMES.PRODUCT_DISPLAY_RULES || value_(payload, "targetType") === "new_schedule") {
-      refreshScheduleParticipantSummary_();
+    if (sheetName === SHEET_NAMES.JOIN_APPLICATIONS) {
+      capacityError = getJoinApplicationCapacityError_(payload, row);
+    }
+    if (!capacityError) {
+      writeResult = writeSheetRow_(sheetName, headers, row, payload);
+      if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS || sheetName === SHEET_NAMES.PRODUCT_DISPLAY_RULES || value_(payload, "targetType") === "new_schedule" || value_(payload, "targetType") === "recommended_schedule") {
+        refreshScheduleParticipantSummary_();
+      }
     }
   } finally {
     LockService.getScriptLock().releaseLock();
   }
+
+  if (capacityError) return jsonOutput_(capacityError);
 
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true, sheet: sheetName, write: writeResult.action, row: writeResult.row }))
@@ -383,7 +391,7 @@ function doGet(e) {
   if (!sheetName) {
     const payload = {
       ok: true,
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowKstISOString_(),
       sheets: {}
     };
     Object.keys(SHEET_HEADERS).forEach(function (name) {
@@ -399,7 +407,7 @@ function doGet(e) {
     count: rows.length,
     rows: rows,
     items: rows,
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString_()
   });
 }
 
@@ -531,7 +539,7 @@ function handleAdminStatusUpdate_(payload) {
     });
     const updatedAtIndex = headers.indexOf("updatedAt");
     if (updatedAtIndex !== -1) {
-      sheet.getRange(rowNumber, updatedAtIndex + 1).setValue(new Date().toISOString());
+      sheet.getRange(rowNumber, updatedAtIndex + 1).setValue(nowKstISOString_());
     }
     if (!payload.skipSummaryRefresh) {
       refreshScheduleParticipantSummary_();
@@ -616,6 +624,10 @@ function applyTextColumnFormatsForRow_(sheet, headers, rowNumber) {
   });
 }
 
+function nowKstISOString_() {
+  return Utilities.formatDate(new Date(), "Asia/Seoul", "yyyy-MM-dd'T'HH:mm:ss'+09:00'");
+}
+
 function formatDateCellAsISODate_(value) {
   if (!value) return "";
   if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
@@ -654,6 +666,17 @@ function normalizePriceCell_(value) {
   return text.replace(/[^\d.-]/g, "");
 }
 
+function normalizePeopleText_(value, fallbackValue) {
+  const values = Array.prototype.slice.call(arguments);
+  for (let index = 0; index < values.length; index += 1) {
+    const number = Number(String(values[index] || "").replace(/[^0-9.-]/g, ""));
+    if (Number.isFinite(number) && number > 0) {
+      return String(Math.max(1, Math.min(200, Math.round(number))));
+    }
+  }
+  return "";
+}
+
 function migrateSheetToHeaders_(sheet, headers, mapper) {
   const values = sheet.getDataRange().getValues();
   if (!values.length) {
@@ -680,7 +703,7 @@ function migrateSheetToHeaders_(sheet, headers, mapper) {
 }
 
 function mapLegacyNewScheduleRow_(row, header, rowIndex) {
-  const createdAt = row.createdAt || row.submittedAt || new Date().toISOString();
+  const createdAt = row.createdAt || row.submittedAt || nowKstISOString_();
   const applicationId = row.applicationId || buildId_("nsa", createdAt, row.memberSeq || row.memberId || row.applicantName || row.creatorName || rowIndex + 1);
   const scheduleId = row.scheduleId || buildId_("sch", applicationId);
   if (header === "country") return row.country || normalizeCountryName_(row.region) || normalizeCountryName_(row.regions);
@@ -716,7 +739,7 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
     approvalStatus: row.approvalStatus || "pending",
     displayStatus: row.displayStatus || "visible",
     applicationStatus: row.applicationStatus || row.status || "open",
-    updatedAt: row.updatedAt || new Date().toISOString()
+    updatedAt: row.updatedAt || nowKstISOString_()
   };
   return aliases[header] !== undefined ? aliases[header] : row[header] || "";
 }
@@ -786,10 +809,12 @@ function getRawPayloadColumnValue_(payload, header, sheetName) {
 }
 
 function getProductDisplayRuleValue_(payload, header) {
-  const updatedAt = new Date().toISOString();
+  const updatedAt = nowKstISOString_();
   const erpProductId = value_(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq || "";
   const erpEventSeq = value_(payload, "product.erpEventSeq") || payload.erpEventSeq || payload.eventSeq || "";
   const recommendedScheduleId = payload.recommendedScheduleId || payload.displayRuleId || buildId_("rs", erpProductId, erpEventSeq, payload.section || "available_schedule");
+  const normalizedCapacity = normalizePeopleText_(payload.capacity, payload.maxPeople);
+  const normalizedMaxPeople = normalizePeopleText_(payload.maxPeople, payload.capacity);
   const values = {
     recommendedScheduleId: recommendedScheduleId,
     erpProductId: erpProductId,
@@ -801,8 +826,8 @@ function getProductDisplayRuleValue_(payload, header) {
     badgeType: payload.badgeType || "recommended",
     scheduleType: payload.scheduleType || "",
     scheduleLabel: payload.scheduleLabel || "",
-    capacity: payload.capacity || payload.maxPeople || "",
-    maxPeople: payload.maxPeople || payload.capacity || "",
+    capacity: normalizedCapacity,
+    maxPeople: normalizedMaxPeople,
     packType: payload.packType || value_(payload, "product.packType") || "",
     packTypeName: payload.packTypeName || value_(payload, "product.packTypeName") || "",
     overrideTitle: payload.overrideTitle || value_(payload, "product.productName") || "",
@@ -873,7 +898,9 @@ function getScheduleCapacity_(schedule) {
 
 function isJoinApplicationForSchedule_(join, schedule) {
   const scheduleId = String(schedule.scheduleId || "").trim();
-  if (String(join.targetType || "") === "new_schedule" && String(join.targetScheduleId || "").trim() === scheduleId) {
+  const targetType = String(join.targetType || "").trim();
+  const targetScheduleId = String(join.targetScheduleId || "").trim();
+  if (targetScheduleId && targetScheduleId === scheduleId && (targetType === "new_schedule" || schedule.isAdminRecommendedSchedule)) {
     return true;
   }
   if (!schedule.isAdminRecommendedSchedule) return false;
@@ -886,11 +913,98 @@ function isJoinApplicationForSchedule_(join, schedule) {
   if (!productId || productId !== joinProductId) return false;
   if (eventSeq && joinEventSeq && eventSeq !== joinEventSeq) return false;
   if (departureDate && joinDepartureDate && departureDate !== joinDepartureDate) return false;
-  return String(join.targetType || "") !== "new_schedule";
+  return targetType !== "new_schedule";
+}
+
+function doScheduleIdsMatch_(schedule, scheduleId, applicationId) {
+  const normalizedScheduleId = String(scheduleId || "").trim();
+  const normalizedApplicationId = String(applicationId || "").trim();
+  return Boolean(
+    (normalizedScheduleId && (
+      String(schedule.scheduleId || "").trim() === normalizedScheduleId
+      || String(schedule.applicationId || "").trim() === normalizedScheduleId
+      || String(schedule.sourceApplicationId || "").trim() === normalizedScheduleId
+    ))
+    || (normalizedApplicationId && (
+      String(schedule.applicationId || "").trim() === normalizedApplicationId
+      || String(schedule.sourceApplicationId || "").trim() === normalizedApplicationId
+      || String(schedule.scheduleId || "").trim() === normalizedApplicationId
+    ))
+  );
+}
+
+function findJoinApplicationTargetSchedule_(joinRow, newSchedules, recommendedRows) {
+  const recommendedSchedules = (recommendedRows || [])
+    .filter(isActiveRecommendedScheduleRule_)
+    .map(buildRecommendedScheduleSummarySource_);
+  const targetType = String(joinRow.targetType || "").trim();
+  const targetScheduleId = String(joinRow.targetScheduleId || "").trim();
+  const targetApplicationId = String(joinRow.targetApplicationId || "").trim();
+  const wantsRecommended = targetType === "recommended_schedule" || targetScheduleId.indexOf("admin-recommended-") === 0;
+  const primarySchedules = wantsRecommended ? recommendedSchedules : newSchedules;
+  const fallbackSchedules = wantsRecommended ? newSchedules : recommendedSchedules;
+  return primarySchedules.find(function (schedule) { return doScheduleIdsMatch_(schedule, targetScheduleId, targetApplicationId); })
+    || primarySchedules.find(function (schedule) { return isJoinApplicationForSchedule_(joinRow, schedule); })
+    || fallbackSchedules.find(function (schedule) { return doScheduleIdsMatch_(schedule, targetScheduleId, targetApplicationId); })
+    || fallbackSchedules.find(function (schedule) { return isJoinApplicationForSchedule_(joinRow, schedule); })
+    || null;
+}
+
+function buildJoinCapacitySummary_(schedule, joinRows) {
+  const relatedJoins = joinRows.filter(function (join) {
+    return isJoinApplicationForSchedule_(join, schedule);
+  });
+  const confirmedJoins = relatedJoins.filter(function (join) {
+    return (join.applicationStatus || join.status) !== "cancelled";
+  });
+  const creatorPeople = schedule.isAdminRecommendedSchedule ? 0 : parsePeople_(schedule.applicantPeople || schedule.creatorPeople || "1");
+  const joinedPeople = confirmedJoins.reduce(function (sum, join) {
+    return sum + parsePeople_(join.applicantPeople || join.people);
+  }, 0);
+  const capacity = getScheduleCapacity_(schedule);
+  const confirmedPeople = Math.min(capacity, creatorPeople + joinedPeople);
+  return {
+    scheduleId: String(schedule.scheduleId || "").trim(),
+    capacity: capacity,
+    confirmedPeople: confirmedPeople,
+    remainingSeats: Math.max(0, capacity - confirmedPeople)
+  };
+}
+
+function getJoinApplicationCapacityError_(payload, row) {
+  const headers = SHEET_HEADERS[SHEET_NAMES.JOIN_APPLICATIONS];
+  const joinRow = rowToObject_(headers, row);
+  const applicationId = String(joinRow.applicationId || payload.applicationId || payload.joinApplyId || "").trim();
+  const joinRows = readSheetObjects_(SHEET_NAMES.JOIN_APPLICATIONS);
+  const targetSchedule = findJoinApplicationTargetSchedule_(
+    joinRow,
+    readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS),
+    readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES)
+  );
+  if (!targetSchedule) return null;
+  const requestedPeople = parsePeople_(value_(payload, "applicant.people") || joinRow.applicantPeople || payload.applicantPeople || payload.people || "1");
+  const capacityRows = joinRows.filter(function (join) {
+    return String(join.applicationId || join.joinApplyId || "").trim() !== applicationId;
+  });
+  const summary = buildJoinCapacitySummary_(targetSchedule, capacityRows);
+  if (requestedPeople <= Number(summary.remainingSeats || 0)) return null;
+  return {
+    ok: false,
+    error: "join_schedule_full",
+    code: "join_schedule_full",
+    reason: "capacity_full",
+    scheduleId: summary.scheduleId,
+    targetScheduleId: String(joinRow.targetScheduleId || "").trim(),
+    targetApplicationId: String(joinRow.targetApplicationId || "").trim(),
+    remainingSeats: Number(summary.remainingSeats || 0),
+    requestedPeople: requestedPeople,
+    capacity: Number(summary.capacity || 0),
+    confirmedPeople: Number(summary.confirmedPeople || 0)
+  };
 }
 
 function getNewScheduleApplicationValue_(payload, header) {
-  const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString_();
   const applicationId = payload.applicationId || buildId_("nsa", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
   const scheduleId = payload.scheduleId || buildId_("sch", applicationId);
   const packTypeValue = value_(payload, "trip.packType") || payload.packType;
@@ -954,13 +1068,13 @@ function getNewScheduleApplicationValue_(payload, header) {
     displayStatus: payload.displayStatus || "visible",
     applicationStatus: payload.applicationStatus || payload.status || "open",
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString_()
   };
   return values[header] !== undefined ? values[header] : "";
 }
 
 function getJoinApplicationValue_(payload, header) {
-  const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString_();
   const applicationId = payload.applicationId || payload.joinApplyId || buildId_("join", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
   const values = {
     applicationId: applicationId,
@@ -1013,13 +1127,13 @@ function getJoinApplicationValue_(payload, header) {
     requiredAgreed: value_(payload, "agreements.required"),
     marketingAgreed: value_(payload, "agreements.marketing"),
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString_()
   };
   return values[header] !== undefined ? values[header] : "";
 }
 
 function getJoinMemberProfileValue_(payload, header) {
-  const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString_();
   const mobile = value_(payload, "member.memberMobile");
   const profileId = payload.profileId || buildId_("jmp", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
   const values = {
@@ -1047,13 +1161,13 @@ function getJoinMemberProfileValue_(payload, header) {
     kakaoId: value_(payload, "kakao.kakaoId"),
     kakaoNickname: value_(payload, "kakao.nickname"),
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString_()
   };
   return values[header] !== undefined ? values[header] : "";
 }
 
 function getJoinReviewValue_(payload, header) {
-  const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString_();
   const reviewId = payload.reviewId || buildId_("jr", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member", value_(payload, "product.erpProductId") || payload.erpProductId || value_(payload, "product.productName"));
   const values = {
     reviewId: reviewId,
@@ -1084,13 +1198,13 @@ function getJoinReviewValue_(payload, header) {
     imagesJson: payload.imagesJson || stringifyJsonArray_(value_(payload, "review.images")),
     status: payload.status || "visible",
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString_()
   };
   return values[header] !== undefined ? values[header] : "";
 }
 
 function getJoinWishValue_(payload, header) {
-  const createdAt = payload.createdAt || payload.savedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.savedAt || nowKstISOString_();
   const targetType = payload.targetType || value_(payload, "target.type") || "product";
   const targetKey = payload.targetKey || value_(payload, "target.targetKey") || value_(payload, "target.key") || value_(payload, "product.erpProductId") || value_(payload, "product.productId") || payload.erpProductId || payload.goodSeq || "";
   const wishId = payload.wishId || buildId_("jw", value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member", targetType, targetKey);
@@ -1121,7 +1235,7 @@ function getJoinWishValue_(payload, header) {
     price: value_(payload, "product.price") || payload.price,
     status: payload.status || "active",
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString_()
   };
   return values[header] !== undefined ? values[header] : "";
 }
@@ -1200,7 +1314,7 @@ function refreshScheduleParticipantSummary_() {
       status: schedule.applicationStatus || schedule.status || "open",
       approvalStatus: schedule.approvalStatus || "pending",
       displayStatus: schedule.displayStatus || "visible",
-      updatedAt: new Date().toISOString()
+      updatedAt: nowKstISOString_()
     };
     return headers.map(function (header) { return values[header] !== undefined ? values[header] : ""; });
   });
@@ -1275,7 +1389,7 @@ function buildId_(prefix) {
   const parts = Array.prototype.slice.call(arguments, 1).map(function (part) {
     return scrubPrivateIdSeed_(part);
   }).join("-");
-  const safe = String(parts || new Date().toISOString()).replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
+  const safe = String(parts || nowKstISOString_()).replace(/[^a-z0-9가-힣_-]+/gi, "-").replace(/^-+|-+$/g, "");
   return `${prefix}_${safe}`;
 }
 
@@ -1481,7 +1595,7 @@ function readHomeBootstrapPayload_(params) {
 
   return {
     ok: true,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowKstISOString_(),
     newSchedules: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS), {
       source: "new_schedule_builder",
       limit: newScheduleLimit
@@ -1535,8 +1649,8 @@ function readHomeBootstrapLightPayload_(params) {
 
   return {
     ok: true,
-    serverTime: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    serverTime: nowKstISOString_(),
+    updatedAt: nowKstISOString_(),
     newScheduleSummaries: newSchedules.map(buildNewScheduleSummary_),
     participantSummaries: buildParticipantSummaries_(joinApplications),
     displayRules: displayRules.map(buildDisplayRuleSummary_),
@@ -1663,9 +1777,21 @@ function buildNewScheduleSummary_(row) {
   };
 }
 
+function getParticipantSummaryTargetType_(row) {
+  const targetType = String(row.targetType || "").trim();
+  const targetScheduleId = String(row.targetScheduleId || "").trim();
+  if (targetType === "recommended_schedule" || targetScheduleId.indexOf("admin-recommended-") === 0) return "recommended_schedule";
+  return targetType;
+}
+
 function getParticipantSummaryKey_(row) {
+  const targetType = getParticipantSummaryTargetType_(row);
+  const targetScheduleId = String(row.targetScheduleId || "").trim();
+  if (targetType === "recommended_schedule" && targetScheduleId) {
+    return ["recommended_schedule", targetScheduleId, "", "", ""].join("|");
+  }
   return [
-    row.targetType || "",
+    targetType,
     row.targetScheduleId || "",
     row.targetApplicationId || "",
     row.erpProductId || "",
@@ -1679,7 +1805,7 @@ function buildParticipantSummaries_(rows) {
     const key = getParticipantSummaryKey_(row);
     if (!groups[key]) {
       groups[key] = {
-        targetType: row.targetType || "",
+        targetType: getParticipantSummaryTargetType_(row),
         targetScheduleId: row.targetScheduleId || "",
         targetApplicationId: row.targetApplicationId || "",
         erpProductId: row.erpProductId || "",
@@ -1779,7 +1905,7 @@ function readAdminBootstrapPayload_(params) {
   }
   return {
     ok: true,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowKstISOString_(),
     builderRows: filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS), {
       limit: limit
     }).map(normalizeRowForJson_),

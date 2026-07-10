@@ -664,8 +664,19 @@ function sanitizePublicPayload(payload) {
 }
 
 function normalizeAdminSheetRowForJson(row = {}) {
+  const dateOnlyKeys = new Set([
+    "departureDateFrom",
+    "departureDateTo",
+    "returnDateFrom",
+    "returnDateTo",
+    "departureDate",
+    "returnDate",
+    "displayStartAt",
+    "displayEndAt",
+    "birthDate"
+  ]);
   return Object.entries(row).reduce((object, [key, value]) => {
-    if (/date|At$/i.test(key)) {
+    if (dateOnlyKeys.has(key)) {
       object[key] = normalizeSheetDateText(value);
       return object;
     }
@@ -720,9 +731,10 @@ function normalizeSheetName(value = "") {
   return String(value || "").trim();
 }
 
-function createHttpError(message, status = 400) {
+function createHttpError(message, status = 400, details = {}) {
   const error = new Error(message);
   error.status = status;
+  Object.assign(error, details);
   return error;
 }
 
@@ -1421,7 +1433,7 @@ async function readGenericSheetViaSheetsApi(query = {}) {
       count: rows.length,
       rows,
       items: rows,
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowKstISOString(),
       source: "sheets_api"
     };
   }
@@ -1435,7 +1447,7 @@ async function readGenericSheetViaSheetsApi(query = {}) {
     sheets.schedule_participant_summary = await readScheduleParticipantSummariesViaSheetsApi(query);
     return {
       ok: true,
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowKstISOString(),
       sheets,
       source: "sheets_api"
     };
@@ -1448,7 +1460,7 @@ async function readGenericSheetViaSheetsApi(query = {}) {
     count: rows.length,
     rows,
     items: rows,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowKstISOString(),
     source: "sheets_api"
   };
 }
@@ -1553,13 +1565,22 @@ function sendGolfjoinApplicationNotificationsInBackground(payload = {}, notifica
       let beforeSummary = null;
       let afterSummary = null;
       if (source === "join_apply" && notificationScheduleId) {
-        afterSummary = await readScheduleSummary(notificationScheduleId);
-        beforeSummary = afterSummary
-          ? {
-              ...afterSummary,
-              confirmedPeople: Math.max(0, getNumberValue(afterSummary.confirmedPeople, 0) - getApplicantPeople(payload))
-            }
-          : null;
+        try {
+          afterSummary = await readScheduleSummary(notificationScheduleId);
+          beforeSummary = afterSummary
+            ? {
+                ...afterSummary,
+                confirmedPeople: Math.max(0, getNumberValue(afterSummary.confirmedPeople, 0) - getApplicantPeople(payload))
+              }
+            : null;
+        } catch (summaryError) {
+          console.warn("Failed to read schedule summary before join alimtalk; sending join notification without summary.", {
+            requestId,
+            scheduleId: notificationScheduleId,
+            name: summaryError?.name || "",
+            message: summaryError?.message || ""
+          });
+        }
       }
       const notifications = await sendGolfjoinApplicationNotifications(payload, beforeSummary, afterSummary);
       console.log("golfjoin alimtalk background completed", { requestId, source, notifications });
@@ -1936,8 +1957,8 @@ async function readHomeBootstrapLightViaSheetsApi(params = {}) {
   ));
   return sanitizeHomeBootstrapLightPayload({
     ok: true,
-    serverTime: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    serverTime: nowKstISOString(),
+    updatedAt: nowKstISOString(),
     newScheduleSummaries: newSchedules.map(buildNewScheduleSummary),
     participantSummaries: buildParticipantSummaries(joinApplications),
     displayRules: displayRules.map(buildDisplayRuleSummary),
@@ -1994,8 +2015,8 @@ function sanitizePreviewItem(item = {}) {
 function sanitizeHomeBootstrapLightPayload(payload = {}) {
   return {
     ok: Boolean(payload.ok !== false),
-    serverTime: asText(payload.serverTime || payload.updatedAt || new Date().toISOString()),
-    updatedAt: asText(payload.updatedAt || payload.serverTime || new Date().toISOString()),
+    serverTime: asText(payload.serverTime || payload.updatedAt || nowKstISOString()),
+    updatedAt: asText(payload.updatedAt || payload.serverTime || nowKstISOString()),
     newScheduleSummaries: (Array.isArray(payload.newScheduleSummaries) ? payload.newScheduleSummaries : []).map((item) => ({
       scheduleId: asText(item.scheduleId),
       applicationId: asText(item.applicationId),
@@ -2192,9 +2213,19 @@ function buildNewScheduleSummary(row = {}) {
   };
 }
 
+function getParticipantSummaryTargetType(row = {}) {
+  const targetType = asText(row.targetType);
+  const targetScheduleId = asText(row.targetScheduleId);
+  if (targetType === "recommended_schedule" || targetScheduleId.startsWith("admin-recommended-")) return "recommended_schedule";
+  return targetType;
+}
+
 function getParticipantSummaryKey(row = {}) {
+  const targetType = getParticipantSummaryTargetType(row);
+  const targetScheduleId = asText(row.targetScheduleId);
+  if (targetType === "recommended_schedule" && targetScheduleId) return ["recommended_schedule", targetScheduleId, "", "", ""].join("|");
   return [
-    row.targetType || "",
+    targetType,
     row.targetScheduleId || "",
     row.targetApplicationId || "",
     row.erpProductId || "",
@@ -2208,7 +2239,7 @@ function buildParticipantSummaries(rows = []) {
     const key = getParticipantSummaryKey(row);
     if (!groups.has(key)) {
       groups.set(key, {
-        targetType: asText(row.targetType),
+        targetType: getParticipantSummaryTargetType(row),
         targetScheduleId: asText(row.targetScheduleId),
         targetApplicationId: asText(row.targetApplicationId),
         erpProductId: asText(row.erpProductId),
@@ -2298,7 +2329,9 @@ function getScheduleCapacity(schedule = {}) {
 
 function isJoinApplicationForSchedule(join = {}, schedule = {}) {
   const scheduleId = asText(schedule.scheduleId);
-  if (asText(join.targetType) === "new_schedule" && asText(join.targetScheduleId) === scheduleId) return true;
+  const targetType = asText(join.targetType);
+  const targetScheduleId = asText(join.targetScheduleId);
+  if (targetScheduleId && targetScheduleId === scheduleId && (targetType === "new_schedule" || schedule.isAdminRecommendedSchedule)) return true;
   if (!schedule.isAdminRecommendedSchedule) return false;
   const productId = asText(schedule.erpProductId);
   const eventSeq = asText(schedule.erpEventSeq);
@@ -2309,7 +2342,7 @@ function isJoinApplicationForSchedule(join = {}, schedule = {}) {
   if (!productId || productId !== joinProductId) return false;
   if (eventSeq && joinEventSeq && eventSeq !== joinEventSeq) return false;
   if (departureDate && joinDepartureDate && departureDate !== joinDepartureDate) return false;
-  return asText(join.targetType) !== "new_schedule";
+  return targetType !== "new_schedule";
 }
 
 function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
@@ -2367,7 +2400,115 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
     status: asText(schedule.applicationStatus || schedule.status || "open"),
     approvalStatus: asText(schedule.approvalStatus || "pending"),
     displayStatus: asText(schedule.displayStatus || "visible"),
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString()
+  };
+}
+
+function buildJoinApplicationSheetObject(payload = {}, applicationId = "") {
+  const rowPayload = {
+    ...payload,
+    applicationId: applicationId || payload.applicationId || payload.joinApplyId
+  };
+  return GOOGLE_SHEET_HEADERS.join_applications.reduce((row, header) => {
+    row[header] = buildJoinApplicationSheetValue(rowPayload, header);
+    return row;
+  }, {});
+}
+
+function doScheduleIdsMatch(schedule = {}, scheduleId = "", applicationId = "") {
+  const normalizedScheduleId = asText(scheduleId);
+  const normalizedApplicationId = asText(applicationId);
+  return Boolean(
+    (normalizedScheduleId && (
+      asText(schedule.scheduleId) === normalizedScheduleId
+      || asText(schedule.applicationId) === normalizedScheduleId
+      || asText(schedule.sourceApplicationId) === normalizedScheduleId
+    ))
+    || (normalizedApplicationId && (
+      asText(schedule.applicationId) === normalizedApplicationId
+      || asText(schedule.sourceApplicationId) === normalizedApplicationId
+      || asText(schedule.scheduleId) === normalizedApplicationId
+    ))
+  );
+}
+
+function findJoinApplicationTargetSchedule(joinRow = {}, newSchedules = [], recommendedRows = []) {
+  const recommendedSchedules = (recommendedRows || [])
+    .filter(isActiveRecommendedScheduleRule)
+    .map(buildRecommendedScheduleSummarySource);
+  const targetType = asText(joinRow.targetType);
+  const targetScheduleId = asText(joinRow.targetScheduleId);
+  const targetApplicationId = asText(joinRow.targetApplicationId);
+  const wantsRecommended = targetType === "recommended_schedule" || targetScheduleId.startsWith("admin-recommended-");
+  const primarySchedules = wantsRecommended ? recommendedSchedules : newSchedules;
+  const fallbackSchedules = wantsRecommended ? newSchedules : recommendedSchedules;
+  return primarySchedules.find((schedule) => doScheduleIdsMatch(schedule, targetScheduleId, targetApplicationId))
+    || primarySchedules.find((schedule) => isJoinApplicationForSchedule(joinRow, schedule))
+    || fallbackSchedules.find((schedule) => doScheduleIdsMatch(schedule, targetScheduleId, targetApplicationId))
+    || fallbackSchedules.find((schedule) => isJoinApplicationForSchedule(joinRow, schedule))
+    || null;
+}
+
+function getJoinApplicationRequestedPeople(payload = {}, row = {}) {
+  return parsePeopleCount(
+    getValue(payload, "applicant.people")
+    || row.applicantPeople
+    || payload.applicantPeople
+    || payload.people
+    || "1"
+  );
+}
+
+function createJoinScheduleFullError(details = {}) {
+  return createHttpError("join_schedule_full", 409, {
+    code: "join_schedule_full",
+    reason: "capacity_full",
+    ...details
+  });
+}
+
+function isJoinScheduleFullError(error) {
+  return Boolean(error && (error.code === "join_schedule_full" || error.message === "join_schedule_full"));
+}
+
+async function assertJoinApplicationCapacityAvailable(payload = {}, applicationId = "") {
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "recommended_schedules"
+  ], { timeoutMs: 7000 });
+  const joinRows = sheetRows.join_applications || [];
+  const newSchedules = sheetRows.new_schedule_applications || [];
+  const joinRow = buildJoinApplicationSheetObject(payload, applicationId);
+  const targetSchedule = findJoinApplicationTargetSchedule(joinRow, newSchedules, sheetRows.recommended_schedules || []);
+  const existingIndex = joinRows.findIndex((row) => asText(row.applicationId || row.joinApplyId) === applicationId);
+  if (!targetSchedule) {
+    return {
+      joinRows,
+      existingIndex,
+      existingRow: existingIndex >= 0 ? joinRows[existingIndex] : {},
+      summary: null
+    };
+  }
+  const requestedPeople = getJoinApplicationRequestedPeople(payload, joinRow);
+  const capacityRows = joinRows.filter((row) => asText(row.applicationId || row.joinApplyId) !== applicationId);
+  const summary = buildScheduleParticipantSummary(targetSchedule, capacityRows);
+  if (requestedPeople > Number(summary.remainingSeats || 0)) {
+    throw createJoinScheduleFullError({
+      scheduleId: asText(summary.scheduleId || targetSchedule.scheduleId),
+      targetScheduleId: asText(joinRow.targetScheduleId),
+      targetApplicationId: asText(joinRow.targetApplicationId),
+      remainingSeats: Number(summary.remainingSeats || 0),
+      requestedPeople,
+      capacity: Number(summary.capacity || getScheduleCapacity(targetSchedule)),
+      confirmedPeople: Number(summary.confirmedPeople || 0)
+    });
+  }
+  return {
+    joinRows,
+    existingIndex,
+    existingRow: existingIndex >= 0 ? joinRows[existingIndex] : {},
+    summary
   };
 }
 
@@ -2519,7 +2660,7 @@ async function readAdminBootstrapViaSheetsApi(params = {}) {
   const normalizeRows = (rows = []) => rows.slice(0, limit).map(normalizeAdminSheetRowForJson);
   return {
     ok: true,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowKstISOString(),
     builderRows: normalizeRows(sheetRows.new_schedule_applications || []),
     joinRows: normalizeRows(sheetRows.join_applications || []),
     profileRows: normalizeRows(sheetRows.join_member_profiles || []),
@@ -2703,7 +2844,7 @@ async function appendGoogleSheetValuesViaApi(sheetName, values = [], options = {
 }
 
 function buildJoinWishSheetValue(payload = {}, header = "") {
-  const createdAt = payload.createdAt || payload.savedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.savedAt || nowKstISOString();
   const targetType = payload.targetType || getValue(payload, "target.type") || "product";
   const targetKey = payload.targetKey
     || getValue(payload, "target.targetKey")
@@ -2746,7 +2887,7 @@ function buildJoinWishSheetValue(payload = {}, header = "") {
     price: getValue(payload, "product.price") || payload.price,
     status: payload.status || "active",
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString()
   };
   return values[header] == null ? "" : values[header];
 }
@@ -2759,7 +2900,7 @@ function buildJoinWishSheetRow(payload = {}, existingRow = {}) {
 }
 
 function buildJoinMemberProfileSheetValue(payload = {}, header = "") {
-  const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
   const profileId = payload.profileId || buildGoogleSheetRecordId(
     "jmp",
     createdAt,
@@ -2791,7 +2932,7 @@ function buildJoinMemberProfileSheetValue(payload = {}, header = "") {
     kakaoId: getValue(payload, "kakao.kakaoId") || payload.kakaoId,
     kakaoNickname: getValue(payload, "kakao.nickname") || payload.kakaoNickname,
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString()
   };
   return values[header] == null ? "" : values[header];
 }
@@ -2826,7 +2967,7 @@ async function saveJoinMemberProfileViaSheetsApi(payload = {}) {
 }
 
 function buildJoinReviewSheetValue(payload = {}, header = "") {
-  const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
   const reviewId = payload.reviewId || buildGoogleSheetRecordId(
     "jr",
     createdAt,
@@ -2864,7 +3005,7 @@ function buildJoinReviewSheetValue(payload = {}, header = "") {
     imagesJson: payload.imagesJson || (Array.isArray(reviewImages) ? JSON.stringify(reviewImages) : ""),
     status: payload.status || "visible",
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString()
   };
   return values[header] == null ? "" : values[header];
 }
@@ -2906,7 +3047,7 @@ function lastSheetListValue(value) {
 }
 
 function buildNewScheduleApplicationSheetValue(payload = {}, header = "") {
-  const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
   const applicationId = payload.applicationId || buildGoogleSheetRecordId(
     "nsa",
     createdAt,
@@ -2981,7 +3122,7 @@ function buildNewScheduleApplicationSheetValue(payload = {}, header = "") {
     displayStatus: payload.displayStatus || "visible",
     applicationStatus: payload.applicationStatus || payload.status || "open",
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString()
   };
   return values[header] == null ? "" : values[header];
 }
@@ -3000,6 +3141,8 @@ function buildRecommendedScheduleSheetValue(payload = {}, header = "") {
   const recommendedScheduleId = payload.recommendedScheduleId
     || payload.displayRuleId
     || buildGoogleSheetRecordId("rs", erpProductId, erpEventSeq, section);
+  const normalizedCapacity = normalizeRecommendedSchedulePeopleValue(payload.capacity, payload.maxPeople);
+  const normalizedMaxPeople = normalizeRecommendedSchedulePeopleValue(payload.maxPeople, payload.capacity);
   const values = {
     recommendedScheduleId,
     erpProductId,
@@ -3011,8 +3154,8 @@ function buildRecommendedScheduleSheetValue(payload = {}, header = "") {
     badgeType: payload.badgeType || "recommended",
     scheduleType: payload.scheduleType || "",
     scheduleLabel: payload.scheduleLabel || "",
-    capacity: payload.capacity || payload.maxPeople || "",
-    maxPeople: payload.maxPeople || payload.capacity || "",
+    capacity: normalizedCapacity,
+    maxPeople: normalizedMaxPeople,
     packType: payload.packType || getValue(payload, "product.packType") || "",
     packTypeName: payload.packTypeName || getValue(payload, "product.packTypeName") || "",
     overrideTitle: payload.overrideTitle || getValue(payload, "product.productName") || "",
@@ -3033,7 +3176,7 @@ function buildRecommendedScheduleSheetValue(payload = {}, header = "") {
     displayEndAt: normalizeSheetDateText(payload.displayEndAt || getValue(payload, "product.returnDate") || payload.displayStartAt || getValue(payload, "product.departureDate") || ""),
     tripSummary: payload.tripSummary || getValue(payload, "product.tripSummary") || "",
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString()
   };
   return values[header] == null ? "" : values[header];
 }
@@ -3045,8 +3188,16 @@ function buildRecommendedScheduleSheetRow(payload = {}, existingRow = {}) {
   });
 }
 
+function normalizeRecommendedSchedulePeopleValue(...values) {
+  for (const value of values) {
+    const number = Number(asText(value).replace(/[^0-9.-]/g, ""));
+    if (Number.isFinite(number) && number > 0) return String(Math.max(1, Math.min(200, Math.round(number))));
+  }
+  return "";
+}
+
 function buildJoinApplicationSheetValue(payload = {}, header = "") {
-  const createdAt = payload.createdAt || payload.submittedAt || new Date().toISOString();
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
   const applicationId = payload.applicationId || payload.joinApplyId || buildGoogleSheetRecordId(
     "join",
     createdAt,
@@ -3103,7 +3254,7 @@ function buildJoinApplicationSheetValue(payload = {}, header = "") {
     requiredAgreed: getValue(payload, "agreements.required"),
     marketingAgreed: getValue(payload, "agreements.marketing"),
     adminMemo: payload.adminMemo || "",
-    updatedAt: new Date().toISOString()
+    updatedAt: nowKstISOString()
   };
   return values[header] == null ? "" : values[header];
 }
@@ -3150,10 +3301,10 @@ async function saveRecommendedScheduleViaSheetsApi(payload = {}) {
   const rowValues = buildRecommendedScheduleSheetRow({ ...payload, recommendedScheduleId }, existingRow);
   if (existingIndex >= 0) {
     const rowNumber = existingIndex + 2;
-    await updateGoogleSheetRowViaApi("recommended_schedules", rowNumber, rowValues, { timeoutMs: 6000 });
+    await updateGoogleSheetRowViaApi("recommended_schedules", rowNumber, rowValues, { timeoutMs: 6000, valueInputOption: "RAW" });
     return { ok: true, sheet: "recommended_schedules", write: "update", row: rowNumber, source: "sheets_api", recommendedScheduleId };
   }
-  const response = await appendGoogleSheetValuesViaApi("recommended_schedules", rowValues, { timeoutMs: 6000 });
+  const response = await appendGoogleSheetValuesViaApi("recommended_schedules", rowValues, { timeoutMs: 6000, valueInputOption: "RAW" });
   return {
     ok: true,
     sheet: "recommended_schedules",
@@ -3180,7 +3331,7 @@ async function updateAdminStatusViaSheetsApi(payload = {}) {
   Object.entries(payload.fields || {}).forEach(([field, value]) => {
     if (ADMIN_STATUS_UPDATE_FIELDS.has(field)) nextRow[field] = value;
   });
-  if (headers.includes("updatedAt")) nextRow.updatedAt = new Date().toISOString();
+  if (headers.includes("updatedAt")) nextRow.updatedAt = nowKstISOString();
   const rowValues = headers.map((header) => nextRow[header] == null ? "" : nextRow[header]);
   const rowNumber = existingIndex + 2;
   await updateGoogleSheetRowViaApi(sheetName, rowNumber, rowValues, { timeoutMs: 6000 });
@@ -3197,14 +3348,14 @@ async function updateAdminStatusViaSheetsApi(payload = {}) {
 async function saveJoinApplicationViaSheetsApi(payload = {}) {
   const applicationId = asText(payload.applicationId || payload.joinApplyId || buildJoinApplicationSheetValue(payload, "applicationId"));
   if (!applicationId) throw createHttpError("applicationId is required", 400);
-  const rows = await readGoogleSheetRowsViaApi("join_applications", { timeoutMs: 5000 });
-  const existingIndex = rows.findIndex((row) => asText(row.applicationId || row.joinApplyId) === applicationId);
-  const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
+  const capacityCheck = await assertJoinApplicationCapacityAvailable(payload, applicationId);
+  const existingIndex = capacityCheck.existingIndex;
+  const existingRow = capacityCheck.existingRow || {};
   const rowValues = buildJoinApplicationSheetRow({ ...payload, applicationId }, existingRow);
   if (existingIndex >= 0) {
     const rowNumber = existingIndex + 2;
     await updateGoogleSheetRowViaApi("join_applications", rowNumber, rowValues, { timeoutMs: 6000 });
-    return { ok: true, sheet: "join_applications", write: "update", row: rowNumber, source: "sheets_api" };
+    return { ok: true, sheet: "join_applications", write: "update", row: rowNumber, source: "sheets_api", applicationId };
   }
   const response = await appendGoogleSheetValuesViaApi("join_applications", rowValues, { timeoutMs: 6000 });
   return {
@@ -3212,7 +3363,8 @@ async function saveJoinApplicationViaSheetsApi(payload = {}) {
     sheet: "join_applications",
     write: "append",
     row: response.updates?.updatedRange || "",
-    source: "sheets_api"
+    source: "sheets_api",
+    applicationId
   };
 }
 
@@ -3724,7 +3876,7 @@ async function proxyHomeStats(res) {
     ok: true,
     recent30DayVisitors: visitorResult.count,
     activeUsersNow: activeResult.count,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowKstISOString(),
     warnings
   });
 }
@@ -3891,7 +4043,7 @@ function nowKstISOString() {
 }
 
 function isSecretTourAirlineName(value) {
-  return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
+  return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|산동항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
 }
 
 function normalizeSecretTourAirportName(...values) {
@@ -4687,6 +4839,7 @@ async function proxyPost(req, res) {
       });
       return;
     } catch (error) {
+      if (isJoinScheduleFullError(error)) throw error;
       console.warn("Join apply save via Google Sheets API failed; falling back to Apps Script.", {
         requestId,
         name: error?.name || "",
@@ -4785,6 +4938,10 @@ async function proxyPost(req, res) {
   }
   try {
     const savedPayload = JSON.parse(text || "{}");
+    if (savedPayload?.ok === false && asText(savedPayload.code || savedPayload.error) === "join_schedule_full") {
+      res.status(409).send(JSON.stringify(savedPayload));
+      return;
+    }
     sendGolfjoinApplicationNotificationsInBackground(payload, notificationScheduleId, requestId);
     refreshGolfJoinHomeSummaryInBackground(source);
     res.send(JSON.stringify({
@@ -4823,6 +4980,14 @@ exports.proxyGoogleSheet = async (req, res) => {
     res.status(405).json({ error: "Method not allowed" });
   } catch (error) {
     console.error(error);
-    res.status(error.status || 500).json({ error: error.message || "Request failed" });
+    res.status(error.status || 500).json({
+      error: error.message || "Request failed",
+      ...(error.code ? { code: error.code } : {}),
+      ...(error.reason ? { reason: error.reason } : {}),
+      ...(Number.isFinite(error.remainingSeats) ? { remainingSeats: error.remainingSeats } : {}),
+      ...(Number.isFinite(error.requestedPeople) ? { requestedPeople: error.requestedPeople } : {}),
+      ...(Number.isFinite(error.capacity) ? { capacity: error.capacity } : {}),
+      ...(Number.isFinite(error.confirmedPeople) ? { confirmedPeople: error.confirmedPeople } : {})
+    });
   }
 };

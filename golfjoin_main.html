@@ -177,7 +177,7 @@
       --modal-sub-title-weight: 800;
       --modal-header-padding-pc: 12px 20px;
       --modal-header-padding-mobile: 10px 18px;
-      --modal-sheet-header-padding-mobile: 10px 18px;
+      --modal-sheet-header-padding-mobile: 15px 18px;
       --modal-close-size: 44px;
       --modal-close-size-pc: 38px;
       --modal-close-icon-size: 20px;
@@ -269,9 +269,69 @@
     }
     html.modal-open,
     body.modal-open {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: #fff;
       overflow: hidden !important;
       overscroll-behavior: contain;
       touch-action: none;
+    }
+
+    @media (max-width: 640px) {
+      #joinFullscreenModalFill {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: -360px;
+        left: 0;
+        display: none;
+        width: 100vw;
+        height: calc(100vh + 360px);
+        height: calc(var(--join-mobile-modal-height, 100dvh) + 360px);
+        height: calc(100dvh + 360px);
+        height: calc(100lvh + 360px);
+        height: calc(max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) + 360px);
+        min-height: calc(100vh + 360px);
+        min-height: calc(var(--join-mobile-modal-height, 100dvh) + 360px);
+        min-height: calc(100dvh + 360px);
+        min-height: calc(100lvh + 360px);
+        min-height: calc(max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) + 360px);
+        max-height: none;
+        background: #fff;
+        box-shadow: 0 0 0 320vmax #fff;
+        z-index: 2147483628;
+        pointer-events: none;
+      }
+
+      #joinFullscreenModalFill.open {
+        display: block;
+      }
+
+      html.join-fullscreen-modal-open body::before,
+      body.join-fullscreen-modal-open::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: -360px;
+        left: 0;
+        width: 100vw;
+        height: calc(100vh + 360px);
+        height: calc(var(--join-mobile-modal-height, 100dvh) + 360px);
+        height: calc(100dvh + 360px);
+        height: calc(100lvh + 360px);
+        height: calc(max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) + 360px);
+        min-height: calc(100vh + 360px);
+        min-height: calc(var(--join-mobile-modal-height, 100dvh) + 360px);
+        min-height: calc(100dvh + 360px);
+        min-height: calc(100lvh + 360px);
+        min-height: calc(max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) + 360px);
+        max-height: none;
+        background: #fff;
+        box-shadow: 0 0 0 320vmax #fff;
+        z-index: 2147483627;
+        pointer-events: none;
+      }
     }
 
     img { display: block; max-width: 100%; }
@@ -6075,7 +6135,7 @@
     }
     .builder-region-search-field {
       --region-search-input-width: 100%;
-      padding: 0 12px;
+      padding: 0 14px;
       min-height: 48px;
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -6109,8 +6169,9 @@
       min-width: 0;
       color: var(--text);
       font-size: 16px;
-      font-weight: 400;
+      font-weight: 600;
       line-height: 1.35;
+      transform: translateX(-1px);
       -webkit-appearance: none;
       appearance: none;
       border: 0;
@@ -6119,9 +6180,9 @@
       box-shadow: none;
     }
     #builderRegionSearchInput {
-      color: #495056;
-      font-size: 15px;
-      font-weight: 500;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 600;
     }
     .builder-region-search-field input::-webkit-search-cancel-button,
     .builder-region-search-field input::-webkit-search-decoration {
@@ -6136,9 +6197,9 @@
       color: #64748b;
     }
     .builder-region-search .region-search-clear-input {
-      width: 23px;
-      height: 23px;
-      flex: 0 0 23px;
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
       align-items: center;
       justify-content: center;
       color: #272727;
@@ -6151,8 +6212,8 @@
       background: #d9dee5;
     }
     .builder-region-search .region-search-clear-input svg {
-      width: 16px;
-      height: 16px;
+      width: 13px;
+      height: 13px;
     }
     .builder-region-search.searching .region-search-clear-input {
       display: inline-flex;
@@ -6160,8 +6221,10 @@
     .builder-region-search.searching .builder-region-search-field input,
     .builder-region-search.has-product-results .builder-region-search-field input {
       flex: 0 1 auto;
-      width: min(var(--region-search-input-width, 100%), 100%);
-      max-width: 100%;
+      width: min(calc(var(--region-search-input-width, 100%) + 2px), calc(100% - 30px));
+      max-width: calc(100% - 30px);
+      margin-left: 0;
+      transform: none;
     }
     .builder-region-search.searching .mobile-search-icon {
       display: none;
@@ -6299,7 +6362,8 @@
         margin-top: 13px;
       }
       .builder-region-search.has-product-results .builder-region-search-field input {
-        font-size: 15px;
+        font-size: 16px;
+        font-weight: 600;
       }
       .builder-region-search.has-product-results .builder-region-filter-button {
         font-size: 15px;
@@ -6332,7 +6396,8 @@
         max-width: 100%;
       }
       .builder-region-search-field input {
-        font-size: 14px;
+        font-size: 16px;
+        font-weight: 600;
       }
       #builderRegionSearchBody.region-search-body {
         padding: 0;
@@ -6481,15 +6546,16 @@
       width: 100%;
       min-width: 0;
       display: grid;
-      grid-template-columns: 90px minmax(0, 1fr);
+      grid-template-columns: 90px minmax(0, 1fr) minmax(160px, auto);
       align-items: center;
-      gap: 12px;
+      gap: 16px;
       padding: 12px;
       border: 1px solid var(--border);
       border-radius: 16px;
       background: #fff;
       box-sizing: border-box;
       cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
     }
     .builder-region-product-list .region-product-card.selected {
       border-color: var(--blue);
@@ -6513,7 +6579,7 @@
     .builder-region-product-list .region-product-info {
       min-width: 0;
       display: grid;
-      gap: 8px;
+      gap: 4px;
     }
     .builder-region-product-list .region-product-meta {
       min-width: 0;
@@ -6521,21 +6587,27 @@
       align-items: center;
       gap: 2px;
       color: #475569;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
     }
     .builder-region-product-list .region-product-meta svg {
+      position: relative;
+      top: -1px;
       width: 16px;
       height: 16px;
       flex: 0 0 16px;
     }
     .builder-region-product-list .region-product-location {
       min-width: 0;
+      flex: 0 1 auto;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .builder-region-product-list .region-product-location + .join-flight-chip.excluded {
+    .builder-region-product-list .region-product-meta .join-flight-chip {
+      flex: 0 0 auto;
+    }
+    .builder-region-product-list .region-product-location + .join-flight-chip {
       margin-left: 3px;
     }
     .builder-region-product-list .join-category-chip {
@@ -6556,6 +6628,8 @@
       display: flex;
       align-items: center;
       gap: 4px;
+      flex-wrap: wrap;
+      min-height: 29px;
       color: #475569;
       font-size: 15px;
       font-weight: 700;
@@ -6570,14 +6644,12 @@
       mask: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 3v4M17 3v4M4 9h16M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
     }
     .builder-region-product-list .region-product-side {
+      min-width: 0;
       display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      align-items: center;
       justify-items: end;
       gap: 12px;
-      grid-column: 1 / -1;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
+      margin-right: 5px;
+      transform: translateY(-4px);
     }
     .builder-region-product-list .region-product-price {
       display: flex;
@@ -6586,8 +6658,6 @@
       gap: 2px;
       color: var(--text);
       white-space: nowrap;
-      width: 100%;
-      grid-column: 2;
     }
     .builder-region-product-list .region-product-price-label,
     .builder-region-product-list .region-product-price-unit {
@@ -6601,14 +6671,6 @@
       font-size: 20px;
       font-weight: 800;
       letter-spacing: 0;
-    }
-    .builder-region-product-list .region-product-team {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-      width: 100%;
     }
     .builder-detail-period-card {
       display: grid;
@@ -6634,36 +6696,94 @@
     }
     @media (max-width: 640px) {
       .builder-region-product-list .region-product-card {
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: 90px minmax(0, 1fr) minmax(120px, auto);
       }
       .builder-region-product-date-context {
         display: none;
       }
+      .builder-region-product-list .region-product-thumb {
+        display: block;
+        width: 90px;
+      }
+      .builder-region-product-list .region-product-info {
+        gap: 4px;
+      }
       .builder-region-product-list .region-product-name {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        display: block;
         overflow: hidden;
         text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .builder-region-product-list .region-product-date {
+        min-height: 29px;
+        flex-wrap: wrap;
+        overflow: visible;
+        text-overflow: clip;
         white-space: normal;
       }
+      .builder-region-product-list .region-product-side {
+        grid-column: auto;
+        justify-items: end;
+        gap: 12px;
+        margin-right: 5px;
+        padding-top: 0;
+        border-top: 0;
+        transform: translateY(-4px);
+      }
+      .builder-region-product-list .region-product-price {
+        grid-column: auto;
+        width: auto;
+        padding-bottom: 0;
+        border-bottom: 0;
+        justify-content: flex-end;
+      }
     }
-    @media (min-width: 361px) and (max-width: 640px) {
+    @media (max-width: 540px) {
       .builder-region-product-list .region-product-card {
-        grid-template-columns: clamp(70px, 22vw, 90px) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) minmax(120px, auto);
+      }
+      .builder-region-product-list .region-product-thumb {
+        display: none;
+      }
+    }
+    @media (max-width: 470px) {
+      .builder-region-product-list .region-product-card {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        padding: 15px;
+      }
+      .builder-region-product-list .region-product-side {
+        justify-items: start;
+        gap: 13px;
+        margin-right: 0;
+      }
+      .builder-region-product-list .region-product-price {
+        width: 100%;
+        justify-content: flex-start;
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+    }
+    @media (min-width: 471px) and (max-width: 540px) {
+      .builder-region-product-list .region-product-card {
+        grid-template-columns: 82px minmax(0, 1fr);
+        align-items: center;
       }
       .builder-region-product-list .region-product-thumb {
         display: block;
-        width: clamp(70px, 22vw, 90px);
+        width: 82px;
       }
-      .builder-region-product-list .region-product-name {
-        font-size: 16px;
+      .builder-region-product-list .region-product-side {
+        grid-column: 2;
+        justify-items: start;
+        gap: 8px;
+        transform: translateY(-4px);
       }
-      .builder-region-product-list .region-product-date {
-        font-size: 14px;
+      .builder-region-product-list .region-product-price {
+        justify-content: flex-start;
       }
     }
-    @media (max-width: 360px) {
+    @media (max-width: 359px) {
       #regionSearchModal .region-result-empty {
         font-size: 14px;
       }
@@ -6672,24 +6792,6 @@
       }
       .builder-region-product-list .region-product-thumb {
         display: none;
-      }
-      .builder-region-product-list .region-product-info {
-        gap: 5px;
-      }
-      .builder-region-product-list .region-product-side {
-        grid-template-columns: auto minmax(0, 1fr);
-      }
-      .builder-region-product-list .region-product-price {
-        grid-column: 2;
-      }
-      .builder-region-product-list .region-product-name {
-        font-size: 15px;
-      }
-      .builder-region-product-list .region-product-date {
-        font-size: 13px;
-      }
-      .builder-region-product-list .region-product-price-value {
-        font-size: 16px;
       }
       #detailModal.builder-select-mode #detailModalTitle {
         font-size: 20px;
@@ -6802,9 +6904,9 @@
       body > #builderModal.sgj-portal-overlay .builder-region-search-field input,
       body > #builderModal.sgj-portal-overlay #builderRegionSearchInput {
         min-height: 0;
-        color: #495056 !important;
-        font-size: 15px !important;
-        font-weight: 500 !important;
+        color: var(--text) !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
         background: transparent !important;
       }
       .builder-body.builder-step-1 .builder-calendar-grid {
@@ -6853,18 +6955,17 @@
         right: 50%;
       }
       .builder-region-product-list .region-product-card {
-        grid-template-columns: 90px minmax(0, 1fr) minmax(150px, auto);
+        grid-template-columns: 90px minmax(0, 1fr) minmax(160px, auto);
         align-items: center;
       }
       .builder-region-product-list .region-product-side {
         grid-column: auto;
-        grid-template-columns: 1fr;
-        align-self: stretch;
-        align-content: center;
-        gap: 9px;
+        gap: 12px;
+        margin-right: 5px;
         padding-top: 0;
         border-top: 0;
         justify-items: end;
+        transform: translateY(-4px);
       }
       .builder-region-product-list .region-product-price {
         grid-column: auto;
@@ -6876,13 +6977,13 @@
       grid-template-columns: minmax(96px, .32fr) minmax(0, 1fr);
     }
     #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
-      grid-template-columns: minmax(96px, .32fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr);
     }
     body > #detailModal.sgj-portal-overlay.builder-select-mode.builder-product-detail-mode {
-      z-index: 2147483640 !important;
+      z-index: 2147483643 !important;
     }
     body > #detailModal.sgj-portal-overlay.builder-select-mode.builder-product-detail-mode .detail-modal {
-      z-index: 2147483641 !important;
+      z-index: 2147483644 !important;
     }
     #detailModal.mdpick-recruit-mode .detail-modal-actions {
       display: grid;
@@ -6890,6 +6991,13 @@
     }
     #detailModal.builder-select-mode .detail-modal-actions .button.secondary {
       display: inline-flex;
+    }
+    #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions .button.secondary {
+      display: none !important;
+    }
+    #detailModal.builder-select-mode.builder-product-detail-mode #detailPrimaryButton {
+      grid-column: 1 / -1 !important;
+      width: 100%;
     }
     #detailModal.builder-select-mode.builder-product-detail-mode #detailKakaoButton,
     #detailModal.builder-select-mode.builder-product-detail-mode #detailDateChangeButton {
@@ -8078,8 +8186,27 @@
     .builder-flex-sheet.open {
       transform: translateY(0);
     }
+    .builder-active-schedule-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      display: none;
+      background: rgba(15, 23, 42, 0.28);
+    }
+    .builder-active-schedule-backdrop.open {
+      display: block;
+    }
     .builder-active-schedule-sheet {
-      z-index: 9;
+      z-index: 71;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(calc(100% + 80px));
+    }
+    .builder-active-schedule-sheet.open {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
     }
     .builder-active-schedule-list {
       display: grid;
@@ -8654,15 +8781,77 @@
         z-index: 40;
         grid-template-columns: 104px 1fr;
         padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+        overflow: visible;
+        background: #fff !important;
+        box-shadow: 0 360px 0 360px #fff;
+        isolation: isolate;
       }
       .builder-bottom::after {
-        content: none;
+        content: "";
+        position: fixed;
+        right: 0;
+        bottom: calc(-420px - env(safe-area-inset-bottom, 0px));
+        left: 0;
+        z-index: 0;
+        height: calc(560px + env(safe-area-inset-bottom, 0px));
+        background: #fff !important;
+        pointer-events: none;
+      }
+      .builder-bottom .button {
+        position: relative;
+        z-index: 1;
+      }
+      body > #builderModal.sgj-portal-overlay .builder-bottom.step-3 {
+        background: #fff !important;
+        box-shadow: 0 360px 0 360px #fff;
+      }
+      body > #builderModal.sgj-portal-overlay .builder-bottom.step-3::after {
+        bottom: calc(-420px - env(safe-area-inset-bottom, 0px));
+        height: calc(560px + env(safe-area-inset-bottom, 0px));
+        background: #fff !important;
       }
       .builder-bottom .button {
         min-height: 52px;
       }
       .builder-flex-sheet {
         padding: 16px 14px 20px;
+      }
+      .builder-active-schedule-sheet {
+        padding: 0 0 20px;
+      }
+      .builder-active-schedule-sheet .builder-flex-head {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: center;
+        min-height: 0;
+        margin: 0;
+        padding: var(--modal-sheet-header-padding-mobile);
+        border-bottom: 1px solid var(--border);
+        touch-action: none;
+      }
+      .builder-active-schedule-sheet .builder-flex-head > div {
+        grid-column: 1;
+        grid-row: 1;
+        min-width: 0;
+        text-align: left;
+      }
+      .builder-active-schedule-sheet .builder-flex-title {
+        font-size: var(--modal-sub-title-mobile);
+        font-weight: var(--modal-sub-title-weight);
+        color: var(--text);
+        text-align: left;
+        line-height: normal;
+      }
+      .builder-active-schedule-sheet .modal-close-icon {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        justify-self: auto;
+      }
+      .builder-active-schedule-list {
+        margin: 12px 14px 0;
       }
       .builder-detail-hero {
         height: 210px;
@@ -8811,9 +9000,9 @@
       box-shadow: none;
     }
     #builderRegionSearchInput {
-      color: #495056;
-      font-size: 15px;
-      font-weight: 500;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 600;
       background: transparent;
     }
     .region-search-field input::placeholder {
@@ -11795,21 +11984,31 @@
       line-height: 1.2;
     }
     .apply-privacy-table {
+      display: table;
       width: 100%;
-      margin: 8px 0 12px;
-      border-collapse: collapse;
+      margin: 8px 0;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
       overflow: hidden;
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      border: 1px solid #edf1f5;
+      border-radius: 5px;
       font-size: 17px;
       line-height: 1.6;
+      clear: both;
     }
     .apply-privacy-table th,
     .apply-privacy-table td {
       padding: 12px;
-      border-bottom: 1px solid var(--border);
+      border: 0;
+      border-right: 1px solid #edf1f5;
+      border-bottom: 1px solid #edf1f5;
       text-align: left;
       vertical-align: top;
+    }
+    .apply-privacy-table th:last-child,
+    .apply-privacy-table td:last-child {
+      border-right: 0;
     }
     .apply-privacy-table th {
       width: 32%;
@@ -11825,25 +12024,39 @@
       line-height: 1.6;
     }
     .apply-privacy-th-text {
-      font-weight: 800;
+      font-weight: 700;
       white-space: nowrap;
     }
     .apply-privacy-td-text {
       font-weight: 500;
     }
+    .apply-privacy-table td,
+    .apply-privacy-table .apply-privacy-td-text {
+      overflow-wrap: anywhere;
+      word-break: keep-all;
+    }
     .apply-privacy-table tr:last-child th,
     .apply-privacy-table tr:last-child td {
       border-bottom: 0;
     }
+    .apply-privacy-table + .privacy-modal-copy {
+      display: block;
+      clear: both;
+      margin-top: 0;
+    }
     .privacy-modal-body {
-      display: grid;
-      gap: 18px;
+      display: flex;
+      flex-direction: column;
       max-height: min(70vh, 560px);
-      overflow-y: auto;
+      overflow: hidden;
     }
     #privacyApplyModalContent {
       display: grid;
       gap: 12px;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      padding-bottom: 12px;
     }
     .privacy-modal-copy {
       color: #565656;
@@ -11852,10 +12065,11 @@
       line-height: 1.65;
     }
     .privacy-modal-footer {
-      position: sticky;
-      bottom: 0;
-      padding-top: 12px;
+      flex: 0 0 auto;
+      position: relative;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px));
       background: #fff;
+      overflow: hidden;
     }
     .privacy-modal-footer .button {
       min-height: 48px;
@@ -12443,6 +12657,15 @@
     .apply-participant-slot.is-existing {
       color: var(--text);
     }
+    .apply-participant-avatar-wrap {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
     .apply-participant-avatar {
       width: 50px;
       height: 50px;
@@ -12457,6 +12680,32 @@
       font-size: 18px;
       font-weight: 900;
       line-height: 1;
+    }
+    .apply-participant-avatar.participant-flow-avatar {
+      --participant-border-angle: 0deg;
+      --participant-flow-color-1: #3b82f6;
+      --participant-flow-color-2: #60a5fa;
+      border: 2px solid transparent;
+      background:
+        linear-gradient(#fbfcfe, #fbfcfe) padding-box,
+        conic-gradient(from var(--participant-border-angle), transparent 20%, var(--participant-flow-color-1), var(--participant-flow-color-2) 50%, transparent 80%) border-box,
+        linear-gradient(#d1d5db, #d1d5db) border-box;
+      animation: participant-border-spin 8s linear infinite;
+      animation-delay: var(--participant-flow-delay, 0s);
+      box-shadow: none;
+    }
+    .apply-participant-avatar.participant-flow-avatar.participant-gender-male {
+      --participant-flow-color-1: #4a72f24d;
+      --participant-flow-color-2: #3ac4ff9c;
+    }
+    .apply-participant-avatar.participant-flow-avatar.participant-gender-female {
+      --participant-flow-color-1: #ffd9ec;
+      --participant-flow-color-2: #ffbfe2;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .apply-participant-avatar.participant-flow-avatar {
+        animation: none;
+      }
     }
     .apply-participant-slot.empty .apply-participant-avatar {
       border-style: dashed;
@@ -12485,6 +12734,15 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .apply-participant-label .join-my-card-participant-me-badge.apply-me-badge {
+      position: static;
+      transform: none;
+      min-width: 24px;
+      height: 18px;
+      padding: 0 7px;
+      font-size: 11px;
+      font-weight: 700;
     }
     .apply-participant-remove {
       position: absolute;
@@ -12705,13 +12963,15 @@
       padding-right: 0;
       padding-left: 0;
     }
-    #detailModal.builder-select-mode .detail-modal-actions,
-    #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
+    #detailModal.builder-select-mode .detail-modal-actions {
       grid-template-columns: var(--modal-bottom-prev-width) minmax(0, 1fr);
+    }
+    #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
+      grid-template-columns: minmax(0, 1fr);
     }
     @media (min-width: 641px) {
       #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
-        grid-template-columns: var(--modal-bottom-prev-width) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr);
         justify-content: stretch;
       }
     }
@@ -14833,14 +15093,21 @@
       font-size: 18px;
       font-weight: 800;
     }
-    .detail-participant-status-card .detail-team {
-      position: relative;
-      z-index: 1;
-      margin: 0;
-      border-top: 0;
-      padding-top: 0;
-      justify-content: center;
-    }
+      .detail-participant-status-card .detail-team {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        border-top: 0;
+        padding-top: 0;
+        justify-content: center;
+        gap: 20px;
+      }
+      .detail-participant-status-card .detail-team .team-couple-wrap {
+        gap: 20px;
+      }
+      .detail-participant-status-card .detail-team + .detail-participant-info-grid {
+        margin-top: 8px;
+      }
     .detail-participant-status-card {
       position: relative;
       z-index: 5;
@@ -17008,10 +17275,10 @@
       font-family: var(--font-family-sgj);
     }
     body > #globalApplyOverlay.sgj-portal-overlay {
-      z-index: 2147483650 !important;
+      z-index: 2147483644 !important;
     }
     body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel {
-      z-index: 2147483651 !important;
+      z-index: 2147483645 !important;
     }
     body > .sgj-portal-overlay.participant-floating {
       display: none;
@@ -17211,22 +17478,32 @@
       }
     }
     @media (max-width: 640px) {
-      #detailModal.mdpick-recruit-mode .detail-modal-actions,
-      #detailModal.builder-product-detail-mode .detail-modal-actions,
-      body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions,
-      body > #detailModal.sgj-portal-overlay.builder-product-detail-mode .detail-modal-actions {
+      #detailModal .detail-modal-actions,
+      body > #detailModal.sgj-portal-overlay .detail-modal-actions {
         position: relative;
+        overflow: visible;
+      }
+
+      #detailModal.open .detail-modal,
+      body > #detailModal.sgj-portal-overlay.open .detail-modal {
+        overflow: visible !important;
+      }
+
+      #detailModal.mdpick-recruit-mode .detail-modal-actions,
+      body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions {
         display: grid !important;
         grid-template-columns: minmax(0, .72fr) minmax(0, 1fr) !important;
-        overflow: visible;
       }
 
       #detailModal.builder-select-mode.builder-product-detail-mode .detail-modal-actions,
       body > #detailModal.sgj-portal-overlay.builder-select-mode.builder-product-detail-mode .detail-modal-actions {
-        grid-template-columns: var(--modal-bottom-prev-width) minmax(0, 1fr) !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
         gap: 10px;
       }
 
+      #detailModal .detail-modal-actions::after,
+      body > #detailModal.sgj-portal-overlay .detail-modal-actions::after,
       #detailModal.mdpick-recruit-mode .detail-modal-actions::after,
       #detailModal.builder-product-detail-mode .detail-modal-actions::after,
       body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions::after,
@@ -17236,10 +17513,27 @@
         left: 0;
         right: 0;
         top: 100%;
-        height: 120px;
+        height: 180px;
         background: #fff;
         pointer-events: none;
       }
+
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions {
+        position: relative;
+        overflow: visible;
+      }
+
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 240px;
+        background: #fff;
+        pointer-events: none;
+      }
+
       #detailModal.mdpick-recruit-mode .detail-modal-actions .detail-contact-button,
       body > #detailModal.sgj-portal-overlay.mdpick-recruit-mode .detail-modal-actions .detail-contact-button {
         display: none !important;
@@ -17311,6 +17605,7 @@
       }
       #builderDatePopover.builder-date-popover::after,
       #builderFlexSheet.builder-flex-sheet::after,
+      #builderActiveScheduleSheet.builder-flex-sheet::after,
       body > #detailModal.sgj-portal-overlay .detail-apply-panel::after,
       body > .participant-floating.sgj-portal-overlay .participant-popover::after {
         content: "";
@@ -18478,8 +18773,17 @@
       body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet {
         width: 100vw;
         max-width: none;
+        height: 100vh;
         height: var(--join-mobile-modal-height, 100dvh);
-        max-height: var(--join-mobile-modal-height, 100dvh);
+        height: 100dvh;
+        height: 100lvh;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        min-height: 100vh;
+        min-height: var(--join-mobile-modal-height, 100dvh);
+        min-height: 100dvh;
+        min-height: 100lvh;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        max-height: none;
         border-radius: 0;
         transform: none;
       }
@@ -18576,9 +18880,17 @@
       body > #builderModal.sgj-portal-overlay .builder-modal {
         width: 100vw;
         max-width: none;
+        height: 100vh;
         height: var(--join-mobile-modal-height, 100dvh);
+        height: 100dvh;
+        height: 100lvh;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        min-height: 100vh;
         min-height: var(--join-mobile-modal-height, 100dvh);
-        max-height: var(--join-mobile-modal-height, 100dvh);
+        min-height: 100dvh;
+        min-height: 100lvh;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        max-height: none;
         border-radius: 0;
       }
       #detailModal.open,
@@ -18935,6 +19247,9 @@
         margin: 0;
         border-bottom: 1px solid var(--border);
       }
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-head {
+        padding: var(--modal-header-padding-mobile);
+      }
       body > #detailModal.sgj-portal-overlay .detail-apply-title,
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-title {
         grid-column: 2;
@@ -19045,19 +19360,31 @@
         background: #fff;
         border-top: 1px solid var(--border);
       }
+      body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions {
+        padding: 12px 22px;
+      }
       body > #globalApplyOverlay.sgj-portal-overlay {
         align-items: stretch;
         justify-content: stretch;
         padding: 0;
-        z-index: 2147483650 !important;
+        z-index: 2147483644 !important;
       }
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel {
         width: 100vw;
         max-width: none;
+        height: 100vh;
+        height: var(--join-mobile-modal-height, 100dvh);
         height: 100dvh;
-        max-height: 100dvh;
+        height: 100lvh;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        min-height: 100vh;
+        min-height: var(--join-mobile-modal-height, 100dvh);
+        min-height: 100dvh;
+        min-height: 100lvh;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        max-height: none;
         border-radius: 0;
-        z-index: 2147483651 !important;
+        z-index: 2147483645 !important;
       }
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel.is-complete {
         max-height: calc(100dvh - 16px);
@@ -19169,17 +19496,27 @@
       }
       body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-body {
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
         width: 100%;
         margin-right: 0;
         min-height: 0;
         max-height: calc(var(--join-mobile-modal-height, 100dvh) - 112px);
+        overflow: hidden;
+        padding: 0;
+        scrollbar-gutter: auto;
+      }
+      body > #privacyApplyModal.sgj-portal-overlay #privacyApplyModalContent {
+        flex: 1 1 auto;
+        min-height: 0;
         overflow-y: auto;
         padding: 14px 18px 18px;
+        box-sizing: border-box;
         scrollbar-gutter: auto;
       }
       body > #privacyApplyModal.sgj-portal-overlay .apply-privacy-table {
         margin-top: 8px;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
       }
       body > #privacyApplyModal.sgj-portal-overlay .apply-privacy-table,
       body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-copy {
@@ -19190,12 +19527,13 @@
         display: block;
         width: 100%;
         margin: 0;
-        padding: 12px 0 0;
+        flex: 0 0 auto;
+        padding: 12px 18px calc(12px + env(safe-area-inset-bottom, 0px));
         border: 0;
         outline: 0;
         box-shadow: none;
         background: #fff;
-        overflow: visible;
+        overflow: hidden;
       }
       body > #privacyApplyModal.sgj-portal-overlay .privacy-modal-footer .button {
         border: 0;
@@ -19697,24 +20035,28 @@
     #regionSearchModal .region-product-info {
       min-width: 0;
       display: grid;
-      gap: 8px;
+      gap: 4px;
     }
     #regionSearchModal .region-product-meta {
       min-width: 0;
-      display: flex;
+      display: grid;
+      grid-template-columns: 16px minmax(0, 1fr) auto;
       align-items: center;
-      gap: 2px;
+      column-gap: 2px;
       color: #475569;
       font-size: 14px;
       font-weight: 700;
     }
     #regionSearchModal .region-product-meta svg {
+      position: relative;
+      top: -1px;
       width: 16px;
       height: 16px;
       flex: 0 0 16px;
     }
     #regionSearchModal .region-product-location {
       min-width: 0;
+      grid-column: 2;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -19734,6 +20076,7 @@
       align-items: center;
       gap: 4px;
       flex-wrap: wrap;
+      min-height: 29px;
       color: #475569;
       font-size: 15px;
       font-weight: 700;
@@ -19759,12 +20102,13 @@
       justify-items: end;
       gap: 12px;
       margin-right: 5px;
+      transform: translateY(-4px);
     }
     #regionSearchModal .region-product-price {
       display: flex;
       align-items: baseline;
       justify-content: flex-end;
-      gap: 1px;
+      gap: 2px;
       color: var(--text);
       white-space: nowrap;
     }
@@ -19781,24 +20125,26 @@
     #regionSearchModal .region-product-team {
       display: flex;
       justify-content: flex-end;
-      gap: 6px;
+      gap: 10px;
     }
+    #regionSearchModal .region-product-team .team-avatar-wrap,
     #regionSearchModal .region-product-team .team-avatar,
     #regionSearchModal .region-product-team .team-empty {
-      width: 38px;
-      height: 38px;
-      flex-basis: 38px;
+      width: 48px;
+      height: 48px;
+      flex-basis: 48px;
     }
     #regionSearchModal .region-product-team .team-couple-wrap {
-      --team-avatar-size: 38px;
+      --team-avatar-size: 48px;
       height: var(--team-avatar-size);
-      gap: 6px;
+      gap: 10px;
     }
     #regionSearchModal .region-product-team .team-couple-wrap .team-avatar-wrap,
-    #regionSearchModal .region-product-team .team-couple-wrap .team-avatar {
-      width: 38px;
-      height: 38px;
-      flex-basis: 38px;
+    #regionSearchModal .region-product-team .team-couple-wrap .team-avatar,
+    #regionSearchModal .region-product-team .team-couple-wrap .team-empty {
+      width: 48px;
+      height: 48px;
+      flex-basis: 48px;
     }
     .calendar-accordion-list .region-product-team .team-couple-wrap {
       --team-avatar-size: 48px;
@@ -19832,6 +20178,14 @@
     .builder-active-schedule-list .region-product-card,
     .builder-active-schedule-list .region-product-card * {
       -webkit-tap-highlight-color: transparent;
+    }
+    .builder-active-schedule-list .region-product-card {
+      border: 1px solid var(--border) !important;
+      box-shadow: none !important;
+    }
+    .builder-active-schedule-list.calendar-accordion-list {
+      border-top: 0 !important;
+      border-bottom: 0 !important;
     }
     @media (hover: none), (pointer: coarse) {
       .calendar-product-card:hover,
@@ -19877,7 +20231,7 @@
     .calendar-accordion-list .region-product-info {
       min-width: 0;
       display: grid;
-      gap: 8px;
+      gap: 4px;
     }
     .calendar-accordion-list .region-product-meta {
       min-width: 0;
@@ -19899,6 +20253,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    #regionSearchModal .region-product-admin-badges,
     .calendar-accordion-list .region-product-admin-badges {
       display: inline-flex;
       align-items: center;
@@ -19907,6 +20262,11 @@
       margin-left: auto;
       flex: 0 0 auto;
     }
+    #regionSearchModal .region-product-admin-badges {
+      grid-column: 3;
+      justify-self: end;
+    }
+    #regionSearchModal .region-product-admin-badge,
     .calendar-accordion-list .region-product-admin-badge {
       display: inline-flex;
       align-items: center;
@@ -19918,20 +20278,29 @@
       line-height: 1;
       white-space: nowrap;
     }
+    #regionSearchModal .region-product-admin-badge.lowest-price,
     .calendar-accordion-list .region-product-admin-badge.lowest-price {
       background: #eef9e6;
       color: #19b22b;
     }
+    #regionSearchModal .region-product-admin-badge.recommended,
     .calendar-accordion-list .region-product-admin-badge.recommended {
       background: #f3eeff;
       color: #8b40f0;
     }
+    #regionSearchModal .region-product-admin-badge.monthly,
     .calendar-accordion-list .region-product-admin-badge.monthly {
       background: #fff7ed;
       color: #ea580c;
     }
     @media (min-width: 641px) {
+      #regionSearchModal .region-product-admin-badges,
       .calendar-accordion-list .region-product-admin-badges {
+        margin-left: 6px;
+      }
+    }
+    @media (min-width: 641px) and (max-width: 700px) {
+      #regionSearchModal .region-product-admin-badges {
         margin-left: 6px;
       }
     }
@@ -19970,6 +20339,7 @@
       justify-items: end;
       gap: 12px;
       margin-right: 5px;
+      transform: translateY(-4px);
     }
     .calendar-accordion-list .region-product-price {
       display: flex;
@@ -20707,6 +21077,9 @@
       #regionSearchModal .region-product-sort-native svg {
         margin-left: -14px;
       }
+      #regionSearchModal .region-product-admin-badges {
+        margin-left: 6px;
+      }
       #regionSearchModal .region-empty-recommend-grid {
         grid-template-columns: minmax(0, 1fr);
       }
@@ -20771,7 +21144,7 @@
     @media (max-width: 470px) {
       #regionSearchModal .region-product-card {
         grid-template-columns: minmax(0, 1fr);
-        gap: 10px;
+        gap: 0px;
         padding: 15px;
       }
       .calendar-accordion-list .region-product-card {
@@ -20843,7 +21216,7 @@
         justify-content: space-between;
       }
     }
-    @media (min-width: 360px) and (max-width: 540px) {
+    @media (min-width: 471px) and (max-width: 540px) {
       #regionSearchModal .region-product-card {
         grid-template-columns: 82px minmax(0, 1fr);
         align-items: center;
@@ -20855,6 +21228,8 @@
       #regionSearchModal .region-product-side {
         grid-column: 2;
         justify-items: start;
+        gap: 8px;
+        transform: translateY(-4px);
       }
     }
     @media (max-width: 359px) {
@@ -22051,6 +22426,12 @@
       position: fixed;
       width: 100%;
       overflow: hidden !important;
+    }
+
+    body.join-participant-scroll-locked {
+      width: 100%;
+      overflow: hidden !important;
+      overscroll-behavior: contain;
     }
 
     .join-profile-manage-modal {
@@ -24513,27 +24894,111 @@
     }
 
     @media (max-width: 640px) {
+      html.join-region-search-modal-open body::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100vw;
+        height: auto;
+        height: 100vh;
+        height: var(--join-mobile-modal-height, 100dvh);
+        height: 100dvh;
+        height: 100lvh;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        min-height: 100vh;
+        min-height: var(--join-mobile-modal-height, 100dvh);
+        min-height: 100dvh;
+        min-height: 100lvh;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        max-height: none;
+        background: #fff;
+        box-shadow: 0 0 0 200vmax #fff;
+        z-index: 2147482990;
+        pointer-events: auto;
+      }
+
+      body > #regionSearchModal.sgj-portal-overlay,
+      #regionSearchModal.region-search-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        align-items: stretch !important;
+        justify-content: stretch !important;
+        padding: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100dvh !important;
+        height: 100lvh !important;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        min-height: 100vh !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        max-height: none !important;
+        overflow: hidden !important;
+        background: #fff !important;
+      }
+      body > #regionSearchModal.sgj-portal-overlay .region-search-modal,
+      #regionSearchModal .region-search-modal {
+        position: relative !important;
+        width: 100vw !important;
+        max-width: none !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+        overflow: visible !important;
+      }
+      body > #regionSearchModal.sgj-portal-overlay .region-search-shell,
+      #regionSearchModal .region-search-shell {
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: none !important;
+      }
+
       #joinMyMenuModal {
         inset: 0 !important;
         align-items: stretch;
         justify-content: stretch;
         padding: 0;
         width: 100vw !important;
+        height: 100vh !important;
         height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100dvh !important;
+        height: 100lvh !important;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        min-height: 100vh !important;
         min-height: var(--join-mobile-modal-height, 100dvh) !important;
-        max-height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        max-height: none !important;
         overflow: hidden;
         background: #fff;
         z-index: 2147483620 !important;
       }
 
       .join-my-modal {
+        position: relative;
         width: 100vw;
         max-width: none;
+        height: 100vh;
         height: var(--join-mobile-modal-height, 100dvh);
+        height: 100dvh;
+        height: 100lvh;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        min-height: 100vh;
         min-height: var(--join-mobile-modal-height, 100dvh);
-        max-height: var(--join-mobile-modal-height, 100dvh);
+        min-height: 100dvh;
+        min-height: 100lvh;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        max-height: none;
         border-radius: 0;
+        overflow: visible;
       }
 
       .join-my-modal .modal-header {
@@ -25596,10 +26061,28 @@
       opacity: .42;
     }
 
+    .join-member-signup-chip-row.is-custom-editing {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .join-member-signup-chip-row.is-custom-editing .profession-chip {
+      display: none;
+    }
+
     .join-member-signup-custom-profession {
       border-style: dashed;
       color: #54abff;
       gap: 6px;
+    }
+
+    .join-member-signup-custom-profession:hover,
+    .join-member-signup-custom-profession:active {
+      border-color: var(--border);
+      border-style: dashed;
+      background: #fafafa;
+      color: #54abff;
+      box-shadow: none;
+      transform: none;
     }
 
     .join-member-signup-custom-profession.has-value {
@@ -25607,6 +26090,16 @@
       justify-content: space-between;
       border-style: solid;
       color: #212529;
+    }
+
+    .join-member-signup-custom-profession.has-value:hover,
+    .join-member-signup-custom-profession.has-value:active {
+      border-color: var(--border);
+      border-style: solid;
+      background: #fafafa;
+      color: #212529;
+      box-shadow: none;
+      transform: none;
     }
 
     .join-member-signup-custom-profession-text {
@@ -25649,15 +26142,16 @@
     }
 
     .join-member-signup-form .join-member-signup-custom-profession-input {
+      grid-column: 1 / -1;
       width: 100%;
       min-width: 0;
-      min-height: 44px;
-      padding: 8px 10px;
+      min-height: 58px;
+      padding: 12px 14px;
       border: 1px dashed #54abff;
       border-radius: 12px;
       background: #fff;
       color: #212529;
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 700;
       line-height: 1.2;
       text-align: center;
@@ -26448,16 +26942,31 @@
       body > .sgj-portal-overlay.calendar-sheet-overlay,
       body > .sgj-portal-overlay.global-apply-overlay,
       body > .participant-floating.sgj-portal-overlay {
+        position: fixed !important;
+        inset: 0 !important;
         top: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
         left: 0 !important;
         width: 100vw !important;
+        height: 100vh !important;
         height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100dvh !important;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh) !important;
+        min-height: 100vh !important;
         min-height: var(--join-mobile-modal-height, 100dvh) !important;
-        max-height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: 100dvh !important;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh) !important;
+        max-height: none !important;
         background: #fff;
         overflow: hidden !important;
+      }
+
+      body > #calendarSheet.sgj-portal-overlay.open,
+      body > #builderModal.sgj-portal-overlay.open,
+      body > #regionSearchModal.sgj-portal-overlay.open,
+      body > #globalApplyOverlay.sgj-portal-overlay.open {
+        overflow: visible !important;
       }
 
       body > #joinMyDrawerOverlay.sgj-portal-overlay {
@@ -26466,6 +26975,10 @@
         align-items: stretch !important;
         min-height: 100dvh !important;
         background: rgba(15, 23, 42, .34) !important;
+      }
+
+      body > #joinMyDrawerOverlay.sgj-portal-overlay.open {
+        overflow: visible !important;
       }
 
       body > #joinMyDrawerOverlay.sgj-portal-overlay .join-my-drawer {
@@ -26488,30 +27001,73 @@
         right: 0;
         bottom: 0;
         left: 0;
+        width: 100vw;
+        height: 100vh;
+        height: var(--join-mobile-modal-height, 100dvh);
+        height: 100dvh;
+        height: 100lvh;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        min-height: 100vh;
+        min-height: var(--join-mobile-modal-height, 100dvh);
+        min-height: 100dvh;
+        min-height: 100lvh;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh);
+        max-height: none;
         z-index: 0;
         background: #fff;
+        box-shadow: 0 0 0 200vmax #fff;
+        pointer-events: none;
+      }
+
+      body > #builderModal.sgj-portal-overlay.open {
+        background: #fff !important;
+        box-shadow: 0 0 0 200vmax #fff !important;
+      }
+      body > #builderModal.sgj-portal-overlay.open::after {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: -360px;
+        height: calc(420px + env(safe-area-inset-bottom, 0px));
+        background: #fff;
+        z-index: 0;
+        pointer-events: none;
+      }
+      body > #calendarSheet.sgj-portal-overlay.open::after,
+      body > #regionSearchModal.sgj-portal-overlay.open::after,
+      body > #globalApplyOverlay.sgj-portal-overlay.open::after {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: -360px;
+        height: 420px;
+        background: #fff;
+        z-index: 0;
         pointer-events: none;
       }
       body > #builderAlertModal.sgj-portal-overlay.open::before {
         content: none !important;
       }
       body > #builderAlertModal.builder-alert-overlay.sgj-portal-overlay {
+        z-index: 2147483647 !important;
         background: rgba(15, 23, 42, .34) !important;
       }
       body > #applySubmitConfirmModal.sgj-portal-overlay.open::before {
         content: none !important;
       }
       body > #applySubmitConfirmModal.apply-submit-confirm-overlay.sgj-portal-overlay {
-        z-index: 2147483950 !important;
+        z-index: 2147483647 !important;
         background: rgba(15, 23, 42, .42) !important;
       }
       body > #builderAlertModal.sgj-portal-overlay .builder-alert-modal {
         position: relative;
-        z-index: 1;
+        z-index: 1 !important;
       }
       body > #applySubmitConfirmModal.sgj-portal-overlay .apply-submit-confirm-modal {
         position: relative;
-        z-index: 2147483951 !important;
+        z-index: 1 !important;
       }
 
       body > .sgj-portal-overlay .modal,
@@ -26524,8 +27080,8 @@
       body > .participant-floating.sgj-portal-overlay .participant-popover {
         position: relative;
         z-index: 1;
-        height: var(--join-mobile-modal-height, 100dvh) !important;
-        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100% !important;
+        min-height: 100% !important;
         max-height: none !important;
       }
 
@@ -26539,12 +27095,25 @@
         flex-direction: column !important;
         width: 100vw !important;
         max-width: 100vw !important;
-        height: var(--join-mobile-modal-height, 100dvh) !important;
-        min-height: var(--join-mobile-modal-height, 100dvh) !important;
-        max-height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: none !important;
         background: #fff !important;
         box-shadow: none !important;
-        overflow: hidden !important;
+        overflow: visible !important;
+      }
+
+      body > #calendarSheet.sgj-portal-overlay.open .calendar-sheet::after,
+      body > #regionSearchModal.sgj-portal-overlay.open .region-search-modal::after,
+      body > #joinMyMenuModal.sgj-portal-overlay.open .join-my-modal::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 240px;
+        background: #fff;
+        pointer-events: none;
       }
 
       body > .sgj-portal-overlay.calendar-sheet-overlay .calendar-sheet-body {
@@ -26775,7 +27344,19 @@
       }
 
       body > #joinMyDrawerOverlay.sgj-portal-overlay.open::before {
-        content: none !important;
+        content: "" !important;
+        position: fixed;
+        top: auto !important;
+        left: 0;
+        right: 0;
+        bottom: calc(-420px - env(safe-area-inset-bottom, 0px));
+        width: auto !important;
+        z-index: 0;
+        height: calc(420px + env(safe-area-inset-bottom, 0px));
+        min-height: 0 !important;
+        background: rgba(15, 23, 42, .34);
+        box-shadow: none !important;
+        pointer-events: none;
       }
 
       #participantModal.participant-floating .participant-popover,
@@ -26815,6 +27396,7 @@
         align-items: center;
         padding: var(--modal-sheet-header-padding-mobile);
         border-bottom: 1px solid var(--border);
+        touch-action: none;
       }
 
       #participantModal.participant-floating .participant-sheet-title,
@@ -26868,12 +27450,12 @@
 
     body > #detailModal.sgj-portal-overlay.open.builder-select-mode.builder-product-detail-mode,
     #detailModal.open.builder-select-mode.builder-product-detail-mode {
-      z-index: 2147483640 !important;
+      z-index: 2147483643 !important;
     }
 
     body > #detailModal.sgj-portal-overlay.open.builder-select-mode.builder-product-detail-mode .detail-modal,
     #detailModal.open.builder-select-mode.builder-product-detail-mode .detail-modal {
-      z-index: 2147483641 !important;
+      z-index: 2147483644 !important;
     }
     #detailModal.open #detailModalTitle,
     body > #detailModal.sgj-portal-overlay.open #detailModalTitle,
@@ -26923,6 +27505,126 @@
     .builder-apply-form .apply-agree-box,
     #globalApplyPanel .apply-agree-box {
       display: none !important;
+    }
+
+    @media (max-width: 640px) {
+      html.join-mobile-modal-chrome-collapsed body > #calendarSheet.sgj-portal-overlay,
+      html.join-mobile-modal-chrome-collapsed body > #builderModal.sgj-portal-overlay,
+      html.join-mobile-modal-chrome-collapsed body > #detailModal.sgj-portal-overlay,
+      html.join-mobile-modal-chrome-collapsed body > #regionSearchModal.sgj-portal-overlay,
+      html.join-mobile-modal-chrome-collapsed body > #globalApplyOverlay.sgj-portal-overlay,
+      html.join-mobile-modal-chrome-collapsed body > #joinMyMenuModal.sgj-portal-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        height: 100vh !important;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100dvh !important;
+        height: 100lvh !important;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        min-height: 100vh !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        max-height: none !important;
+        overflow: hidden !important;
+        background: #fff !important;
+      }
+
+      html.join-mobile-modal-chrome-collapsed body > #calendarSheet.sgj-portal-overlay.open::before,
+      html.join-mobile-modal-chrome-collapsed body > #builderModal.sgj-portal-overlay.open::before,
+      html.join-mobile-modal-chrome-collapsed body > #detailModal.sgj-portal-overlay.open::before,
+      html.join-mobile-modal-chrome-collapsed body > #regionSearchModal.sgj-portal-overlay.open::before,
+      html.join-mobile-modal-chrome-collapsed body > #globalApplyOverlay.sgj-portal-overlay.open::before,
+      html.join-mobile-modal-chrome-collapsed body > #joinMyMenuModal.sgj-portal-overlay.open::before {
+        top: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100dvh !important;
+        height: 100lvh !important;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        min-height: 100vh !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        max-height: none !important;
+        box-shadow: 0 0 0 200vmax #fff !important;
+      }
+
+      html.join-mobile-modal-chrome-collapsed body > #calendarSheet.sgj-portal-overlay .calendar-sheet,
+      html.join-mobile-modal-chrome-collapsed body > #builderModal.sgj-portal-overlay .builder-modal,
+      html.join-mobile-modal-chrome-collapsed body > #detailModal.sgj-portal-overlay .detail-modal,
+      html.join-mobile-modal-chrome-collapsed body > #regionSearchModal.sgj-portal-overlay .region-search-modal,
+      html.join-mobile-modal-chrome-collapsed body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel,
+      html.join-mobile-modal-chrome-collapsed body > #joinMyMenuModal.sgj-portal-overlay .join-my-modal {
+        height: 100vh !important;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100dvh !important;
+        height: 100lvh !important;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        min-height: 100vh !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        max-height: 100vh !important;
+        max-height: var(--join-mobile-modal-height, 100dvh) !important;
+        max-height: 100dvh !important;
+        max-height: 100lvh !important;
+        max-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+      }
+
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #calendarSheet.sgj-portal-overlay,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #builderModal.sgj-portal-overlay,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #detailModal.sgj-portal-overlay,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #regionSearchModal.sgj-portal-overlay,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #globalApplyOverlay.sgj-portal-overlay,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #joinMyMenuModal.sgj-portal-overlay,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #calendarSheet.sgj-portal-overlay.open::before,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #builderModal.sgj-portal-overlay.open::before,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #detailModal.sgj-portal-overlay.open::before,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #regionSearchModal.sgj-portal-overlay.open::before,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #globalApplyOverlay.sgj-portal-overlay.open::before,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #joinMyMenuModal.sgj-portal-overlay.open::before {
+        height: 100vh !important;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100dvh !important;
+        height: 100lvh !important;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        min-height: 100vh !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        max-height: none !important;
+      }
+
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #calendarSheet.sgj-portal-overlay .calendar-sheet,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #builderModal.sgj-portal-overlay .builder-modal,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #detailModal.sgj-portal-overlay .detail-modal,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #regionSearchModal.sgj-portal-overlay .region-search-modal,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-panel,
+      html.join-google-app-browser.join-mobile-modal-chrome-collapsed body > #joinMyMenuModal.sgj-portal-overlay .join-my-modal {
+        height: 100vh !important;
+        height: var(--join-mobile-modal-height, 100dvh) !important;
+        height: 100dvh !important;
+        height: 100lvh !important;
+        height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        min-height: 100vh !important;
+        min-height: var(--join-mobile-modal-height, 100dvh) !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
+        min-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+        max-height: 100vh !important;
+        max-height: var(--join-mobile-modal-height, 100dvh) !important;
+        max-height: 100dvh !important;
+        max-height: 100lvh !important;
+        max-height: max(var(--join-mobile-modal-height, 100dvh), 100dvh, 100lvh) !important;
+      }
+
     }
   </style>
 </head>
@@ -27964,14 +28666,14 @@
 
   
 
-  <div class="builder-alert-overlay" id="builderAlertModal" onclick="if(event.target.id === 'builderAlertModal') closeBuilderAlert()" aria-hidden="true">
+  <div class="builder-alert-overlay" id="builderAlertModal" onclick="handleBuilderAlertBackdropClick(event)" aria-hidden="true">
     <div class="builder-alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="builderAlertMessage">
       <div class="builder-alert-message" id="builderAlertMessage">도착일을 선택해주세요.</div>
-      <button type="button" class="builder-alert-button" onclick="closeBuilderAlert()">확인</button>
+      <button type="button" class="builder-alert-button" onclick="confirmBuilderAlert()">확인</button>
     </div>
   </div>
 
-  <div class="apply-submit-confirm-overlay" id="applySubmitConfirmModal" onclick="if(event.target.id === 'applySubmitConfirmModal') closeApplySubmitConfirmModal()" aria-hidden="true">
+  <div class="apply-submit-confirm-overlay" id="applySubmitConfirmModal" onclick="handleApplySubmitConfirmBackdropClick(event)" aria-hidden="true">
     <div class="apply-submit-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="applySubmitConfirmTitle" aria-describedby="applySubmitConfirmMessage">
       <div class="apply-submit-confirm-title" id="applySubmitConfirmTitle">신청을 진행할까요?</div>
       <div class="apply-submit-confirm-message" id="applySubmitConfirmMessage">입력한 정보로 신청을 전송합니다.</div>
@@ -28402,8 +29104,8 @@
     <div class="participant-popover" id="participantContent"></div>
   </div>
 
-  <div class="overlay sgj-portal-overlay" id="detailModal" style="z-index: 2147483640 !important;">
-    <div class="modal detail-modal" style="z-index: 2147483641 !important;">
+  <div class="overlay sgj-portal-overlay" id="detailModal" style="z-index: 2147483643 !important;">
+    <div class="modal detail-modal" style="z-index: 2147483644 !important;">
       <div class="modal-header">
         <div class="modal-title" id="detailModalTitle">일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비</div>
         <div class="detail-pc-header-actions" aria-label="상품상세 액션">
@@ -29365,8 +30067,11 @@
     let homeBootstrapLoading = false;
     let googleSheetBuilderApplicationsLoading = false;
     let builderApplySubmitting = false;
+    let builderAlertOpenedAt = 0;
+    let builderAlertConfirmHandler = null;
     let pendingApplySubmitConfirmType = "";
     let applySubmitConfirmOpenedAt = 0;
+    let applySubmitConfirmOpenFrame = 0;
     let googleSheetBuilderApplicationsReadCompleted = false;
     let googleSheetBuilderApplicationsReadFailed = false;
     let googleSheetJoinApplicationsLoading = false;
@@ -29402,6 +30107,7 @@
     const BUILDER_APPLICATIONS_STORAGE_KEY = "secretGolfJoinBuilderApplications";
     const BUILDER_APPLICATION_LOCAL_PRESERVE_MS = 7 * 24 * 60 * 60 * 1000;
     const JOIN_APPLICATIONS_STORAGE_KEY = "secretGolfJoinApplications";
+    const JOIN_APPLICATION_AUTHORITATIVE_REFRESH_GRACE_MS = 5 * 60 * 1000;
     const JOIN_WISH_STORAGE_KEY = "secretGolfJoinWishProducts";
     const JOIN_RECENT_VIEW_STORAGE_KEY = "secretGolfJoinRecentViewedProducts";
     const BUILDER_APPLICATION_MAX_CAPACITY = 4;
@@ -29564,11 +30270,77 @@
       mdPickRecruitDirectMode: false
     };
 
+    const JOIN_FULLSCREEN_MODAL_SELECTOR = [
+      "#calendarSheet.open",
+      "#builderModal.open",
+      "#detailModal.open",
+      "#regionSearchModal.open",
+      "#globalApplyOverlay.open",
+      "#joinMyMenuModal.open"
+    ].join(", ");
+    let joinFullscreenModalCoverUpdateFrame = 0;
+    let joinFullscreenModalCoverObserver = null;
+
+    function hasOpenJoinFullscreenModal() {
+      return Boolean(document.querySelector(JOIN_FULLSCREEN_MODAL_SELECTOR));
+    }
+
+    function getJoinFullscreenModalFillElement() {
+      if (!document.body) return null;
+      let fill = document.getElementById("joinFullscreenModalFill");
+      if (!fill) {
+        fill = document.createElement("div");
+        fill.id = "joinFullscreenModalFill";
+        fill.setAttribute("aria-hidden", "true");
+        document.body.appendChild(fill);
+      }
+      return fill;
+    }
+
+    function updateJoinFullscreenModalCoverState() {
+      const isOpen = hasOpenJoinFullscreenModal();
+      document.documentElement.classList.toggle("join-fullscreen-modal-open", isOpen);
+      document.body.classList.toggle("join-fullscreen-modal-open", isOpen);
+      getJoinFullscreenModalFillElement()?.classList.toggle("open", isOpen);
+      if (isOpen && typeof scheduleJoinMobileVisualViewportVarsUpdate === "function") {
+        scheduleJoinMobileVisualViewportVarsUpdate();
+      }
+    }
+
+    function scheduleJoinFullscreenModalCoverStateUpdate() {
+      updateJoinFullscreenModalCoverState();
+      if (joinFullscreenModalCoverUpdateFrame) {
+        window.cancelAnimationFrame(joinFullscreenModalCoverUpdateFrame);
+      }
+      joinFullscreenModalCoverUpdateFrame = window.requestAnimationFrame(() => {
+        joinFullscreenModalCoverUpdateFrame = 0;
+        updateJoinFullscreenModalCoverState();
+      });
+    }
+
+    function initializeJoinFullscreenModalCoverObserver() {
+      if (joinFullscreenModalCoverObserver || typeof MutationObserver === "undefined") {
+        scheduleJoinFullscreenModalCoverStateUpdate();
+        return;
+      }
+      joinFullscreenModalCoverObserver = new MutationObserver(scheduleJoinFullscreenModalCoverStateUpdate);
+      ["calendarSheet", "builderModal", "detailModal", "regionSearchModal", "globalApplyOverlay", "joinMyMenuModal"].forEach((id) => {
+        const node = document.getElementById(id);
+        if (node) {
+          joinFullscreenModalCoverObserver.observe(node, { attributes: true, attributeFilter: ["class"] });
+        }
+      });
+      scheduleJoinFullscreenModalCoverStateUpdate();
+    }
+
     function setWidgetModalOpen(isOpen) {
-      document.documentElement.classList.toggle("modal-open", isOpen);
-      document.body.classList.toggle("modal-open", isOpen);
-      document.getElementById("secret-golf-join")?.classList.toggle("modal-open", isOpen);
-      if (isOpen) setJoinMobileBottomNavVisible(false, { force: true });
+      const shouldKeepOpen = Boolean(isOpen || hasOpenJoinFullscreenModal());
+      document.documentElement.classList.toggle("modal-open", shouldKeepOpen);
+      document.body.classList.toggle("modal-open", shouldKeepOpen);
+      document.getElementById("secret-golf-join")?.classList.toggle("modal-open", shouldKeepOpen);
+      if (!shouldKeepOpen) document.documentElement.classList.remove("join-mobile-modal-chrome-collapsed");
+      if (shouldKeepOpen) setJoinMobileBottomNavVisible(false, { force: true });
+      scheduleJoinFullscreenModalCoverStateUpdate();
     }
 
     function isJoinActionLoadingOpen() {
@@ -29611,9 +30383,13 @@
       const zIndex = id === "participantModal"
         ? "2147483700"
           : id === "globalApplyOverlay"
-            ? "2147483650"
+            ? "2147483644"
             : id === "detailModal"
-              ? "2147483630"
+              ? "2147483643"
+              : id === "regionSearchModal"
+                ? "2147483642"
+              : id === "calendarSheet"
+                ? "2147483632"
               : id === "phoneModal"
                 ? "2147483800"
               : id === "joinMyReviewModal"
@@ -29623,13 +30399,15 @@
               : id === "joinProfileManageOverlay"
                 ? "2147483960"
               : id === "joinMyMenuModal"
-                ? "2147483620"
+                ? "2147483632"
                 : id === "joinMemberLoginModal"
                   ? "2147483940"
-                  : id === "privacyApplyModal" || id === "waitlistApplyModal" || id === "applySubmitConfirmModal"
+                  : id === "privacyApplyModal" || id === "waitlistApplyModal"
                     ? "2147483950"
+                    : id === "applySubmitConfirmModal"
+                      ? "2147483647"
                     : id === "builderAlertModal"
-                      ? "2147484000"
+                      ? "2147483647"
                       : id === "joinActionLoadingOverlay"
                         ? "2147483647"
                         : "2147483000";
@@ -29896,7 +30674,6 @@
         if (lastJoinAsyncClickButton === button) lastJoinAsyncClickButton = null;
       }, 1000);
     }, true);
-    document.addEventListener("pointerup", handleGlobalApplySubmitButtonActivation, true);
     document.addEventListener("click", handleGlobalApplySubmitButtonActivation, true);
 
     const joinMyMenuState = {
@@ -30317,6 +31094,11 @@
       return url.toString();
     }
 
+    function nowKstISOString() {
+      const date = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}T${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}:${String(date.getUTCSeconds()).padStart(2, "0")}+09:00`;
+    }
+
     function isJoinLocalDevHost() {
       return /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(location.hostname || "");
     }
@@ -30338,7 +31120,7 @@
       };
       try {
         sessionStorage.setItem("joinPendingKakaoProfile", JSON.stringify({
-          createdAt: new Date().toISOString(),
+          createdAt: nowKstISOString(),
           kakaoId: kakaoResponse?.id || "",
           name: kakaoResponse?.kakao_account?.name || "",
           nickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || "",
@@ -31446,6 +32228,7 @@
       const row = button?.closest(".join-member-signup-chip-row");
       if (!row || row.querySelector(".join-member-signup-custom-profession-input")) return;
       const previousValue = button.dataset.signupProfessionChip || "";
+      row.classList.add("is-custom-editing");
       button.classList.add("is-editing");
       const input = document.createElement("input");
       input.type = "text";
@@ -31468,6 +32251,7 @@
           renderJoinMemberSignupCustomProfession("");
         }
         input.remove();
+        row.classList.remove("is-custom-editing");
         button.classList.remove("is-editing");
         updateJoinMemberSignupNavState();
       };
@@ -31603,7 +32387,7 @@
           memberChannel: member.memberChannel || profile.memberChannel || "",
           kakaoId: member.kakaoId || profile.kakaoId || "",
           kakaoNickname: member.kakaoNickname || profile.kakaoNickname || "",
-          updatedAt: new Date().toISOString()
+          updatedAt: nowKstISOString()
         };
         keys.forEach((key) => {
           store[key] = {
@@ -32437,7 +33221,7 @@
     }
 
     function buildJoinMemberProfilePayload(member = {}) {
-      const submittedAt = new Date().toISOString();
+      const submittedAt = nowKstISOString();
       const pendingKakao = getJoinPendingKakaoProfile();
       const name = document.getElementById("joinMemberSignupName")?.value.trim() || member.memberName || pendingKakao.name || "";
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinMemberSignupMobile")?.value || member.memberMobile || "");
@@ -32784,10 +33568,19 @@
         return;
       }
       if (custId.toLowerCase() === "admin@admin.com" && custPwPlain === "1111") {
-        setJoinTempAdminMember();
+        const adminMember = setJoinTempAdminMember();
         joinMyMenuState.memberPromise = null;
         resetJoinMemberEmailValidation();
-        continueAfterJoinMemberLogin(joinMyMenuState.pendingAfterLogin || "my-menu");
+        const afterLogin = joinMyMenuState.pendingAfterLogin || "my-menu";
+        const extraParams = { ...(joinMyMenuState.pendingLoginParams || {}) };
+        ensureJoinMemberProfileReady(afterLogin, extraParams, { member: adminMember, refresh: true })
+          .then((readyMember) => {
+            if (readyMember) continueAfterJoinMemberLogin(afterLogin);
+          })
+          .catch((error) => {
+            console.warn("Failed to verify temp admin profile.", error);
+            alert("회원정보 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
+          });
         return;
       }
       const isPasswordValid = validateJoinMemberPasswordField(true);
@@ -33005,7 +33798,11 @@
     }
 
     async function ensureJoinMemberProfileReady(afterLogin = "my-menu", extraParams = {}, options = {}) {
-      const member = options.member || await getJoinCurrentMember({ refresh: Boolean(options.refresh) });
+      const baseMember = options.member || getJoinLoginState().member || null;
+      const requiresSheetProfileCheck = isJoinTempAdminMember(baseMember);
+      const member = requiresSheetProfileCheck
+        ? await getJoinCurrentMember({ refresh: true })
+        : options.member || await getJoinCurrentMember({ refresh: Boolean(options.refresh) });
       if (!member) {
         redirectToJoinLogin(afterLogin, extraParams);
         return null;
@@ -33027,10 +33824,11 @@
         const signupForm = document.getElementById("joinMemberSignupForm");
         if (loginModal?.classList.contains("open") || signupForm?.dataset.profileRequired === "true") return false;
         const cachedMember = getJoinCachedCurrentMember();
-        if (isJoinMemberProfileComplete(cachedMember)) return false;
+        const requiresSheetProfileCheck = isJoinTempAdminMember(cachedMember || loginState.member);
+        if (!requiresSheetProfileCheck && isJoinMemberProfileComplete(cachedMember)) return false;
         const member = await getJoinCurrentMember({ refresh: true });
         if (!member || member.__profileLookupFailed || isJoinMemberProfileComplete(member)) return false;
-        openJoinMemberRequiredProfileForm(member, "profile-manage", { startupProfileRequired: "true" });
+        openJoinMemberRequiredProfileForm(member, "my-menu", { startupProfileRequired: "true" });
         return true;
       } catch (error) {
         console.warn("Failed to check required join member profile on startup.", error);
@@ -33084,11 +33882,12 @@
 
     function refreshJoinMemberInBackground(onReady, options = {}) {
       const cached = getJoinCachedCurrentMember();
-      if (!options.force && isJoinMemberProfileComplete(cached)) {
+      const requiresSheetProfileCheck = isJoinTempAdminMember(cached);
+      if (!requiresSheetProfileCheck && !options.force && isJoinMemberProfileComplete(cached)) {
         if (typeof onReady === "function") onReady(cached);
         return Promise.resolve(cached);
       }
-      return getJoinCurrentMember({ refresh: Boolean(options.force) })
+      return getJoinCurrentMember({ refresh: Boolean(options.force || requiresSheetProfileCheck) })
         .then((member) => {
           if (member && typeof onReady === "function") onReady(member);
           return member;
@@ -33226,7 +34025,7 @@
         recentType,
         targetType: recentType,
         targetKey,
-        viewedAt: item.viewedAt || item.savedAt || new Date().toISOString()
+        viewedAt: item.viewedAt || item.savedAt || nowKstISOString()
       };
     }
 
@@ -33274,7 +34073,7 @@
         returnDate: join.returnDate || "",
         currentCount: participants.length,
         targetCount: getCardTeamCapacity(join, 4),
-        viewedAt: new Date().toISOString()
+        viewedAt: nowKstISOString()
       };
     }
 
@@ -33403,7 +34202,7 @@
         targetType: wishType,
         targetKey,
         status: item.status || "active",
-        savedAt: item.savedAt || item.createdAt || new Date().toISOString()
+        savedAt: item.savedAt || item.createdAt || nowKstISOString()
       };
     }
 
@@ -33478,7 +34277,7 @@
         departureDate: row.departureDate || "",
         returnDate: row.returnDate || "",
         status: row.status || "active",
-        savedAt: row.savedAt || row.createdAt || row.updatedAt || new Date().toISOString()
+        savedAt: row.savedAt || row.createdAt || row.updatedAt || nowKstISOString()
       });
     }
 
@@ -33517,7 +34316,7 @@
             productName: normalized.title || "",
             country: normalized.country || "",
             imageUrl: normalized.image || "",
-            updatedAt: new Date().toISOString()
+            updatedAt: nowKstISOString()
           });
         }
         localStorage.setItem(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, JSON.stringify({
@@ -33572,7 +34371,7 @@
         currentCount: participants.length,
         targetCount,
         hostNameMasked: maskApplyName(getNestedValue(sheetApplication, "applicant.name") || getNestedValue(sheetApplication, "member.memberName") || ""),
-        savedAt: new Date().toISOString()
+        savedAt: nowKstISOString()
       };
     }
 
@@ -33587,7 +34386,7 @@
       const normalizedMember = getJoinMemberWithCachedProfile(member || {});
       const wishType = item.wishType || item.targetType || "product";
       const targetKey = getJoinWishTargetKey({ ...item, wishType });
-      const savedAt = item.savedAt || item.createdAt || new Date().toISOString();
+      const savedAt = item.savedAt || item.createdAt || nowKstISOString();
       const country = getJoinWishCountry(item);
       return {
         source: "join_wish",
@@ -33862,7 +34661,7 @@
         writeJoinJsonCache(HOME_STATS_CACHE_KEY, {
           recent30DayVisitors: Number.isFinite(visitorCount) && visitorCount >= 0 ? visitorCount : joinMemberProfileCompletedCount,
           activeUsersNow: Number.isFinite(activeCount) && activeCount >= 0 ? activeCount : heroCalendarActiveCountValue,
-          updatedAt: data.updatedAt || new Date().toISOString()
+          updatedAt: data.updatedAt || nowKstISOString()
         });
       }
     }
@@ -33957,6 +34756,11 @@
         }, "Home bootstrap light");
         writeJoinJsonCache(HOME_BOOTSTRAP_LIGHT_CACHE_KEY, data || {});
         applyHomeBootstrapLightRows(data || {});
+        if (getJoinLoginState().isLogin) {
+          void hydrateJoinApplicationsFromGoogleSheet().catch((error) => {
+            console.warn("Failed to refresh member join applications after home bootstrap light.", error);
+          });
+        }
         return { ok: true, data };
       } catch (error) {
         googleSheetBuilderApplicationsLoading = false;
@@ -34114,7 +34918,13 @@
     function isJoinParticipantForCurrentMember(participant = {}) {
       const loginState = getJoinLoginState();
       if (!loginState.isLogin) return false;
-      const memberIdentity = getJoinMyMemberIdentity(loginState.member || {});
+      const rememberedProfile = getRememberedJoinMemberProfile(loginState.member || {});
+      const memberIdentity = getJoinMyMemberIdentity({
+        ...(rememberedProfile || {}),
+        ...(loginState.member || {}),
+        memberMobile: loginState.member?.memberMobile || rememberedProfile?.memberMobile || rememberedProfile?.mobile || rememberedProfile?.phone || "",
+        memberEmail: loginState.member?.memberEmail || loginState.member?.email || rememberedProfile?.memberEmail || rememberedProfile?.email || ""
+      });
       const participantIdentity = getJoinParticipantMemberIdentity(participant);
       const hasMemberIdentity = Boolean(memberIdentity.seq || memberIdentity.id || memberIdentity.phone || memberIdentity.email || memberIdentity.kakaoId);
       const hasParticipantIdentity = Boolean(participantIdentity.seq || participantIdentity.id || participantIdentity.phone || participantIdentity.email || participantIdentity.kakaoId);
@@ -34126,6 +34936,67 @@
         || (memberIdentity.email && participantIdentity.email && memberIdentity.email === participantIdentity.email)
         || (memberIdentity.kakaoId && participantIdentity.kakaoId && memberIdentity.kakaoId === participantIdentity.kakaoId)
       );
+    }
+
+    function normalizeJoinParticipantApplicationMarker(value = "") {
+      return String(value || "").trim();
+    }
+
+    function isUsableJoinParticipantApplicationMarker(value = "") {
+      return normalizeJoinParticipantApplicationMarker(value).length >= 8;
+    }
+
+    function doJoinParticipantApplicationMarkersMatch(a = "", b = "") {
+      const left = normalizeJoinParticipantApplicationMarker(a);
+      const right = normalizeJoinParticipantApplicationMarker(b);
+      if (!isUsableJoinParticipantApplicationMarker(left) || !isUsableJoinParticipantApplicationMarker(right)) return false;
+      return left === right || left.includes(right) || right.includes(left);
+    }
+
+    function getJoinParticipantApplicationMarkers(participant = {}) {
+      const id = String(participant.id || "");
+      const idRecordMatch = id.match(/^(.+)-p\d+$/);
+      return [
+        participant.sourceRecordId,
+        participant.joinApplyId,
+        participant.applicationId,
+        participant.sourceApplicationId,
+        idRecordMatch?.[1],
+        participant.previewSeed,
+        participant.iconSeed,
+        participant.seed,
+        participant.companionGroup
+      ].map(normalizeJoinParticipantApplicationMarker).filter(isUsableJoinParticipantApplicationMarker);
+    }
+
+    function hasJoinParticipantApplicationMarkerOverlap(participant = {}, markers = []) {
+      const participantMarkers = getJoinParticipantApplicationMarkers(participant);
+      const targetMarkers = (markers || []).map(normalizeJoinParticipantApplicationMarker).filter(isUsableJoinParticipantApplicationMarker);
+      if (!participantMarkers.length || !targetMarkers.length) return false;
+      return participantMarkers.some((participantMarker) => {
+        return targetMarkers.some((targetMarker) => doJoinParticipantApplicationMarkersMatch(participantMarker, targetMarker));
+      });
+    }
+
+    function isJoinParticipantPreviewSource(participant = {}) {
+      return participant.source === "participant_summary_preview"
+        || String(participant.id || "").includes("-preview-")
+        || Boolean(participant.previewSeed);
+    }
+
+    function isJoinApplicationMaterializedParticipant(participant = {}, recordId = "") {
+      if (!recordId || isJoinParticipantPreviewSource(participant)) return false;
+      return hasJoinParticipantApplicationMarkerOverlap(participant, [recordId]);
+    }
+
+    function isJoinApplicationPreviewParticipantForRecord(participant = {}, recordId = "") {
+      if (!recordId || !isJoinParticipantPreviewSource(participant)) return false;
+      return hasJoinParticipantApplicationMarkerOverlap(participant, [recordId]);
+    }
+
+    function isCurrentMemberJoinedJoinSchedule(join = {}) {
+      if (isCurrentMemberCreatedJoinSchedule(join)) return false;
+      return getConfirmedParticipants(join).some((participant) => isJoinParticipantForCurrentMember(participant));
     }
 
     function getJoinMyBuilderApplicationIdentity(join = {}) {
@@ -34455,7 +35326,7 @@
         updatedAt: item.updatedAt || item.submittedAt || ""
       };
       if (!normalized.reviewId) {
-        normalized.reviewId = buildGoogleSheetRecordId("jr", normalized.submittedAt || new Date().toISOString(), normalized.member.memberSeq || normalized.member.memberId || normalized.member.memberName || "member", normalized.product.erpProductId || normalized.product.productName);
+        normalized.reviewId = buildGoogleSheetRecordId("jr", normalized.submittedAt || nowKstISOString(), normalized.member.memberSeq || normalized.member.memberId || normalized.member.memberName || "member", normalized.product.erpProductId || normalized.product.productName);
       }
       return normalized;
     }
@@ -34814,8 +35685,9 @@
 
     function renderJoinOwnScheduleBadge(join = {}) {
       const ownSchedule = findOwnActiveJoinSchedule(join);
-      if (!ownSchedule) return "";
-      const isCreated = ownSchedule.scheduleGroup === "created" || isCurrentMemberCreatedJoinSchedule(join);
+      const isDirectJoined = isCurrentMemberJoinedJoinSchedule(join);
+      if (!ownSchedule && !isDirectJoined) return "";
+      const isCreated = ownSchedule?.scheduleGroup === "created" || isCurrentMemberCreatedJoinSchedule(join);
       const label = isCreated ? "내모임" : "참여중";
       const stateClass = isCreated ? "is-created" : "is-joined";
       return `<div class="join-badge-wrap"><div class="join-own-schedule-badge ${stateClass}">${escapeHtml(label)}</div></div>`;
@@ -34955,7 +35827,9 @@
       const payload = encodeURIComponent(JSON.stringify({ joinId, participantId: participant.id }));
       const genderFlowClass = getParticipantGenderFlowClass(participant.gender);
       const flowDelayStyle = getParticipantFlowDelayStyle(participant, joinId);
-      const badge = options.isHost
+      const badge = options.isMe
+        ? '<div class="join-my-card-participant-me-badge">나</div>'
+        : options.isHost
         ? '<div class="join-my-card-participant-me-badge host">모임장</div>'
         : "";
       return `<div class="join-my-card-participant-slot">
@@ -34988,6 +35862,8 @@
     }
 
     function isJoinMyParticipantHost(participant = {}, index = 0, item = {}) {
+      const linkedJoin = getJoinMyLinkedJoin(item);
+      if (linkedJoin?.isAdminRecommendedSchedule) return false;
       if (item.hostParticipantId) return String(participant.id || "") === String(item.hostParticipantId);
       return Boolean(participant.isHost || participant.isCreator || (item.scheduleGroup === "joined" && index === 0));
     }
@@ -36877,12 +37753,12 @@
         profileImageObjectName: uploaded.objectName || "",
         profileImageMimeType: uploaded.mimeType,
         profileImageSize: uploaded.blob.size,
-        profileImageUpdatedAt: new Date().toISOString()
+        profileImageUpdatedAt: nowKstISOString()
       };
     }
 
     function buildJoinProfileManagePayload(member = {}, image = null) {
-      const submittedAt = new Date().toISOString();
+      const submittedAt = nowKstISOString();
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinProfileManageMobile")?.value || member.memberMobile || "");
       const name = String(member.memberName || member.name || "").trim();
       const email = document.getElementById("joinProfileManageEmail")?.value.trim() || member.memberEmail || "";
@@ -37289,7 +38165,7 @@
       const join = findJoinForReview(joinId, title) || { id: joinId, title };
       const productReference = getSecretTourProductReference(join);
       const member = getJoinCachedCurrentMember() || {};
-      const submittedAt = new Date().toISOString();
+      const submittedAt = nowKstISOString();
       const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
       const reviewId = presetReviewId || buildGoogleSheetRecordId("jr", submittedAt, member.memberSeq || member.memberId || member.memberName || "member", productReference.id || join.id || title);
       return {
@@ -37691,11 +38567,19 @@
       });
     }
 
-    let joinMobileViewportUpdateTimer = 0;
+    let joinMobileViewportUpdateTimers = [];
+    let joinMobileMainScrollDirection = "";
+    let joinMobileMainScrollY = window.scrollY || 0;
+
+    function isJoinGoogleAppBrowser() {
+      const ua = navigator.userAgent || "";
+      return /(?:\bGSA\/|GoogleApp)/i.test(ua);
+    }
 
     function updateJoinMobileVisualViewportVars() {
       const root = document.documentElement;
       const viewport = window.visualViewport;
+      root.classList.toggle("join-google-app-browser", isJoinGoogleAppBrowser());
       if (window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640) {
         const visualEnd = viewport ? viewport.offsetTop + viewport.height : 0;
         const modalHeight = Math.ceil(Math.max(
@@ -37720,11 +38604,33 @@
     function scheduleJoinMobileVisualViewportVarsUpdate() {
       updateJoinMobileVisualViewportVars();
       requestAnimationFrame(updateJoinMobileVisualViewportVars);
-      clearTimeout(joinMobileViewportUpdateTimer);
-      joinMobileViewportUpdateTimer = setTimeout(() => {
+      joinMobileViewportUpdateTimers.forEach((timer) => clearTimeout(timer));
+      joinMobileViewportUpdateTimers = [140, 360, 720].map((delay) => setTimeout(() => {
         updateJoinMobileVisualViewportVars();
         requestAnimationFrame(updateJoinMobileVisualViewportVars);
-      }, 140);
+      }, delay));
+    }
+
+    function noteJoinMobileMainScrollDirection(delta, currentScrollY = window.scrollY || 0) {
+      if (Math.abs(delta) <= 6) return;
+      joinMobileMainScrollDirection = delta > 0 ? "down" : "up";
+      joinMobileMainScrollY = currentScrollY;
+    }
+
+    function isJoinMobileChromeLikelyCollapsedForModal() {
+      if (!(window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640)) return false;
+      if (document.documentElement.classList.contains("modal-open") || document.body.classList.contains("modal-open")) {
+        return document.documentElement.classList.contains("join-mobile-modal-chrome-collapsed");
+      }
+      const bottomNav = document.getElementById("joinMobileBottomNav");
+      const bottomNavHidden = bottomNav?.classList.contains("is-hidden") || !bottomNav?.classList.contains("is-visible");
+      if (isJoinGoogleAppBrowser() && bottomNavHidden && joinMobileMainScrollDirection !== "up" && (window.scrollY || joinMobileMainScrollY) > 80) return true;
+      return joinMobileMainScrollDirection === "down" && joinMobileMainScrollY > 80;
+    }
+
+    function prepareJoinMobileFullscreenModalViewport() {
+      scheduleJoinMobileVisualViewportVarsUpdate();
+      document.documentElement.classList.toggle("join-mobile-modal-chrome-collapsed", isJoinMobileChromeLikelyCollapsedForModal());
     }
 
     function initializeJoinMobileBottomNav() {
@@ -37815,6 +38721,7 @@
           const currentScrollY = window.scrollY || 0;
           const delta = currentScrollY - lastScrollY;
           scheduleJoinMobileVisualViewportVarsUpdate();
+          noteJoinMobileMainScrollDirection(delta, currentScrollY);
           syncByScrollDirection(delta, currentScrollY);
           lastScrollY = currentScrollY;
           ticking = false;
@@ -38460,6 +39367,7 @@
 
     const DETAIL_AIRLINE_BY_CODE = {
       "3u": "사천항공",
+      "sc": "산동항공",
       "ke": "대한항공",
       "oz": "아시아나항공",
       "7c": "제주항공",
@@ -40839,6 +41747,7 @@
     let calendarViewMonth = null;
     let calendarMobileSelectionSort = "region";
     let calendarEmptyScheduleDate = "";
+    let calendarEmptyScheduleOpenedAt = 0;
 
     function getISODateKey(date) {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -41295,10 +42204,12 @@
       resetModalRuntimeState(sheet);
       sheet?.classList.remove("open");
       calendarEmptyScheduleDate = "";
+      calendarEmptyScheduleOpenedAt = 0;
     }
 
     function openCalendarEmptyScheduleSheet(dateKey) {
       calendarEmptyScheduleDate = dateKey;
+      calendarEmptyScheduleOpenedAt = Date.now();
       clearCalendarMobileSelection();
       clearCalendarDesktopSelection();
       document.querySelectorAll(".calendar-accordion").forEach((item) => {
@@ -41755,6 +42666,7 @@
       const today = getTodayDate();
       calendarViewMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       renderCalendarSheetLoading();
+      prepareJoinMobileFullscreenModalViewport();
       const overlay = portalOverlayToBody("calendarSheet");
       overlay?.classList.add("open");
       setWidgetModalOpen(true);
@@ -41794,6 +42706,15 @@
     }
 
     function handleCalendarSheetBackdrop(event) {
+      const emptySheet = document.getElementById("calendarEmptyScheduleSheet");
+      if (
+        emptySheet?.classList.contains("open")
+        && !emptySheet.contains(event.target)
+        && (!calendarEmptyScheduleOpenedAt || Date.now() - calendarEmptyScheduleOpenedAt > 250)
+      ) {
+        closeCalendarEmptyScheduleSheet();
+        return;
+      }
       if (event.target.id === "calendarSheet") {
         closeCalendarSheet();
       }
@@ -42767,14 +43688,14 @@
       const next = document.getElementById("builderNextButton");
       const bottom = document.getElementById("builderBottom");
       if (prev) {
-        prev.style.display = step === 1 || builderState.mdPickRecruitDirectMode ? "none" : "";
+        prev.style.display = step === 1 || step === 3 || builderState.mdPickRecruitDirectMode ? "none" : "";
         prev.textContent = step === 4 ? "전화 상담" : "이전";
         prev.setAttribute("onclick", step === 4 ? "handleBuilderPhoneInquiry()" : "prevBuilderStep()");
       }
       if (next) {
         next.textContent = step === 1 ? "다음" : step === 2 ? "다음" : step === 3 ? "신청하기" : "카톡 공유";
         next.disabled = false;
-        next.style.gridColumn = step === 1 || builderState.mdPickRecruitDirectMode ? "1 / -1" : "";
+        next.style.gridColumn = step === 1 || step === 3 || builderState.mdPickRecruitDirectMode ? "1 / -1" : "";
         next.setAttribute("onclick", step === 4 ? "handleBuilderKakaoInquiry()" : "nextBuilderStep()");
       }
       if (bottom) {
@@ -42839,7 +43760,7 @@
         listId: isBuilder ? "builderCompanionList" : "globalCompanionList",
         accordionId: isBuilder ? "builderApplyPeopleAccordion" : "globalApplyPeopleAccordion",
         fieldSelector: `[data-companion-field="${scope}"]`,
-        modeSelector: isBuilder ? ".builder-apply-form .apply-people-mode" : '[data-people-mode="global"]',
+        modeSelector: isBuilder ? ".builder-apply-form [data-builder-apply-single]" : '[data-people-mode="global"]',
         summary: isBuilder ? updateBuilderApplySummary : updateApplyProgressive
       };
     }
@@ -42930,13 +43851,16 @@
 
     function renderApplyParticipantLabel(participant) {
       const label = escapeHtml(participant?.label || "");
-      if (participant?.type !== "applicant") return label;
-      return `<span aria-hidden="true">&#x1F451;</span><span>${label}</span>`;
+      if (participant?.type === "existing" && (participant.isCurrentMember || isJoinParticipantForCurrentMember(participant))) {
+        return '<div class="join-my-card-participant-me-badge apply-me-badge">나</div>';
+      }
+      if (participant?.type === "applicant") return `<div class="join-my-card-participant-me-badge apply-me-badge">${label}</div>`;
+      return label;
     }
 
     function getApplyParticipantKey(participant) {
       if (!participant) return "empty";
-      return `${participant.type}-${participant.companionIndex ?? ""}-${participant.gender || ""}-${participant.label || ""}`;
+      return `${participant.type}-${participant.companionIndex ?? ""}-${participant.gender || ""}-${participant.label || ""}-${participant.isCurrentMember ? "me" : ""}`;
     }
 
     function renderApplyParticipantSlot(participant, index, scope) {
@@ -42945,11 +43869,17 @@
         return `<div class="apply-participant-slot empty" data-participant-key="${participantKey}"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="apply-participant-label">빈자리</div></div>`;
       }
       const removable = participant.type === "companion";
+      const labelHtml = renderApplyParticipantLabel(participant);
+      const labelHiddenAttr = labelHtml ? "" : ' aria-hidden="true"';
+      const genderFlowClass = getParticipantGenderFlowClass(participant.gender);
+      const flowDelayStyle = getParticipantFlowDelayStyle(participant, `${scope}-apply-${participant.type || ""}-${index}`);
       return `
         <div class="apply-participant-slot filled ${participant.type === "existing" ? "is-existing" : ""}" data-apply-participant-index="${index}" data-participant-key="${participantKey}">
           ${removable ? `<button type="button" class="apply-participant-remove" onclick="removeCompanionGender('${scope}', ${participant.companionIndex})" aria-label="${escapeHtml(participant.label || "일행")} 삭제"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 4.5l11 11M15.5 4.5l-11 11" stroke="currentColor" stroke-linecap="round"/></svg></button>` : ""}
-          <div class="apply-participant-avatar"><img src="${participant.gif}" alt="${escapeHtml(participant.label)}"></div>
-          <div class="apply-participant-label">${renderApplyParticipantLabel(participant)}</div>
+          <div class="apply-participant-avatar-wrap">
+            <div class="apply-participant-avatar participant-flow-avatar ${genderFlowClass}" style="${flowDelayStyle}"><img src="${participant.gif}" alt="${escapeHtml(participant.label)}"></div>
+          </div>
+          <div class="apply-participant-label${labelHtml ? "" : " is-placeholder"}"${labelHiddenAttr}>${labelHtml || "&nbsp;"}</div>
         </div>
       `;
     }
@@ -42997,10 +43927,12 @@
       if (!list) return;
       const genders = Array.from({ length: companionCount }, (_, index) => preserved[index] || "남성");
       const existing = getApplyExistingParticipants(scope).map((participant) => ({
+        ...participant,
         type: "existing",
         label: participant.name || "참여자",
         gender: participant.gender,
-        gif: participant.gif || getBuilderApplicationGenderIcon(participant.gender, null, `${scope}-existing-${participant.id || ""}`)
+        gif: participant.gif || getBuilderApplicationGenderIcon(participant.gender, null, `${scope}-existing-${participant.id || ""}`),
+        isCurrentMember: isJoinParticipantForCurrentMember(participant)
       }));
       const applicantGender = getApplyApplicantGender(scope);
       const applicant = {
@@ -43049,7 +43981,7 @@
         : { male: 0, female: 0 };
       const statusDivider = `<svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"/></svg>`;
       const existingStatusLine = scope === "global" && !isMonthlyApply
-        ? `<div class="apply-companion-status-line"><div class="apply-companion-status-label">기존</div>${statusDivider}<div class="apply-companion-status-count">총 ${existing.length}명</div>${statusDivider}<div class="apply-companion-status-gender">${formatApplyParticipantGenderCounts(existing)}</div></div>`
+        ? `<div class="apply-companion-status-line"><div class="apply-companion-status-label">기존</div>${statusDivider}<div class="apply-companion-status-count">총 ${existing.length}명</div>${statusDivider}<div class="apply-companion-status-gender">${existing.length ? formatApplyParticipantGenderCounts(existing) : "-"}</div></div>`
         : "";
       const statusHtml = isMonthlyApply
         ? `
@@ -43183,19 +44115,27 @@
     function setBuilderApplyPeople(value) {
       const count = parseApplyPeopleValue(value);
       setCompanionPeople("builder", count);
+      const modeGroup = document.querySelector(".builder-apply-form [data-builder-apply-single]");
       if (count > 1) {
-        const modeGroup = document.querySelector(".builder-apply-form .apply-people-mode");
+        modeGroup?.classList.add("is-group");
         modeGroup?.querySelectorAll(".apply-people-button").forEach((button) => {
           button.classList.toggle("active", button.dataset.joinMode === "group");
         });
         document.getElementById("builderApplyPeopleAccordion")?.classList.add("open");
+      } else {
+        modeGroup?.classList.remove("is-group");
+        modeGroup?.querySelectorAll(".apply-people-button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.joinMode !== "group");
+        });
+        document.getElementById("builderApplyPeopleAccordion")?.classList.remove("open");
       }
     }
 
     function setBuilderApplyPeopleMode(mode) {
       const accordion = document.getElementById("builderApplyPeopleAccordion");
-      const isGroup = mode === "group";
-      const modeGroup = document.querySelector(".builder-apply-form .apply-people-mode");
+      const canGroup = getApplyAvailablePeople("builder") > 1;
+      const isGroup = mode === "group" && canGroup;
+      const modeGroup = document.querySelector(".builder-apply-form [data-builder-apply-single]");
       modeGroup?.classList.toggle("is-group", isGroup);
       modeGroup?.querySelectorAll(".apply-people-button").forEach((button) => {
         const isGroupButton = button.dataset.joinMode === "group";
@@ -43203,7 +44143,8 @@
       });
       accordion?.classList.toggle("open", isGroup);
       if (isGroup) {
-        setCompanionPeople("builder", getCompanionPeople("builder") > 1 ? getCompanionPeople("builder") : 1);
+        const currentPeople = getCompanionPeople("builder");
+        setCompanionPeople("builder", currentPeople > 1 ? currentPeople : 1);
       } else {
         setCompanionPeople("builder", 1);
       }
@@ -43334,6 +44275,31 @@
       return false;
     }
 
+    function getBuilderApplyValidationPayload() {
+      const member = getJoinCachedCurrentMember() || getJoinLoginState().member || {};
+      const cached = getRememberedJoinMemberProfile(member || {});
+      const cachedBirthYear = getBirthYearFromJoinMember(member || {}, cached);
+      const cachedPhone = normalizeJoinMemberPhone(cached.mobile || cached.phone || cached.memberMobile || member.memberMobile || "");
+      return {
+        applicant: {
+          name: document.getElementById("builderApplyName")?.value.trim()
+            || cached.name
+            || cached.memberName
+            || member.memberName
+            || "",
+          gender: document.querySelector('[data-chip-group="builder-gender"] .apply-chip.active')?.dataset.value
+            || cached.gender
+            || member.gender
+            || "",
+          birthYear: document.getElementById("builderApplyBirthYear")?.value.trim()
+            || cachedBirthYear
+            || "",
+          phone: normalizeJoinMemberPhone(document.getElementById("builderApplyPhone")?.value.trim() || cachedPhone),
+          styles: getSelectedBuilderApplyStyles()
+        }
+      };
+    }
+
     function parseBuilderStorageRegionParts(value = "") {
       const parts = String(value || "").split(",").map((part) => part.trim()).filter(Boolean);
       return {
@@ -43381,7 +44347,7 @@
       const greeting = document.getElementById("builderApplyGreeting")?.value.trim() || "";
       const requiredAgreed = true;
       const marketingAgreed = false;
-      const submittedAt = new Date().toISOString();
+      const submittedAt = nowKstISOString();
       const builderMemberKey = memberProfile.member?.memberSeq || memberProfile.member?.memberId || memberProfile.memberId || name || "member";
       const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, builderMemberKey);
       const scheduleId = buildGoogleSheetRecordId("sch", applicationId);
@@ -43442,7 +44408,7 @@
           memberName: memberProfile.member?.memberName || name,
           memberChannel: memberProfile.member?.memberChannel || "",
           memberMobile: normalizeJoinMemberPhone(memberProfile.member?.memberMobile || phone),
-          memberEmail: memberProfile.member?.memberEmail || ""
+          memberEmail: memberProfile.member?.memberEmail || memberProfile.member?.email || memberProfile.email || ""
         },
         applicant: {
           name,
@@ -43499,10 +44465,22 @@
     function validateBuilderApplyPayload(payload) {
       clearBuilderApplyErrors();
       if (!payload.applicant.name) {
+        markBuilderApplyFieldError("name");
         alert("회원정보의 이름이 필요합니다. 회원가입 정보를 확인해 주세요.");
         return false;
       }
+      if (!payload.applicant.gender) {
+        markBuilderApplyFieldError("gender");
+        openBuilderAlert("성별을 선택해 주세요.");
+        return false;
+      }
+      if (!/^\d{4}$/.test(payload.applicant.birthYear || "")) {
+        markBuilderApplyFieldError("birthYear");
+        openBuilderAlert("생년월일을 입력해 주세요.");
+        return false;
+      }
       if (!/^010\d{8}$/.test(payload.applicant.phone)) {
+        markBuilderApplyFieldError("phone");
         alert("회원정보의 휴대폰번호가 필요합니다. 회원가입 정보를 확인해 주세요.");
         return false;
       }
@@ -43554,6 +44532,8 @@
         error.responseBody = text;
         try {
           const parsed = JSON.parse(text || "{}");
+          error.serverPayload = parsed;
+          error.serverCode = parsed.code || parsed.errorCode || "";
           error.serverMessage = parsed.error || parsed.message || "";
         } catch (parseError) {
           error.serverMessage = text.slice(0, 200);
@@ -43626,6 +44606,27 @@
       return postGolfJoinSheetPayload(payload, "Join apply");
     }
 
+    async function confirmBuilderApplySavedToGoogleSheet(payload = {}) {
+      const targetId = String(payload.applicationId || "").trim();
+      const targetScheduleId = String(payload.scheduleId || "").trim();
+      if ((!targetId && !targetScheduleId) || !GOLFJOIN_SHEET_API_ENDPOINT) return false;
+      try {
+        const rows = await fetchGolfJoinSheetRows({
+          sheet: "new_schedule_applications",
+          source: "new_schedule_builder",
+          limit: "20"
+        }, "Builder apply confirmation");
+        return rows.some((row) => {
+          const applicationId = String(row.applicationId || "").trim();
+          const scheduleId = String(row.scheduleId || "").trim();
+          return (targetId && applicationId === targetId) || (targetScheduleId && scheduleId === targetScheduleId);
+        });
+      } catch (error) {
+        console.warn("Failed to confirm builder apply save from Google Sheet.", error);
+        return false;
+      }
+    }
+
     async function confirmJoinApplySavedToGoogleSheet(payload = {}) {
       const targetId = String(payload.joinApplyId || payload.applicationId || "").trim();
       if (!targetId || !GOLFJOIN_SHEET_API_ENDPOINT) return false;
@@ -43658,7 +44659,7 @@
           const pending = JSON.parse(localStorage.getItem("joinMemberProfilePendingSaves") || "[]");
           pending.unshift({
             payload,
-            failedAt: new Date().toISOString(),
+            failedAt: nowKstISOString(),
             message: error?.message || ""
           });
           localStorage.setItem("joinMemberProfilePendingSaves", JSON.stringify(pending.slice(0, 5)));
@@ -43674,7 +44675,7 @@
       const scheduleId = join?.scheduleId || sheetApplication.scheduleId || (join?.isAdminRecommendedSchedule ? join.id : "") || "";
       const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || join?.displayRule?.recommendedScheduleId || join?.displayRule?.displayRuleId || "";
       return {
-        targetType: scheduleId || join?.isAdminRecommendedSchedule ? "new_schedule" : "erp_product",
+        targetType: join?.isAdminRecommendedSchedule ? "recommended_schedule" : (scheduleId ? "new_schedule" : "erp_product"),
         targetScheduleId: scheduleId,
         targetApplicationId: applicationId
       };
@@ -43684,17 +44685,21 @@
       const join = getCurrentApplyJoin() || {};
       const target = getCurrentApplyTargetInfo(join);
       const productReference = getSecretTourProductReference(join);
-      const submittedAt = new Date().toISOString();
+      const submittedAt = nowKstISOString();
       const phone = data.phone || "";
       const joinMemberKey = data.member?.memberSeq || data.member?.memberId || data.name || "member";
       const joinApplyId = buildGoogleSheetRecordId("ja", submittedAt, joinMemberKey, join.id || "");
       const country = getApplyJoinCountryName(join);
+      const member = {
+        ...(data.member || {}),
+        memberEmail: data.member?.memberEmail || data.member?.email || data.memberEmail || data.email || ""
+      };
       return {
         joinApplyId,
         source: "join_apply",
         submittedAt,
         pageUrl: location.href,
-        member: data.member || {},
+        member,
         targetType: target.targetType,
         targetScheduleId: target.targetScheduleId,
         targetApplicationId: target.targetApplicationId,
@@ -43974,17 +44979,23 @@
       if (!join) return null;
       const recordId = normalized.joinApplyId || buildGoogleSheetRecordId("ja", normalized.submittedAt, getNestedValue(normalized, "member.memberSeq") || getNestedValue(normalized, "member.memberId") || getNestedValue(normalized, "applicant.name") || "member", joinId);
       const capacity = getJoinRecruitmentCapacity(join, BUILDER_APPLICATION_MAX_CAPACITY);
-      const isMonthlyJoin = isMonthlyRecommendationJoin(join) || capacity > BUILDER_APPLICATION_MAX_CAPACITY;
-      if ((join.participants || []).some((participant) => String(participant.id || "").startsWith(`${recordId}-p`))) {
+      const existingParticipants = Array.isArray(join.participants) ? join.participants : [];
+      const matchingPreviewCount = existingParticipants.filter((participant) => isJoinApplicationPreviewParticipantForRecord(participant, recordId)).length;
+      if (existingParticipants.some((participant) => isJoinApplicationMaterializedParticipant(participant, recordId))) {
+        join.participants = mergeJoinParticipantsByIdentity(
+          existingParticipants.filter((participant) => !isJoinApplicationPreviewParticipantForRecord(participant, recordId)),
+          [],
+          capacity
+        );
         join.emptySlots = Math.max(0, capacity - getConfirmedParticipants(join).length);
         join.maxCapacity = capacity;
+        clearActiveJoinMySchedulesCache();
         return join;
       }
       const applicant = normalized.applicant || {};
       const requestedCount = parseApplyPeopleValue(applicant.people || 1);
-      const remainingSlots = isMonthlyJoin
-        ? Math.max(0, capacity - getConfirmedParticipants(join).length)
-        : (Number.isFinite(Number(join.emptySlots)) ? Number(join.emptySlots) : requestedCount);
+      const occupiedCountAfterPreviewReplacement = Math.max(0, getConfirmedParticipants(join).length - matchingPreviewCount);
+      const remainingSlots = Math.max(0, capacity - occupiedCountAfterPreviewReplacement);
       const participantCount = Math.max(0, Math.min(BUILDER_APPLICATION_MAX_CAPACITY, requestedCount, remainingSlots));
       if (participantCount <= 0) return join;
       const companionGenders = parseCompanionList(applicant.companions).map((item) => item?.gender || "");
@@ -44000,6 +45011,10 @@
         } : {};
         return {
           id: participantId,
+          source: "join_apply",
+          sourceRecordId: recordId,
+          joinApplyId: recordId,
+          applicationId: recordId,
           name: index === 0 ? maskApplyName(applicant.name) : `일행${index}`,
           gender,
           ...memberIdentity,
@@ -44013,11 +45028,11 @@
           gif: getBuilderApplicationGenderIcon(gender, null, `${join.id}-${participantId}-${applicant.name || index}`)
         };
       });
-      join.participants = [...(join.participants || []), ...participants];
-      join.emptySlots = isMonthlyJoin
-        ? Math.max(0, capacity - getConfirmedParticipants(join).length)
-        : (Number.isFinite(Number(join.emptySlots)) ? Math.max(0, Number(join.emptySlots) - participants.length) : join.emptySlots);
+      const baseParticipants = existingParticipants.filter((participant) => !isJoinApplicationPreviewParticipantForRecord(participant, recordId));
+      join.participants = mergeJoinParticipantsByIdentity(baseParticipants, participants, capacity);
+      join.emptySlots = Math.max(0, capacity - getConfirmedParticipants(join).length);
       join.maxCapacity = capacity;
+      clearActiveJoinMySchedulesCache();
       if (options.persist) saveJoinApplicationPayloadLocally(normalized);
       if (options.render !== false) renderJoins();
       return join;
@@ -44031,6 +45046,14 @@
         getNestedValue(normalized, "member.memberSeq") || getNestedValue(normalized, "member.memberId") || getNestedValue(normalized, "applicant.name") || "member",
         getNestedValue(normalized, "join.id")
       );
+    }
+
+    function isRecentJoinApplyPayload(payload = {}, now = Date.now()) {
+      if (String(payload.source || "") !== "join_apply") return false;
+      const submittedTime = Date.parse(payload.submittedAt || payload.createdAt || "");
+      return Number.isFinite(submittedTime)
+        && submittedTime <= now + 60 * 1000
+        && now - submittedTime <= JOIN_APPLICATION_AUTHORITATIVE_REFRESH_GRACE_MS;
     }
 
     function removeJoinApplicationParticipants(payloads = []) {
@@ -44048,12 +45071,56 @@
       });
     }
 
+    function clearJoinApplicationRuntimeState() {
+      removeJoinApplicationParticipants(Array.from(joinApplicationPayloadMemory.values()));
+      joinApplicationPayloadMemory.clear();
+      clearActiveJoinMySchedulesCache();
+    }
+
     function clearJoinApplicationLocalCache() {
       try {
         localStorage.removeItem(JOIN_APPLICATIONS_STORAGE_KEY);
       } catch (error) {
         console.warn("Failed to clear join application cache.", error);
       }
+    }
+
+    function clearJoinApplicationSheetReadCache() {
+      try {
+        localStorage.removeItem(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY);
+      } catch (error) {
+        console.warn("Failed to clear join application sheet cache.", error);
+      }
+    }
+
+    function refreshOpenDetailAfterJoinParticipantsChange() {
+      const detailModal = document.getElementById("detailModal");
+      if (!detailModal?.classList.contains("open") || !currentDetailJoinId) return;
+      const freshJoin = joins.find((item) => item.id === currentDetailJoinId) || currentDetailJoinData;
+      if (!freshJoin) return;
+      currentDetailJoinData = freshJoin;
+      renderDetailContent(freshJoin);
+    }
+
+    function resetJoinApplicationsFromAuthoritativeRows(rows = []) {
+      const authoritativePayloads = rows.map(normalizeJoinApplyPayload);
+      const authoritativeKeys = new Set(authoritativePayloads.map(getJoinApplicationRecordKey).filter(Boolean));
+      const rememberedApplications = Array.from(joinApplicationPayloadMemory.values())
+        .map(normalizeJoinApplyPayload)
+        .filter((payload) => {
+          const source = String(payload.source || "");
+          if (source !== "join_apply") return true;
+          const key = getJoinApplicationRecordKey(payload);
+          return Boolean(key && !authoritativeKeys.has(key) && isRecentJoinApplyPayload(payload));
+        });
+      clearJoinApplicationLocalCache();
+      clearJoinApplicationRuntimeState();
+      authoritativePayloads.forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+      rememberedApplications.forEach((payload) => {
+        applyJoinApplicationPayload(payload, { render: false, persist: String(payload.source || "") === "join_apply" });
+      });
+      clearActiveJoinMySchedulesCache();
+      refreshOpenDetailAfterJoinParticipantsChange();
     }
 
     function hydrateJoinApplicationsFromLocalCache() {
@@ -44095,16 +45162,7 @@
           limit: "50"
         }, "Join applications");
         writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows, { memberKey });
-        if (rows.length || !memberKey) clearJoinApplicationLocalCache();
-        const rememberedApplications = Array.from(joinApplicationPayloadMemory.values())
-          .map(normalizeJoinApplyPayload)
-          .filter((payload) => String(payload.source || "") !== "join_apply");
-        if (rows.length || !memberKey) {
-          removeJoinApplicationParticipants(Array.from(joinApplicationPayloadMemory.values()));
-          joinApplicationPayloadMemory.clear();
-        }
-        rows.map(normalizeJoinApplyPayload).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
-        rememberedApplications.forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+        resetJoinApplicationsFromAuthoritativeRows(rows);
         googleSheetJoinApplicationsReadCompleted = true;
         googleSheetJoinApplicationsReadFailed = false;
         renderJoins();
@@ -44122,14 +45180,7 @@
 
     function applyJoinApplicationsFromGoogleSheetRows(rows = []) {
       writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows);
-      clearJoinApplicationLocalCache();
-      const rememberedApplications = Array.from(joinApplicationPayloadMemory.values())
-        .map(normalizeJoinApplyPayload)
-        .filter((payload) => String(payload.source || "") !== "join_apply");
-      removeJoinApplicationParticipants(Array.from(joinApplicationPayloadMemory.values()));
-      joinApplicationPayloadMemory.clear();
-      rows.map(normalizeJoinApplyPayload).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
-      rememberedApplications.forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+      resetJoinApplicationsFromAuthoritativeRows(rows);
       googleSheetJoinApplicationsReadCompleted = true;
       googleSheetJoinApplicationsReadFailed = false;
       return rows;
@@ -44181,14 +45232,14 @@
           .replace(/010[-\s]?\d{4}[-\s]?\d{4}/g, "private")
           .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "private");
       });
-      const safe = String(scrubbedParts.join("-") || new Date().toISOString())
+      const safe = String(scrubbedParts.join("-") || nowKstISOString())
         .replace(/[^a-z0-9가-힣_-]+/gi, "-")
         .replace(/^-+|-+$/g, "");
       return `${prefix}_${safe}`;
     }
 
     function ensureBuilderApplicationIdentifiers(payload = {}) {
-      const submittedAt = payload.submittedAt || new Date().toISOString();
+      const submittedAt = payload.submittedAt || nowKstISOString();
       const phone = getNestedValue(payload, "applicant.phone") || payload.creatorPhone || payload.phone || "";
       const applicationId = payload.applicationId || buildGoogleSheetRecordId("nsa", submittedAt, payload.member?.memberSeq || payload.member?.memberId || "member");
       const scheduleId = payload.scheduleId || buildGoogleSheetRecordId("sch", applicationId);
@@ -44441,7 +45492,7 @@
       const region = getNestedValue(normalized, "trip.region") || toBuilderApplicationArray(getNestedValue(normalized, "trip.regions"))[0] || product?.region || fallback.region || "해외";
       const productName = getNestedValue(normalized, "trip.productName") || product?.title || "";
       const applicantName = getNestedValue(normalized, "applicant.name");
-      const submittedAt = normalized.submittedAt || new Date().toISOString();
+      const submittedAt = normalized.submittedAt || nowKstISOString();
       const idSeed = normalized.scheduleId || normalized.applicationId || buildGoogleSheetRecordId("nsa", submittedAt, productName, region, index);
       const participantName = escapeBuilderApplicationText(maskBuilderApplicantName(applicantName));
       const participants = buildBuilderApplicationParticipants(normalized, fallback, idSeed || index, participantName);
@@ -44534,9 +45585,11 @@
           join.sheetApplication = nextApplication;
         }
         const baseParticipantIds = new Set((join.participants || []).map((participant) => String(participant.id || "")));
+        const shouldReplaceBuilderPreviewParticipants = options.source === "sheet" || options.source === "light";
         const appliedParticipants = (existingJoin.participants || [])
           .filter((participant) => {
             const participantId = String(participant.id || "");
+            if (shouldReplaceBuilderPreviewParticipants && participantId.startsWith(BUILDER_APPLICATION_JOIN_PREFIX)) return false;
             return participantId && !baseParticipantIds.has(participantId);
           });
         if (appliedParticipants.length) {
@@ -44657,8 +45710,11 @@
 
     function buildLightPreviewParticipant(preview = {}, joinId = "", index = 0) {
       const gender = preview.gender || "";
+      const previewSeed = preview.iconSeed || preview.seed || "";
       return {
         id: `${joinId}-preview-${index + 1}`,
+        source: "participant_summary_preview",
+        previewSeed,
         name: preview.displayName || "",
         gender,
         companionGroup: preview.companionGroup || "",
@@ -44673,13 +45729,14 @@
         preferredMemberComposition: toBuilderApplicationArray(preview.memberPreferences),
         message: "",
         status: "confirmed",
-        gif: getBuilderApplicationGenderIcon(gender, null, `${joinId}-${preview.iconSeed || index}`)
+        gif: getBuilderApplicationGenderIcon(gender, null, `${joinId}-${previewSeed || index}`)
       };
     }
 
     function mergeJoinParticipantsByIdentity(existingParticipants = [], previewParticipants = [], limit = BUILDER_APPLICATION_MAX_CAPACITY) {
       const merged = [];
       const seen = new Set();
+      const seenApplicationMarkers = [];
       const getKey = (participant = {}) => {
         const identity = getJoinParticipantMemberIdentity(participant);
         if (identity.seq) return `seq:${identity.seq}`;
@@ -44694,7 +45751,31 @@
         if (!participant) return;
         const key = getKey(participant);
         if (key && seen.has(key)) return;
+        const markers = getJoinParticipantApplicationMarkers(participant);
+        const isPreviewSource = isJoinParticipantPreviewSource(participant);
+        const duplicatePreviewRecord = markers.reduce((match, marker) => {
+          if (match) return match;
+          return seenApplicationMarkers.find((seenMarker) => {
+            if (isPreviewSource === seenMarker.isPreviewSource) return false;
+            return doJoinParticipantApplicationMarkersMatch(marker, seenMarker.value);
+          }) || null;
+        }, null);
+        if (duplicatePreviewRecord) {
+          if (isPreviewSource || !duplicatePreviewRecord.isPreviewSource) return;
+          const previewIndex = merged.indexOf(duplicatePreviewRecord.participant);
+          if (previewIndex >= 0) merged.splice(previewIndex, 1);
+          for (let index = seenApplicationMarkers.length - 1; index >= 0; index -= 1) {
+            if (seenApplicationMarkers[index].participant === duplicatePreviewRecord.participant) {
+              seenApplicationMarkers.splice(index, 1);
+            }
+          }
+        }
         if (key) seen.add(key);
+        markers.forEach((marker) => {
+          if (!seenApplicationMarkers.some((seenMarker) => doJoinParticipantApplicationMarkersMatch(marker, seenMarker.value))) {
+            seenApplicationMarkers.push({ value: marker, isPreviewSource, participant });
+          }
+        });
         merged.push(participant);
       });
       return merged.slice(0, Math.max(0, limit));
@@ -44755,7 +45836,7 @@
       return {
         applicationId,
         scheduleId,
-        submittedAt: summary.createdAt || summary.updatedAt || new Date().toISOString(),
+        submittedAt: summary.createdAt || summary.updatedAt || nowKstISOString(),
         source: "new_schedule_builder",
         applicationStatus: summary.approvalStatus || "",
         displayStatus: summary.displayStatus || "",
@@ -44825,7 +45906,12 @@
       join.packTypeName = summary.packTypeName || join.packTypeName || "";
       join.flightIncluded = summary.flightIncluded || join.flightIncluded || "";
       join.shareUrl = summary.shareUrl || join.shareUrl || "";
-      applyLightParticipantsToJoin(join, summary.participantsPreview, summary);
+      const capacity = getJoinRecruitmentCapacity(join, BUILDER_APPLICATION_MAX_CAPACITY);
+      const confirmedCount = Math.max(0, Math.min(capacity, Number(summary.confirmedCount) || getConfirmedParticipants(join).length));
+      join.emptySlots = Number.isFinite(Number(summary.remainingSlots))
+        ? Math.max(0, Number(summary.remainingSlots))
+        : Math.max(0, capacity - confirmedCount);
+      join.maxCapacity = capacity;
       return join;
     }
 
@@ -44867,7 +45953,7 @@
         erpProductId: item.erpProductId || item.targetKey || "",
         erpEventSeq: item.erpEventSeq || "",
         status: item.status || "active",
-        updatedAt: item.updatedAt || new Date().toISOString()
+        updatedAt: item.updatedAt || nowKstISOString()
       })).filter((item) => item.targetKey);
       applyJoinWishesFromGoogleSheetRows(rows, memberKey);
       return rows;
@@ -44883,6 +45969,12 @@
       ].join("|");
     }
 
+    function refreshOpenCalendarSheetAfterJoinDataChange() {
+      const sheet = document.getElementById("calendarSheet");
+      if (!sheet?.classList.contains("open")) return;
+      renderCalendarSheet();
+    }
+
     function applyHomeBootstrapLightRows(data = {}, options = {}) {
       pendingHomeBootstrapLightData = data || null;
       const signature = getHomeBootstrapLightSignature(data || {});
@@ -44895,16 +45987,28 @@
         clearBuilderApplicationLocalCache({ authoritativeKeys });
         syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys);
       }
+      const hasAuthoritativeParticipantSummaryList = options.fromCache !== true && Array.isArray(data.participantSummaries);
+      if (hasAuthoritativeParticipantSummaryList && !Array.isArray(data.joinApplications)) {
+        clearJoinApplicationLocalCache();
+        clearJoinApplicationSheetReadCache();
+        clearJoinApplicationRuntimeState();
+        googleSheetJoinApplicationsReadCompleted = false;
+        googleSheetJoinApplicationsReadFailed = false;
+      }
       googleSheetBuilderApplicationsLoading = false;
       googleSheetJoinApplicationsLoading = false;
       googleSheetBuilderApplicationsReadCompleted = true;
-      googleSheetJoinApplicationsReadCompleted = true;
+      if (!hasAuthoritativeParticipantSummaryList || Array.isArray(data.joinApplications)) {
+        googleSheetJoinApplicationsReadCompleted = true;
+      }
       googleSheetBuilderApplicationsReadFailed = false;
       googleSheetJoinApplicationsReadFailed = false;
       newScheduleSummaries.forEach(upsertLightNewScheduleSummary);
       applyAdminRecommendedScheduleRows(data.displayRules || []);
       (data.participantSummaries || []).forEach(applyLightParticipantSummary);
       renderJoins();
+      refreshOpenDetailAfterJoinParticipantsChange();
+      refreshOpenCalendarSheetAfterJoinDataChange();
       refreshDetailWishButtons();
       if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
         renderJoinMyWishMenu();
@@ -45053,6 +46157,7 @@
         const visibleRows = rows.filter((row) => String(row.section || "") === "available_schedule" && String(row.isVisible || "true").toLowerCase() !== "false");
         applyAdminRecommendedScheduleRows(visibleRows);
         renderJoins();
+        refreshOpenCalendarSheetAfterJoinDataChange();
         return visibleRows;
       } catch (error) {
         console.warn("Failed to load recommended schedules from Google Sheet.", error);
@@ -45113,6 +46218,8 @@
         console.warn("Home bootstrap completed with warnings.", data.warnings);
       }
       renderJoins();
+      refreshOpenDetailAfterJoinParticipantsChange();
+      refreshOpenCalendarSheetAfterJoinDataChange();
       refreshDetailWishButtons();
       if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
         renderJoinMyWishMenu();
@@ -45155,6 +46262,8 @@
       if (builderApplySubmitting) return false;
       if (!validateBuilderApplyStyleSelection()) return false;
       if (!options.confirmed) {
+        const payload = getBuilderApplyValidationPayload();
+        if (!validateBuilderApplyPayload(payload)) return false;
         openApplySubmitConfirmModal("builder");
         return false;
       }
@@ -45165,7 +46274,13 @@
         const result = await runJoinActionLoading(async () => {
           const payload = await getBuilderApplyPayload();
           if (!validateBuilderApplyPayload(payload)) return { ok: false };
-          await saveBuilderApplyToGoogleSheet(payload);
+          try {
+            await saveBuilderApplyToGoogleSheet(payload);
+          } catch (error) {
+            const confirmed = await confirmBuilderApplySavedToGoogleSheet(payload);
+            if (!confirmed) throw error;
+            console.warn("Builder apply save response failed, but the row was confirmed in Google Sheet.", error);
+          }
           invalidateHomeBootstrapLightCache();
           const join = upsertBuilderApplicationJoin(payload, { persist: true });
           latestBuilderApplicationShareJoin = join;
@@ -45293,7 +46408,7 @@
       if (greeting) greeting.value = "잘 부탁드립니다.";
       document.querySelectorAll(".builder-apply-form .apply-chip.active, .builder-apply-form .profession-chip.active").forEach((item) => item.classList.remove("active"));
       document.querySelector('[data-chip-group="builder-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
-      const builderPeopleMode = document.querySelector(".builder-apply-form .apply-people-mode");
+      const builderPeopleMode = document.querySelector(".builder-apply-form [data-builder-apply-single]");
       builderPeopleMode?.classList.remove("is-group");
       builderPeopleMode?.querySelectorAll(".apply-people-button").forEach((button) => {
         button.classList.toggle("active", button.dataset.joinMode !== "group");
@@ -45327,10 +46442,15 @@
       updateBuilderApplySummary();
     }
 
-    function openBuilderAlert(message = "도착일을 선택해주세요.") {
+    function openBuilderAlert(message = "도착일을 선택해주세요.", options = {}) {
+      builderAlertOpenedAt = Date.now();
+      builderAlertConfirmHandler = typeof options.onConfirm === "function" ? options.onConfirm : null;
       const overlay = portalOverlayToBody("builderAlertModal");
+      if (overlay && overlay.parentElement === document.body) document.body.appendChild(overlay);
       const messageTarget = document.getElementById("builderAlertMessage");
       if (messageTarget) messageTarget.textContent = message;
+      overlay?.style.setProperty("z-index", "2147483647", "important");
+      overlay?.querySelector(".builder-alert-modal")?.style.setProperty("z-index", "1", "important");
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
       setWidgetModalOpen(true);
@@ -45341,7 +46461,25 @@
       resetModalRuntimeState(overlay);
       overlay?.classList.remove("open");
       overlay?.setAttribute("aria-hidden", "true");
+      builderAlertOpenedAt = 0;
+      builderAlertConfirmHandler = null;
       setWidgetModalOpen(hasOpenBlockingModal());
+    }
+
+    function confirmBuilderAlert() {
+      const onConfirm = builderAlertConfirmHandler;
+      closeBuilderAlert();
+      if (typeof onConfirm === "function") onConfirm();
+    }
+
+    function handleBuilderAlertBackdropClick(event) {
+      if (event?.target?.id !== "builderAlertModal") return;
+      if (builderAlertOpenedAt && Date.now() - builderAlertOpenedAt < 450) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      closeBuilderAlert();
     }
 
     function openApplySubmitConfirmModal(type = "apply") {
@@ -45349,6 +46487,7 @@
       applySubmitConfirmOpenedAt = Date.now();
       const isBuilder = type === "builder";
       const overlay = portalOverlayToBody("applySubmitConfirmModal");
+      if (overlay && overlay.parentElement === document.body) document.body.appendChild(overlay);
       const title = document.getElementById("applySubmitConfirmTitle");
       const message = document.getElementById("applySubmitConfirmMessage");
       const button = document.getElementById("applySubmitConfirmButton");
@@ -45359,15 +46498,28 @@
           : "입력한 정보로 모임 참여를 신청합니다.";
       }
       if (button) button.textContent = isBuilder ? "모임 만들기" : "신청하기";
-      overlay?.style.setProperty("z-index", "2147483950", "important");
-      overlay?.querySelector(".apply-submit-confirm-modal")?.style.setProperty("z-index", "2147483951", "important");
-      overlay?.classList.add("open");
+      overlay?.style.setProperty("z-index", "2147483647", "important");
+      overlay?.querySelector(".apply-submit-confirm-modal")?.style.setProperty("z-index", "1", "important");
       overlay?.setAttribute("aria-hidden", "false");
       setWidgetModalOpen(true);
+      if (!overlay) return;
+      overlay.classList.remove("open");
+      if (applySubmitConfirmOpenFrame) {
+        window.cancelAnimationFrame(applySubmitConfirmOpenFrame);
+      }
+      void overlay.offsetHeight;
+      applySubmitConfirmOpenFrame = window.requestAnimationFrame(() => {
+        applySubmitConfirmOpenFrame = 0;
+        overlay.classList.add("open");
+      });
     }
 
     function closeApplySubmitConfirmModal() {
       const overlay = document.getElementById("applySubmitConfirmModal");
+      if (applySubmitConfirmOpenFrame) {
+        window.cancelAnimationFrame(applySubmitConfirmOpenFrame);
+        applySubmitConfirmOpenFrame = 0;
+      }
       resetModalRuntimeState(overlay);
       overlay?.classList.remove("open");
       overlay?.setAttribute("aria-hidden", "true");
@@ -45376,23 +46528,27 @@
       setWidgetModalOpen(hasOpenBlockingModal());
     }
 
-    let lastGlobalApplySubmitTouchAt = 0;
+    function handleApplySubmitConfirmBackdropClick(event) {
+      if (event?.target?.id !== "applySubmitConfirmModal") return;
+      if (applySubmitConfirmOpenedAt && Date.now() - applySubmitConfirmOpenedAt < 450) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
+      closeApplySubmitConfirmModal();
+    }
+
+    function handleGlobalApplySubmitError(error) {
+      console.error("Failed to prepare join apply submit.", error);
+      showGlobalApplyRequiredMessage("신청 정보를 확인하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    }
 
     function handleGlobalApplySubmitButtonActivation(event) {
       const button = event.target?.closest?.("#globalApplySubmitButton");
       if (!button || button.disabled) return;
-      const now = Date.now();
-      if (event.type === "click" && now - lastGlobalApplySubmitTouchAt < 700) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        return;
-      }
-      if (event.type === "pointerup") {
-        lastGlobalApplySubmitTouchAt = now;
-      }
       event.preventDefault();
       event.stopImmediatePropagation();
-      submitGlobalApply();
+      void submitGlobalApply().catch(handleGlobalApplySubmitError);
     }
 
     async function confirmApplySubmitModal() {
@@ -45403,7 +46559,7 @@
         await submitBuilderApply({ confirmed: true });
         return;
       }
-      await submitGlobalApply({ confirmed: true });
+      await submitGlobalApply({ confirmed: true }).catch(handleGlobalApplySubmitError);
     }
 
     async function nextBuilderStep() {
@@ -45416,9 +46572,15 @@
         await submitBuilderApply();
         return;
       }
-      if (builderStep === 1 && !Number.isFinite(builderState.endDay)) {
-        openBuilderAlert("도착일을 선택해주세요.");
-        return;
+      if (builderStep === 1) {
+        if (!Number.isFinite(builderState.startDay)) {
+          openBuilderAlert("출발일을 선택해주세요.");
+          return;
+        }
+        if (!Number.isFinite(builderState.endDay)) {
+          openBuilderAlert("도착일을 선택해주세요.");
+          return;
+        }
       }
       if (builderStep === 1 && builderState.mdPickMode && Number.isFinite(builderState.startDay) && Number.isFinite(builderState.endDay)) {
         syncBuilderFixedProductFromSelectedDates();
@@ -45505,7 +46667,12 @@
     }
 
     function closeBuilderActiveScheduleSheet() {
-      document.getElementById("builderActiveScheduleSheet")?.classList.remove("open");
+      const sheet = document.getElementById("builderActiveScheduleSheet");
+      sheet?.classList.remove("open");
+      sheet?.setAttribute("aria-hidden", "true");
+      const backdrop = document.getElementById("builderActiveScheduleBackdrop");
+      backdrop?.classList.remove("open");
+      backdrop?.setAttribute("aria-hidden", "true");
     }
 
     function openBuilderActiveScheduleSheet(scheduleKey = "", iso = "") {
@@ -45544,6 +46711,10 @@
           onClick: `openBuilderActiveScheduleDetail('${escapeJsString(schedule.key)}')`
         });
       }
+      const backdrop = document.getElementById("builderActiveScheduleBackdrop");
+      backdrop?.classList.add("open");
+      backdrop?.setAttribute("aria-hidden", "false");
+      sheet?.setAttribute("aria-hidden", "false");
       sheet?.classList.add("open");
     }
 
@@ -45553,7 +46724,7 @@
       closeBuilderActiveScheduleSheet();
       openDetail(schedule.joinId, { elevateOverBuilder: true });
       const detailModal = document.getElementById("detailModal");
-      detailModal?.style.setProperty("z-index", "2147483640", "important");
+      detailModal?.style.setProperty("z-index", "2147483643", "important");
     }
 
     function changeBuilderFlex(side, delta) {
@@ -45660,11 +46831,11 @@
         if (!member) return false;
       }
       stopQuickMobileCarousel();
+      prepareJoinMobileFullscreenModalViewport();
       const overlay = portalOverlayToBody(id);
       if (id === "detailModal" && overlay) {
-        const isBuilderProductDetail = currentDetailMode === "builderProduct" || overlay.classList.contains("builder-product-detail-mode");
-        overlay.style.setProperty("z-index", isBuilderProductDetail ? "2147483640" : "2147483630", "important");
-        overlay.querySelector(".detail-modal")?.style.setProperty("z-index", isBuilderProductDetail ? "2147483641" : "2147483631", "important");
+        overlay.style.setProperty("z-index", "2147483643", "important");
+        overlay.querySelector(".detail-modal")?.style.setProperty("z-index", "2147483644", "important");
       }
       if (id === "builderModal" && overlay) {
         overlay.style.setProperty("z-index", "2147483635", "important");
@@ -45684,8 +46855,8 @@
     function elevateBuilderProductDetailModal() {
       const overlay = portalOverlayToBody("detailModal");
       if (!overlay?.classList.contains("builder-product-detail-mode")) return;
-      overlay.style.setProperty("z-index", "2147483640", "important");
-      overlay.querySelector(".detail-modal")?.style.setProperty("z-index", "2147483641", "important");
+      overlay.style.setProperty("z-index", "2147483643", "important");
+      overlay.querySelector(".detail-modal")?.style.setProperty("z-index", "2147483644", "important");
     }
 
     async function openBuilderModalFromMain(trigger) {
@@ -45801,6 +46972,8 @@
         selectedRegionSearchName = "";
         regionProductSort = "recommended";
         regionProductSortMenuOpen = false;
+        document.documentElement.classList.add("join-region-search-modal-open");
+        prepareJoinMobileFullscreenModalViewport();
         portalOverlayToBody("regionSearchModal")?.classList.add("open");
         const shell = document.querySelector("#regionSearchModal .region-search-shell");
         shell?.classList.toggle("builder-context", context === "builder");
@@ -45843,6 +47016,7 @@
       const modal = document.getElementById("regionSearchModal");
       resetModalRuntimeState(modal);
       modal.classList.remove("open");
+      document.documentElement.classList.remove("join-region-search-modal-open");
       document.querySelector("#regionSearchModal .region-search-shell")?.classList.remove("builder-context", "mdpick-context");
       if (!document.getElementById("travelDateModal")?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open")) {
         setWidgetModalOpen(false);
@@ -46487,7 +47661,7 @@
     }
 
     function isSecretTourAirlineName(value) {
-      return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(String(value || "").trim());
+      return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|산동항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(String(value || "").trim());
     }
 
     function normalizeSecretTourAirportName(...values) {
@@ -47924,6 +49098,7 @@
       if (input && shouldShowProducts && builderState.regions && builderState.regions.length) {
         input.value = builderState.regions.map(formatRegionDisplayName).join(", ");
       }
+      updateBuilderRegionSearchInputClearPosition(input?.value || query);
       updateBuilderRegionDisplay();
       if (shouldShowProducts) {
         results.innerHTML = "";
@@ -48004,6 +49179,24 @@
       }).join("") : `<div class="region-result-empty">선택한 날짜 조건에 가능한 지역이 없습니다.</div>`;
     }
 
+    function updateBuilderRegionSearchInputClearPosition(value = "") {
+      const input = document.getElementById("builderRegionSearchInput");
+      const field = input?.closest(".region-search-field");
+      if (!input || !field) return;
+      const text = String(value || input.value || "").trim();
+      if (!text) {
+        field.style.removeProperty("--region-search-input-width");
+        return;
+      }
+      const style = window.getComputedStyle(input);
+      const canvas = updateBuilderRegionSearchInputClearPosition.canvas || (updateBuilderRegionSearchInputClearPosition.canvas = document.createElement("canvas"));
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.font = `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`;
+      const width = Math.ceil(context.measureText(text).width);
+      field.style.setProperty("--region-search-input-width", `${Math.max(12, width)}px`);
+    }
+
     function handleBuilderRegionCategoryToggle(details, categoryIndex) {
       if (!details.open) return;
       activeBuilderRegionCategoryIndex = categoryIndex;
@@ -48055,6 +49248,8 @@
         input.focus();
       }
       builderRegionSelectorMode = true;
+      builderState.regions = [];
+      builderState.region = "";
       builderState.dateConstraintRegions = [];
       builderState.productId = "";
       builderState.productName = "";
@@ -49093,6 +50288,15 @@
       return "golf";
     }
 
+    function parseApplyBookingList(value) {
+      if (Array.isArray(value)) return value.flatMap(parseApplyBookingList);
+      if (value && typeof value === "object") return Object.values(value).flatMap(parseApplyBookingList);
+      return String(value || "")
+        .split(/[,\n/·|]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
     function parseApplyBookingNotes(product = {}) {
       return [
         product.notes,
@@ -49100,7 +50304,7 @@
         getNestedValue(product, "trip.notes"),
         getNestedValue(product, "product.notes"),
         getNestedValue(product, "sheetApplication.notes")
-      ].flatMap((value) => parseList(value)).map((item) => String(item || "").trim()).filter(Boolean);
+      ].flatMap(parseApplyBookingList).map((item) => String(item || "").trim()).filter(Boolean);
     }
 
     function extractSingleRoomSurcharge(notes = []) {
@@ -49375,7 +50579,15 @@
     }
 
     async function getJoinApplyMemberProfile(memberSource = null) {
-      const member = memberSource || await getJoinCurrentMember({ refresh: true });
+      let member = memberSource || null;
+      if (!member) {
+        try {
+          member = await getJoinCurrentMember({ refresh: true });
+        } catch (error) {
+          console.warn("Failed to refresh join member profile for apply form; using login fallback.", error);
+          member = getJoinLoginState().member || {};
+        }
+      }
       const cached = getRememberedJoinMemberProfile(member || {});
       const birthYear = getBirthYearFromJoinMember(member || {}, cached);
       const mobile = normalizeJoinMemberPhone(cached.mobile || cached.phone || cached.memberMobile || member?.memberMobile || "");
@@ -49386,6 +50598,7 @@
         birthYear,
         ageDisplay: getApplyAgeDisplayFromBirthYear(birthYear),
         phone: mobile,
+        email: cached.memberEmail || cached.email || member?.memberEmail || member?.email || "",
         profession: cached.profession || member?.profession || "",
         level: cached.level || member?.level || "",
         travelStyles: cached.travelStyles || member?.travelStyles || ""
@@ -49445,8 +50658,8 @@
           submitButton.disabled = false;
           submitButton.textContent = "모임 참여 신청하기";
         }
-        overlay.style.setProperty("z-index", "2147483650", "important");
-        panel.style.setProperty("z-index", "2147483651", "important");
+        overlay.style.setProperty("z-index", "2147483644", "important");
+        panel.style.setProperty("z-index", "2147483645", "important");
         renderGlobalApplyJoinSummary();
         clearApplyErrors();
         document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip.active').forEach((chip) => chip.classList.remove("active"));
@@ -49496,6 +50709,7 @@
             chip.classList.toggle("active", styles.has(chip.dataset.value || chip.textContent.trim()));
           });
         }
+        prepareJoinMobileFullscreenModalViewport();
         overlay.classList.add("open");
         requestAnimationFrame(() => panel.classList.add("open"));
         setWidgetModalOpen(true);
@@ -49597,6 +50811,7 @@
       closeRegionSearchModal();
       closePrivacyApplyModal();
       closeWaitlistApplyModal();
+      closeParticipant();
 
       document.querySelectorAll(".overlay.open, .global-apply-overlay.open, .calendar-sheet-overlay.open, .participant-floating.open").forEach((overlay) => {
         resetModalRuntimeState(overlay);
@@ -49840,18 +51055,59 @@
       closePrivacyApplyModal();
     }
 
+    function isJoinScheduleFullSaveError(error) {
+      const code = String(error?.serverCode || error?.serverPayload?.code || error?.serverPayload?.error || error?.serverMessage || "").trim();
+      return Number(error?.status) === 409 && code === "join_schedule_full";
+    }
+
+    function reloadJoinMainPage() {
+      try {
+        const url = new URL(location.href);
+        [
+          "golfjoinOpen",
+          "joinOpen",
+          "afterLogin",
+          "applyJoinId",
+          "joinId",
+          "scheduleId",
+          "wishJoinId",
+          "productId",
+          "goodSeq",
+          "eventSeq"
+        ].forEach((key) => url.searchParams.delete(key));
+        url.hash = "";
+        location.replace(url.toString());
+      } catch (error) {
+        location.reload();
+      }
+    }
+
+    function openJoinScheduleFullAlert() {
+      openBuilderAlert("모집이 완료되어 참여 신청이 마감되었습니다.\n메인페이지를 새로고침합니다.", {
+        onConfirm: reloadJoinMainPage
+      });
+    }
+
     async function submitGlobalApply(options = {}) {
       clearApplyErrors();
       const loginState = getJoinLoginState();
-      const cachedProfile = getRememberedJoinMemberProfile(loginState.member || {});
+      let applyMember = loginState.member || {};
+      if (options.confirmed && loginState.isLogin) {
+        try {
+          applyMember = await getJoinCurrentMemberDetailOnly() || applyMember;
+        } catch (error) {
+          console.warn("Failed to refresh join member detail before apply submit.", error);
+        }
+      }
+      const cachedProfile = getRememberedJoinMemberProfile(applyMember);
       const memberProfile = {
-        member: loginState.member || {},
-        name: cachedProfile.name || cachedProfile.memberName || loginState.member?.memberName || "",
-        gender: cachedProfile.gender || loginState.member?.gender || "",
-        birthYear: getBirthYearFromJoinMember(loginState.member || {}, cachedProfile),
-        phone: normalizeJoinMemberPhone(cachedProfile.mobile || cachedProfile.phone || cachedProfile.memberMobile || loginState.member?.memberMobile || ""),
-        profession: cachedProfile.profession || loginState.member?.profession || "",
-        level: cachedProfile.level || loginState.member?.level || ""
+        member: applyMember,
+        name: cachedProfile.name || cachedProfile.memberName || applyMember.memberName || "",
+        gender: cachedProfile.gender || applyMember.gender || "",
+        birthYear: getBirthYearFromJoinMember(applyMember, cachedProfile),
+        phone: normalizeJoinMemberPhone(cachedProfile.mobile || cachedProfile.phone || cachedProfile.memberMobile || applyMember.memberMobile || ""),
+        profession: cachedProfile.profession || applyMember.profession || "",
+        level: cachedProfile.level || applyMember.level || ""
       };
       const name = document.getElementById("globalApplyName")?.value.trim() || memberProfile.name || "";
       const birthYear = document.getElementById("globalApplyBirthYear")?.value.trim() || memberProfile.birthYear || "";
@@ -49923,7 +51179,7 @@
           memberName: memberProfile.member?.memberName || name,
           memberChannel: memberProfile.member?.memberChannel || "",
           memberMobile: memberProfile.member?.memberMobile || phone,
-          memberEmail: memberProfile.member?.memberEmail || memberProfile.member?.email || cachedProfile.email || "",
+          memberEmail: memberProfile.member?.memberEmail || memberProfile.member?.email || cachedProfile.memberEmail || cachedProfile.email || "",
           kakaoId: memberProfile.member?.kakaoId || cachedProfile.kakaoId || ""
         },
         requiredAgreed: true,
@@ -49945,6 +51201,7 @@
         try {
           await saveJoinApplyToGoogleSheet(applyPayload);
         } catch (error) {
+          if (isJoinScheduleFullSaveError(error)) throw error;
           const confirmed = await confirmJoinApplySavedToGoogleSheet(applyPayload);
           if (!confirmed) throw error;
           console.warn("Join apply save response failed, but the row was confirmed in Google Sheet.", error);
@@ -49957,7 +51214,12 @@
         showGlobalApplyCompleteState();
       } catch (error) {
         console.error("Failed to save join apply payload.", error);
-        alert("참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        if (isJoinScheduleFullSaveError(error)) {
+          await closeJoinActionLoading();
+          openJoinScheduleFullAlert();
+        } else {
+          alert("참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        }
       } finally {
         await closeJoinActionLoading();
         if (submitButton && !document.getElementById("globalApplyPanel")?.classList.contains("is-complete")) {
@@ -50113,11 +51375,32 @@
       clearTimeout(participantCloseTimer);
     }
 
+    function lockParticipantPageScroll() {
+      if (!isMobileParticipantSheet()) return;
+      if (document.body.classList.contains("join-participant-scroll-locked")) return;
+      document.body.classList.add("join-participant-scroll-locked");
+    }
+
+    function unlockParticipantPageScroll() {
+      if (!document.body.classList.contains("join-participant-scroll-locked")) return;
+      document.body.classList.remove("join-participant-scroll-locked");
+    }
+
+    function getParticipantJoinById(joinId) {
+      const id = String(joinId || "");
+      if (!id) return null;
+      return (currentDetailJoinData && String(currentDetailJoinData.id || "") === id ? currentDetailJoinData : null)
+        || joins.find((item) => String(item.id || "") === id)
+        || (externalGolfJoinProducts || []).find((item) => String(item.id || "") === id)
+        || null;
+    }
+
     function closeParticipant() {
       const modal = document.getElementById("participantModal");
       modal?.classList.remove("sheet-open");
       modal?.classList.remove("open");
       activeParticipantTrigger = null;
+      unlockParticipantPageScroll();
       setWidgetModalOpen(hasOpenBlockingModal());
       resumeQuickMobileCarouselIfIdle();
     }
@@ -53970,17 +55253,7 @@
 
     function setDetailBuilderProductActions() {
       clearDetailScheduleConflictState();
-      setDetailSingleSecondaryAction("이전", "closeModal('detailModal')");
-      const kakao = document.getElementById("detailKakaoButton");
-      const dateChange = document.getElementById("detailDateChangeButton");
-      const primary = document.getElementById("detailPrimaryButton");
-      if (kakao) kakao.hidden = true;
-      if (dateChange) dateChange.hidden = true;
-      if (primary) {
-        primary.textContent = "모임 만들기";
-        primary.setAttribute("onclick", "handleDetailPrimaryAction()");
-        primary.style.removeProperty("grid-column");
-      }
+      setDetailPrimaryOnlyAction("모임 만들기", "handleDetailPrimaryAction()");
     }
 
     function setDetailMdPickRecruitActions() {
@@ -54226,8 +55499,8 @@
 
     function openParticipant(joinId, participantId, trigger) {
       stopQuickMobileCarousel();
-      const join = joins.find((item) => item.id === joinId);
-      const participant = join && join.participants.find((item) => item.id === participantId);
+      const join = getParticipantJoinById(joinId);
+      const participant = join && (join.participants || []).find((item) => String(item.id || "") === String(participantId || ""));
       if (!participant) return;
       const participants = getParticipantGroup(join, participant);
       const isGroup = participants.length > 1;
@@ -54237,8 +55510,13 @@
 
       const floating = portalOverlayToBody("participantModal");
       if (!floating) return;
-      floating.style.setProperty("z-index", "2147483700", "important");
-      document.getElementById("participantContent")?.style.setProperty("z-index", "2147483701", "important");
+      const isMobileSheet = isMobileParticipantSheet();
+      const shouldElevateOverDetail = Boolean(trigger?.closest?.("#detailModal"))
+        && document.getElementById("detailModal")?.classList.contains("open");
+      const overlayZIndex = isMobileSheet && !shouldElevateOverDetail ? "2147482990" : "2147483700";
+      const contentZIndex = isMobileSheet && !shouldElevateOverDetail ? "2147482991" : "2147483701";
+      floating.style.setProperty("z-index", overlayZIndex, "important");
+      document.getElementById("participantContent")?.style.setProperty("z-index", contentZIndex, "important");
       if (floating.classList.contains("open") && activeParticipantTrigger === trigger) {
         closeParticipant();
         return;
@@ -54290,10 +55568,10 @@
       floating.classList.remove("sheet-open");
       floating.classList.add("open");
 
-      if (isMobileParticipantSheet()) {
+      if (isMobileSheet) {
         activeParticipantTrigger = trigger;
         scheduleJoinMobileVisualViewportVarsUpdate();
-        setWidgetModalOpen(true);
+        lockParticipantPageScroll();
         requestAnimationFrame(() => floating.classList.add("sheet-open"));
         return;
       }
@@ -54480,6 +55758,21 @@
       }, { passive: false, capture: true });
     });
 
+    function isParticipantModalBackgroundScrollBlocked() {
+      return isMobileParticipantSheet()
+        && document.getElementById("participantModal")?.classList.contains("open")
+        && document.body.classList.contains("join-participant-scroll-locked");
+    }
+
+    ["wheel", "touchmove"].forEach((eventName) => {
+      document.addEventListener(eventName, (event) => {
+        if (!isParticipantModalBackgroundScrollBlocked()) return;
+        if (event.target.closest?.("#participantContent .participant-profile")) return;
+        event.preventDefault();
+        event.stopPropagation();
+      }, { passive: false, capture: true });
+    });
+
     document.querySelector("#regionSearchModal .region-search-body")?.addEventListener("click", (event) => {
       const option = event.target.closest(".region-option, .region-subregion, .region-subregion-heading");
       if (!option || option.hasAttribute("onclick")) return;
@@ -54512,7 +55805,6 @@
 
       const floating = document.getElementById("participantModal");
       if (!event.target.closest("#participantModal")) {
-        if (isMobileParticipantSheet() && floating?.classList.contains("open")) return;
         closeParticipant();
       }
     });
@@ -54567,6 +55859,11 @@
     window.submitGlobalApply = submitGlobalApply;
     window.confirmApplySubmitModal = confirmApplySubmitModal;
     window.closeApplySubmitConfirmModal = closeApplySubmitConfirmModal;
+    window.handleApplySubmitConfirmBackdropClick = handleApplySubmitConfirmBackdropClick;
+    window.openBuilderAlert = openBuilderAlert;
+    window.closeBuilderAlert = closeBuilderAlert;
+    window.confirmBuilderAlert = confirmBuilderAlert;
+    window.handleBuilderAlertBackdropClick = handleBuilderAlertBackdropClick;
     openMdPickProductDetail = wrapJoinAsyncFunction(openMdPickProductDetail);
     handleDetailWish = wrapJoinAsyncFunction(handleDetailWish);
     window.handleDetailShare = handleDetailShare;
@@ -54631,7 +55928,9 @@
     let mobileSheetDragState = null;
 
     function getMobileSheetDragCloseConfig(target, clientY = 0) {
-      if (!window.matchMedia("(max-width: 640px)").matches) return null;
+      const isSmallMobileSheet = window.matchMedia("(max-width: 640px)").matches;
+      const isParticipantSheetTarget = Boolean(target?.closest?.("#participantModal")) && isMobileParticipantSheet();
+      if (!isSmallMobileSheet && !isParticipantSheetTarget) return null;
       const sheetCandidates = [
         {
           element: document.getElementById("builderDatePopover"),
@@ -54644,6 +55943,12 @@
           isOpen: (el) => el?.classList.contains("open"),
           headerSelector: ".builder-flex-head",
           close: closeBuilderFlexSheet
+        },
+        {
+          element: document.getElementById("builderActiveScheduleSheet"),
+          isOpen: (el) => el?.classList.contains("open"),
+          headerSelector: ".builder-flex-head",
+          close: closeBuilderActiveScheduleSheet
         },
         {
           element: document.getElementById("detailApplyPanel"),
@@ -54750,6 +56055,7 @@
       initializeHeroCalendarShape();
       startHeroSlider();
       initializeJoinMobileBottomNav();
+      initializeJoinFullscreenModalCoverObserver();
       hydrateBuilderApplicationJoinsFromLocalCache();
       hydrateJoinApplicationsFromLocalCache();
       hydrateJoinReviewsFromLocalCache();
@@ -55440,8 +56746,10 @@
           <div class="apply-companion-status-line"><div class="apply-companion-status-label">신규</div><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"></path></svg><div class="apply-companion-status-count">총 1명</div><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"></path></svg><div class="apply-companion-status-gender">남성 1명</div></div>
         </div><div class="apply-participant-rail"><div class="apply-participant-slot filled " data-apply-participant-index="0" data-participant-key="applicant--남성-나">
           
-          <div class="apply-participant-avatar"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt="나"></div>
-          <div class="apply-participant-label"><span aria-hidden="true">👑</span><span>나</span></div>
+          <div class="apply-participant-avatar-wrap">
+            <div class="apply-participant-avatar"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt="나"></div>
+          </div>
+          <div class="apply-participant-label"><div class="join-my-card-participant-me-badge apply-me-badge">나</div></div>
         </div>
         <div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div>
       <div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div><div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div></div>
@@ -55627,7 +56935,8 @@
         <div class="builder-stepper-row"><span>전</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('before', -1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderBeforeFlex">+0일</span><button type="button" onclick="changeBuilderFlex('before', 1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
         <div class="builder-stepper-row"><span>후</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('after', -1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderAfterFlex">+0일</span><button type="button" onclick="changeBuilderFlex('after', 1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
       </div>
-      <div class="builder-flex-sheet builder-active-schedule-sheet" id="builderActiveScheduleSheet">
+      <div class="builder-active-schedule-backdrop" id="builderActiveScheduleBackdrop" onclick="closeBuilderActiveScheduleSheet()" aria-hidden="true"></div>
+      <div class="builder-flex-sheet builder-active-schedule-sheet" id="builderActiveScheduleSheet" aria-hidden="true">
         <div class="builder-flex-head"><div><div class="builder-flex-title">참여중인 일정</div></div><button type="button" class="modal-close-icon" onclick="closeBuilderActiveScheduleSheet()" aria-label="닫기"></button></div>
         <div class="builder-active-schedule-list calendar-accordion-list" id="builderActiveScheduleList"></div>
       </div>

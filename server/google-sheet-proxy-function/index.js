@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const { Storage } = require("@google-cloud/storage");
 
 const SHEET_WEB_APP_URL = process.env.SHEET_WEB_APP_URL || "";
+const GOOGLE_SHEET_ID = String(process.env.GOOGLE_SHEET_ID || "").trim();
 const ALLOWED_ORIGINS = String(process.env.ALLOWED_ORIGINS || "https://m.secret-tour.com,https://www.secret-tour.com")
   .split(",")
   .map((origin) => origin.trim())
@@ -39,6 +40,265 @@ const PUBLIC_READ_SHEETS = new Set([
   "recommended_schedules",
   "product_display_rules"
 ]);
+const GOOGLE_SHEET_HEADERS = {
+  join_member_profiles: [
+    "profileId",
+    "createdAt",
+    "source",
+    "pageUrl",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberChannel",
+    "memberMobile",
+    "memberEmail",
+    "birthYear",
+    "gender",
+    "profession",
+    "level",
+    "travelStyles",
+    "profileImageUrl",
+    "profileImageObjectName",
+    "profileImageSize",
+    "requiredAgreed",
+    "marketingAgreed",
+    "termsAgreedAt",
+    "kakaoId",
+    "kakaoNickname",
+    "adminMemo",
+    "updatedAt"
+  ],
+  join_reviews: [
+    "reviewId",
+    "createdAt",
+    "source",
+    "pageUrl",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberMobile",
+    "memberEmail",
+    "targetType",
+    "targetScheduleId",
+    "targetApplicationId",
+    "erpProductId",
+    "erpEventSeq",
+    "productName",
+    "departureDate",
+    "returnDate",
+    "country",
+    "region",
+    "rating",
+    "tags",
+    "reviewText",
+    "photoName",
+    "imageUrl",
+    "thumbnailUrl",
+    "imagesJson",
+    "status",
+    "adminMemo",
+    "updatedAt"
+  ],
+  join_applications: [
+    "applicationId",
+    "createdAt",
+    "source",
+    "pageUrl",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberChannel",
+    "memberMobile",
+    "memberEmail",
+    "targetType",
+    "targetScheduleId",
+    "targetApplicationId",
+    "erpProductId",
+    "erpEventSeq",
+    "productName",
+    "departureDate",
+    "returnDate",
+    "category",
+    "country",
+    "region",
+    "airline",
+    "departureAirport",
+    "arrivalAirport",
+    "applicantName",
+    "applicantGender",
+    "applicantBirthYear",
+    "applicantAgeBand",
+    "applicantMobile",
+    "applicantProfession",
+    "applicantPeople",
+    "applicantCompanions",
+    "applicantLevel",
+    "applicantStyles",
+    "applicantPreferredMembers",
+    "applicantGreeting",
+    "applicantRoomType",
+    "flightRequestType",
+    "singleRoomSurcharge",
+    "singleRoomSurchargeText",
+    "singleRoomSurchargeStatus",
+    "participantStatus",
+    "quoteStatus",
+    "depositStatus",
+    "balanceStatus",
+    "refundStatus",
+    "applicationStatus",
+    "requiredAgreed",
+    "marketingAgreed",
+    "adminMemo",
+    "updatedAt"
+  ],
+  new_schedule_applications: [
+    "applicationId",
+    "scheduleId",
+    "createdAt",
+    "source",
+    "pageUrl",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberChannel",
+    "memberMobile",
+    "memberEmail",
+    "applicantName",
+    "applicantGender",
+    "applicantBirthYear",
+    "applicantAgeBand",
+    "applicantMobile",
+    "applicantProfession",
+    "applicantPeople",
+    "applicantCompanions",
+    "applicantLevel",
+    "applicantStyles",
+    "applicantPreferredMembers",
+    "applicantGreeting",
+    "applicantRoomType",
+    "flightRequestType",
+    "singleRoomSurcharge",
+    "singleRoomSurchargeText",
+    "singleRoomSurchargeStatus",
+    "country",
+    "region",
+    "airline",
+    "departureAirport",
+    "arrivalAirport",
+    "erpProductId",
+    "erpEventSeq",
+    "productName",
+    "productPrice",
+    "packType",
+    "packTypeName",
+    "tripSummary",
+    "departureDateFrom",
+    "departureDateTo",
+    "returnDateFrom",
+    "returnDateTo",
+    "participantStatus",
+    "quoteStatus",
+    "depositStatus",
+    "balanceStatus",
+    "refundStatus",
+    "requiredAgreed",
+    "marketingAgreed",
+    "approvalStatus",
+    "displayStatus",
+    "applicationStatus",
+    "adminMemo",
+    "updatedAt"
+  ],
+  recommended_schedules: [
+    "recommendedScheduleId",
+    "erpProductId",
+    "erpEventSeq",
+    "section",
+    "isVisible",
+    "isPinned",
+    "displayOrder",
+    "badgeType",
+    "scheduleType",
+    "scheduleLabel",
+    "capacity",
+    "maxPeople",
+    "packType",
+    "packTypeName",
+    "overrideTitle",
+    "overrideImageUrl",
+    "country",
+    "region",
+    "airline",
+    "departureAirport",
+    "arrivalAirport",
+    "productPrice",
+    "displayStartAt",
+    "displayEndAt",
+    "tripSummary",
+    "adminMemo",
+    "updatedAt"
+  ],
+  schedule_participant_summary: [
+    "scheduleId",
+    "sourceApplicationId",
+    "title",
+    "country",
+    "region",
+    "departureSummary",
+    "returnSummary",
+    "tripSummary",
+    "creatorName",
+    "creatorPhone",
+    "capacity",
+    "creatorPeople",
+    "joinedPeople",
+    "confirmedPeople",
+    "pendingPeople",
+    "cancelledPeople",
+    "remainingSeats",
+    "participantNames",
+    "participantPhones",
+    "genderSummary",
+    "ageSummary",
+    "levelSummary",
+    "styleSummary",
+    "memberPreferenceSummary",
+    "status",
+    "approvalStatus",
+    "displayStatus",
+    "updatedAt"
+  ],
+  join_wishes: [
+    "wishId",
+    "createdAt",
+    "source",
+    "pageUrl",
+    "memberSeq",
+    "memberId",
+    "memberName",
+    "memberChannel",
+    "memberMobile",
+    "memberEmail",
+    "targetType",
+    "targetKey",
+    "targetScheduleId",
+    "targetApplicationId",
+    "erpProductId",
+    "erpEventSeq",
+    "productName",
+    "departureDate",
+    "returnDate",
+    "category",
+    "country",
+    "region",
+    "imageUrl",
+    "price",
+    "status",
+    "adminMemo",
+    "updatedAt"
+  ]
+};
 const ADMIN_READ_TOKEN = String(process.env.ADMIN_READ_TOKEN || "").trim();
 const ADMIN_LOGIN_ID = String(process.env.ADMIN_LOGIN_ID || "").trim();
 const ADMIN_LOGIN_PASSWORD = String(process.env.ADMIN_LOGIN_PASSWORD || "").trim();
@@ -195,6 +455,7 @@ const HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGH
 const HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS || 30 * 60_000);
 const HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS || 100);
 const HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS || 2_000);
+const MEMBER_PROFILE_LOOKUP_TIMEOUT_MS = Number(process.env.MEMBER_PROFILE_LOOKUP_TIMEOUT_MS || 6000);
 const GA4_PROPERTY_ID = String(process.env.GA4_PROPERTY_ID || "404154820").trim();
 const GA4_LOOKBACK_DAYS = Math.min(Math.max(Number(process.env.GA4_LOOKBACK_DAYS || 30), 1), 365);
 const GA4_HOME_HOSTS = String(process.env.GA4_HOME_HOSTS || process.env.GA4_JOIN_HOSTS || "www.secret-tour.com,m.secret-tour.com")
@@ -248,6 +509,11 @@ function safeEqual(left = "", right = "") {
 
 function sha256(value = "") {
   return crypto.createHash("sha256").update(String(value), "utf8").digest("hex");
+}
+
+function buildGoogleSheetRecordId(prefix = "row", ...parts) {
+  const source = parts.map(asText).filter(Boolean).join("|") || `${Date.now()}|${Math.random()}`;
+  return `${prefix}_${sha256(source).slice(0, 20)}`;
 }
 
 function base64UrlEncode(value) {
@@ -397,6 +663,32 @@ function sanitizePublicPayload(payload) {
   return next;
 }
 
+function normalizeAdminSheetRowForJson(row = {}) {
+  const dateOnlyKeys = new Set([
+    "departureDateFrom",
+    "departureDateTo",
+    "returnDateFrom",
+    "returnDateTo",
+    "departureDate",
+    "returnDate",
+    "displayStartAt",
+    "displayEndAt",
+    "birthDate"
+  ]);
+  return Object.entries(row).reduce((object, [key, value]) => {
+    if (dateOnlyKeys.has(key)) {
+      object[key] = normalizeSheetDateText(value);
+      return object;
+    }
+    if (/price/i.test(key)) {
+      object[key] = normalizeSheetPriceText(value);
+      return object;
+    }
+    object[key] = value;
+    return object;
+  }, {});
+}
+
 function setCorsHeaders(req, res) {
   const origin = getAllowedOrigin(req.headers.origin || "");
   if (origin) {
@@ -410,7 +702,13 @@ function setCorsHeaders(req, res) {
 }
 
 function assertRequestAllowed(req) {
-  if (!SHEET_WEB_APP_URL) {
+  const action = asText(req.query?.action);
+  const sheetsApiOnlyActions = new Set(["member_profile_lookup", "home_bootstrap", "home_bootstrap_light", "join_wishes_lookup", "admin_status_update", "admin_bootstrap", "refresh_secret_tour_products"]);
+  const standaloneActions = new Set(["admin_login", "home_stats", "secret_tour_goods_detail", "secret_tour_flight_schedule", "secret_tour_goods_list", "secret_tour_goods_events"]);
+  const canUseSheetsApiOnly = Boolean(GOOGLE_SHEET_ID && sheetsApiOnlyActions.has(action));
+  const canUseStandaloneAction = standaloneActions.has(action);
+  const canUseSheetsApiRead = Boolean(GOOGLE_SHEET_ID && req.method === "GET" && !asText(req.query?.action));
+  if (!SHEET_WEB_APP_URL && !canUseSheetsApiOnly && !canUseStandaloneAction && !canUseSheetsApiRead) {
     const error = new Error("SHEET_WEB_APP_URL is not configured");
     error.status = 500;
     throw error;
@@ -433,9 +731,10 @@ function normalizeSheetName(value = "") {
   return String(value || "").trim();
 }
 
-function createHttpError(message, status = 400) {
+function createHttpError(message, status = 400, details = {}) {
   const error = new Error(message);
   error.status = status;
+  Object.assign(error, details);
   return error;
 }
 
@@ -1040,7 +1339,155 @@ async function readSheetRowsDirect(query = {}) {
   return Array.isArray(payload) ? payload : (payload.items || payload.rows || payload.applications || []);
 }
 
-async function readScheduleSummary(scheduleId = "") {
+function filterSheetRowsForRequest(rows = [], params = {}) {
+  let filtered = Array.isArray(rows) ? rows : [];
+  const source = asText(params.source);
+  const status = asText(params.status);
+  const displayStatus = asText(params.displayStatus);
+  const approvalStatus = asText(params.approvalStatus);
+  const memberSeq = asText(params.memberSeq);
+  const memberId = asText(params.memberId);
+  const memberMobile = normalizePhone(params.memberMobile || params.phone);
+  const memberEmail = asText(params.memberEmail || params.email);
+  const kakaoId = asText(params.kakaoId);
+  const scheduleId = asText(params.scheduleId || params.targetScheduleId);
+  const erpProductId = asText(params.erpProductId || params.productId);
+  const erpEventSeq = asText(params.erpEventSeq || params.eventSeq);
+  const productName = asText(params.productName);
+  const since = params.since ? new Date(params.since).getTime() : 0;
+
+  if (source) filtered = filtered.filter((row) => asText(row.source) === source);
+  if (status) filtered = filtered.filter((row) => asText(row.status || row.applicationStatus) === status);
+  if (displayStatus) filtered = filtered.filter((row) => asText(row.displayStatus) === displayStatus);
+  if (approvalStatus) filtered = filtered.filter((row) => asText(row.approvalStatus) === approvalStatus);
+  if (memberSeq || memberId || memberMobile || memberEmail || kakaoId) {
+    filtered = filtered.filter((row) => {
+      const rowMemberSeq = asText(row.memberSeq);
+      const rowMemberId = asText(row.memberId);
+      const rowMemberMobile = normalizePhone(row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone);
+      const rowMemberEmail = asText(row.memberEmail || row.email);
+      const rowKakaoId = asText(row.kakaoId);
+      return Boolean(
+        (memberSeq && rowMemberSeq && rowMemberSeq === memberSeq)
+        || (memberId && rowMemberId && rowMemberId === memberId)
+        || (memberMobile && rowMemberMobile && rowMemberMobile === memberMobile)
+        || (memberEmail && rowMemberEmail && rowMemberEmail === memberEmail)
+        || (kakaoId && rowKakaoId && rowKakaoId === kakaoId)
+      );
+    });
+  }
+  if (scheduleId) {
+    filtered = filtered.filter((row) => asText(row.scheduleId || row.targetScheduleId) === scheduleId);
+  }
+  if (erpProductId) {
+    filtered = filtered.filter((row) => asText(row.erpProductId || row.productId) === erpProductId);
+  }
+  if (erpEventSeq) {
+    filtered = filtered.filter((row) => asText(row.erpEventSeq || row.eventSeq) === erpEventSeq);
+  }
+  if (productName) {
+    filtered = filtered.filter((row) => asText(row.productName) === productName);
+  }
+  if (since) {
+    filtered = filtered.filter((row) => {
+      const updatedAt = new Date(row.updatedAt || row.createdAt || row.submittedAt || 0).getTime();
+      return updatedAt && updatedAt >= since;
+    });
+  }
+
+  filtered = filtered.sort((a, b) => {
+    return new Date(b.updatedAt || b.createdAt || b.submittedAt || 0).getTime()
+      - new Date(a.updatedAt || a.createdAt || a.submittedAt || 0).getTime();
+  });
+
+  const limit = Math.max(0, Math.round(Number(params.limit) || 0));
+  return limit ? filtered.slice(0, limit) : filtered;
+}
+
+async function readScheduleParticipantSummariesViaSheetsApi(params = {}) {
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "recommended_schedules"
+  ], { timeoutMs: 7000 });
+  const newSchedules = sheetRows.new_schedule_applications || [];
+  const recommendedSchedules = (sheetRows.recommended_schedules || [])
+    .filter(isActiveRecommendedScheduleRule)
+    .map(buildRecommendedScheduleSummarySource);
+  const summaries = newSchedules
+    .concat(recommendedSchedules)
+    .map((schedule) => buildScheduleParticipantSummary(schedule, sheetRows.join_applications || []));
+  return filterSheetRowsForRequest(summaries, params);
+}
+
+async function readGenericSheetViaSheetsApi(query = {}) {
+  const sheetName = resolveReadSheetAlias(query.sheet || "");
+  if (sheetName && !ALLOWED_READ_SHEETS.has(sheetName)) {
+    throw createHttpError("Sheet is not allowed", 400);
+  }
+  if (sheetName === "schedule_participant_summary") {
+    const rows = await readScheduleParticipantSummariesViaSheetsApi(query);
+    return {
+      ok: true,
+      sheet: sheetName,
+      count: rows.length,
+      rows,
+      items: rows,
+      updatedAt: nowKstISOString(),
+      source: "sheets_api"
+    };
+  }
+  if (!sheetName || sheetName === "all") {
+    const sheetNames = Object.keys(GOOGLE_SHEET_HEADERS).filter((name) => name !== "schedule_participant_summary");
+    const sheetRows = await readGoogleSheetRangesViaApi(sheetNames, { timeoutMs: 8000 });
+    const sheets = sheetNames.reduce((object, name) => {
+      object[name] = filterSheetRowsForRequest(sheetRows[name] || [], query).map(normalizeSheetRowForJson);
+      return object;
+    }, {});
+    sheets.schedule_participant_summary = await readScheduleParticipantSummariesViaSheetsApi(query);
+    return {
+      ok: true,
+      updatedAt: nowKstISOString(),
+      sheets,
+      source: "sheets_api"
+    };
+  }
+  const rows = filterSheetRowsForRequest(await readGoogleSheetRowsViaApi(sheetName, { timeoutMs: 6000 }), query)
+    .map(normalizeSheetRowForJson);
+  return {
+    ok: true,
+    sheet: sheetName,
+    count: rows.length,
+    rows,
+    items: rows,
+    updatedAt: nowKstISOString(),
+    source: "sheets_api"
+  };
+}
+
+async function readScheduleSummaryViaSheetsApi(scheduleId = "") {
+  const key = asText(scheduleId);
+  if (!key) return null;
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "recommended_schedules"
+  ], { timeoutMs: 7000 });
+  const newSchedules = sheetRows.new_schedule_applications || [];
+  const recommendedSchedules = (sheetRows.recommended_schedules || [])
+    .filter(isActiveRecommendedScheduleRule)
+    .map(buildRecommendedScheduleSummarySource);
+  const schedules = newSchedules.concat(recommendedSchedules);
+  const schedule = schedules.find((item) => (
+    asText(item.scheduleId) === key
+    || asText(item.applicationId) === key
+    || asText(item.sourceApplicationId) === key
+  ));
+  if (!schedule) return null;
+  return buildScheduleParticipantSummary(schedule, sheetRows.join_applications || []);
+}
+
+async function readScheduleSummaryViaAppsScript(scheduleId = "") {
   const key = asText(scheduleId);
   if (!key) return null;
   const rows = await readSheetRowsDirect({
@@ -1050,6 +1497,24 @@ async function readScheduleSummary(scheduleId = "") {
     refreshSummary: "true"
   });
   return rows[0] || null;
+}
+
+async function readScheduleSummary(scheduleId = "") {
+  const key = asText(scheduleId);
+  if (!key) return null;
+  if (GOOGLE_SHEET_ID) {
+    try {
+      const summary = await readScheduleSummaryViaSheetsApi(key);
+      if (summary) return summary;
+    } catch (error) {
+      console.warn("Schedule summary via Google Sheets API failed; falling back to Apps Script.", {
+        scheduleId: key,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+    }
+  }
+  return readScheduleSummaryViaAppsScript(key);
 }
 
 async function sendGolfjoinApplicationNotifications(payload = {}, beforeSummary = null, afterSummary = null) {
@@ -1100,13 +1565,22 @@ function sendGolfjoinApplicationNotificationsInBackground(payload = {}, notifica
       let beforeSummary = null;
       let afterSummary = null;
       if (source === "join_apply" && notificationScheduleId) {
-        afterSummary = await readScheduleSummary(notificationScheduleId);
-        beforeSummary = afterSummary
-          ? {
-              ...afterSummary,
-              confirmedPeople: Math.max(0, getNumberValue(afterSummary.confirmedPeople, 0) - getApplicantPeople(payload))
-            }
-          : null;
+        try {
+          afterSummary = await readScheduleSummary(notificationScheduleId);
+          beforeSummary = afterSummary
+            ? {
+                ...afterSummary,
+                confirmedPeople: Math.max(0, getNumberValue(afterSummary.confirmedPeople, 0) - getApplicantPeople(payload))
+              }
+            : null;
+        } catch (summaryError) {
+          console.warn("Failed to read schedule summary before join alimtalk; sending join notification without summary.", {
+            requestId,
+            scheduleId: notificationScheduleId,
+            name: summaryError?.name || "",
+            message: summaryError?.message || ""
+          });
+        }
       }
       const notifications = await sendGolfjoinApplicationNotifications(payload, beforeSummary, afterSummary);
       console.log("golfjoin alimtalk background completed", { requestId, source, notifications });
@@ -1130,6 +1604,8 @@ function sanitizeMemberProfileLookupRow(row = {}) {
     memberChannel: asText(row.memberChannel),
     memberMobile: normalizePhone(row.memberMobile),
     memberEmail: asText(row.memberEmail),
+    kakaoId: asText(row.kakaoId),
+    kakaoNickname: asText(row.kakaoNickname),
     gender: asText(row.gender),
     birthYear: asText(row.birthYear || row.birthday),
     profession: asText(row.profession),
@@ -1142,6 +1618,54 @@ function sanitizeMemberProfileLookupRow(row = {}) {
     profileImageSize: asText(row.profileImageSize),
     updatedAt: asText(row.updatedAt || row.submittedAt)
   };
+}
+
+function rowMatchesMemberProfileLookup(row = {}, identifiers = {}) {
+  const memberSeq = asText(identifiers.memberSeq);
+  const memberId = asText(identifiers.memberId);
+  const memberMobile = normalizePhone(identifiers.memberMobile);
+  const memberEmail = asText(identifiers.memberEmail).toLowerCase();
+  const kakaoId = asText(identifiers.kakaoId);
+  return Boolean(
+    (memberSeq && asText(row.memberSeq) === memberSeq) ||
+    (memberId && asText(row.memberId) === memberId) ||
+    (memberMobile && normalizePhone(row.memberMobile || row.mobile || row.phone) === memberMobile) ||
+    (memberEmail && asText(row.memberEmail || row.email).toLowerCase() === memberEmail) ||
+    (kakaoId && asText(row.kakaoId) === kakaoId)
+  );
+}
+
+async function readMemberProfileLookupRowsViaSheetsApi(identifiers = {}) {
+  const rows = await readGoogleSheetRowsViaApi("join_member_profiles", { timeoutMs: MEMBER_PROFILE_LOOKUP_TIMEOUT_MS });
+  const matches = rows.filter((row) => rowMatchesMemberProfileLookup(row, identifiers)).reverse();
+  if (!matches.length) return [];
+  const completed = matches.find(hasCompletedJoinMemberProfile);
+  return [sanitizeMemberProfileLookupRow(completed || matches[0])];
+}
+
+async function readMemberProfileLookupRowsViaAppsScript(identifiers = {}) {
+  const target = buildSheetReadUrl({
+    sheet: "join_member_profiles",
+    source: "join_member_profile",
+    limit: "1",
+    memberSeq: identifiers.memberSeq,
+    memberId: identifiers.memberId,
+    memberMobile: identifiers.memberMobile,
+    memberEmail: identifiers.memberEmail,
+    kakaoId: identifiers.kakaoId
+  });
+  const response = await fetchWithTimeout(target, {
+    method: "GET",
+    headers: { "Accept": "application/json" },
+    redirect: "follow"
+  }, MEMBER_PROFILE_LOOKUP_TIMEOUT_MS);
+  const text = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Member profile lookup upstream failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+  }
+  const payload = JSON.parse(text || "{}");
+  const rows = Array.isArray(payload) ? payload : (payload.items || payload.rows || []);
+  return rows.slice(0, 1).map(sanitizeMemberProfileLookupRow);
 }
 
 function sanitizeJoinWishLookupRow(row = {}) {
@@ -1172,61 +1696,42 @@ function sanitizeJoinWishLookupRow(row = {}) {
   };
 }
 
-async function proxyMemberProfileLookup(params, res) {
-  const memberSeq = asText(params?.memberSeq);
-  const memberId = asText(params?.memberId);
-  const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
-  const memberEmail = asText(params?.memberEmail || params?.email);
-  const kakaoId = asText(params?.kakaoId);
-  if (!memberSeq && !memberId && !memberMobile && !memberEmail && !kakaoId) {
-    res.status(200).json({ items: [], rows: [] });
-    return;
-  }
-  if (memberEmail) assertTextLength(memberEmail, "memberEmail", MAX_STRING_LENGTHS.email);
-  if (kakaoId) assertTextLength(kakaoId, "kakaoId", MAX_STRING_LENGTHS.short);
-
-  const target = buildSheetReadUrl({
-    sheet: "join_member_profiles",
-    source: "join_member_profile",
-    limit: "1",
-    memberSeq,
-    memberId,
-    memberMobile,
-    memberEmail,
-    kakaoId
-  });
-  const response = await fetchWithTimeout(target, {
-    method: "GET",
-    headers: { "Accept": "application/json" },
-    redirect: "follow"
-  });
-  const text = await response.text();
-  if (!response.ok) {
-    res.status(response.status);
-    res.set("Content-Type", response.headers.get("content-type") || "application/json; charset=utf-8");
-    res.send(text);
-    return;
-  }
-  const payload = JSON.parse(text || "{}");
-  const rows = Array.isArray(payload) ? payload : (payload.items || payload.rows || []);
-  const sanitized = rows.slice(0, 1).map(sanitizeMemberProfileLookupRow);
-  res.status(200).json({ items: sanitized, rows: sanitized });
+function rowMatchesJoinWishLookup(row = {}, identifiers = {}) {
+  const memberSeq = asText(identifiers.memberSeq);
+  const memberId = asText(identifiers.memberId);
+  const memberMobile = normalizePhone(identifiers.memberMobile || identifiers.phone);
+  const rowMemberSeq = asText(row.memberSeq);
+  const rowMemberId = asText(row.memberId);
+  const rowMemberMobile = normalizePhone(row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone);
+  return Boolean(
+    (memberSeq && rowMemberSeq && rowMemberSeq === memberSeq) ||
+    (memberId && rowMemberId && rowMemberId === memberId) ||
+    (memberMobile && rowMemberMobile && rowMemberMobile === memberMobile)
+  );
 }
 
-async function proxyJoinWishesLookup(params, res) {
-  const memberSeq = asText(params?.memberSeq);
-  const memberId = asText(params?.memberId);
-  const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
-  const rows = await readJoinWishesForMember({ memberSeq, memberId, memberMobile, limit: params?.limit });
-  const sanitized = rows.map(sanitizeJoinWishLookupRow);
-  res.status(200).json({ items: sanitized, rows: sanitized });
+function sortRowsByUpdatedAtDesc(rows = []) {
+  return [...rows].sort((a, b) => {
+    const aTime = new Date(a.updatedAt || a.createdAt || a.submittedAt || 0).getTime() || 0;
+    const bTime = new Date(b.updatedAt || b.createdAt || b.submittedAt || 0).getTime() || 0;
+    return bTime - aTime;
+  });
 }
 
-async function readJoinWishesForMember(params = {}) {
+async function readJoinWishesForMemberViaSheetsApi(params = {}) {
+  const limit = Math.min(Math.max(Number(params?.limit || 200), 1), 200);
+  const rows = await readGoogleSheetRowsViaApi("join_wishes", { timeoutMs: 5000 });
+  return sortRowsByUpdatedAtDesc(rows.filter((row) => (
+    asText(row.source) === "join_wish"
+    && asText(row.status || "active") === "active"
+    && rowMatchesJoinWishLookup(row, params)
+  ))).slice(0, limit);
+}
+
+async function readJoinWishesForMemberViaAppsScript(params = {}) {
   const memberSeq = asText(params?.memberSeq);
   const memberId = asText(params?.memberId);
   const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
-  if (!memberMobile || (!memberSeq && !memberId)) return [];
   const target = buildSheetReadUrl({
     sheet: "join_wishes",
     source: "join_wish",
@@ -1247,6 +1752,109 @@ async function readJoinWishesForMember(params = {}) {
   }
   const payload = JSON.parse(text || "{}");
   return Array.isArray(payload) ? payload : (payload.items || payload.rows || []);
+}
+
+async function proxyMemberProfileLookup(params, res) {
+  const memberSeq = asText(params?.memberSeq);
+  const memberId = asText(params?.memberId);
+  const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
+  const memberEmail = asText(params?.memberEmail || params?.email);
+  const kakaoId = asText(params?.kakaoId);
+  if (!memberSeq && !memberId && !memberMobile && !memberEmail && !kakaoId) {
+    res.status(200).json({ items: [], rows: [] });
+    return;
+  }
+  if (memberEmail) assertTextLength(memberEmail, "memberEmail", MAX_STRING_LENGTHS.email);
+  if (kakaoId) assertTextLength(kakaoId, "kakaoId", MAX_STRING_LENGTHS.short);
+
+  const identifiers = { memberSeq, memberId, memberMobile, memberEmail, kakaoId };
+  const warnings = [];
+  if (GOOGLE_SHEET_ID) {
+    try {
+      const sanitized = await readMemberProfileLookupRowsViaSheetsApi(identifiers);
+      res.status(200).json({ items: sanitized, rows: sanitized, source: "sheets_api" });
+      return;
+    } catch (error) {
+      warnings.push("sheets_api_failed");
+      console.warn("Member profile lookup via Google Sheets API failed; falling back to Apps Script.", {
+        name: error?.name,
+        message: error?.message
+      });
+    }
+  }
+  try {
+    const sanitized = await readMemberProfileLookupRowsViaAppsScript(identifiers);
+    res.status(200).json({
+      items: sanitized,
+      rows: sanitized,
+      source: "apps_script",
+      warnings
+    });
+    return;
+  } catch (error) {
+    console.warn("Member profile lookup fallback failed.", {
+      name: error?.name,
+      message: error?.message,
+      warnings
+    });
+    res.status(200).json({
+      ok: false,
+      lookupFailed: true,
+      error: "member_profile_lookup_unavailable",
+      warnings,
+      items: [],
+      rows: []
+    });
+    return;
+  }
+}
+
+async function proxyJoinWishesLookup(params, res) {
+  const memberSeq = asText(params?.memberSeq);
+  const memberId = asText(params?.memberId);
+  const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
+  const result = await readJoinWishesForMemberWithSource({ memberSeq, memberId, memberMobile, limit: params?.limit });
+  const sanitized = result.rows.map(sanitizeJoinWishLookupRow);
+  res.status(200).json({
+    items: sanitized,
+    rows: sanitized,
+    source: result.source,
+    warnings: result.warnings
+  });
+}
+
+async function readJoinWishesForMemberWithSource(params = {}) {
+  const memberSeq = asText(params?.memberSeq);
+  const memberId = asText(params?.memberId);
+  const memberMobile = normalizePhone(params?.memberMobile || params?.phone);
+  if (!memberMobile || (!memberSeq && !memberId)) return { rows: [], source: "", warnings: [] };
+  const lookupParams = { ...params, memberSeq, memberId, memberMobile };
+  const warnings = [];
+  if (GOOGLE_SHEET_ID) {
+    try {
+      return {
+        rows: await readJoinWishesForMemberViaSheetsApi(lookupParams),
+        source: "sheets_api",
+        warnings
+      };
+    } catch (error) {
+      warnings.push({ key: "sheetsApi", message: error?.message || "Google Sheets API read failed" });
+      console.warn("Join wishes lookup via Google Sheets API failed; falling back to Apps Script.", {
+        name: error?.name,
+        message: error?.message
+      });
+    }
+  }
+  return {
+    rows: await readJoinWishesForMemberViaAppsScript(lookupParams),
+    source: "apps_script",
+    warnings
+  };
+}
+
+async function readJoinWishesForMember(params = {}) {
+  const result = await readJoinWishesForMemberWithSource(params);
+  return result.rows;
 }
 
 async function readHomeBootstrapPart(key, reader) {
@@ -1299,7 +1907,7 @@ async function readHomeBootstrapBatchDirect(params = {}) {
   };
 }
 
-async function readHomeBootstrapLightDirect(params = {}) {
+async function readHomeBootstrapLightViaAppsScript(params = {}) {
   const target = buildSheetReadUrl({
     action: "home_bootstrap_light",
     newScheduleLimit: Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100),
@@ -1325,6 +1933,71 @@ async function readHomeBootstrapLightDirect(params = {}) {
   return sanitizeHomeBootstrapLightPayload(payload);
 }
 
+async function readHomeBootstrapLightViaSheetsApi(params = {}) {
+  const newScheduleLimit = Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100);
+  const joinApplicationLimit = Math.min(Math.max(Number(params.joinApplicationLimit || 100), 1), 200);
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "recommended_schedules"
+  ], { timeoutMs: 7000 });
+  const newSchedules = filterSheetRowsForHome(sheetRows.new_schedule_applications || [], {
+    source: "new_schedule_builder",
+    limit: newScheduleLimit
+  });
+  const joinApplications = filterSheetRowsForHome(sheetRows.join_applications || [], {
+    source: "join_apply",
+    limit: joinApplicationLimit
+  });
+  const displayRules = filterSheetRowsForHome(sheetRows.recommended_schedules || [], {
+    limit: 100
+  }).filter((row) => (
+    asText(row.section) === "available_schedule"
+    && asText(row.isVisible || "true").toLowerCase() !== "false"
+  ));
+  return sanitizeHomeBootstrapLightPayload({
+    ok: true,
+    serverTime: nowKstISOString(),
+    updatedAt: nowKstISOString(),
+    newScheduleSummaries: newSchedules.map(buildNewScheduleSummary),
+    participantSummaries: buildParticipantSummaries(joinApplications),
+    displayRules: displayRules.map(buildDisplayRuleSummary),
+    wishTargetKeys: [],
+    memberBasic: {
+      hasMember: false
+    },
+    warnings: [],
+    source: "sheets_api"
+  });
+}
+
+async function readHomeBootstrapLightDirect(params = {}) {
+  const warnings = [];
+  if (GOOGLE_SHEET_ID) {
+    try {
+      return {
+        ...await readHomeBootstrapLightViaSheetsApi(params),
+        source: "sheets_api"
+      };
+    } catch (error) {
+      warnings.push({ key: "sheetsApi", message: error?.message || "Google Sheets API read failed" });
+      console.warn("Home bootstrap light via Google Sheets API failed; falling back to Apps Script.", {
+        name: error?.name,
+        message: error?.message
+      });
+    }
+  }
+  const payload = await readHomeBootstrapLightViaAppsScript(params);
+  return {
+    ...payload,
+    source: "apps_script",
+    warnings: [
+      ...(payload.warnings || []),
+      ...warnings
+    ]
+  };
+}
+
 function sanitizePreviewItem(item = {}) {
   return {
     displayName: maskName(item.displayName || item.name || ""),
@@ -1342,8 +2015,8 @@ function sanitizePreviewItem(item = {}) {
 function sanitizeHomeBootstrapLightPayload(payload = {}) {
   return {
     ok: Boolean(payload.ok !== false),
-    serverTime: asText(payload.serverTime || payload.updatedAt || new Date().toISOString()),
-    updatedAt: asText(payload.updatedAt || payload.serverTime || new Date().toISOString()),
+    serverTime: asText(payload.serverTime || payload.updatedAt || nowKstISOString()),
+    updatedAt: asText(payload.updatedAt || payload.serverTime || nowKstISOString()),
     newScheduleSummaries: (Array.isArray(payload.newScheduleSummaries) ? payload.newScheduleSummaries : []).map((item) => ({
       scheduleId: asText(item.scheduleId),
       applicationId: asText(item.applicationId),
@@ -1408,8 +2081,591 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
     memberBasic: {
       hasMember: Boolean(payload.memberBasic?.hasMember)
     },
+    source: asText(payload.source),
     warnings: Array.isArray(payload.warnings) ? payload.warnings : [],
     cache: payload.cache || undefined
+  };
+}
+
+function splitSheetList(value) {
+  if (Array.isArray(value)) return value.map(asText).filter(Boolean);
+  return asText(value).split(",").map((item) => item.trim()).filter(Boolean);
+}
+
+function parsePeopleCount(value) {
+  return Math.max(1, Math.round(Number(asText(value).replace(/[^\d.-]/g, "")) || 1));
+}
+
+function buildPreviewSeed(row = {}, fallback = "") {
+  return [
+    row.applicationId,
+    row.scheduleId,
+    row.memberSeq,
+    row.memberId,
+    row.applicantMobile,
+    row.memberMobile,
+    fallback
+  ].map(asText).filter(Boolean).join("-");
+}
+
+function buildParticipantPreview(row = {}, index = 0) {
+  return {
+    displayName: asText(row.applicantName || row.creatorName || row.memberName || row.name),
+    gender: asText(row.applicantGender || row.creatorGender || row.gender),
+    ageDisplay: asText(row.applicantAgeBand || row.creatorAgeDisplay || row.ageDisplay),
+    profession: asText(row.applicantProfession || row.creatorProfession || row.profession),
+    level: asText(row.applicantLevel || row.creatorLevel || row.level),
+    styles: splitSheetList(row.applicantStyles || row.creatorStyles || row.styles),
+    memberPreferences: splitSheetList(row.applicantPreferredMembers || row.creatorMemberPreferences || row.creatorPreferredMemberComposition || row.memberPreferences),
+    iconSeed: buildPreviewSeed(row, index),
+    companionGroup: parsePeopleCount(row.applicantPeople) > 1 ? asText(row.applicationId || row.scheduleId) : ""
+  };
+}
+
+function buildCompanionPreview(row = {}, companion = {}, index = 0) {
+  const companionObject = typeof companion === "object" && companion ? companion : { gender: companion };
+  return {
+    displayName: asText(companionObject.name || companionObject.displayName || `일행${index + 1}`),
+    gender: asText(companionObject.gender || companionObject.value || companionObject),
+    ageDisplay: asText(row.applicantAgeBand),
+    profession: asText(row.applicantProfession),
+    level: asText(row.applicantLevel),
+    styles: splitSheetList(row.applicantStyles),
+    memberPreferences: splitSheetList(row.applicantPreferredMembers),
+    iconSeed: buildPreviewSeed(row, `companion-${index}`),
+    companionGroup: asText(row.applicationId || row.scheduleId)
+  };
+}
+
+function parseCompanionPreviews(row = {}) {
+  const raw = asText(row.applicantCompanions || row.creatorCompanions);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.map((item, index) => buildCompanionPreview(row, item || {}, index));
+  } catch (error) {
+    // Fall through to comma-separated gender values.
+  }
+  return raw.split(",").map((gender, index) => buildCompanionPreview(row, { gender: gender.trim() }, index)).filter((item) => item.gender);
+}
+
+function buildParticipantPreviewList(row = {}, maxCount = 4) {
+  const count = parsePeopleCount(row.applicantPeople || row.creatorPeople || "1");
+  return [buildParticipantPreview(row, 0), ...parseCompanionPreviews(row)].slice(0, Math.min(maxCount, count));
+}
+
+function getFirstDateFromRange(from = "", to = "") {
+  return normalizeSheetDateText(from || to || "");
+}
+
+function normalizeLightCountry(row = {}) {
+  return asText(row.country || row.countryName || row.nation || row.productCountry || row.erpCountry || "");
+}
+
+function normalizeLightRegion(row = {}) {
+  return asText(row.region || row.city || row.area || row.location || "");
+}
+
+function buildNewScheduleSummary(row = {}) {
+  const people = parsePeopleCount(row.applicantPeople || row.creatorPeople || "1");
+  const capacity = 4;
+  const confirmedCount = Math.min(capacity, people);
+  const departureDate = getFirstDateFromRange(row.departureDateFrom, row.departureDateTo);
+  const returnDate = getFirstDateFromRange(row.returnDateFrom, row.returnDateTo) || departureDate;
+  return {
+    scheduleId: asText(row.scheduleId),
+    applicationId: asText(row.applicationId),
+    targetType: "new_schedule",
+    memberSeq: asText(row.memberSeq),
+    memberId: asText(row.memberId),
+    memberName: asText(row.memberName || row.applicantName),
+    memberChannel: asText(row.memberChannel),
+    memberMobile: normalizePhone(row.memberMobile || row.applicantMobile),
+    memberEmail: asText(row.memberEmail),
+    erpProductId: asText(row.erpProductId),
+    erpEventSeq: asText(row.erpEventSeq),
+    title: asText(row.productName),
+    country: normalizeLightCountry(row),
+    region: normalizeLightRegion(row),
+    airline: asText(row.airline),
+    departureAirport: asText(row.departureAirport),
+    arrivalAirport: asText(row.arrivalAirport),
+    departureDate,
+    returnDate,
+    price: normalizeSheetPriceText(row.productPrice),
+    image: asText(row.imageUrl),
+    packType: asText(row.packType),
+    packTypeName: asText(row.packTypeName),
+    flightIncluded: asText(row.flightIncluded),
+    roomType: asText(row.applicantRoomType || row.roomType),
+    flightRequestType: asText(row.flightRequestType),
+    singleRoomSurchargeText: asText(row.singleRoomSurchargeText),
+    creatorPreview: buildParticipantPreview(row, "creator"),
+    participantsPreview: buildParticipantPreviewList(row, 4),
+    confirmedCount,
+    remainingSlots: Math.max(0, capacity - confirmedCount),
+    approvalStatus: asText(row.approvalStatus || row.applicationStatus || row.status || "approved"),
+    displayStatus: asText(row.displayStatus || "visible"),
+    sortOrder: row.sortOrder || row.displayOrder || "",
+    createdAt: asText(row.createdAt),
+    updatedAt: asText(row.updatedAt || row.createdAt),
+    shareUrl: asText(row.shareUrl || row.pageUrl)
+  };
+}
+
+function getParticipantSummaryTargetType(row = {}) {
+  const targetType = asText(row.targetType);
+  const targetScheduleId = asText(row.targetScheduleId);
+  if (targetType === "recommended_schedule" || targetScheduleId.startsWith("admin-recommended-")) return "recommended_schedule";
+  return targetType;
+}
+
+function getParticipantSummaryKey(row = {}) {
+  const targetType = getParticipantSummaryTargetType(row);
+  const targetScheduleId = asText(row.targetScheduleId);
+  if (targetType === "recommended_schedule" && targetScheduleId) return ["recommended_schedule", targetScheduleId, "", "", ""].join("|");
+  return [
+    targetType,
+    row.targetScheduleId || "",
+    row.targetApplicationId || "",
+    row.erpProductId || "",
+    row.erpEventSeq || ""
+  ].map(asText).join("|");
+}
+
+function buildParticipantSummaries(rows = []) {
+  const groups = new Map();
+  rows.forEach((row) => {
+    const key = getParticipantSummaryKey(row);
+    if (!groups.has(key)) {
+      groups.set(key, {
+        targetType: getParticipantSummaryTargetType(row),
+        targetScheduleId: asText(row.targetScheduleId),
+        targetApplicationId: asText(row.targetApplicationId),
+        erpProductId: asText(row.erpProductId),
+        erpEventSeq: asText(row.erpEventSeq),
+        confirmedCount: 0,
+        remainingSlots: 4,
+        participantsPreview: [],
+        lastAppliedAt: ""
+      });
+    }
+    const group = groups.get(key);
+    const count = parsePeopleCount(row.applicantPeople || row.people || "1");
+    group.confirmedCount = Math.min(4, group.confirmedCount + count);
+    group.participantsPreview = group.participantsPreview.concat(buildParticipantPreviewList(row, count)).slice(0, 4);
+    group.remainingSlots = Math.max(0, 4 - group.confirmedCount);
+    const appliedAt = asText(row.updatedAt || row.createdAt);
+    if (appliedAt > asText(group.lastAppliedAt)) group.lastAppliedAt = appliedAt;
+  });
+  return Array.from(groups.values());
+}
+
+function summarizeSheetValues(values = []) {
+  const counts = values.map(asText).filter(Boolean).reduce((summary, value) => {
+    summary[value] = (summary[value] || 0) + 1;
+    return summary;
+  }, {});
+  return Object.keys(counts).map((key) => `${key} ${counts[key]}`).join(" / ");
+}
+
+function dateRangeSummary(from = "", to = "") {
+  const start = normalizeSheetDateText(from);
+  const end = normalizeSheetDateText(to);
+  if (start && end && start !== end) return `${start} ~ ${end}`;
+  return start || end || "";
+}
+
+function buildRecommendedScheduleId(rule = {}) {
+  const idSeed = rule.recommendedScheduleId
+    || rule.displayRuleId
+    || [rule.erpProductId, rule.erpEventSeq, rule.displayStartAt].map(asText).filter(Boolean).join("-")
+    || "rule";
+  const safe = asText(idSeed).replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "");
+  return `admin-recommended-${safe || "rule"}`;
+}
+
+function isActiveRecommendedScheduleRule(rule = {}) {
+  const section = asText(rule.section) || "available_schedule";
+  const visible = asText(rule.isVisible === undefined || rule.isVisible === "" ? "true" : rule.isVisible).toLowerCase();
+  const status = asText(rule.status).toLowerCase();
+  return section === "available_schedule" && visible !== "false" && visible !== "0" && visible !== "no" && status !== "cancelled" && status !== "hidden";
+}
+
+function buildRecommendedScheduleSummarySource(rule = {}) {
+  return {
+    scheduleId: buildRecommendedScheduleId(rule),
+    sourceApplicationId: rule.recommendedScheduleId || rule.displayRuleId || "",
+    applicationId: rule.recommendedScheduleId || rule.displayRuleId || "",
+    productName: rule.overrideTitle || rule.productName || rule.erpProductId || "Recommended schedule",
+    country: rule.country || "",
+    region: rule.region || "",
+    departureDateFrom: normalizeSheetDateText(rule.displayStartAt || ""),
+    departureDateTo: normalizeSheetDateText(rule.displayStartAt || ""),
+    returnDateFrom: normalizeSheetDateText(rule.displayEndAt || rule.displayStartAt || ""),
+    returnDateTo: normalizeSheetDateText(rule.displayEndAt || rule.displayStartAt || ""),
+    tripSummary: rule.tripSummary || "",
+    packType: rule.packType || "",
+    packTypeName: rule.packTypeName || "",
+    applicantPeople: "0",
+    creatorPeople: "0",
+    capacity: rule.capacity || rule.maxPeople || "4",
+    maxPeople: rule.maxPeople || rule.capacity || "4",
+    scheduleType: rule.scheduleType || "",
+    scheduleLabel: rule.scheduleLabel || "",
+    status: "open",
+    approvalStatus: "approved",
+    displayStatus: "visible",
+    erpProductId: rule.erpProductId || "",
+    erpEventSeq: rule.erpEventSeq || "",
+    isAdminRecommendedSchedule: true
+  };
+}
+
+function getScheduleCapacity(schedule = {}) {
+  const capacity = Number(asText(schedule.capacity || schedule.maxPeople).replace(/\D/g, ""));
+  return Number.isFinite(capacity) && capacity > 0 ? capacity : 4;
+}
+
+function isJoinApplicationForSchedule(join = {}, schedule = {}) {
+  const scheduleId = asText(schedule.scheduleId);
+  const targetType = asText(join.targetType);
+  const targetScheduleId = asText(join.targetScheduleId);
+  if (targetScheduleId && targetScheduleId === scheduleId && (targetType === "new_schedule" || schedule.isAdminRecommendedSchedule)) return true;
+  if (!schedule.isAdminRecommendedSchedule) return false;
+  const productId = asText(schedule.erpProductId);
+  const eventSeq = asText(schedule.erpEventSeq);
+  const joinProductId = asText(join.erpProductId || join.goodSeq);
+  const joinEventSeq = asText(join.erpEventSeq || join.eventSeq);
+  const departureDate = asText(schedule.departureDateFrom);
+  const joinDepartureDate = normalizeSheetDateText(join.departureDate);
+  if (!productId || productId !== joinProductId) return false;
+  if (eventSeq && joinEventSeq && eventSeq !== joinEventSeq) return false;
+  if (departureDate && joinDepartureDate && departureDate !== joinDepartureDate) return false;
+  return targetType !== "new_schedule";
+}
+
+function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
+  const relatedJoins = joinRows.filter((join) => isJoinApplicationForSchedule(join, schedule));
+  const confirmedJoins = relatedJoins.filter((join) => asText(join.applicationStatus || join.status) !== "cancelled");
+  const cancelledJoins = relatedJoins.filter((join) => asText(join.applicationStatus || join.status) === "cancelled");
+  const pendingJoins = relatedJoins.filter((join) => asText(join.applicationStatus || join.status) === "pending");
+  const creatorPeople = schedule.isAdminRecommendedSchedule ? 0 : parsePeopleCount(schedule.applicantPeople || schedule.creatorPeople || "1");
+  const joinedPeople = confirmedJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0);
+  const capacity = getScheduleCapacity(schedule);
+  const confirmedPeople = Math.min(capacity, creatorPeople + joinedPeople);
+  const creatorParticipants = creatorPeople > 0 ? [{
+    name: schedule.applicantName || schedule.creatorName,
+    phone: schedule.applicantMobile || schedule.creatorPhone,
+    gender: schedule.applicantGender || schedule.creatorGender,
+    age: schedule.applicantAgeBand || schedule.creatorAgeDisplay,
+    level: schedule.applicantLevel || schedule.creatorLevel,
+    styles: schedule.applicantStyles || schedule.creatorStyles,
+    memberPreferences: schedule.applicantPreferredMembers || schedule.creatorMemberPreferences || schedule.creatorPreferredMemberComposition
+  }] : [];
+  const participants = creatorParticipants.concat(confirmedJoins.map((join) => ({
+    name: join.applicantName || join.name,
+    phone: join.applicantMobile || join.phone,
+    gender: join.applicantGender || join.gender,
+    age: join.applicantAgeBand || join.ageDisplay,
+    level: join.applicantLevel || join.level,
+    styles: join.applicantStyles || join.styles,
+    memberPreferences: join.applicantPreferredMembers || join.memberPreferences || join.preferredMemberComposition
+  }))).slice(0, capacity);
+  return {
+    scheduleId: asText(schedule.scheduleId),
+    sourceApplicationId: asText(schedule.applicationId || schedule.sourceApplicationId),
+    title: asText(schedule.productName || `${schedule.region || "일정"} 맞춤 조인`),
+    country: asText(schedule.country),
+    region: asText(schedule.region),
+    departureSummary: dateRangeSummary(schedule.departureDateFrom, schedule.departureDateTo),
+    returnSummary: dateRangeSummary(schedule.returnDateFrom, schedule.returnDateTo),
+    tripSummary: asText(schedule.tripSummary),
+    creatorName: asText(schedule.applicantName || schedule.creatorName),
+    creatorPhone: normalizePhone(schedule.applicantMobile || schedule.creatorPhone),
+    capacity,
+    creatorPeople,
+    joinedPeople,
+    confirmedPeople,
+    pendingPeople: pendingJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0),
+    cancelledPeople: cancelledJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0),
+    remainingSeats: Math.max(0, capacity - confirmedPeople),
+    participantNames: participants.map((item) => asText(item.name)).filter(Boolean).join(", "),
+    participantPhones: participants.map((item) => normalizePhone(item.phone)).filter(Boolean).join(", "),
+    genderSummary: summarizeSheetValues(participants.map((item) => item.gender)),
+    ageSummary: summarizeSheetValues(participants.map((item) => item.age)),
+    levelSummary: summarizeSheetValues(participants.map((item) => item.level)),
+    styleSummary: summarizeSheetValues(participants.flatMap((item) => asText(item.styles).split(",").map(asText))),
+    memberPreferenceSummary: summarizeSheetValues(participants.flatMap((item) => asText(item.memberPreferences).split(",").map(asText))),
+    status: asText(schedule.applicationStatus || schedule.status || "open"),
+    approvalStatus: asText(schedule.approvalStatus || "pending"),
+    displayStatus: asText(schedule.displayStatus || "visible"),
+    updatedAt: nowKstISOString()
+  };
+}
+
+function buildJoinApplicationSheetObject(payload = {}, applicationId = "") {
+  const rowPayload = {
+    ...payload,
+    applicationId: applicationId || payload.applicationId || payload.joinApplyId
+  };
+  return GOOGLE_SHEET_HEADERS.join_applications.reduce((row, header) => {
+    row[header] = buildJoinApplicationSheetValue(rowPayload, header);
+    return row;
+  }, {});
+}
+
+function doScheduleIdsMatch(schedule = {}, scheduleId = "", applicationId = "") {
+  const normalizedScheduleId = asText(scheduleId);
+  const normalizedApplicationId = asText(applicationId);
+  return Boolean(
+    (normalizedScheduleId && (
+      asText(schedule.scheduleId) === normalizedScheduleId
+      || asText(schedule.applicationId) === normalizedScheduleId
+      || asText(schedule.sourceApplicationId) === normalizedScheduleId
+    ))
+    || (normalizedApplicationId && (
+      asText(schedule.applicationId) === normalizedApplicationId
+      || asText(schedule.sourceApplicationId) === normalizedApplicationId
+      || asText(schedule.scheduleId) === normalizedApplicationId
+    ))
+  );
+}
+
+function findJoinApplicationTargetSchedule(joinRow = {}, newSchedules = [], recommendedRows = []) {
+  const recommendedSchedules = (recommendedRows || [])
+    .filter(isActiveRecommendedScheduleRule)
+    .map(buildRecommendedScheduleSummarySource);
+  const targetType = asText(joinRow.targetType);
+  const targetScheduleId = asText(joinRow.targetScheduleId);
+  const targetApplicationId = asText(joinRow.targetApplicationId);
+  const wantsRecommended = targetType === "recommended_schedule" || targetScheduleId.startsWith("admin-recommended-");
+  const primarySchedules = wantsRecommended ? recommendedSchedules : newSchedules;
+  const fallbackSchedules = wantsRecommended ? newSchedules : recommendedSchedules;
+  return primarySchedules.find((schedule) => doScheduleIdsMatch(schedule, targetScheduleId, targetApplicationId))
+    || primarySchedules.find((schedule) => isJoinApplicationForSchedule(joinRow, schedule))
+    || fallbackSchedules.find((schedule) => doScheduleIdsMatch(schedule, targetScheduleId, targetApplicationId))
+    || fallbackSchedules.find((schedule) => isJoinApplicationForSchedule(joinRow, schedule))
+    || null;
+}
+
+function getJoinApplicationRequestedPeople(payload = {}, row = {}) {
+  return parsePeopleCount(
+    getValue(payload, "applicant.people")
+    || row.applicantPeople
+    || payload.applicantPeople
+    || payload.people
+    || "1"
+  );
+}
+
+function createJoinScheduleFullError(details = {}) {
+  return createHttpError("join_schedule_full", 409, {
+    code: "join_schedule_full",
+    reason: "capacity_full",
+    ...details
+  });
+}
+
+function isJoinScheduleFullError(error) {
+  return Boolean(error && (error.code === "join_schedule_full" || error.message === "join_schedule_full"));
+}
+
+async function assertJoinApplicationCapacityAvailable(payload = {}, applicationId = "") {
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "recommended_schedules"
+  ], { timeoutMs: 7000 });
+  const joinRows = sheetRows.join_applications || [];
+  const newSchedules = sheetRows.new_schedule_applications || [];
+  const joinRow = buildJoinApplicationSheetObject(payload, applicationId);
+  const targetSchedule = findJoinApplicationTargetSchedule(joinRow, newSchedules, sheetRows.recommended_schedules || []);
+  const existingIndex = joinRows.findIndex((row) => asText(row.applicationId || row.joinApplyId) === applicationId);
+  if (!targetSchedule) {
+    return {
+      joinRows,
+      existingIndex,
+      existingRow: existingIndex >= 0 ? joinRows[existingIndex] : {},
+      summary: null
+    };
+  }
+  const requestedPeople = getJoinApplicationRequestedPeople(payload, joinRow);
+  const capacityRows = joinRows.filter((row) => asText(row.applicationId || row.joinApplyId) !== applicationId);
+  const summary = buildScheduleParticipantSummary(targetSchedule, capacityRows);
+  if (requestedPeople > Number(summary.remainingSeats || 0)) {
+    throw createJoinScheduleFullError({
+      scheduleId: asText(summary.scheduleId || targetSchedule.scheduleId),
+      targetScheduleId: asText(joinRow.targetScheduleId),
+      targetApplicationId: asText(joinRow.targetApplicationId),
+      remainingSeats: Number(summary.remainingSeats || 0),
+      requestedPeople,
+      capacity: Number(summary.capacity || getScheduleCapacity(targetSchedule)),
+      confirmedPeople: Number(summary.confirmedPeople || 0)
+    });
+  }
+  return {
+    joinRows,
+    existingIndex,
+    existingRow: existingIndex >= 0 ? joinRows[existingIndex] : {},
+    summary
+  };
+}
+
+function buildDisplayRuleSummary(row = {}) {
+  return {
+    recommendedScheduleId: asText(row.recommendedScheduleId || row.displayRuleId),
+    targetType: "recommended_schedule",
+    targetId: asText(row.recommendedScheduleId || row.displayRuleId || row.erpProductId),
+    erpProductId: asText(row.erpProductId),
+    erpEventSeq: asText(row.erpEventSeq),
+    section: asText(row.section),
+    displayStatus: asText(row.displayStatus || (asText(row.isVisible || "true").toLowerCase() === "false" ? "hidden" : "visible")),
+    approvalStatus: asText(row.approvalStatus || "approved"),
+    isVisible: row.isVisible,
+    isPinned: row.isPinned,
+    sectionKey: asText(row.section),
+    sortOrder: row.displayOrder || "",
+    displayOrder: row.displayOrder || "",
+    badge: asText(row.badgeType),
+    badgeType: asText(row.badgeType),
+    scheduleType: asText(row.scheduleType),
+    scheduleLabel: asText(row.scheduleLabel),
+    capacity: row.capacity || row.maxPeople || "",
+    maxPeople: row.maxPeople || row.capacity || "",
+    packType: asText(row.packType),
+    packTypeName: asText(row.packTypeName),
+    overrideTitle: asText(row.overrideTitle),
+    overrideImageUrl: asText(row.overrideImageUrl),
+    country: asText(row.country),
+    region: asText(row.region),
+    airline: asText(row.airline),
+    departureAirport: asText(row.departureAirport),
+    arrivalAirport: asText(row.arrivalAirport),
+    productPrice: normalizeSheetPriceText(row.productPrice),
+    price: normalizeSheetPriceText(row.productPrice),
+    displayStartAt: normalizeSheetDateText(row.displayStartAt),
+    displayEndAt: normalizeSheetDateText(row.displayEndAt),
+    tripSummary: asText(row.tripSummary),
+    updatedAt: asText(row.updatedAt)
+  };
+}
+
+function filterSheetRowsForHome(rows = [], filters = {}) {
+  const source = asText(filters.source);
+  const status = asText(filters.status);
+  const filtered = rows.filter((row) => {
+    if (source && asText(row.source) && asText(row.source) !== source) return false;
+    if (status && asText(row.status || row.applicationStatus) !== status) return false;
+    return true;
+  }).sort((a, b) => {
+    const aTime = new Date(a.updatedAt || a.createdAt || a.submittedAt || 0).getTime() || 0;
+    const bTime = new Date(b.updatedAt || b.createdAt || b.submittedAt || 0).getTime() || 0;
+    return bTime - aTime;
+  });
+  const limit = Math.max(0, Math.round(Number(filters.limit) || 0));
+  return limit ? filtered.slice(0, limit) : filtered;
+}
+
+function normalizeSheetRowForJson(row = {}) {
+  const dateKeys = new Set([
+    "departureDateFrom",
+    "departureDateTo",
+    "returnDateFrom",
+    "returnDateTo",
+    "departureDate",
+    "returnDate",
+    "displayStartAt",
+    "displayEndAt"
+  ]);
+  return Object.entries(row).reduce((object, [key, value]) => {
+    if (key === "productPrice") {
+      object[key] = normalizeSheetPriceText(value);
+    } else if (dateKeys.has(key)) {
+      object[key] = normalizeSheetDateText(value);
+    } else if (["memberMobile", "applicantMobile", "creatorPhone"].includes(key)) {
+      object[key] = normalizePhone(value);
+    } else {
+      object[key] = value;
+    }
+    return object;
+  }, {});
+}
+
+async function readHomeBootstrapViaSheetsApi(params = {}) {
+  const newScheduleLimit = Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100);
+  const joinApplicationLimit = Math.min(Math.max(Number(params.joinApplicationLimit || 50), 1), 100);
+  const reviewLimit = Math.min(Math.max(Number(params.reviewLimit || 200), 1), 200);
+  const wishLimit = Math.min(Math.max(Number(params.wishLimit || 200), 1), 200);
+  const memberSeq = asText(params.memberSeq);
+  const memberId = asText(params.memberId);
+  const memberMobile = normalizePhone(params.memberMobile || params.phone);
+  const canReadWishes = Boolean(memberMobile && (memberSeq || memberId));
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "join_reviews",
+    "recommended_schedules",
+    "join_member_profiles",
+    "join_wishes"
+  ], { timeoutMs: 8000 });
+  const newSchedules = filterSheetRowsForHome(sheetRows.new_schedule_applications || [], {
+    source: "new_schedule_builder",
+    limit: newScheduleLimit
+  }).map(normalizeSheetRowForJson).map(sanitizePublicRow);
+  const joinApplications = filterSheetRowsForHome(sheetRows.join_applications || [], {
+    source: "join_apply",
+    limit: joinApplicationLimit
+  }).map(normalizeSheetRowForJson).map(sanitizePublicRow);
+  const reviews = filterSheetRowsForHome(sheetRows.join_reviews || [], {
+    source: "join_review",
+    status: "visible",
+    limit: reviewLimit
+  }).map(normalizeSheetRowForJson).map(sanitizePublicRow);
+  const displayRules = filterSheetRowsForHome(sheetRows.recommended_schedules || [], {
+    limit: 100
+  }).filter((row) => (
+    asText(row.section) === "available_schedule"
+    && asText(row.isVisible || "true").toLowerCase() !== "false"
+  )).map(normalizeSheetRowForJson).map(sanitizePublicRow);
+  const wishes = canReadWishes
+    ? sortRowsByUpdatedAtDesc((sheetRows.join_wishes || []).filter((row) => (
+      asText(row.source) === "join_wish"
+      && asText(row.status || "active") === "active"
+      && rowMatchesJoinWishLookup(row, { memberSeq, memberId, memberMobile })
+    ))).slice(0, wishLimit).map(normalizeSheetRowForJson).map(sanitizeJoinWishLookupRow)
+    : [];
+  return {
+    newSchedules,
+    joinApplications,
+    reviews,
+    wishes,
+    displayRules,
+    profileCount: (sheetRows.join_member_profiles || []).filter(hasCompletedJoinMemberProfile).length,
+    visitorCount: 0,
+    activeUserCount: 0,
+    source: "sheets_api",
+    warnings: []
+  };
+}
+
+async function readAdminBootstrapViaSheetsApi(params = {}) {
+  const limit = Math.min(Math.max(Number(params?.limit || 1000), 1), 3000);
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "join_member_profiles",
+    "recommended_schedules"
+  ], { timeoutMs: 7000 });
+  const normalizeRows = (rows = []) => rows.slice(0, limit).map(normalizeAdminSheetRowForJson);
+  return {
+    ok: true,
+    updatedAt: nowKstISOString(),
+    builderRows: normalizeRows(sheetRows.new_schedule_applications || []),
+    joinRows: normalizeRows(sheetRows.join_applications || []),
+    profileRows: normalizeRows(sheetRows.join_member_profiles || []),
+    displayRuleRows: normalizeRows(sheetRows.recommended_schedules || []),
+    source: "sheets_api"
   };
 }
 
@@ -1435,6 +2691,7 @@ function cloneHomeBootstrapPayload(payload = {}) {
     profileCount: Math.max(0, Math.round(Number(payload.profileCount) || 0)),
     visitorCount: Math.max(0, Math.round(Number(payload.visitorCount) || 0)),
     activeUserCount: Math.max(0, Math.round(Number(payload.activeUserCount) || 0)),
+    source: asText(payload.source),
     warnings: Array.isArray(payload.warnings) ? [...payload.warnings] : [],
     cache: payload.cache || undefined
   };
@@ -1472,6 +2729,708 @@ async function getGoogleMetadataAccessToken() {
   const token = asText(payload.access_token);
   if (!token) throw createHttpError("Google metadata token is empty", 502);
   return token;
+}
+
+function escapeGoogleSheetNameForRange(sheetName = "") {
+  return asText(sheetName).replace(/'/g, "''");
+}
+
+function mapGoogleSheetValuesToRows(values = []) {
+  if (!Array.isArray(values) || values.length < 2) return [];
+  const headers = values[0].map((header) => asText(header));
+  return values.slice(1).map((row) => headers.reduce((object, header, index) => {
+    if (!header) return object;
+    object[header] = row[index] == null ? "" : row[index];
+    return object;
+  }, {}));
+}
+
+async function readGoogleSheetRowsViaApi(sheetName, options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const token = await getGoogleMetadataAccessToken();
+  const range = `'${escapeGoogleSheetNameForRange(sheetName)}'!A:ZZ`;
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}/values/${encodeURIComponent(range)}`);
+  url.searchParams.set("majorDimension", "ROWS");
+  url.searchParams.set("valueRenderOption", options.valueRenderOption || "FORMATTED_VALUE");
+  url.searchParams.set("dateTimeRenderOption", "FORMATTED_STRING");
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  }, options.timeoutMs || 5000);
+  const text = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets API read failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+  }
+  const payload = JSON.parse(text || "{}");
+  return mapGoogleSheetValuesToRows(payload.values || []);
+}
+
+async function readGoogleSheetRangesViaApi(sheetNames = [], options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const names = sheetNames.map(asText).filter(Boolean);
+  if (!names.length) return {};
+  const token = await getGoogleMetadataAccessToken();
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}/values:batchGet`);
+  names.forEach((sheetName) => {
+    url.searchParams.append("ranges", `'${escapeGoogleSheetNameForRange(sheetName)}'!A:ZZ`);
+  });
+  url.searchParams.set("majorDimension", "ROWS");
+  url.searchParams.set("valueRenderOption", options.valueRenderOption || "FORMATTED_VALUE");
+  url.searchParams.set("dateTimeRenderOption", "FORMATTED_STRING");
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  }, options.timeoutMs || 6000);
+  const text = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets API batch read failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+  }
+  const payload = JSON.parse(text || "{}");
+  const valueRanges = Array.isArray(payload.valueRanges) ? payload.valueRanges : [];
+  return names.reduce((object, sheetName, index) => {
+    object[sheetName] = mapGoogleSheetValuesToRows(valueRanges[index]?.values || []);
+    return object;
+  }, {});
+}
+
+async function writeGoogleSheetValuesViaApi(range, values = [], options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const token = await getGoogleMetadataAccessToken();
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}/values/${encodeURIComponent(range)}`);
+  url.searchParams.set("valueInputOption", options.valueInputOption || "USER_ENTERED");
+  const response = await fetchWithTimeout(url.toString(), {
+    method: options.method || "PUT",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ values })
+  }, options.timeoutMs || 6000);
+  const text = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets API write failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+  }
+  return JSON.parse(text || "{}");
+}
+
+async function appendGoogleSheetValuesViaApi(sheetName, values = [], options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const token = await getGoogleMetadataAccessToken();
+  const range = `'${escapeGoogleSheetNameForRange(sheetName)}'!A:ZZ`;
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}/values/${encodeURIComponent(range)}:append`);
+  url.searchParams.set("valueInputOption", options.valueInputOption || "USER_ENTERED");
+  url.searchParams.set("insertDataOption", options.insertDataOption || "INSERT_ROWS");
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ values: [values] })
+  }, options.timeoutMs || 6000);
+  const text = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets API append failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+  }
+  return JSON.parse(text || "{}");
+}
+
+function buildJoinWishSheetValue(payload = {}, header = "") {
+  const createdAt = payload.createdAt || payload.savedAt || nowKstISOString();
+  const targetType = payload.targetType || getValue(payload, "target.type") || "product";
+  const targetKey = payload.targetKey
+    || getValue(payload, "target.targetKey")
+    || getValue(payload, "target.key")
+    || getValue(payload, "product.erpProductId")
+    || getValue(payload, "product.productId")
+    || payload.erpProductId
+    || payload.goodSeq
+    || "";
+  const wishId = payload.wishId || buildGoogleSheetRecordId(
+    "jw",
+    getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member",
+    targetType,
+    targetKey
+  );
+  const values = {
+    wishId,
+    createdAt,
+    source: payload.source || "join_wish",
+    pageUrl: payload.pageUrl || "",
+    memberSeq: getValue(payload, "member.memberSeq"),
+    memberId: getValue(payload, "member.memberId"),
+    memberName: getValue(payload, "member.memberName"),
+    memberChannel: getValue(payload, "member.memberChannel"),
+    memberMobile: normalizePhone(getValue(payload, "member.memberMobile")),
+    memberEmail: getValue(payload, "member.memberEmail"),
+    targetType,
+    targetKey,
+    targetScheduleId: payload.targetScheduleId || getValue(payload, "target.scheduleId"),
+    targetApplicationId: payload.targetApplicationId || getValue(payload, "target.applicationId"),
+    erpProductId: payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
+    erpEventSeq: payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"),
+    productName: getValue(payload, "product.productName") || payload.productName,
+    departureDate: getValue(payload, "product.departureDate") || payload.departureDate,
+    returnDate: getValue(payload, "product.returnDate") || payload.returnDate,
+    category: getValue(payload, "product.category") || payload.category,
+    country: getValue(payload, "product.country") || payload.country || "",
+    region: getValue(payload, "product.region") || payload.region,
+    imageUrl: getValue(payload, "product.imageUrl") || payload.imageUrl,
+    price: getValue(payload, "product.price") || payload.price,
+    status: payload.status || "active",
+    adminMemo: payload.adminMemo || "",
+    updatedAt: nowKstISOString()
+  };
+  return values[header] == null ? "" : values[header];
+}
+
+function buildJoinWishSheetRow(payload = {}, existingRow = {}) {
+  return GOOGLE_SHEET_HEADERS.join_wishes.map((header) => {
+    if (header === "createdAt" && existingRow.createdAt) return existingRow.createdAt;
+    return buildJoinWishSheetValue(payload, header);
+  });
+}
+
+function buildJoinMemberProfileSheetValue(payload = {}, header = "") {
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
+  const profileId = payload.profileId || buildGoogleSheetRecordId(
+    "jmp",
+    createdAt,
+    getValue(payload, "member.memberSeq") || payload.memberSeq || getValue(payload, "member.memberId") || payload.memberId || getValue(payload, "member.memberName") || payload.memberName || "member"
+  );
+  const travelStyles = getValue(payload, "profile.travelStyles") ?? payload.travelStyles;
+  const values = {
+    profileId,
+    createdAt,
+    source: payload.source || "join_member_profile",
+    pageUrl: payload.pageUrl || "",
+    memberSeq: getValue(payload, "member.memberSeq") || payload.memberSeq,
+    memberId: getValue(payload, "member.memberId") || payload.memberId,
+    memberName: getValue(payload, "member.memberName") || payload.memberName,
+    memberChannel: getValue(payload, "member.memberChannel") || payload.memberChannel,
+    memberMobile: normalizePhone(getValue(payload, "member.memberMobile") || payload.memberMobile),
+    memberEmail: getValue(payload, "member.memberEmail") || payload.memberEmail,
+    birthYear: getValue(payload, "profile.birthYear") || payload.birthYear,
+    gender: getValue(payload, "profile.gender") || payload.gender,
+    profession: getValue(payload, "profile.profession") || payload.profession,
+    level: getValue(payload, "profile.level") || payload.level,
+    travelStyles: Array.isArray(travelStyles) ? travelStyles.map(asText).filter(Boolean).join(", ") : asText(travelStyles),
+    profileImageUrl: getValue(payload, "profile.profileImageUrl") || payload.profileImageUrl,
+    profileImageObjectName: getValue(payload, "profile.profileImageObjectName") || payload.profileImageObjectName,
+    profileImageSize: getValue(payload, "profile.profileImageSize") || payload.profileImageSize,
+    requiredAgreed: getValue(payload, "profile.requiredAgreed") ?? payload.requiredAgreed,
+    marketingAgreed: getValue(payload, "profile.marketingAgreed") ?? payload.marketingAgreed,
+    termsAgreedAt: getValue(payload, "profile.termsAgreedAt") || payload.termsAgreedAt || createdAt,
+    kakaoId: getValue(payload, "kakao.kakaoId") || payload.kakaoId,
+    kakaoNickname: getValue(payload, "kakao.nickname") || payload.kakaoNickname,
+    adminMemo: payload.adminMemo || "",
+    updatedAt: nowKstISOString()
+  };
+  return values[header] == null ? "" : values[header];
+}
+
+function buildJoinMemberProfileSheetRow(payload = {}, existingRow = {}) {
+  return GOOGLE_SHEET_HEADERS.join_member_profiles.map((header) => {
+    if (header === "createdAt" && existingRow.createdAt) return existingRow.createdAt;
+    return buildJoinMemberProfileSheetValue(payload, header);
+  });
+}
+
+async function saveJoinMemberProfileViaSheetsApi(payload = {}) {
+  const profileId = asText(payload.profileId || buildJoinMemberProfileSheetValue(payload, "profileId"));
+  if (!profileId) throw createHttpError("profileId is required", 400);
+  const rows = await readGoogleSheetRowsViaApi("join_member_profiles", { timeoutMs: 5000 });
+  const existingIndex = rows.findIndex((row) => asText(row.profileId) === profileId);
+  const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
+  const rowValues = buildJoinMemberProfileSheetRow({ ...payload, profileId }, existingRow);
+  if (existingIndex >= 0) {
+    const rowNumber = existingIndex + 2;
+    await updateGoogleSheetRowViaApi("join_member_profiles", rowNumber, rowValues, { timeoutMs: 6000 });
+    return { ok: true, sheet: "join_member_profiles", write: "update", row: rowNumber, source: "sheets_api" };
+  }
+  const response = await appendGoogleSheetValuesViaApi("join_member_profiles", rowValues, { timeoutMs: 6000 });
+  return {
+    ok: true,
+    sheet: "join_member_profiles",
+    write: "append",
+    row: response.updates?.updatedRange || "",
+    source: "sheets_api"
+  };
+}
+
+function buildJoinReviewSheetValue(payload = {}, header = "") {
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
+  const reviewId = payload.reviewId || buildGoogleSheetRecordId(
+    "jr",
+    createdAt,
+    getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member",
+    getValue(payload, "product.erpProductId") || payload.erpProductId || getValue(payload, "product.productName")
+  );
+  const tags = payload.tags ?? getValue(payload, "review.tags");
+  const reviewImages = getValue(payload, "review.images");
+  const values = {
+    reviewId,
+    createdAt,
+    source: payload.source || "join_review",
+    pageUrl: payload.pageUrl || "",
+    memberSeq: getValue(payload, "member.memberSeq"),
+    memberId: getValue(payload, "member.memberId"),
+    memberName: getValue(payload, "member.memberName"),
+    memberMobile: normalizePhone(getValue(payload, "member.memberMobile")),
+    memberEmail: getValue(payload, "member.memberEmail"),
+    targetType: payload.targetType || getValue(payload, "target.type") || "erp_product",
+    targetScheduleId: payload.targetScheduleId || getValue(payload, "target.scheduleId"),
+    targetApplicationId: payload.targetApplicationId || getValue(payload, "target.applicationId"),
+    erpProductId: payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
+    erpEventSeq: payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"),
+    productName: getValue(payload, "product.productName") || payload.productName,
+    departureDate: getValue(payload, "product.departureDate") || payload.departureDate,
+    returnDate: getValue(payload, "product.returnDate") || payload.returnDate,
+    country: getValue(payload, "product.country") || payload.country || "",
+    region: getValue(payload, "product.region") || payload.region,
+    rating: payload.rating || getValue(payload, "review.rating"),
+    tags: Array.isArray(tags) ? tags.map(asText).filter(Boolean).join(", ") : asText(tags),
+    reviewText: payload.reviewText || getValue(payload, "review.text"),
+    photoName: payload.photoName || getValue(payload, "review.photoName"),
+    imageUrl: payload.imageUrl || getValue(payload, "review.imageUrl"),
+    thumbnailUrl: payload.thumbnailUrl || getValue(payload, "review.thumbnailUrl"),
+    imagesJson: payload.imagesJson || (Array.isArray(reviewImages) ? JSON.stringify(reviewImages) : ""),
+    status: payload.status || "visible",
+    adminMemo: payload.adminMemo || "",
+    updatedAt: nowKstISOString()
+  };
+  return values[header] == null ? "" : values[header];
+}
+
+function buildJoinReviewSheetRow(payload = {}, existingRow = {}) {
+  return GOOGLE_SHEET_HEADERS.join_reviews.map((header) => {
+    if (header === "createdAt" && existingRow.createdAt) return existingRow.createdAt;
+    return buildJoinReviewSheetValue(payload, header);
+  });
+}
+
+function joinSheetList(value) {
+  if (Array.isArray(value)) return value.map(asText).filter(Boolean).join(", ");
+  return asText(value);
+}
+
+function stringifySheetCompanions(value) {
+  if (!value) return "";
+  if (Array.isArray(value)) return JSON.stringify(value);
+  return asText(value);
+}
+
+function firstSheetListValue(value) {
+  if (Array.isArray(value)) return value.map(asText).find(Boolean) || "";
+  const text = asText(value);
+  if (!text) return "";
+  return text.split(",").map(asText).find(Boolean) || text;
+}
+
+function lastSheetListValue(value) {
+  if (Array.isArray(value)) {
+    const items = value.map(asText).filter(Boolean);
+    return items[items.length - 1] || "";
+  }
+  const text = asText(value);
+  if (!text) return "";
+  const items = text.split(",").map(asText).filter(Boolean);
+  return items[items.length - 1] || text;
+}
+
+function buildNewScheduleApplicationSheetValue(payload = {}, header = "") {
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
+  const applicationId = payload.applicationId || buildGoogleSheetRecordId(
+    "nsa",
+    createdAt,
+    getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member"
+  );
+  const scheduleId = payload.scheduleId || buildGoogleSheetRecordId("sch", applicationId);
+  const packTypeValue = getValue(payload, "trip.packType") || payload.packType;
+  const packTypeNameValue = getValue(payload, "trip.packTypeName") || payload.packTypeName;
+  const rawAirlineValue = getValue(payload, "trip.airline")
+    || getValue(payload, "product.airline")
+    || getValue(payload, "product.airlineName")
+    || getValue(payload, "product.airlineNm")
+    || getValue(payload, "product.air2Nm")
+    || getValue(payload, "product.air2CdNm");
+  const rawDepartureAirportValue = getValue(payload, "trip.departureAirport")
+    || getValue(payload, "product.departureAirport")
+    || getValue(payload, "product.airport");
+  const isGolfPack = asText(packTypeValue).toLowerCase() === "golf" || asText(packTypeNameValue).includes("\uACE8\uD504");
+  const values = {
+    applicationId,
+    scheduleId,
+    createdAt,
+    source: payload.source || "new_schedule_builder",
+    pageUrl: payload.pageUrl || "",
+    memberSeq: getValue(payload, "member.memberSeq"),
+    memberId: getValue(payload, "member.memberId"),
+    memberName: getValue(payload, "member.memberName"),
+    memberChannel: getValue(payload, "member.memberChannel"),
+    memberMobile: normalizePhone(getValue(payload, "member.memberMobile")),
+    memberEmail: getValue(payload, "member.memberEmail"),
+    applicantName: getValue(payload, "applicant.name"),
+    applicantGender: getValue(payload, "applicant.gender"),
+    applicantBirthYear: getValue(payload, "applicant.birthYear"),
+    applicantAgeBand: getValue(payload, "applicant.ageDisplay"),
+    applicantMobile: normalizePhone(getValue(payload, "applicant.phone")),
+    applicantProfession: getValue(payload, "applicant.profession"),
+    applicantPeople: getValue(payload, "applicant.people"),
+    applicantCompanions: stringifySheetCompanions(getValue(payload, "applicant.companions")),
+    applicantLevel: getValue(payload, "applicant.level"),
+    applicantStyles: joinSheetList(getValue(payload, "applicant.styles")),
+    applicantPreferredMembers: joinSheetList(getValue(payload, "applicant.preferredMemberComposition") || getValue(payload, "applicant.memberPreferences")),
+    applicantGreeting: getValue(payload, "applicant.greeting"),
+    applicantRoomType: getValue(payload, "applicant.roomType") || "2\uC778\uC2E4",
+    flightRequestType: getValue(payload, "applicant.flightRequestType"),
+    singleRoomSurcharge: getValue(payload, "applicant.singleRoomSurcharge"),
+    singleRoomSurchargeText: getValue(payload, "applicant.singleRoomSurchargeText"),
+    singleRoomSurchargeStatus: getValue(payload, "applicant.singleRoomSurchargeStatus"),
+    country: getValue(payload, "trip.country") || getValue(payload, "product.country") || payload.country || "",
+    region: getValue(payload, "trip.region") || getValue(payload, "product.region") || payload.region,
+    airline: isGolfPack ? (rawAirlineValue || "\uAC1C\uBCC4\uD56D\uACF5") : rawAirlineValue,
+    departureAirport: isGolfPack ? "" : rawDepartureAirportValue,
+    arrivalAirport: getValue(payload, "trip.arrivalAirport") || getValue(payload, "product.arrivalAirport") || getValue(payload, "product.region"),
+    erpProductId: getValue(payload, "trip.erpProductId") || getValue(payload, "trip.productId"),
+    erpEventSeq: getValue(payload, "trip.erpEventSeq") || getValue(payload, "trip.eventSeq"),
+    productName: getValue(payload, "trip.productName"),
+    productPrice: normalizeSheetPriceText(getValue(payload, "trip.productPrice") || payload.productPrice || payload.price),
+    packType: packTypeValue,
+    packTypeName: packTypeNameValue,
+    tripSummary: getValue(payload, "trip.tripSummary"),
+    departureDateFrom: normalizeSheetDateText(getValue(payload, "trip.flexibleDays.startBefore") || firstSheetListValue(getValue(payload, "trip.departureDates")) || getValue(payload, "trip.startSummary")),
+    departureDateTo: normalizeSheetDateText(getValue(payload, "trip.flexibleDays.startAfter") || lastSheetListValue(getValue(payload, "trip.departureDates")) || getValue(payload, "trip.startSummary")),
+    returnDateFrom: normalizeSheetDateText(getValue(payload, "trip.flexibleDays.endBefore") || firstSheetListValue(getValue(payload, "trip.returnDates")) || getValue(payload, "trip.endSummary")),
+    returnDateTo: normalizeSheetDateText(getValue(payload, "trip.flexibleDays.endAfter") || lastSheetListValue(getValue(payload, "trip.returnDates")) || getValue(payload, "trip.endSummary")),
+    participantStatus: payload.participantStatus || getValue(payload, "payment.participantStatus") || "\uC2E0\uCCAD",
+    quoteStatus: payload.quoteStatus || getValue(payload, "payment.quoteStatus") || "",
+    depositStatus: payload.depositStatus || getValue(payload, "payment.depositStatus") || "",
+    balanceStatus: payload.balanceStatus || getValue(payload, "payment.balanceStatus") || "",
+    refundStatus: payload.refundStatus || getValue(payload, "payment.refundStatus") || "",
+    requiredAgreed: getValue(payload, "agreements.required"),
+    marketingAgreed: getValue(payload, "agreements.marketing"),
+    approvalStatus: payload.approvalStatus || "pending",
+    displayStatus: payload.displayStatus || "visible",
+    applicationStatus: payload.applicationStatus || payload.status || "open",
+    adminMemo: payload.adminMemo || "",
+    updatedAt: nowKstISOString()
+  };
+  return values[header] == null ? "" : values[header];
+}
+
+function buildNewScheduleApplicationSheetRow(payload = {}, existingRow = {}) {
+  return GOOGLE_SHEET_HEADERS.new_schedule_applications.map((header) => {
+    if (header === "createdAt" && existingRow.createdAt) return existingRow.createdAt;
+    return buildNewScheduleApplicationSheetValue(payload, header);
+  });
+}
+
+function buildRecommendedScheduleSheetValue(payload = {}, header = "") {
+  const erpProductId = getValue(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq || "";
+  const erpEventSeq = getValue(payload, "product.erpEventSeq") || payload.erpEventSeq || payload.eventSeq || "";
+  const section = payload.section || "available_schedule";
+  const recommendedScheduleId = payload.recommendedScheduleId
+    || payload.displayRuleId
+    || buildGoogleSheetRecordId("rs", erpProductId, erpEventSeq, section);
+  const normalizedCapacity = normalizeRecommendedSchedulePeopleValue(payload.capacity, payload.maxPeople);
+  const normalizedMaxPeople = normalizeRecommendedSchedulePeopleValue(payload.maxPeople, payload.capacity);
+  const values = {
+    recommendedScheduleId,
+    erpProductId,
+    erpEventSeq,
+    section,
+    isVisible: payload.isVisible === false ? false : asText(payload.isVisible || "true"),
+    isPinned: payload.isPinned === true || asText(payload.isPinned).toLowerCase() === "true",
+    displayOrder: payload.displayOrder || 0,
+    badgeType: payload.badgeType || "recommended",
+    scheduleType: payload.scheduleType || "",
+    scheduleLabel: payload.scheduleLabel || "",
+    capacity: normalizedCapacity,
+    maxPeople: normalizedMaxPeople,
+    packType: payload.packType || getValue(payload, "product.packType") || "",
+    packTypeName: payload.packTypeName || getValue(payload, "product.packTypeName") || "",
+    overrideTitle: payload.overrideTitle || getValue(payload, "product.productName") || "",
+    overrideImageUrl: payload.overrideImageUrl || getValue(payload, "product.imageUrl") || "",
+    country: payload.country || getValue(payload, "product.country") || "",
+    region: payload.region || getValue(payload, "product.region") || "",
+    airline: payload.airline
+      || getValue(payload, "product.airline")
+      || getValue(payload, "product.airlineName")
+      || getValue(payload, "product.airlineNm")
+      || getValue(payload, "product.air2Nm")
+      || getValue(payload, "product.air2CdNm")
+      || "",
+    departureAirport: payload.departureAirport || getValue(payload, "product.departureAirport") || getValue(payload, "product.airport") || "",
+    arrivalAirport: payload.arrivalAirport || getValue(payload, "product.arrivalAirport") || getValue(payload, "product.region") || "",
+    productPrice: normalizeSheetPriceText(payload.productPrice || payload.price || getValue(payload, "product.price")),
+    displayStartAt: normalizeSheetDateText(payload.displayStartAt || getValue(payload, "product.departureDate") || ""),
+    displayEndAt: normalizeSheetDateText(payload.displayEndAt || getValue(payload, "product.returnDate") || payload.displayStartAt || getValue(payload, "product.departureDate") || ""),
+    tripSummary: payload.tripSummary || getValue(payload, "product.tripSummary") || "",
+    adminMemo: payload.adminMemo || "",
+    updatedAt: nowKstISOString()
+  };
+  return values[header] == null ? "" : values[header];
+}
+
+function buildRecommendedScheduleSheetRow(payload = {}, existingRow = {}) {
+  return GOOGLE_SHEET_HEADERS.recommended_schedules.map((header) => {
+    if (header === "recommendedScheduleId" && existingRow.recommendedScheduleId) return existingRow.recommendedScheduleId;
+    return buildRecommendedScheduleSheetValue(payload, header);
+  });
+}
+
+function normalizeRecommendedSchedulePeopleValue(...values) {
+  for (const value of values) {
+    const number = Number(asText(value).replace(/[^0-9.-]/g, ""));
+    if (Number.isFinite(number) && number > 0) return String(Math.max(1, Math.min(200, Math.round(number))));
+  }
+  return "";
+}
+
+function buildJoinApplicationSheetValue(payload = {}, header = "") {
+  const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
+  const applicationId = payload.applicationId || payload.joinApplyId || buildGoogleSheetRecordId(
+    "join",
+    createdAt,
+    getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member"
+  );
+  const values = {
+    applicationId,
+    createdAt,
+    source: payload.source || "join_apply",
+    pageUrl: payload.pageUrl || "",
+    memberSeq: getValue(payload, "member.memberSeq"),
+    memberId: getValue(payload, "member.memberId"),
+    memberName: getValue(payload, "member.memberName"),
+    memberChannel: getValue(payload, "member.memberChannel"),
+    memberMobile: normalizePhone(getValue(payload, "member.memberMobile")),
+    memberEmail: getValue(payload, "member.memberEmail"),
+    targetType: payload.targetType || getValue(payload, "target.type") || "erp_product",
+    targetScheduleId: payload.targetScheduleId || getValue(payload, "target.scheduleId"),
+    targetApplicationId: payload.targetApplicationId || getValue(payload, "target.applicationId"),
+    erpProductId: payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
+    erpEventSeq: payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"),
+    productName: getValue(payload, "product.productName") || payload.productName,
+    departureDate: getValue(payload, "product.departureDate") || payload.departureDate,
+    returnDate: getValue(payload, "product.returnDate") || payload.returnDate,
+    category: getValue(payload, "product.category") || payload.category,
+    country: getValue(payload, "product.country") || payload.country || "",
+    region: getValue(payload, "product.region") || payload.region,
+    airline: getValue(payload, "product.airline") || getValue(payload, "product.airlineName") || getValue(payload, "product.airlineNm") || getValue(payload, "product.air2Nm") || getValue(payload, "product.air2CdNm"),
+    departureAirport: getValue(payload, "product.departureAirport") || payload.departureAirport,
+    arrivalAirport: getValue(payload, "product.arrivalAirport") || payload.arrivalAirport || getValue(payload, "product.region"),
+    applicantName: getValue(payload, "applicant.name"),
+    applicantGender: getValue(payload, "applicant.gender"),
+    applicantBirthYear: getValue(payload, "applicant.birthYear"),
+    applicantAgeBand: getValue(payload, "applicant.ageDisplay"),
+    applicantMobile: normalizePhone(getValue(payload, "applicant.phone")),
+    applicantProfession: getValue(payload, "applicant.profession"),
+    applicantPeople: getValue(payload, "applicant.people"),
+    applicantCompanions: stringifySheetCompanions(getValue(payload, "applicant.companions")),
+    applicantLevel: getValue(payload, "applicant.level"),
+    applicantStyles: joinSheetList(getValue(payload, "applicant.styles")),
+    applicantPreferredMembers: joinSheetList(getValue(payload, "applicant.preferredMemberComposition") || getValue(payload, "applicant.memberPreferences")),
+    applicantGreeting: getValue(payload, "applicant.greeting"),
+    applicantRoomType: getValue(payload, "applicant.roomType") || "2인실",
+    flightRequestType: getValue(payload, "applicant.flightRequestType"),
+    singleRoomSurcharge: getValue(payload, "applicant.singleRoomSurcharge"),
+    singleRoomSurchargeText: getValue(payload, "applicant.singleRoomSurchargeText"),
+    singleRoomSurchargeStatus: getValue(payload, "applicant.singleRoomSurchargeStatus"),
+    participantStatus: payload.participantStatus || getValue(payload, "payment.participantStatus") || "신청",
+    quoteStatus: payload.quoteStatus || getValue(payload, "payment.quoteStatus") || "",
+    depositStatus: payload.depositStatus || getValue(payload, "payment.depositStatus") || "",
+    balanceStatus: payload.balanceStatus || getValue(payload, "payment.balanceStatus") || "",
+    refundStatus: payload.refundStatus || getValue(payload, "payment.refundStatus") || "",
+    applicationStatus: payload.applicationStatus || payload.status || "confirmed",
+    requiredAgreed: getValue(payload, "agreements.required"),
+    marketingAgreed: getValue(payload, "agreements.marketing"),
+    adminMemo: payload.adminMemo || "",
+    updatedAt: nowKstISOString()
+  };
+  return values[header] == null ? "" : values[header];
+}
+
+function buildJoinApplicationSheetRow(payload = {}, existingRow = {}) {
+  return GOOGLE_SHEET_HEADERS.join_applications.map((header) => {
+    if (header === "createdAt" && existingRow.createdAt) return existingRow.createdAt;
+    return buildJoinApplicationSheetValue(payload, header);
+  });
+}
+
+async function saveNewScheduleApplicationViaSheetsApi(payload = {}) {
+  const applicationId = asText(payload.applicationId || buildNewScheduleApplicationSheetValue(payload, "applicationId"));
+  if (!applicationId) throw createHttpError("applicationId is required", 400);
+  const scheduleId = asText(payload.scheduleId || buildNewScheduleApplicationSheetValue({ ...payload, applicationId }, "scheduleId"));
+  const rows = await readGoogleSheetRowsViaApi("new_schedule_applications", { timeoutMs: 5000 });
+  const existingIndex = rows.findIndex((row) => asText(row.applicationId) === applicationId);
+  const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
+  const rowPayload = { ...payload, applicationId, scheduleId };
+  const rowValues = buildNewScheduleApplicationSheetRow(rowPayload, existingRow);
+  if (existingIndex >= 0) {
+    const rowNumber = existingIndex + 2;
+    await updateGoogleSheetRowViaApi("new_schedule_applications", rowNumber, rowValues, { timeoutMs: 6000 });
+    return { ok: true, sheet: "new_schedule_applications", write: "update", row: rowNumber, source: "sheets_api", applicationId, scheduleId };
+  }
+  const response = await appendGoogleSheetValuesViaApi("new_schedule_applications", rowValues, { timeoutMs: 6000 });
+  return {
+    ok: true,
+    sheet: "new_schedule_applications",
+    write: "append",
+    row: response.updates?.updatedRange || "",
+    source: "sheets_api",
+    applicationId,
+    scheduleId
+  };
+}
+
+async function saveRecommendedScheduleViaSheetsApi(payload = {}) {
+  const recommendedScheduleId = asText(payload.recommendedScheduleId || payload.displayRuleId || buildRecommendedScheduleSheetValue(payload, "recommendedScheduleId"));
+  if (!recommendedScheduleId) throw createHttpError("recommendedScheduleId is required", 400);
+  const rows = await readGoogleSheetRowsViaApi("recommended_schedules", { timeoutMs: 5000 });
+  const existingIndex = rows.findIndex((row) => asText(row.recommendedScheduleId || row.displayRuleId) === recommendedScheduleId);
+  const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
+  const rowValues = buildRecommendedScheduleSheetRow({ ...payload, recommendedScheduleId }, existingRow);
+  if (existingIndex >= 0) {
+    const rowNumber = existingIndex + 2;
+    await updateGoogleSheetRowViaApi("recommended_schedules", rowNumber, rowValues, { timeoutMs: 6000, valueInputOption: "RAW" });
+    return { ok: true, sheet: "recommended_schedules", write: "update", row: rowNumber, source: "sheets_api", recommendedScheduleId };
+  }
+  const response = await appendGoogleSheetValuesViaApi("recommended_schedules", rowValues, { timeoutMs: 6000, valueInputOption: "RAW" });
+  return {
+    ok: true,
+    sheet: "recommended_schedules",
+    write: "append",
+    row: response.updates?.updatedRange || "",
+    source: "sheets_api",
+    recommendedScheduleId
+  };
+}
+
+async function updateAdminStatusViaSheetsApi(payload = {}) {
+  const sheetName = asText(payload.sheet);
+  const headers = GOOGLE_SHEET_HEADERS[sheetName];
+  if (!headers) throw createHttpError("sheet is not allowed", 400);
+  const keyField = asText(payload.keyField || "applicationId");
+  const keyValue = asText(payload.keyValue);
+  const rows = await readGoogleSheetRowsViaApi(sheetName, { timeoutMs: 5000 });
+  const existingIndex = rows.findIndex((row) => asText(row[keyField]) === keyValue);
+  if (existingIndex < 0) {
+    return { ok: false, error: "row_not_found", sheet: sheetName, keyField, keyValue, source: "sheets_api" };
+  }
+  const existingRow = rows[existingIndex];
+  const nextRow = { ...existingRow };
+  Object.entries(payload.fields || {}).forEach(([field, value]) => {
+    if (ADMIN_STATUS_UPDATE_FIELDS.has(field)) nextRow[field] = value;
+  });
+  if (headers.includes("updatedAt")) nextRow.updatedAt = nowKstISOString();
+  const rowValues = headers.map((header) => nextRow[header] == null ? "" : nextRow[header]);
+  const rowNumber = existingIndex + 2;
+  await updateGoogleSheetRowViaApi(sheetName, rowNumber, rowValues, { timeoutMs: 6000 });
+  return {
+    ok: true,
+    sheet: sheetName,
+    row: rowNumber,
+    keyField,
+    keyValue,
+    source: "sheets_api"
+  };
+}
+
+async function saveJoinApplicationViaSheetsApi(payload = {}) {
+  const applicationId = asText(payload.applicationId || payload.joinApplyId || buildJoinApplicationSheetValue(payload, "applicationId"));
+  if (!applicationId) throw createHttpError("applicationId is required", 400);
+  const capacityCheck = await assertJoinApplicationCapacityAvailable(payload, applicationId);
+  const existingIndex = capacityCheck.existingIndex;
+  const existingRow = capacityCheck.existingRow || {};
+  const rowValues = buildJoinApplicationSheetRow({ ...payload, applicationId }, existingRow);
+  if (existingIndex >= 0) {
+    const rowNumber = existingIndex + 2;
+    await updateGoogleSheetRowViaApi("join_applications", rowNumber, rowValues, { timeoutMs: 6000 });
+    return { ok: true, sheet: "join_applications", write: "update", row: rowNumber, source: "sheets_api", applicationId };
+  }
+  const response = await appendGoogleSheetValuesViaApi("join_applications", rowValues, { timeoutMs: 6000 });
+  return {
+    ok: true,
+    sheet: "join_applications",
+    write: "append",
+    row: response.updates?.updatedRange || "",
+    source: "sheets_api",
+    applicationId
+  };
+}
+
+async function saveJoinReviewViaSheetsApi(payload = {}) {
+  const reviewId = asText(payload.reviewId || buildJoinReviewSheetValue(payload, "reviewId"));
+  if (!reviewId) throw createHttpError("reviewId is required", 400);
+  const rows = await readGoogleSheetRowsViaApi("join_reviews", { timeoutMs: 5000 });
+  const existingIndex = rows.findIndex((row) => asText(row.reviewId) === reviewId);
+  const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
+  const rowValues = buildJoinReviewSheetRow({ ...payload, reviewId }, existingRow);
+  if (existingIndex >= 0) {
+    const rowNumber = existingIndex + 2;
+    await updateGoogleSheetRowViaApi("join_reviews", rowNumber, rowValues, { timeoutMs: 6000 });
+    return { ok: true, sheet: "join_reviews", write: "update", row: rowNumber, source: "sheets_api" };
+  }
+  const response = await appendGoogleSheetValuesViaApi("join_reviews", rowValues, { timeoutMs: 6000 });
+  return {
+    ok: true,
+    sheet: "join_reviews",
+    write: "append",
+    row: response.updates?.updatedRange || "",
+    source: "sheets_api"
+  };
+}
+
+async function saveJoinWishViaSheetsApi(payload = {}) {
+  const wishId = asText(payload.wishId || buildJoinWishSheetValue(payload, "wishId"));
+  if (!wishId) throw createHttpError("wishId is required", 400);
+  const rows = await readGoogleSheetRowsViaApi("join_wishes", { timeoutMs: 5000 });
+  const existingIndex = rows.findIndex((row) => asText(row.wishId) === wishId);
+  const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
+  const rowValues = buildJoinWishSheetRow({ ...payload, wishId }, existingRow);
+  if (existingIndex >= 0) {
+    const rowNumber = existingIndex + 2;
+    await updateGoogleSheetRowViaApi("join_wishes", rowNumber, rowValues, { timeoutMs: 6000 });
+    return { ok: true, sheet: "join_wishes", write: "update", row: rowNumber, source: "sheets_api" };
+  }
+  const response = await appendGoogleSheetValuesViaApi("join_wishes", rowValues, { timeoutMs: 6000 });
+  return {
+    ok: true,
+    sheet: "join_wishes",
+    write: "append",
+    row: response.updates?.updatedRange || "",
+    source: "sheets_api"
+  };
+}
+
+function columnNumberToLetters(value = 1) {
+  let number = Math.max(1, Number(value) || 1);
+  let letters = "";
+  while (number > 0) {
+    const modulo = (number - 1) % 26;
+    letters = String.fromCharCode(65 + modulo) + letters;
+    number = Math.floor((number - modulo) / 26);
+  }
+  return letters;
+}
+
+async function updateGoogleSheetRowViaApi(sheetName, rowNumber, values = [], options = {}) {
+  const endColumn = columnNumberToLetters(values.length || 1);
+  const range = `'${escapeGoogleSheetNameForRange(sheetName)}'!A${rowNumber}:${endColumn}${rowNumber}`;
+  return writeGoogleSheetValuesViaApi(range, [values], {
+    ...options,
+    method: "PUT",
+    timeoutMs: options.timeoutMs || 6000
+  });
 }
 
 function buildGa4HomeVisitorDimensionFilter() {
@@ -1650,8 +3609,18 @@ function setHomeBootstrapCacheEntry(cacheKey, payload) {
 }
 
 async function readHomeBootstrapUncached(params = {}) {
+  if (GOOGLE_SHEET_ID) {
+    try {
+      return await appendHomeBootstrapVisitorCount(await readHomeBootstrapViaSheetsApi(params));
+    } catch (error) {
+      console.warn("Home bootstrap via Google Sheets API failed; falling back to Apps Script batch.", error?.message || error);
+    }
+  }
   try {
-    return await appendHomeBootstrapVisitorCount(await readHomeBootstrapBatchDirect(params));
+    return await appendHomeBootstrapVisitorCount({
+      ...await readHomeBootstrapBatchDirect(params),
+      source: "apps_script_batch"
+    });
   } catch (error) {
     console.warn("Home bootstrap batch failed; falling back to parallel sheet reads.", error?.message || error);
   }
@@ -1713,6 +3682,7 @@ async function readHomeBootstrapUncached(params = {}) {
     profileCount: 0,
     visitorCount: 0,
     activeUserCount: 0,
+    source: "apps_script_parallel",
     warnings: []
   });
 }
@@ -1906,7 +3876,7 @@ async function proxyHomeStats(res) {
     ok: true,
     recent30DayVisitors: visitorResult.count,
     activeUsersNow: activeResult.count,
-    updatedAt: new Date().toISOString(),
+    updatedAt: nowKstISOString(),
     warnings
   });
 }
@@ -2073,7 +4043,7 @@ function nowKstISOString() {
 }
 
 function isSecretTourAirlineName(value) {
-  return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
+  return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|산동항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
 }
 
 function normalizeSecretTourAirportName(...values) {
@@ -2084,11 +4054,52 @@ function normalizeSecretTourAirlineName(...values) {
   return values.map(asText).find(isSecretTourAirlineName) || "";
 }
 
+const SECRET_TOUR_TITLE_COUNTRIES = [
+  "라오스", "말레이시아", "미얀마", "베트남", "브루나이", "인도네시아", "태국", "필리핀",
+  "일본", "중국", "대만", "괌", "사이판", "제주", "한국"
+];
+const SECRET_TOUR_TITLE_COUNTRY_ALIASES = {
+  "말레이지아": "말레이시아"
+};
+const SECRET_TOUR_REGION_COUNTRY_MAP = {
+  "조호바루": "말레이시아",
+  "코타키나발루": "말레이시아"
+};
+
+function inferSecretTourCountryFromRegion(...regions) {
+  for (const region of regions.map(asText).filter(Boolean)) {
+    const key = region.split(",").map(asText).filter(Boolean)[0] || region;
+    const country = SECRET_TOUR_REGION_COUNTRY_MAP[key];
+    if (country) return country;
+  }
+  return "";
+}
+
+function parseSecretTourTitleDestination(...titles) {
+  for (const title of titles.map(asText).filter(Boolean)) {
+    const normalized = title
+      .replace(/^\[[^\]]+\]\s*/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    const parts = normalized.split(" ").filter(Boolean);
+    const countryIndex = parts.findIndex((part) => SECRET_TOUR_TITLE_COUNTRIES.includes(part) || SECRET_TOUR_TITLE_COUNTRY_ALIASES[part]);
+    if (countryIndex < 0) continue;
+    const country = SECRET_TOUR_TITLE_COUNTRY_ALIASES[parts[countryIndex]] || parts[countryIndex];
+    return {
+      country,
+      region: asText(parts[countryIndex + 1] || "").replace(/[()[\],]/g, "")
+    };
+  }
+  return { country: "", region: "" };
+}
+
 function normalizeSecretTourGoodsItem(item = {}, index = 0) {
   const departureDate = secretTourDateToISO(item.minStartDay);
   const dayCnt = Number(item.dayCnt) || 1;
   const price = Number(item.dpPrice) || Number(item.minPrice) || 0;
   const productType = item.productType || item.goodsType || item.goodType || item.goodKind || item.goodDetailCdNm || item.goodDetailName || item.packageType || item.packType || item.tourType || item.airProductYn || item.airYn || item.flightYn || item.includeAirYn || "";
+  const title = asText(item.goodNm) || "Golf join product";
+  const destination = parseSecretTourTitleDestination(title);
   return {
     id: item.goodSeq ? `secret-tour-${item.goodSeq}` : `secret-tour-product-${index}`,
     source: "secret-tour-goods",
@@ -2105,8 +4116,9 @@ function normalizeSecretTourGoodsItem(item = {}, index = 0) {
     air2Cd: asText(item.air2Cd),
     air2CdNm: asText(item.air2CdNm),
     air2Nm: asText(item.air2Nm || item.air2CdNm),
-    title: asText(item.goodNm) || "Golf join product",
-    region: asText(item.tourCity || item.areaCdNm),
+    title,
+    country: destination.country,
+    region: destination.region || asText(item.tourCity || item.areaCdNm),
     category: asText(item.areaCdNm),
     airport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
     departureAirport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
@@ -2134,6 +4146,8 @@ function normalizeSecretTourGoodsEventItem(product = {}, event = {}, index = 0) 
   const productType = event.productType || event.goodsType || event.goodType || event.goodKind || event.goodDetailCdNm || event.goodDetailName || event.packageType || event.packType || event.tourType || event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.productType || product.goodsType || product.goodType || product.goodKind || product.goodDetailCdNm || product.goodDetailName || product.packageType || product.packType || product.tourType || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn || "";
   const goodSeq = asText(product.goodSeq);
   const eventSeq = asText(event.eventSeq);
+  const title = asText(event.eventNm || product.goodNm) || "Golf join product";
+  const destination = parseSecretTourTitleDestination(title, product.goodNm);
   return {
     id: eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : `secret-tour-${goodSeq}-event-${index}`,
     source: "secret-tour-goods-event",
@@ -2150,8 +4164,9 @@ function normalizeSecretTourGoodsEventItem(product = {}, event = {}, index = 0) 
     air2Cd: asText(event.air2Cd || product.air2Cd),
     air2CdNm: asText(product.air2CdNm),
     air2Nm: asText(event.air2Nm || product.air2Nm || product.air2CdNm),
-    title: asText(event.eventNm || product.goodNm) || "Golf join product",
-    region: asText(product.tourCity || product.areaCdNm),
+    title,
+    country: destination.country,
+    region: destination.region || asText(product.tourCity || product.areaCdNm),
     category: asText(product.areaCdNm),
     airport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
     departureAirport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
@@ -2263,6 +4278,7 @@ function buildGolfJoinProductsPayload(items = []) {
 }
 
 const GOLFJOIN_HOME_SUMMARY_RANGE_DAYS = 240;
+const GOLFJOIN_HOME_SUMMARY_START_OFFSET_DAYS = 7;
 const GOLFJOIN_HOME_SUMMARY_FIELDS = [
   "id",
   "source",
@@ -2335,6 +4351,10 @@ function normalizeGolfJoinDestinationKey(value = "") {
 function inferGolfJoinDestinationCountry(item = {}, regionName = "") {
   const direct = firstText(item.country, item.countryName, item.nation, item.productCountry, item.erpCountry);
   if (direct) return direct;
+  const parsed = parseSecretTourTitleDestination(item.title, item.productName, item.goodName);
+  if (parsed.country) return parsed.country;
+  const regionCountry = inferSecretTourCountryFromRegion(regionName, item.region, item.city, item.area, item.location);
+  if (regionCountry) return regionCountry;
   const regionKey = normalizeGolfJoinDestinationKey(regionName);
   const haystack = [item.title, item.productName, item.goodName, item.region, item.location].map(asText).join(" ");
   return GOLFJOIN_DESTINATION_COUNTRIES.find((country) => haystack.includes(country) && normalizeGolfJoinDestinationKey(country) !== regionKey) || "";
@@ -2343,7 +4363,8 @@ function inferGolfJoinDestinationCountry(item = {}, regionName = "") {
 function buildGolfJoinDestinationSummary(items = []) {
   const countries = new Map();
   items.forEach((item) => {
-    const regionName = asText(item.region || item.city || item.area || item.location).split(",")[0]?.trim() || "";
+    const parsed = parseSecretTourTitleDestination(item.title, item.productName, item.goodName);
+    const regionName = asText(parsed.region || item.region || item.city || item.area || item.location).split(",")[0]?.trim() || "";
     const countryName = inferGolfJoinDestinationCountry(item, regionName);
     if (!regionName && !countryName) return;
     const countryDisplay = countryName || regionName;
@@ -2388,7 +4409,7 @@ function buildGolfJoinDestinationSummary(items = []) {
 
 function buildGolfJoinHomeSummaryPayload(payload = {}, options = {}) {
   const generatedDate = String(payload.generatedAt || nowKstISOString()).slice(0, 10);
-  const startDate = generatedDate || payload.range?.startDate || "";
+  const startDate = addDaysToISODate(generatedDate, GOLFJOIN_HOME_SUMMARY_START_OFFSET_DAYS) || generatedDate || payload.range?.startDate || "";
   const endDate = addDaysToISODate(startDate, GOLFJOIN_HOME_SUMMARY_RANGE_DAYS) || payload.range?.endDate || "";
   const sourceItems = Array.isArray(payload.items) ? payload.items : [];
   const items = sourceItems
@@ -2585,6 +4606,26 @@ async function proxyGet(req, res) {
     await proxySecretTourJson(req, res);
     return;
   }
+  if (req.query?.action === "admin_bootstrap" && GOOGLE_SHEET_ID) {
+    if (!isAdminReadRequest(req)) {
+      const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
+      error.status = 403;
+      throw error;
+    }
+    try {
+      const payload = await readAdminBootstrapViaSheetsApi(req.query || {});
+      if (req.query?.refreshSummary === "true") {
+        refreshGolfJoinHomeSummaryInBackground("admin_bootstrap");
+      }
+      res.status(200).json(payload);
+      return;
+    } catch (error) {
+      console.warn("Admin bootstrap via Google Sheets API failed; falling back to Apps Script.", {
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+    }
+  }
   const requestedSheet = resolveReadSheetAlias(req.query?.sheet || "");
   const adminRequested = req.query?.admin === "1" || requestedSheet === "all" || !PUBLIC_READ_SHEETS.has(requestedSheet);
   const isAdmin = isAdminReadRequest(req);
@@ -2592,6 +4633,23 @@ async function proxyGet(req, res) {
     const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
     error.status = 403;
     throw error;
+  }
+  if (GOOGLE_SHEET_ID) {
+    try {
+      const payload = await readGenericSheetViaSheetsApi({
+        ...(req.query || {}),
+        sheet: requestedSheet || req.query?.sheet || ""
+      });
+      res.status(200).json(isAdmin ? payload : sanitizePublicPayload(payload));
+      return;
+    } catch (error) {
+      console.warn("Generic sheet read via Google Sheets API failed; falling back to Apps Script.", {
+        sheet: requestedSheet,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+      if (!SHEET_WEB_APP_URL) throw error;
+    }
   }
   const target = buildSheetReadUrl(req.query || {});
   target.searchParams.delete("admin");
@@ -2678,6 +4736,21 @@ async function proxyPost(req, res) {
     }
     const payload = readBody(req);
     validateAdminStatusUpdatePayload(payload);
+    if (GOOGLE_SHEET_ID) {
+      try {
+        const savedPayload = await updateAdminStatusViaSheetsApi(payload);
+        if (savedPayload.ok && !payload.skipSummaryRefresh) {
+          refreshGolfJoinHomeSummaryInBackground("admin_status_update");
+        }
+        res.status(200).json(savedPayload);
+        return;
+      } catch (error) {
+        console.warn("Admin status update via Google Sheets API failed; falling back to Apps Script.", {
+          name: error?.name || "",
+          message: error?.message || ""
+        });
+      }
+    }
     const response = await fetchWithTimeout(SHEET_WEB_APP_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -2715,6 +4788,105 @@ async function proxyPost(req, res) {
     throw error;
   }
   validateWritePayload(payload);
+  if (source === "join_member_profile" && GOOGLE_SHEET_ID) {
+    try {
+      const savedPayload = await saveJoinMemberProfileViaSheetsApi(payload);
+      res.status(200).json(savedPayload);
+      return;
+    } catch (error) {
+      console.warn("Join member profile save via Google Sheets API failed; falling back to Apps Script.", {
+        requestId,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+    }
+  }
+  if (source === "new_schedule_builder" && GOOGLE_SHEET_ID) {
+    try {
+      const savedPayload = await saveNewScheduleApplicationViaSheetsApi(payload);
+      const notificationPayload = {
+        ...payload,
+        applicationId: savedPayload.applicationId || payload.applicationId,
+        scheduleId: savedPayload.scheduleId || payload.scheduleId
+      };
+      sendGolfjoinApplicationNotificationsInBackground(notificationPayload, asText(notificationPayload.scheduleId), requestId);
+      refreshGolfJoinHomeSummaryInBackground(source);
+      res.status(200).json({
+        ...savedPayload,
+        notifications: ALIGO_ENABLED
+          ? [{ queued: true, reason: "notification_queued" }]
+          : [{ skipped: true, reason: "aligo is disabled" }]
+      });
+      return;
+    } catch (error) {
+      console.warn("New schedule save via Google Sheets API failed; falling back to Apps Script.", {
+        requestId,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+    }
+  }
+  if (source === "join_apply" && GOOGLE_SHEET_ID) {
+    try {
+      const savedPayload = await saveJoinApplicationViaSheetsApi(payload);
+      sendGolfjoinApplicationNotificationsInBackground(payload, asText(payload.targetScheduleId || getValue(payload, "target.scheduleId")), requestId);
+      refreshGolfJoinHomeSummaryInBackground(source);
+      res.status(200).json({
+        ...savedPayload,
+        notifications: ALIGO_ENABLED
+          ? [{ queued: true, reason: "notification_queued" }]
+          : [{ skipped: true, reason: "aligo is disabled" }]
+      });
+      return;
+    } catch (error) {
+      if (isJoinScheduleFullError(error)) throw error;
+      console.warn("Join apply save via Google Sheets API failed; falling back to Apps Script.", {
+        requestId,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+    }
+  }
+  if (source === "join_review" && GOOGLE_SHEET_ID) {
+    try {
+      const savedPayload = await saveJoinReviewViaSheetsApi(payload);
+      res.status(200).json(savedPayload);
+      return;
+    } catch (error) {
+      console.warn("Join review save via Google Sheets API failed; falling back to Apps Script.", {
+        requestId,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+    }
+  }
+  if (source === "join_wish" && GOOGLE_SHEET_ID) {
+    try {
+      const savedPayload = await saveJoinWishViaSheetsApi(payload);
+      res.status(200).json(savedPayload);
+      return;
+    } catch (error) {
+      console.warn("Join wish save via Google Sheets API failed; falling back to Apps Script.", {
+        requestId,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+    }
+  }
+  if ((source === "product_display_rule" || source === "recommended_schedule") && GOOGLE_SHEET_ID) {
+    try {
+      const savedPayload = await saveRecommendedScheduleViaSheetsApi(payload);
+      refreshGolfJoinHomeSummaryInBackground(source);
+      res.status(200).json(savedPayload);
+      return;
+    } catch (error) {
+      console.warn("Recommended schedule save via Google Sheets API failed; falling back to Apps Script.", {
+        requestId,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+    }
+  }
   console.log("golfjoin write start", {
     requestId,
     source,
@@ -2766,6 +4938,10 @@ async function proxyPost(req, res) {
   }
   try {
     const savedPayload = JSON.parse(text || "{}");
+    if (savedPayload?.ok === false && asText(savedPayload.code || savedPayload.error) === "join_schedule_full") {
+      res.status(409).send(JSON.stringify(savedPayload));
+      return;
+    }
     sendGolfjoinApplicationNotificationsInBackground(payload, notificationScheduleId, requestId);
     refreshGolfJoinHomeSummaryInBackground(source);
     res.send(JSON.stringify({
@@ -2804,6 +4980,14 @@ exports.proxyGoogleSheet = async (req, res) => {
     res.status(405).json({ error: "Method not allowed" });
   } catch (error) {
     console.error(error);
-    res.status(error.status || 500).json({ error: error.message || "Request failed" });
+    res.status(error.status || 500).json({
+      error: error.message || "Request failed",
+      ...(error.code ? { code: error.code } : {}),
+      ...(error.reason ? { reason: error.reason } : {}),
+      ...(Number.isFinite(error.remainingSeats) ? { remainingSeats: error.remainingSeats } : {}),
+      ...(Number.isFinite(error.requestedPeople) ? { requestedPeople: error.requestedPeople } : {}),
+      ...(Number.isFinite(error.capacity) ? { capacity: error.capacity } : {}),
+      ...(Number.isFinite(error.confirmedPeople) ? { confirmedPeople: error.confirmedPeople } : {})
+    });
   }
 };

@@ -176,7 +176,7 @@
       --modal-sub-title-mobile: 18px;
       --modal-sub-title-weight: 800;
       --modal-header-padding-pc: 12px 20px;
-      --modal-header-padding-mobile: 10px 18px;
+      --modal-header-padding-mobile: 5px 18px;
       --modal-sheet-header-padding-mobile: 15px 18px;
       --modal-close-size: 44px;
       --modal-close-size-pc: 38px;
@@ -364,13 +364,17 @@
       transform: translate(-50%, calc(100% + 80px)) !important;
     }
 
-    html.modal-open .join-create-floating-button,
-    body.modal-open .join-create-floating-button,
-    #secret-golf-join.modal-open .join-create-floating-button {
-      opacity: 0 !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-      transform: translateY(80px) scale(.92) !important;
+    html.modal-open .join-mobile-bottom-nav.is-nav-layer-active:not(.is-scroll-hidden),
+    html.modal-open .join-mobile-bottom-nav.is-my-layer-active:not(.is-scroll-hidden),
+    body.modal-open .join-mobile-bottom-nav.is-nav-layer-active:not(.is-scroll-hidden),
+    body.modal-open .join-mobile-bottom-nav.is-my-layer-active:not(.is-scroll-hidden),
+    #secret-golf-join.modal-open .join-mobile-bottom-nav.is-nav-layer-active:not(.is-scroll-hidden),
+    #secret-golf-join.modal-open .join-mobile-bottom-nav.is-my-layer-active:not(.is-scroll-hidden) {
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+      transform: translate(-50%, 0) !important;
+      z-index: 2147483646 !important;
     }
 
     #secret-golf-join,
@@ -8375,7 +8379,7 @@
         padding: 0 14px;
       }
       .builder-progress-item {
-        font-size: 15px;
+        font-size: 16px;
       }
       .builder-body,
       .builder-detail-body {
@@ -8803,15 +8807,24 @@
       }
       body > #builderModal.sgj-portal-overlay .builder-bottom.step-3 {
         background: #fff !important;
-        box-shadow: 0 360px 0 360px #fff;
+        grid-template-columns: minmax(0, 1fr);
+        padding: 14px 22px 16px;
+        box-shadow: none;
       }
       body > #builderModal.sgj-portal-overlay .builder-bottom.step-3::after {
-        bottom: calc(-420px - env(safe-area-inset-bottom, 0px));
-        height: calc(560px + env(safe-area-inset-bottom, 0px));
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        bottom: auto;
+        height: 240px;
         background: #fff !important;
       }
       .builder-bottom .button {
         min-height: 52px;
+      }
+      body > #builderModal.sgj-portal-overlay .builder-bottom.step-3 .button {
+        min-height: 48px;
       }
       .builder-flex-sheet {
         padding: 16px 14px 20px;
@@ -10164,7 +10177,7 @@
     }
     @media (min-width: 641px) {
       .join-mobile-bottom-nav.is-visible {
-        box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
+        box-shadow: none;
       }
 
       .modal-header,
@@ -11348,14 +11361,30 @@
       display: none;
     }
     .apply-room-surcharge {
-      font-size: 12px;
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      margin-top: 12px;
+      padding: 18px;
+      border: 0;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: #373a3c;
+      font-size: 18px;
+      font-weight: 600;
       line-height: 1.45;
-      color: #64748b;
-      margin-top: 6px;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
     }
     .apply-room-surcharge strong {
-      color: #111827;
-      font-weight: 800;
+      color: #373a3c;
+      font-weight: 700;
+    }
+    .apply-room-surcharge:empty {
+      display: none;
     }
     .apply-chip {
       min-height: 48px;
@@ -12996,32 +13025,112 @@
     }
     .phone-info {
       display: grid;
-      gap: 14px;
+      gap: 12px;
+    }
+    #phoneModal .modal.small {
+      width: min(420px, calc(100vw - 48px));
+      border-radius: 20px;
+      box-shadow: 0 20px 56px rgba(15, 23, 42, 0.22);
+    }
+    #phoneModal .modal-scroll {
+      padding-right: 0;
+      scrollbar-gutter: auto;
+    }
+    #phoneModal .modal-header {
+      display: grid;
+      grid-template-columns: var(--modal-close-size) minmax(0, 1fr) var(--modal-close-size);
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px;
+    }
+    #phoneModal .modal-title {
+      grid-column: 2;
+      text-align: center;
+      font-size: 19px;
+      font-weight: 800;
+      line-height: 1.25;
+    }
+    #phoneModal .modal-close-icon {
+      grid-column: 3;
+      justify-self: center;
+    }
+    #phoneModal .modal-body {
+      padding: 18px 20px 20px;
+    }
+    .phone-intro {
+      display: grid;
+      grid-template-columns: 44px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: #fff;
+    }
+    .phone-intro-icon {
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: #eff6ff;
+      color: #3489f8;
+    }
+    .phone-intro-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+    .phone-intro-title {
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+    .phone-intro-copy {
+      margin-top: 3px;
+      color: var(--text-soft);
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.45;
     }
     .phone-number-box {
-      padding: 18px;
-      border-radius: 18px;
-      background: var(--surface-muted);
-      border: 1px solid #bfdbfe;
-      color: var(--blue);
-      font-size: 30px;
-      font-weight: 900;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
       letter-spacing: 0;
+    }
+    .phone-number-label {
+      color: var(--text-soft);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .phone-number-value {
+      color: var(--text);
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.2;
+      white-space: nowrap;
     }
     .phone-hours {
       display: grid;
-      gap: 10px;
-      padding: 16px;
+      gap: 8px;
+      padding: 14px 16px;
       border: 1px solid var(--border);
-      border-radius: 16px;
-      background: var(--surface-soft);
+      border-radius: 14px;
+      background: #fff;
     }
     .phone-hours-row {
       display: flex;
       justify-content: space-between;
-      gap: 14px;
-      font-size: 16px;
+      gap: 12px;
+      font-size: 15px;
     }
     .phone-hours-label {
       color: var(--text-soft);
@@ -13031,6 +13140,22 @@
       color: var(--text);
       font-weight: 800;
       text-align: right;
+    }
+    .phone-call-button {
+      width: 100%;
+      min-height: 50px;
+      gap: 8px;
+      border-radius: 14px;
+      background: var(--modal-bottom-primary-color);
+      border-color: var(--modal-bottom-primary-color);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .phone-call-button svg {
+      width: 18px;
+      height: 18px;
     }
     .detail-slider {
       position: relative;
@@ -13101,6 +13226,9 @@
       pointer-events: auto;
     }
     .detail-slider-back {
+      display: none;
+    }
+    .detail-slider-actions {
       display: none;
     }
     .detail-mobile-sticky-header {
@@ -13294,6 +13422,29 @@
       body > #detailModal.sgj-portal-overlay.open .detail-slider-back svg {
         width: 24px;
         height: 24px;
+      }
+      #detailModal.open .detail-slider-actions,
+      body > #detailModal.sgj-portal-overlay.open .detail-slider-actions {
+        position: absolute;
+        top: 6px;
+        right: 20px;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0;
+      }
+      #detailModal.open .detail-slider-actions .detail-mobile-header-button,
+      body > #detailModal.sgj-portal-overlay.open .detail-slider-actions .detail-mobile-header-button {
+        width: 36px;
+        height: 44px;
+        color: #fff !important;
+      }
+      #detailModal.open .detail-slider-actions .detail-mobile-header-button svg,
+      body > #detailModal.sgj-portal-overlay.open .detail-slider-actions .detail-mobile-header-button svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
       }
       .detail-slider-dots.is-windowed {
         width: 112px;
@@ -19361,7 +19512,7 @@
         border-top: 1px solid var(--border);
       }
       body > #globalApplyOverlay.sgj-portal-overlay .detail-apply-actions {
-        padding: 12px 22px;
+        padding: 14px 22px 16px;
       }
       body > #globalApplyOverlay.sgj-portal-overlay {
         align-items: stretch;
@@ -21901,231 +22052,255 @@
       position: fixed;
       left: 50%;
       right: auto;
-      bottom: var(--join-mobile-visual-bottom, 0px);
+      bottom: 16px;
       z-index: 2147482500;
       display: block;
-      width: min(560px, calc(100vw - 40px));
-      padding: 8px 10px max(8px, env(safe-area-inset-bottom, 0px));
-      background: #54abff;
-      border-top: 1px solid rgba(84, 171, 255, .95);
-      border-left: 1px solid rgba(84, 171, 255, .95);
-      border-right: 1px solid rgba(84, 171, 255, .95);
-      border-radius: 18px;
-      box-shadow: 0 -14px 30px rgba(84, 171, 255, .25);
-      transform: translate(-50%, calc(100% + var(--join-mobile-visual-bottom, 0px) + 8px));
-      transition: transform .26s ease;
-      will-change: transform;
+      width: min(430px, calc(100vw - 32px));
+      height: 80px;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translate(-50%, calc(100% + 80px));
+      transition:
+        transform .28s cubic-bezier(.2, .8, .2, 1),
+        opacity .22s ease,
+        visibility 0s linear .28s;
+      will-change: transform, opacity;
     }
 
     .join-mobile-bottom-nav.is-visible {
-      transform: translate(-50%, 0);
-    }
-
-    .join-mobile-bottom-nav.is-my-layer-active {
-      z-index: 2147483650;
-    }
-
-    .join-mobile-bottom-nav-list {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 2px;
-      width: 100%;
-      max-width: 540px;
-      margin: 0 auto;
-      padding: 0;
-      padding-left: 0;
-      list-style: none;
-    }
-
-    .join-mobile-bottom-nav .join-mobile-bottom-nav-list > .join-pc-bottom-only {
-      display: list-item;
-    }
-
-    #secret-golf-join .join-mobile-bottom-nav-list {
-      margin: 0 auto;
-      padding: 0;
-      padding-left: 0;
-      list-style: none;
-    }
-
-    .join-mobile-bottom-nav button {
-      display: grid;
-      grid-template-rows: 24px 24px;
-      place-items: center;
-      gap: 5px;
-      width: 100%;
-      min-width: 0;
-      min-height: 50px;
-      border: 0;
-      border-radius: 12px;
-      background: transparent;
-      color: #fff;
-      font-size: 17px;
-      font-weight: 500;
-      letter-spacing: 0;
-      padding-top: 13px;
-      padding-bottom: 5px;
-      cursor: pointer;
-    }
-
-    .join-mobile-bottom-nav button.is-active {
-      color: #fff;
-    }
-
-    .join-mobile-bottom-nav button.is-active svg {
-      color: #fff;
-    }
-
-    .join-mobile-bottom-nav button.is-active svg path,
-    .join-mobile-bottom-nav button.is-active svg circle {
-      fill: currentColor;
-      stroke: currentColor;
-    }
-
-    .join-mobile-bottom-nav .search-active-cutout {
-      opacity: 0;
-      fill: #fff;
-      stroke: #fff;
-    }
-
-    .join-mobile-bottom-nav button.is-active .search-active-cutout {
       opacity: 1;
-      fill: #fff;
-      stroke: #fff;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate(-50%, 0);
+      transition:
+        transform .26s cubic-bezier(.2, .8, .2, 1),
+        opacity .18s ease,
+        visibility 0s linear 0s;
     }
 
-    .join-mobile-bottom-nav button.is-active.nav-kakao .kakao-dot {
-      fill: #fff;
-      stroke: #fff;
+    .join-mobile-bottom-nav.is-nav-layer-active,
+    .join-mobile-bottom-nav.is-my-layer-active {
+      z-index: 2147483646;
     }
 
-    .join-mobile-bottom-nav button.is-active .join-mobile-bottom-nav-label {
-      color: #fff;
-      font-weight: 500;
+    .join-mobile-bottom-nav-shell {
+      --join-mobile-nav-active-bg: #3489f8;
+      --join-mobile-nav-active-x: 0px;
+      --join-mobile-nav-active-width: 72px;
+      --join-mobile-nav-scale-x: 1;
+      --join-mobile-nav-scale-y: 1;
+      position: relative;
+      width: 100%;
+      height: 80px;
+      padding: 8px;
+      overflow: hidden;
+      user-select: none;
+      border: 1px solid rgba(241, 245, 249, .8);
+      border-radius: 32px;
+      background: #fff;
+      box-shadow: 0 12px 36px rgba(15, 23, 42, .12);
     }
 
-    .join-mobile-bottom-nav button:active,
-    .join-mobile-bottom-nav button:focus-visible {
-      background: rgba(255, 255, 255, .14);
+    .join-mobile-bottom-nav-inactive-layer,
+    .join-mobile-bottom-nav-active-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 0;
+      padding: 8px;
+    }
+
+    .join-mobile-bottom-nav-inactive-layer {
+      z-index: 1;
+    }
+
+    .join-mobile-bottom-nav-indicator {
+      position: absolute;
+      top: 8px;
+      bottom: 8px;
+      left: 0;
+      width: var(--join-mobile-nav-active-width);
+      border-radius: 22px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate3d(var(--join-mobile-nav-active-x), 0, 0);
+      transition: none;
+      will-change: transform, width;
+      z-index: 2;
+    }
+
+    .join-mobile-bottom-nav-indicator-deform {
+      width: 100%;
+      height: 100%;
+      transform: scaleX(var(--join-mobile-nav-scale-x)) scaleY(var(--join-mobile-nav-scale-y));
+      transform-origin: center;
+      will-change: transform;
+    }
+
+    .join-mobile-bottom-nav-indicator-visual {
+      width: 100%;
+      height: 100%;
+      border-radius: 22px;
+      background: var(--join-mobile-nav-active-bg);
+      box-shadow: 0 8px 18px rgba(52, 137, 248, .28);
+    }
+
+    .join-mobile-bottom-nav-active-overlay {
+      --join-mobile-nav-clip-top: 8px;
+      --join-mobile-nav-clip-right: 100%;
+      --join-mobile-nav-clip-bottom: 8px;
+      --join-mobile-nav-clip-left: 0px;
+      pointer-events: none;
+      opacity: 0;
+      transition: none;
+      clip-path: inset(
+        var(--join-mobile-nav-clip-top)
+        var(--join-mobile-nav-clip-right)
+        var(--join-mobile-nav-clip-bottom)
+        var(--join-mobile-nav-clip-left)
+        round 22px
+      );
+      z-index: 3;
+    }
+
+    .join-mobile-bottom-nav-shell.has-active .join-mobile-bottom-nav-indicator,
+    .join-mobile-bottom-nav-shell.has-active .join-mobile-bottom-nav-active-overlay {
+      opacity: 1;
+    }
+
+    .join-mobile-bottom-nav-button,
+    .join-mobile-bottom-nav-overlay-item {
+      position: relative;
+      display: flex;
+      flex: 1 1 0;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-width: 0;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      border-radius: 22px;
+      background: transparent;
+      box-sizing: border-box;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .join-mobile-bottom-nav-button {
+      cursor: pointer;
+      z-index: 1;
+    }
+
+    .join-mobile-bottom-nav-button.is-active,
+    .join-mobile-bottom-nav-button.is-indicator-overlap {
+      color: #334155;
+      background: transparent;
+    }
+
+    .join-mobile-bottom-nav-button:active,
+    .join-mobile-bottom-nav-button:focus-visible {
+      background: rgba(52, 137, 248, .08);
       outline: none;
     }
 
-    .join-mobile-bottom-nav svg {
-      width: clamp(18px, 5.6vw, 25px);
-      height: clamp(18px, 5.6vw, 25px);
-      display: block;
+    .join-mobile-bottom-nav-overlay-item {
       color: #fff;
-      align-self: end;
+    }
+
+    .join-mobile-bottom-nav svg {
+      display: block;
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+      color: currentColor;
+      transform: translateX(var(--join-mobile-nav-content-shift-x, 0));
     }
 
     .join-mobile-bottom-nav-label {
       display: block;
-      width: 100%;
-      max-width: 100%;
+      width: var(--join-mobile-nav-active-width, 72px);
+      max-width: var(--join-mobile-nav-active-width, 72px);
       min-width: 0;
       overflow: hidden;
       text-overflow: clip;
       white-space: nowrap;
-      font-size: 17px;
-      font-weight: 400;
-      line-height: 1.15;
+      color: currentColor;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
       text-align: center;
-      align-self: start;
+      transform: translateX(var(--join-mobile-nav-content-shift-x, 0));
     }
 
-    .join-mobile-bottom-nav .nav-kakao svg {
-      color: #fff;
+    .join-mobile-bottom-nav-button[data-mobile-nav-key="create"],
+    .join-mobile-bottom-nav-active-overlay .join-mobile-bottom-nav-overlay-item:nth-child(1) {
+      --join-mobile-nav-content-shift-x: -1.5px;
     }
 
-    .join-create-floating-button {
-      display: none;
+    .join-mobile-bottom-nav-button[data-mobile-nav-key="phone"],
+    .join-mobile-bottom-nav-active-overlay .join-mobile-bottom-nav-overlay-item:nth-child(4) {
+      --join-mobile-nav-content-shift-x: 1.5px;
+    }
+
+    @media (min-width: 641px) {
+      .join-mobile-bottom-nav {
+        width: min(516px, calc(100vw - 40px));
+        height: 88px;
+      }
+
+      .join-mobile-bottom-nav-shell {
+        height: 88px;
+        border-radius: 36px;
+      }
+
+      .join-mobile-bottom-nav-inactive-layer,
+      .join-mobile-bottom-nav-active-overlay {
+        top: 50%;
+        right: auto;
+        bottom: auto;
+        left: 50%;
+        width: min(490px, calc(100vw - 40px));
+        height: 76px;
+        gap: 20px;
+        transform: translate(-50%, -50%);
+      }
+
+      .join-mobile-bottom-nav-indicator {
+        top: 50%;
+        bottom: auto;
+        height: 76px;
+        transform: translate3d(var(--join-mobile-nav-active-x), -50%, 0);
+      }
+
+      .join-mobile-bottom-nav-button,
+      .join-mobile-bottom-nav-overlay-item {
+        gap: 8px;
+      }
+
+      .join-mobile-bottom-nav svg {
+        width: 34px;
+        height: 34px;
+      }
+
+      .join-mobile-bottom-nav-label {
+        font-size: 17px;
+      }
     }
 
     @media (max-width: 640px) {
-      .join-create-floating-button {
-        position: fixed;
-        left: 20px;
-        top: calc(var(--join-mobile-visual-end, 100vh) - 20px - 56px);
-        z-index: 2147482501;
-        display: inline-flex;
-        align-items: center;
-        justify-content: flex-start;
-        width: 56px;
-        height: 56px;
-        min-width: 56px;
-        max-width: calc(100vw - 40px);
-        padding: 0 16px;
-        overflow: hidden;
-        border: 0;
-        border-radius: 999px;
-        background: #0c91f8;
-        color: #fff;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
-        opacity: 1;
-        visibility: visible;
-        transform: translateX(0) scale(1);
-        transform-origin: left center;
-        transition:
-          top .26s ease,
-          width .26s ease,
-          border-radius .26s ease,
-          box-shadow .26s ease,
-          transform .26s ease,
-          opacity .2s ease,
-          visibility .2s ease;
-        will-change: top, width, transform;
-      }
-
-      .join-create-floating-button.is-expanded,
-      .join-create-floating-button:hover {
-        top: calc(var(--join-mobile-visual-end, 100vh) - 72px - 20px - 56px);
-        width: 168px;
-        box-shadow: 0 6px 14px rgba(0, 0, 0, .14);
-      }
-
-      .join-create-floating-button:active,
-      .join-create-floating-button:focus-visible {
-        transform: translateX(0) scale(.98);
-        outline: none;
-      }
-
-      .join-create-floating-button-icon {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        flex: 0 0 24px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .join-create-floating-button-icon svg {
-        width: 24px;
-        height: 24px;
-        display: block;
-      }
-
-      .join-create-floating-button-text {
-        min-width: 0;
-        margin-left: 9px;
-        overflow: hidden;
-        color: #fff;
-        font-size: 17px;
-        font-weight: 700;
-        line-height: 1;
-        letter-spacing: 0;
-        white-space: nowrap;
-        opacity: 0;
-        transform: translateX(-10px);
-        transition: opacity .2s ease, transform .24s ease;
-      }
-
-      .join-create-floating-button.is-expanded .join-create-floating-button-text,
-      .join-create-floating-button:hover .join-create-floating-button-text {
-        opacity: 1;
-        transform: translateX(0);
-      }
-
       .region-search-back::before,
       .join-member-login-back::before {
         content: none !important;
@@ -22391,12 +22566,12 @@
       align-items: center;
       gap: 8px;
       width: 100%;
-      min-height: 46px;
+      min-height: 38px;
       padding: 0 4px;
       border-radius: 10px;
       color: #111827;
       text-align: left;
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 500;
       line-height: 1.2;
     }
@@ -23069,8 +23244,31 @@
       object-fit: contain;
     }
 
+    .join-my-drawer-phone-icon {
+      overflow: hidden;
+    }
+
+    .join-my-drawer-phone-image {
+      width: 21px;
+      height: 21px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex: 0 0 21px;
+    }
+
+    .join-my-drawer-phone-image img {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      display: block;
+      object-fit: contain;
+    }
+
     .join-my-drawer-section-title {
-      padding: 18px 2px 0px;
+      padding: 12px 2px 0px;
       color: #111827;
       font-size: 16px;
       font-weight: 700;
@@ -23090,7 +23288,7 @@
     .join-my-drawer-support-info {
       display: grid;
       gap: 5px;
-      padding: 18px 2px 18px;
+      padding: 12px 2px 18px;
       line-height: 1.45;
     }
 
@@ -26841,98 +27039,35 @@
 
     @media (max-width: 640px) {
       .join-mobile-bottom-nav {
-        left: 0;
-        right: 0;
-        top: calc(var(--join-mobile-visual-end, 100vh) - 72px);
+        --join-mobile-bottom-nav-height: 80px;
+        --join-mobile-bottom-nav-gap: max(16px, env(safe-area-inset-bottom, 0px));
+        display: block;
+        left: 50%;
+        right: auto;
+        top: calc(var(--join-mobile-visual-end, 100vh) - var(--join-mobile-bottom-nav-height) - var(--join-mobile-bottom-nav-gap));
         bottom: auto !important;
-        width: auto;
-        max-width: none;
-        height: 72px;
+        width: min(430px, calc(100vw - 32px));
+        max-width: calc(100vw - 32px);
+        height: var(--join-mobile-bottom-nav-height);
         padding: 0;
         overflow: visible;
-        background: rgba(255, 255, 255, .98);
-        border-top: 1px solid rgba(226, 232, 240, .95);
-        border-left: 0;
-        border-right: 0;
+        background: transparent;
+        border: 0;
         border-radius: 0;
-        box-shadow: 0 -14px 30px rgba(15, 23, 42, .12);
-        transform: translateY(0);
+        box-shadow: none;
+        transform: translate(-50%, 0);
       }
 
       .join-mobile-bottom-nav::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 100%;
-        height: 120px;
-        background: rgba(255, 255, 255, .98);
-        pointer-events: none;
-      }
-
-      .join-mobile-bottom-nav-list {
-        height: 72px;
-        width: 100%;
-        max-width: none;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0;
-      }
-
-      .join-mobile-bottom-nav .join-mobile-bottom-nav-list > .join-pc-bottom-only {
-        display: none !important;
-      }
-
-      .join-mobile-bottom-nav button {
-        min-height: 72px;
-        height: 72px;
-        grid-template-rows: 24px 24px;
-        border-radius: 0;
-        justify-content: center;
-        text-align: center;
-        gap: 4px;
-        padding: 8px 1px 0;
-        color: #111827;
-      }
-
-      .join-mobile-bottom-nav button.is-active {
-        color: #54abff;
-      }
-
-      .join-mobile-bottom-nav button.is-active svg {
-        color: #54abff;
-      }
-
-      .join-mobile-bottom-nav button.is-active .join-mobile-bottom-nav-label {
-        color: #54abff;
-      }
-
-      .join-mobile-bottom-nav button:active,
-      .join-mobile-bottom-nav button:focus-visible {
-        background: #f1f5f9;
-      }
-
-      .join-mobile-bottom-nav svg {
-        width: 24px;
-        height: 24px;
-        color: #111827;
-      }
-
-      .join-mobile-bottom-nav .nav-kakao svg {
-        color: #3b1d1d;
-      }
-
-      .join-mobile-bottom-nav-label {
-        height: 24px;
-        font-size: clamp(14px, 3.7vw, 16px);
-        line-height: 24px;
+        content: none;
       }
 
       .join-mobile-bottom-nav.is-visible {
-        transform: translateY(0);
+        transform: translate(-50%, 0);
       }
 
       .join-mobile-bottom-nav.is-hidden {
-        transform: translateY(calc(100% + 44px));
+        transform: translate(-50%, calc(100% + 44px));
       }
     }
 
@@ -26965,7 +27100,8 @@
       body > #calendarSheet.sgj-portal-overlay.open,
       body > #builderModal.sgj-portal-overlay.open,
       body > #regionSearchModal.sgj-portal-overlay.open,
-      body > #globalApplyOverlay.sgj-portal-overlay.open {
+      body > #globalApplyOverlay.sgj-portal-overlay.open,
+      body > #joinMyMenuModal.sgj-portal-overlay.open {
         overflow: visible !important;
       }
 
@@ -27019,9 +27155,11 @@
         pointer-events: none;
       }
 
-      body > #builderModal.sgj-portal-overlay.open {
+      body > #builderModal.sgj-portal-overlay.open,
+      body > #joinMyMenuModal.sgj-portal-overlay.open {
         background: #fff !important;
         box-shadow: 0 0 0 200vmax #fff !important;
+        isolation: isolate;
       }
       body > #builderModal.sgj-portal-overlay.open::after {
         content: "";
@@ -27036,7 +27174,8 @@
       }
       body > #calendarSheet.sgj-portal-overlay.open::after,
       body > #regionSearchModal.sgj-portal-overlay.open::after,
-      body > #globalApplyOverlay.sgj-portal-overlay.open::after {
+      body > #globalApplyOverlay.sgj-portal-overlay.open::after,
+      body > #joinMyMenuModal.sgj-portal-overlay.open::after {
         content: "";
         position: fixed;
         left: 0;
@@ -27470,6 +27609,38 @@
       max-height: 1.35em !important;
     }
 
+    @media (min-width: 641px) {
+      #detailModal.open .modal-header,
+      body > #detailModal.sgj-portal-overlay.open .modal-header {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+      }
+
+      #detailModal.open #detailModalTitle,
+      body > #detailModal.sgj-portal-overlay.open #detailModalTitle {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        display: block !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        max-height: 1.35em !important;
+        color: var(--text) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        line-height: 1.25 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      #detailModal.open .detail-mobile-sticky-header,
+      body > #detailModal.sgj-portal-overlay.open .detail-mobile-sticky-header {
+        display: none !important;
+      }
+    }
+
     #detailModal .detail-main-title,
     body > #detailModal.sgj-portal-overlay .detail-main-title,
     #detailModal.open .detail-main-title,
@@ -27494,6 +27665,13 @@
     .detail-mobile-header-button[data-detail-wish-button].is-wished svg path + path,
     body > #detailModal.sgj-portal-overlay .detail-mobile-header-button[data-detail-wish-button].is-wished svg path + path {
       display: none;
+    }
+
+    .detail-slider-actions .detail-mobile-header-button[data-detail-wish-button].is-wished svg,
+    body > #detailModal.sgj-portal-overlay .detail-slider-actions .detail-mobile-header-button[data-detail-wish-button].is-wished svg {
+      color: #fff;
+      fill: #fff;
+      stroke: #fff;
     }
 
     #builderModal.builder-complete-mode .builder-progress,
@@ -28101,46 +28279,50 @@
     </div>
   </section>
 
-  <button type="button" class="join-create-floating-button" id="joinCreateFloatingButton" onclick="openBuilderModalFromMain(this)" aria-label="새 모임 만들기">
-    <div class="join-create-floating-button-icon" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
-    </div>
-    <div class="join-create-floating-button-text">새 모임 만들기</div>
-  </button>
-
   <div class="join-mobile-bottom-nav is-visible" id="joinMobileBottomNav" role="navigation" aria-label="모바일 빠른 메뉴">
-    <ul class="join-mobile-bottom-nav-list">
-      <li>
-        <button type="button" data-mobile-nav-key="my" onclick="handleJoinMyButtonClick()" aria-label="마이페이지" class="is-active">
+    <div class="join-mobile-bottom-nav-shell" id="joinMobileBottomNavShell">
+      <div class="join-mobile-bottom-nav-inactive-layer" id="joinMobileBottomNavInactiveLayer">
+        <button type="button" class="join-mobile-bottom-nav-button" data-mobile-nav-key="create" onclick="handleJoinMobileCreateClick(this)" aria-label="새모임 생성하기">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.35 21H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v2.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14.8 12.4A1 1 0 0 0 14 12h-4a1 1 0 0 0-1 1v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div class="join-mobile-bottom-nav-label">모임생성</div>
+        </button>
+        <button type="button" class="join-mobile-bottom-nav-button" data-mobile-nav-key="find" onclick="handleJoinMobileFindClick()" aria-label="참여가능한 모임">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 11.75V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="m22 22-1.875-1.875" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="18" cy="18" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <div class="join-mobile-bottom-nav-label">모임찾기</div>
+        </button>
+        <button type="button" class="join-mobile-bottom-nav-button is-active" data-mobile-nav-key="my" onclick="handleJoinMyButtonClick()" aria-label="마이메뉴">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
-          <div class="join-mobile-bottom-nav-label">마이메뉴</div>
+          <div class="join-mobile-bottom-nav-label">나의모임</div>
         </button>
-      </li>
-      <li>
-        <button type="button" data-mobile-nav-key="search" onclick="handleJoinMobileNavSearch()" aria-label="검색">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m21 21-4.34-4.34" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle><circle class="search-active-cutout" cx="11" cy="11" r="6.1"></circle></svg>
-          <div class="join-mobile-bottom-nav-label">검색</div>
-        </button>
-      </li>
-      <li class="join-pc-bottom-only">
-        <button type="button" data-mobile-nav-key="recruit" onclick="handleJoinMobileRecruitClick(this)" aria-label="멤버모집">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle><path d="M19 8v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          <div class="join-mobile-bottom-nav-label">멤버모집</div>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="nav-kakao" data-mobile-nav-key="kakao" onclick="handleJoinMobileKakaoClick()" aria-label="채팅문의">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path class="kakao-dot" d="M8 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path class="kakao-dot" d="M12 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path class="kakao-dot" d="M16 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          <div class="join-mobile-bottom-nav-label">채팅문의</div>
-        </button>
-      </li>
-      <li>
-        <button type="button" class="nav-phone" data-mobile-nav-key="phone" onclick="handleJoinMobilePhoneClick()" aria-label="전화문의">
+        <button type="button" class="join-mobile-bottom-nav-button nav-phone" data-mobile-nav-key="phone" onclick="handleJoinMobilePhoneClick()" aria-label="전화로 연결">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          <div class="join-mobile-bottom-nav-label">전화문의</div>
+          <div class="join-mobile-bottom-nav-label">고객센터</div>
         </button>
-      </li>
-    </ul>
+      </div>
+      <div class="join-mobile-bottom-nav-indicator" aria-hidden="true">
+        <div class="join-mobile-bottom-nav-indicator-deform">
+          <div class="join-mobile-bottom-nav-indicator-visual"></div>
+        </div>
+      </div>
+      <div class="join-mobile-bottom-nav-active-overlay" aria-hidden="true">
+        <div class="join-mobile-bottom-nav-overlay-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.35 21H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v2.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14.8 12.4A1 1 0 0 0 14 12h-4a1 1 0 0 0-1 1v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div class="join-mobile-bottom-nav-label">모임생성</div>
+        </div>
+        <div class="join-mobile-bottom-nav-overlay-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 11.75V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="m22 22-1.875-1.875" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="18" cy="18" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <div class="join-mobile-bottom-nav-label">모임찾기</div>
+        </div>
+        <div class="join-mobile-bottom-nav-overlay-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <div class="join-mobile-bottom-nav-label">나의모임</div>
+        </div>
+        <div class="join-mobile-bottom-nav-overlay-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div class="join-mobile-bottom-nav-label">고객센터</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="join-my-drawer-overlay" id="joinMyDrawerOverlay" onclick="if(event.target.id === 'joinMyDrawerOverlay') closeJoinMyDrawer()" aria-hidden="true" style="--join-pc-header-zone-offset: 0px;">
@@ -28182,7 +28364,7 @@
           <div>채팅문의</div>
         </button>
         <button type="button" class="join-my-drawer-item" onclick="closeJoinMyDrawer(); handlePhoneContact()">
-          <div class="join-my-drawer-icon" aria-hidden="true"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/callcenter.webp" alt=""></div>
+          <div class="join-my-drawer-icon join-my-drawer-phone-icon" aria-hidden="true"><div class="join-my-drawer-phone-image"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/callcenter.webp" alt=""></div></div>
           <div>전화문의</div>
         </button>
       </div>
@@ -29048,12 +29230,24 @@
     <div class="modal small">
       <div class="modal-scroll">
         <div class="modal-header">
-          <div class="modal-title">전화문의</div>
+          <div class="modal-title">고객센터</div>
           <button type="button" class="modal-close-icon" onclick="closeModal('phoneModal')" aria-label="닫기"></button>
         </div>
         <div class="modal-body">
           <div class="phone-info">
-            <div class="phone-number-box">02-3446-1119</div>
+            <div class="phone-intro">
+              <div class="phone-intro-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-phone-icon lucide-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg>
+              </div>
+              <div>
+                <div class="phone-intro-title">상담이 필요하신가요?</div>
+                <div class="phone-intro-copy">운영시간 내 빠르게 안내드릴게요.</div>
+              </div>
+            </div>
+            <div class="phone-number-box">
+              <div class="phone-number-label">대표번호</div>
+              <div class="phone-number-value">02-3446-1119</div>
+            </div>
             <div class="phone-hours">
               <div class="phone-hours-row">
                 <div class="phone-hours-label">운영시간</div>
@@ -29064,7 +29258,10 @@
                 <div class="phone-hours-value">12시 - 13시</div>
               </div>
             </div>
-            <button type="button" class="button primary large" onclick="location.href='tel:02-3446-1119'">전화걸기</button>
+            <button type="button" class="button primary phone-call-button" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')" aria-label="카톡채널로 연결">
+              <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-message-circle-icon lucide-message-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path></svg>
+              <span>채팅으로 문의하기</span>
+            </button>
           </div>
         </div>
       </div>
@@ -29135,6 +29332,14 @@
           <button type="button" class="detail-slider-back" onclick="closeModal('detailModal')" aria-label="뒤로가기">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
           </button>
+          <div class="detail-slider-actions" aria-label="상품상세 액션">
+            <button type="button" class="detail-mobile-header-button" data-detail-wish-button="" aria-label="찜하기" aria-pressed="false">
+              <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-bookmark-check-icon lucide-bookmark-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path><path d="m9 10 2 2 4-4"></path></svg>
+            </button>
+            <button type="button" class="detail-mobile-header-button" aria-label="공유하기">
+              <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+            </button>
+          </div>
           <button type="button" class="detail-slider-nav prev" onclick="changeDetailSlide(-1)" aria-label="이전 이미지">&lt;</button>
           <div class="detail-slider-viewport" data-swipe-bound="true">
             <div class="detail-slider-track" style="transform: translateX(0%); position: relative;">
@@ -30339,7 +30544,9 @@
       document.body.classList.toggle("modal-open", shouldKeepOpen);
       document.getElementById("secret-golf-join")?.classList.toggle("modal-open", shouldKeepOpen);
       if (!shouldKeepOpen) document.documentElement.classList.remove("join-mobile-modal-chrome-collapsed");
-      if (shouldKeepOpen) setJoinMobileBottomNavVisible(false, { force: true });
+      if (shouldKeepOpen) {
+        setJoinMobileBottomNavVisible(shouldKeepJoinMobileBottomNavOverModal(), { force: true, reason: "modal-sync" });
+      }
       scheduleJoinFullscreenModalCoverStateUpdate();
     }
 
@@ -30355,6 +30562,28 @@
       return Boolean(document.querySelector(
         "#detailModal.open, #globalApplyOverlay.open, #joinMyMenuModal.open, #joinMyDrawerOverlay.open, #privacyApplyModal.open, #waitlistApplyModal.open, #applySubmitConfirmModal.open, .overlay.open, .calendar-sheet-overlay.open"
       ));
+    }
+
+    function shouldKeepJoinMobileBottomNavOverModal() {
+      const nav = document.getElementById("joinMobileBottomNav");
+      if (!nav || nav.classList.contains("is-scroll-hidden")) return false;
+      if (!nav.classList.contains("is-nav-layer-active") && !nav.classList.contains("is-my-layer-active")) return false;
+      return ["create", "find", "my", "phone"].includes(nav.dataset.mobileNavLayerKey || "") && hasOpenBlockingModal();
+    }
+
+    function setJoinMobileBottomNavLayerActive(key = "") {
+      const nav = document.getElementById("joinMobileBottomNav");
+      if (!nav) return;
+      const normalizedKey = String(key || "").trim();
+      nav.classList.toggle("is-nav-layer-active", Boolean(normalizedKey));
+      nav.classList.toggle("is-my-layer-active", normalizedKey === "my");
+      if (normalizedKey) {
+        nav.dataset.mobileNavLayerKey = normalizedKey;
+        nav.classList.remove("is-scroll-hidden");
+      } else {
+        delete nav.dataset.mobileNavLayerKey;
+        nav.classList.remove("is-nav-layer-active", "is-my-layer-active");
+      }
     }
 
     function setJoinHostHeaderCovered(covered = false) {
@@ -31336,7 +31565,7 @@
         return;
       }
       if (afterLogin === "interest") {
-        setJoinMobileNavActive("interest");
+        setJoinMobileNavActive("my");
         openJoinMyMenu();
         return;
       }
@@ -32856,7 +33085,7 @@
         return;
       }
       if (afterLogin === "interest") {
-        setJoinMobileNavActive("interest");
+        setJoinMobileNavActive("my");
         openJoinMyMenu({ skipProfileCheck: true, member });
         return;
       }
@@ -32879,7 +33108,7 @@
       }
       if (afterLogin === "my-menu") {
         setJoinMobileNavActive("");
-        document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+        setJoinMobileBottomNavLayerActive("");
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
@@ -33942,12 +34171,12 @@
       setJoinHostHeaderCovered(true);
       updateJoinMyDrawerHeaderOffset();
       updateJoinMyDrawerProfile(member);
-      overlay?.style.setProperty("z-index", "2147483647", "important");
-      overlay?.querySelector(".join-my-drawer")?.style.setProperty("z-index", "2147483647", "important");
+      overlay?.style.setProperty("z-index", "2147483638", "important");
+      overlay?.querySelector(".join-my-drawer")?.style.setProperty("z-index", "2147483639", "important");
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
-      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
-      setJoinMobileBottomNavVisible(false);
+      setJoinMobileBottomNavLayerActive("my");
+      setJoinMobileBottomNavVisible(true, { force: true });
       setWidgetModalOpen(true);
       document.documentElement.classList.add("modal-open");
       document.body.classList.add("modal-open");
@@ -33985,7 +34214,7 @@
       overlay?.setAttribute("aria-hidden", "true");
       if (!document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
         setJoinHostHeaderCovered(false);
-        document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+        setJoinMobileBottomNavLayerActive("");
         setJoinMobileBottomNavVisible(true);
       }
       setWidgetModalOpen(hasOpenBlockingModal());
@@ -34149,8 +34378,8 @@
       document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "최근 본 상품");
       if (body) body.innerHTML = `<div class="join-my-state">최근 본 상품을 확인 중입니다.</div>`;
       overlay?.classList.add("open");
-      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
-      setJoinMobileBottomNavVisible(false);
+      setJoinMobileBottomNavLayerActive("my");
+      setJoinMobileBottomNavVisible(true, { force: true });
       setWidgetModalOpen(true);
       renderJoinMyRecentMenu();
     }
@@ -34781,8 +35010,8 @@
       document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "찜");
       if (body) body.innerHTML = `<div class="join-my-state">찜한 목록을 확인 중입니다.</div>`;
       overlay?.classList.add("open");
-      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
-      setJoinMobileBottomNavVisible(false);
+      setJoinMobileBottomNavLayerActive("my");
+      setJoinMobileBottomNavVisible(true, { force: true });
       setWidgetModalOpen(true);
       renderJoinMyWishMenu();
       await hydrateJoinWishesFromGoogleSheet();
@@ -35130,39 +35359,42 @@
     }
 
     function buildJoinMyJoinedReservationItem(application = {}) {
-      const joinId = getNestedValue(application, "join.id") || "";
+      const linkedJoin = findJoinForJoinApplicationPayload(application);
+      const applicationJoin = getNestedValue(application, "join") || {};
+      const applicationProduct = getNestedValue(application, "product") || {};
+      const joinId = linkedJoin?.id || getNestedValue(application, "join.id") || application.joinId || "";
       const seed = getJoinMyReservationProductSeed(joinId);
-      const join = seed.join || {};
-      const productReference = getSecretTourProductReference(join.id ? join : getNestedValue(application, "product") || getNestedValue(application, "join") || {});
+      const join = linkedJoin || seed.join || {};
+      const productReference = getSecretTourProductReference(join.id ? join : applicationProduct || applicationJoin || {});
       const applicationRecordId = application.joinApplyId || buildGoogleSheetRecordId("ja", application.submittedAt, getNestedValue(application, "member.memberSeq") || getNestedValue(application, "member.memberId") || getNestedValue(application, "applicant.name") || "member", joinId);
       const hostParticipant = Array.isArray(join.participants) ? getConfirmedParticipants(join)[0] || null : null;
       return {
         joinId,
         id: joinId,
-        scheduleId: getNestedValue(application, "join.scheduleId") || getNestedValue(application, "product.scheduleId") || "",
-        sourceApplicationId: getNestedValue(application, "join.sourceApplicationId") || getNestedValue(application, "product.applicationId") || "",
-        goodSeq: join.goodSeq || getNestedValue(application, "product.goodSeq") || productReference.goodSeq || "",
-        erpProductId: join.erpProductId || getNestedValue(application, "product.erpProductId") || productReference.goodSeq || productReference.id || "",
-        eventSeq: join.eventSeq || getNestedValue(application, "product.eventSeq") || productReference.eventSeq || "",
-        erpEventSeq: join.erpEventSeq || getNestedValue(application, "product.erpEventSeq") || productReference.eventSeq || "",
+        scheduleId: join.scheduleId || getNestedValue(application, "join.scheduleId") || application.targetScheduleId || getNestedValue(application, "product.scheduleId") || "",
+        sourceApplicationId: join.sourceApplicationId || getNestedValue(application, "join.sourceApplicationId") || application.targetApplicationId || getNestedValue(application, "product.applicationId") || "",
+        goodSeq: join.goodSeq || getNestedValue(application, "product.goodSeq") || application.goodSeq || productReference.goodSeq || "",
+        erpProductId: join.erpProductId || getNestedValue(application, "product.erpProductId") || application.erpProductId || productReference.goodSeq || productReference.id || "",
+        eventSeq: join.eventSeq || getNestedValue(application, "product.eventSeq") || application.eventSeq || productReference.eventSeq || "",
+        erpEventSeq: join.erpEventSeq || getNestedValue(application, "product.erpEventSeq") || application.erpEventSeq || productReference.eventSeq || "",
         hideImage: true,
-        title: join.title || getNestedValue(application, "join.title") || getNestedValue(application, "product.productName") || "참여중인 조인 일정",
-        meta: `${formatJoinMyDateRange(join.id ? join : getNestedValue(application, "join"))} · ${seed.regionText || getNestedValue(application, "join.region") || "-"}`,
-        countryRegion: seed.regionText || getNestedValue(application, "join.region") || "",
-        departureDate: join.departureDate || getNestedValue(application, "join.departureDate") || getNestedValue(application, "product.departureDate") || "",
-        returnDate: join.returnDate || getNestedValue(application, "join.returnDate") || getNestedValue(application, "product.returnDate") || "",
-        region: join.region || seed.regionText || getNestedValue(application, "join.region") || "",
-        image: join.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg",
+        title: join.title || getNestedValue(application, "join.title") || getNestedValue(application, "product.productName") || application.productName || "참여중인 조인 일정",
+        meta: `${formatJoinMyDateRange(join.id ? join : (applicationJoin || application))} · ${seed.regionText || getNestedValue(application, "join.region") || getNestedValue(application, "product.region") || application.region || "-"}`,
+        countryRegion: seed.regionText || getNestedValue(application, "join.countryRegion") || getNestedValue(application, "join.region") || getNestedValue(application, "product.countryRegion") || getNestedValue(application, "product.region") || application.countryRegion || application.region || "",
+        departureDate: join.departureDate || getNestedValue(application, "join.departureDate") || getNestedValue(application, "product.departureDate") || application.departureDate || "",
+        returnDate: join.returnDate || getNestedValue(application, "join.returnDate") || getNestedValue(application, "product.returnDate") || application.returnDate || "",
+        region: join.region || seed.regionText || getNestedValue(application, "join.region") || getNestedValue(application, "product.region") || application.region || "",
+        image: join.image || getNestedValue(application, "product.image") || getNestedValue(application, "product.imageUrl") || application.image || application.imageUrl || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg",
         status: "참여중",
         statusClass: "",
         scheduleGroup: "joined",
         myParticipantId: applicationRecordId ? `${applicationRecordId}-p1` : "",
         hostParticipantId: hostParticipant?.id || "",
-        currentCount: seed.confirmedParticipants.length,
-        targetCount: seed.targetCount,
+        currentCount: seed.confirmedParticipants.length || Number(application.currentCount || 0),
+        targetCount: seed.targetCount || Number(application.targetCount || 0),
         flightPack: seed.hasFlight,
-        flightInfo: seed.flightInfo,
-        price: join.price ? `${formatPrice(join.price)}원~` : "",
+        flightInfo: seed.flightInfo || application.flightInfo || "",
+        price: join.price ? `${formatPrice(join.price)}원~` : (application.price ? `${formatPrice(application.price)}원~` : ""),
         actions: [
           { label: "상세정보 열기", action: "accordion", placement: "head" }
         ]
@@ -35437,6 +35669,20 @@
       return String(join.scheduleId || join.sourceApplicationId || getNestedValue(join.sheetApplication || {}, "scheduleId") || getNestedValue(join.sheetApplication || {}, "applicationId") || join.id || "").trim();
     }
 
+    function getJoinMyJoinedApplicationKey(application = {}) {
+      const target = getJoinApplicationTargetRow(application);
+      const explicitId = String(application.joinApplyId || application.applicationId || "").trim();
+      if (explicitId) return explicitId;
+      return [
+        target.targetScheduleId,
+        target.targetApplicationId,
+        target.erpProductId,
+        target.erpEventSeq,
+        getNestedValue(application, "member.memberSeq") || getNestedValue(application, "member.memberId") || getNestedValue(application, "member.memberMobile") || getNestedValue(application, "member.memberEmail") || "",
+        application.submittedAt || application.createdAt || ""
+      ].map((value) => String(value || "").trim()).filter(Boolean).join("|");
+    }
+
     function getJoinMyReservationGroups(member = {}) {
       const createdJoins = joins.filter((join) => isJoinMyCreatedScheduleForMember(join, member));
       const sheetCreatedJoins = createdJoins.filter((join) => join.builderApplicationSource === "sheet");
@@ -35457,15 +35703,24 @@
       const joinedSourceApplications = Array.from(joinApplicationPayloadMemory.values());
       const joinedItems = joinedSourceApplications
         .map(normalizeJoinApplyPayload)
-        .filter((application) => String(getNestedValue(application, "join.id") || "").trim())
-        .filter((application) => joins.some((item) => item.id === getNestedValue(application, "join.id")))
         .filter((application) => isJoinMyJoinApplicationForMember(application, member))
+        .filter((application) => {
+          const target = getJoinApplicationTargetRow(application);
+          return Boolean(
+            findJoinForJoinApplicationPayload(application)
+            || getNestedValue(application, "join.id")
+            || target.targetScheduleId
+            || target.targetApplicationId
+            || target.erpProductId
+            || target.title
+          );
+        })
         .filter((application, index, list) => {
-          const key = String(application.joinApplyId || buildGoogleSheetRecordId("ja", application.submittedAt, getNestedValue(application, "member.memberSeq") || getNestedValue(application, "member.memberId") || getNestedValue(application, "applicant.name") || "member", getNestedValue(application, "join.id")) || "").trim();
-          return !key || list.findIndex((item) => String(item.joinApplyId || buildGoogleSheetRecordId("ja", item.submittedAt, getNestedValue(item, "member.memberSeq") || getNestedValue(item, "member.memberId") || getNestedValue(item, "applicant.name") || "member", getNestedValue(item, "join.id")) || "").trim() === key) === index;
+          const key = getJoinMyJoinedApplicationKey(application);
+          return !key || list.findIndex((item) => getJoinMyJoinedApplicationKey(item) === key) === index;
         })
         .filter((application) => {
-          const join = joins.find((item) => item.id === getNestedValue(application, "join.id"));
+          const join = findJoinForJoinApplicationPayload(application);
           return !join || !isJoinMyCreatedScheduleForMember(join, member);
         })
         .sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")))
@@ -35762,9 +36017,48 @@
     }
 
     function getJoinMyLinkedJoin(item = {}) {
-      const key = String(item.joinId || "").trim();
-      if (!key) return null;
-      return joins.find((join) => join.id === key) || null;
+      const keys = [
+        item.joinId,
+        item.id,
+        item.scheduleId,
+        item.sourceApplicationId
+      ].map((value) => String(value || "").trim()).filter(Boolean);
+      const idMatch = keys.length
+        ? joins.find((join) => {
+          const joinKeys = [
+            join.id,
+            join.scheduleId,
+            join.sourceApplicationId,
+            getNestedValue(join.sheetApplication || {}, "scheduleId"),
+            getNestedValue(join.sheetApplication || {}, "applicationId"),
+            getNestedValue(join.displayRule || {}, "recommendedScheduleId"),
+            getNestedValue(join.displayRule || {}, "displayRuleId")
+          ].map((value) => String(value || "").trim()).filter(Boolean);
+          return keys.some((key) => joinKeys.includes(key));
+        })
+        : null;
+      if (idMatch) return idMatch;
+      const productId = String(item.erpProductId || item.goodSeq || "").trim();
+      const eventSeq = String(item.erpEventSeq || item.eventSeq || "").trim();
+      if (!productId && !eventSeq) return null;
+      return joins.find((join) => {
+        const reference = getSecretTourProductReference(join);
+        const joinProductIds = [
+          join.erpProductId,
+          join.goodSeq,
+          join.productId,
+          reference.id,
+          reference.goodSeq
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        const joinEventIds = [
+          join.erpEventSeq,
+          join.eventSeq,
+          reference.eventSeq
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        const productMatched = productId && joinProductIds.includes(productId);
+        const eventMatched = !eventSeq || joinEventIds.includes(eventSeq);
+        return productMatched && eventMatched;
+      }) || null;
     }
 
     function getJoinMyParticipantCapacity(item = {}) {
@@ -38483,8 +38777,8 @@
       if (!wasOpen) joinMyReservationActiveTab = "created";
       overlay?.classList.add("open");
       setJoinHostHeaderCovered(true);
-      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
-      setJoinMobileBottomNavVisible(false);
+      setJoinMobileBottomNavLayerActive("my");
+      setJoinMobileBottomNavVisible(true, { force: true });
       setWidgetModalOpen(true);
       const builderApplicationsRefresh = hydrateBuilderApplicationJoinsFromGoogleSheet();
       const joinApplicationsRefresh = hydrateJoinApplicationsFromGoogleSheet();
@@ -38511,14 +38805,18 @@
         setJoinHostHeaderCovered(false);
       }
       if (!document.getElementById("joinMyDrawerOverlay")?.classList.contains("open")) {
-        document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+        setJoinMobileBottomNavLayerActive("");
         setJoinMobileBottomNavVisible(true);
       }
       setWidgetModalOpen(hasOpenBlockingModal());
     }
 
     function handleJoinMyButtonClick() {
+      closeJoinMobileCalendarSheetBeforeNavAction("my");
+      closeJoinMobileBuilderModalBeforeNavAction("my");
       setJoinMobileNavActive("my");
+      setJoinMobileBottomNavLayerActive("my");
+      setJoinMobileBottomNavVisible(true, { force: true });
       if (!requireJoinLogin("my-drawer")) return;
       setJoinHostHeaderCovered(true);
       openJoinMyDrawer();
@@ -38530,41 +38828,585 @@
       }
     }, { passive: true });
 
-    function handleJoinMobileNavSearch() {
-      setJoinMobileNavActive("search");
-      setJoinMobileBottomNavVisible(false);
-      openRegionSearchModal();
+    function handleJoinMobileCreateClick(trigger) {
+      closeJoinMobileCalendarSheetBeforeNavAction("create");
+      const isBuilderAlreadyOpen = isJoinMobileBuilderModalOpen();
+      closeJoinMobileMyMenuBeforeNavAction("create");
+      setJoinMobileNavActive("create");
+      setJoinMobileBottomNavLayerActive("create");
+      setJoinMobileBottomNavVisible(true, { force: true });
+      if (isBuilderAlreadyOpen) return;
+      Promise.resolve(openBuilderModalFromMain(trigger)).catch((error) => {
+        console.warn("Failed to open builder modal from bottom navigation.", error);
+      });
     }
 
-    function handleJoinMobileRecruitClick(trigger) {
-      setJoinMobileNavActive("recruit");
-      openBuilderModalFromMain(trigger);
+    function handleJoinMobileFindClick() {
+      closeJoinMobileCalendarSheetBeforeNavAction("find");
+      closeJoinMobileBuilderModalBeforeNavAction("find");
+      closeJoinMobileMyMenuBeforeNavAction("find");
+      setJoinMobileNavActive("find");
+      setJoinMobileBottomNavLayerActive("find");
+      setJoinMobileBottomNavVisible(true, { force: true });
+      openCalendarSheetAfterJoinMobileFindNavMotion();
     }
 
-    function handleJoinMobileKakaoClick() {
-      setJoinMobileNavActive("kakao");
-      openExternalLink("http://pf.kakao.com/_lRbYxj/chat");
+    function keepJoinMobilePhoneNavVisible() {
+      const nav = document.getElementById("joinMobileBottomNav");
+      if (!nav || nav.dataset.mobileNavLayerKey !== "phone") return;
+      nav.classList.remove("is-scroll-hidden");
+      setJoinMobileBottomNavVisible(true, { force: true });
     }
 
     function handleJoinMobilePhoneClick() {
+      closeJoinMobileCalendarSheetBeforeNavAction("phone");
+      closeJoinMobileBuilderModalBeforeNavAction("phone");
+      closeJoinMobileMyMenuBeforeNavAction("phone");
       setJoinMobileNavActive("phone");
+      setJoinMobileBottomNavLayerActive("phone");
+      setJoinMobileBottomNavVisible(true, { force: true });
+      [80, 240, 520].forEach((delay) => window.setTimeout(keepJoinMobilePhoneNavVisible, delay));
       handlePhoneContact();
+    }
+
+    function closeJoinMobileCalendarSheetBeforeNavAction(nextKey = "") {
+      const normalizedKey = String(nextKey || "").trim();
+      if (normalizedKey !== "find") cancelJoinMobileFindNavDeferredOpen();
+      const calendarSheet = document.getElementById("calendarSheet");
+      if (!calendarSheet?.classList.contains("open")) return;
+      if (normalizedKey === "find") return;
+      closeCalendarSheet();
+    }
+
+    function isJoinMobileBuilderModalOpen() {
+      return Boolean(document.getElementById("builderModal")?.classList.contains("open"));
+    }
+
+    function closeJoinMobileBuilderModalBeforeNavAction(nextKey = "") {
+      const normalizedKey = String(nextKey || "").trim();
+      if (!isJoinMobileBuilderModalOpen()) return;
+      if (normalizedKey === "create") return;
+      closeModal("builderModal");
+    }
+
+    function closeJoinMobileMyMenuBeforeNavAction(nextKey = "") {
+      const normalizedKey = String(nextKey || "").trim();
+      if (normalizedKey === "my") return;
+      const drawer = document.getElementById("joinMyDrawerOverlay");
+      const menu = document.getElementById("joinMyMenuModal");
+      if (drawer?.classList.contains("open")) closeJoinMyDrawer();
+      if (menu?.classList.contains("open")) closeJoinMyMenu();
+    }
+
+    function hideJoinMobileBottomNavForBuilderDateSelection() {
+      const isMobileViewport = window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640;
+      const nav = document.getElementById("joinMobileBottomNav");
+      if (!isMobileViewport || !nav?.classList.contains("is-visible")) return;
+      if (!document.getElementById("builderModal")?.classList.contains("open")) return;
+      setJoinMobileBottomNavVisible(false, { force: true, reason: "scroll" });
+    }
+
+    function hideJoinMobileBottomNavForCalendarDateSelection() {
+      const isMobileViewport = window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640;
+      const nav = document.getElementById("joinMobileBottomNav");
+      if (!isMobileViewport || !nav?.classList.contains("is-visible")) return;
+      if (!document.getElementById("calendarSheet")?.classList.contains("open")) return;
+      setJoinMobileBottomNavVisible(false, { force: true, reason: "scroll" });
     }
 
     function setJoinMobileBottomNavVisible(visible, options = {}) {
       const nav = document.getElementById("joinMobileBottomNav");
-      const createButton = document.getElementById("joinCreateFloatingButton");
       scheduleJoinMobileVisualViewportVarsUpdate();
-      const nextVisible = Boolean(visible) && (options.force || !hasOpenBlockingModal());
+      if (options.reason === "scroll" && !visible) {
+        nav?.classList.add("is-scroll-hidden");
+      } else if (visible && options.reason !== "modal-sync") {
+        nav?.classList.remove("is-scroll-hidden");
+      }
+      const isScrollHidden = Boolean(nav?.classList.contains("is-scroll-hidden"));
+      const keepOverModal = shouldKeepJoinMobileBottomNavOverModal();
+      const forceVisible = Boolean(options.force) && !(isScrollHidden && options.reason === "modal-sync");
+      const nextVisible = Boolean(visible) && (keepOverModal
+        ? true
+        : forceVisible || !hasOpenBlockingModal());
       nav?.classList.toggle("is-visible", nextVisible);
       nav?.classList.toggle("is-hidden", !nextVisible);
-      createButton?.classList.toggle("is-expanded", nextVisible);
+      if (nextVisible && !joinMobileNavIndicatorState.moving) {
+        updateJoinMobileNavIndicator();
+        scheduleJoinMobileNavVisibleOverlaySync();
+      } else if (!nextVisible) {
+        cancelJoinMobileNavVisibleOverlaySync();
+      }
+    }
+
+    let joinMobileNavIndicatorFrame = 0;
+    let joinMobileNavVisibleSyncFrame = 0;
+    let joinMobileFindNavOpenFrame = 0;
+    const JOIN_MOBILE_NAV_PHYSICS = {
+      stiffness: 400,
+      damping: 20,
+      mass: 0.7,
+      maxVelocity: 2400,
+      settlePosition: 0.25,
+      settleVelocity: 4
+    };
+    const JOIN_MOBILE_NAV_BUBBLE_PHYSICS = {
+      stiffness: 350,
+      damping: 14,
+      mass: 0.7
+    };
+    const joinMobileNavIndicatorState = {
+      initialized: false,
+      moving: false,
+      positionX: 0,
+      velocityX: 0,
+      targetX: 0,
+      width: 0,
+      widthVelocity: 0,
+      targetWidth: 0,
+      shapeX: 0,
+      shapeY: 0,
+      shapeVelocityX: 0,
+      shapeVelocityY: 0,
+      targetButton: null,
+      lastTime: 0,
+      impactStarted: false
+    };
+
+    function getJoinMobileNavIndicator(shell) {
+      let indicator = shell?.querySelector(".join-mobile-bottom-nav-indicator");
+      if (!indicator && shell) {
+        indicator = document.createElement("div");
+        indicator.className = "join-mobile-bottom-nav-indicator";
+        indicator.setAttribute("aria-hidden", "true");
+        indicator.innerHTML = `
+          <div class="join-mobile-bottom-nav-indicator-deform">
+            <div class="join-mobile-bottom-nav-indicator-visual"></div>
+          </div>
+        `;
+        const overlay = shell.querySelector(".join-mobile-bottom-nav-active-overlay");
+        if (overlay) {
+          shell.insertBefore(indicator, overlay);
+        } else {
+          shell.appendChild(indicator);
+        }
+      }
+      return indicator;
+    }
+
+    function getJoinMobileNavActiveOverlay(shell, buttons = getJoinMobileNavButtons()) {
+      let overlay = shell?.querySelector(".join-mobile-bottom-nav-active-overlay");
+      if (!overlay && shell) {
+        overlay = document.createElement("div");
+        overlay.className = "join-mobile-bottom-nav-active-overlay";
+        overlay.setAttribute("aria-hidden", "true");
+        shell.appendChild(overlay);
+      }
+      if (overlay && overlay.children.length !== buttons.length) {
+        overlay.innerHTML = buttons.map((button) => `
+          <div class="join-mobile-bottom-nav-overlay-item">
+            ${button.innerHTML}
+          </div>
+        `).join("");
+      }
+      return overlay;
+    }
+
+    function getJoinMobileNavButtons() {
+      return Array.from(document.querySelectorAll("#joinMobileBottomNavInactiveLayer [data-mobile-nav-key]"));
     }
 
     function setJoinMobileNavActive(key) {
-      document.querySelectorAll("#joinMobileBottomNav [data-mobile-nav-key]").forEach((button) => {
-        button.classList.toggle("is-active", button.dataset.mobileNavKey === key);
+      const buttons = getJoinMobileNavButtons();
+      const fallbackButton = buttons.find((button) => button.classList.contains("is-active"))
+        || buttons.find((button) => button.dataset.mobileNavKey === "my")
+        || buttons[0]
+        || null;
+      if (!key) {
+        updateJoinMobileNavIndicator(fallbackButton, fallbackButton ? { animate: false } : { clear: true });
+        return;
+      }
+      const activeButton = buttons.find((button) => button.dataset.mobileNavKey === key) || fallbackButton;
+      updateJoinMobileNavIndicator(activeButton, activeButton ? { animate: true } : { clear: true });
+    }
+
+    function initializeJoinMobileNavIndicator() {
+      const shell = document.querySelector("#joinMobileBottomNav .join-mobile-bottom-nav-shell");
+      if (!shell) return;
+      const buttons = getJoinMobileNavButtons();
+      getJoinMobileNavIndicator(shell);
+      getJoinMobileNavActiveOverlay(shell, buttons);
+      const target = shell.querySelector('#joinMobileBottomNavInactiveLayer [data-mobile-nav-key="my"]')
+        || shell.querySelector("#joinMobileBottomNavInactiveLayer [data-mobile-nav-key].is-active")
+        || buttons[0]
+        || null;
+      if (target && !target.classList.contains("is-active")) {
+        buttons.forEach((button) => button.classList.toggle("is-active", button === target));
+      }
+      updateJoinMobileNavIndicator(target, { animate: false });
+    }
+
+    function setJoinMobileNavIndicatorVars(shell, centerX, width) {
+      const offsetX = centerX - width / 2;
+      shell.style.setProperty("--join-mobile-nav-active-x", `${Math.round(offsetX * 100) / 100}px`);
+      shell.style.setProperty("--join-mobile-nav-active-width", `${Math.round(width * 100) / 100}px`);
+    }
+
+    function setJoinMobileNavIndicatorScaleVars(shell, scaleX = 1, scaleY = 1) {
+      shell.style.setProperty("--join-mobile-nav-scale-x", String(Math.round(scaleX * 1000) / 1000));
+      shell.style.setProperty("--join-mobile-nav-scale-y", String(Math.round(scaleY * 1000) / 1000));
+    }
+
+    function getJoinMobileNavTrackRect(shell) {
+      return shell?.querySelector(".join-mobile-bottom-nav-inactive-layer")?.getBoundingClientRect()
+        || shell?.getBoundingClientRect()
+        || null;
+    }
+
+    function getJoinMobileNavTranslateX(element) {
+      const transform = element ? getComputedStyle(element).transform : "";
+      if (!transform || transform === "none") return 0;
+      const matrix = transform.match(/^matrix\(([^)]+)\)$/);
+      const matrix3d = transform.match(/^matrix3d\(([^)]+)\)$/);
+      const parts = (matrix || matrix3d)?.[1]?.split(",").map((part) => Number(part.trim())) || [];
+      const translateIndex = matrix3d ? 12 : 4;
+      return Number.isFinite(parts[translateIndex]) ? parts[translateIndex] : 0;
+    }
+
+    function getJoinMobileNavIndicatorBaseLeft(shell) {
+      const indicator = getJoinMobileNavIndicator(shell);
+      const indicatorRect = indicator?.getBoundingClientRect();
+      if (!indicatorRect?.width) {
+        return getJoinMobileNavTrackRect(shell)?.left || 0;
+      }
+      return indicatorRect.left - getJoinMobileNavTranslateX(indicator);
+    }
+
+    function setJoinMobileNavActiveOverlayClip(shell, centerX, width, scaleX = 1, scaleY = 1) {
+      const overlay = getJoinMobileNavActiveOverlay(shell);
+      const overlayRect = overlay?.getBoundingClientRect();
+      if (!overlay || !overlayRect?.width || !overlayRect?.height || !width) return;
+      const overlayCenterX = centerX + getJoinMobileNavIndicatorBaseLeft(shell) - overlayRect.left;
+      const visualWidth = width * scaleX;
+      const visualHeight = Math.max(0, overlayRect.height - 16) * scaleY;
+      const clipLeft = clampJoinMobileNavValue(overlayCenterX - visualWidth / 2, 0, overlayRect.width);
+      const clipRight = clampJoinMobileNavValue(overlayRect.width - (overlayCenterX + visualWidth / 2), 0, overlayRect.width);
+      const clipY = clampJoinMobileNavValue((overlayRect.height - visualHeight) / 2, 0, overlayRect.height / 2);
+      overlay.style.setProperty("--join-mobile-nav-clip-top", `${Math.round(clipY * 100) / 100}px`);
+      overlay.style.setProperty("--join-mobile-nav-clip-right", `${Math.round(clipRight * 100) / 100}px`);
+      overlay.style.setProperty("--join-mobile-nav-clip-bottom", `${Math.round(clipY * 100) / 100}px`);
+      overlay.style.setProperty("--join-mobile-nav-clip-left", `${Math.round(clipLeft * 100) / 100}px`);
+    }
+
+    function clampJoinMobileNavValue(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getJoinMobileNavTargetMetrics(shell, target) {
+      const targetRect = target?.getBoundingClientRect();
+      if (!targetRect?.width) return null;
+      const isPcNav = window.matchMedia?.("(min-width: 641px)")?.matches || window.innerWidth > 640;
+      const targetWidth = isPcNav ? targetRect.width : 72;
+      const targetCenterX = targetRect.left + targetRect.width / 2 - getJoinMobileNavIndicatorBaseLeft(shell);
+      return {
+        x: targetCenterX,
+        width: targetWidth
+      };
+    }
+
+    function stopJoinMobileNavIndicatorTracking() {
+      if (joinMobileNavIndicatorFrame) {
+        window.cancelAnimationFrame(joinMobileNavIndicatorFrame);
+        joinMobileNavIndicatorFrame = 0;
+      }
+    }
+
+    function cancelJoinMobileNavVisibleOverlaySync() {
+      if (!joinMobileNavVisibleSyncFrame) return;
+      window.cancelAnimationFrame(joinMobileNavVisibleSyncFrame);
+      joinMobileNavVisibleSyncFrame = 0;
+    }
+
+    function scheduleJoinMobileNavVisibleOverlaySync() {
+      cancelJoinMobileNavVisibleOverlaySync();
+      joinMobileNavVisibleSyncFrame = window.requestAnimationFrame(() => {
+        joinMobileNavVisibleSyncFrame = 0;
+        const nav = document.getElementById("joinMobileBottomNav");
+        if (!nav?.classList.contains("is-visible") || joinMobileNavIndicatorState.moving) return;
+        updateJoinMobileNavIndicator();
       });
+    }
+
+    function clearJoinMobileNavIndicatorOverlap(buttons = getJoinMobileNavButtons()) {
+      buttons.forEach((button) => button.classList.remove("is-indicator-overlap"));
+    }
+
+    function updateJoinMobileNavIndicatorOverlap(shell, indicator, buttons, x, width, scaleX = 1, scaleY = 1) {
+      getJoinMobileNavActiveOverlay(shell, buttons);
+      setJoinMobileNavActiveOverlayClip(shell, x, width, scaleX, scaleY);
+    }
+
+    function finishJoinMobileNavIndicatorMove(shell, indicator, buttons, target) {
+      shell.classList.remove("is-nav-indicator-moving");
+      clearJoinMobileNavIndicatorOverlap(buttons);
+      buttons.forEach((button) => button.classList.toggle("is-active", button === target));
+      if (target) {
+        const metrics = getJoinMobileNavTargetMetrics(shell, target);
+        if (metrics) {
+          joinMobileNavIndicatorState.positionX = metrics.x;
+          joinMobileNavIndicatorState.targetX = metrics.x;
+          joinMobileNavIndicatorState.width = metrics.width;
+          joinMobileNavIndicatorState.targetWidth = metrics.width;
+          setJoinMobileNavIndicatorVars(shell, metrics.x, metrics.width);
+          setJoinMobileNavActiveOverlayClip(shell, metrics.x, metrics.width, 1, 1);
+        }
+        joinMobileNavIndicatorState.velocityX = 0;
+        joinMobileNavIndicatorState.widthVelocity = 0;
+        joinMobileNavIndicatorState.moving = false;
+        shell.classList.add("has-active");
+      } else {
+        shell.classList.remove("has-active");
+      }
+    }
+
+    function applyJoinMobileNavSpring(position, velocity, target, dt, physics) {
+      const force = -physics.stiffness * (position - target);
+      const dampingForce = -physics.damping * velocity;
+      const acceleration = (force + dampingForce) / physics.mass;
+      const nextVelocity = velocity + acceleration * dt;
+      const maxVelocity = physics.maxVelocity || Infinity;
+      const clampedVelocity = clampJoinMobileNavValue(nextVelocity, -maxVelocity, maxVelocity);
+      return {
+        position: position + clampedVelocity * dt,
+        velocity: clampedVelocity
+      };
+    }
+
+    function applyJoinMobileNavShapeSpring(value, velocity, dt) {
+      const result = applyJoinMobileNavSpring(value, velocity, 0, dt, JOIN_MOBILE_NAV_BUBBLE_PHYSICS);
+      return {
+        value: clampJoinMobileNavValue(result.position, -0.12, 0.14),
+        velocity: result.velocity
+      };
+    }
+
+    function startJoinMobileNavImpact(velocityX) {
+      const impact = Math.min(Math.abs(velocityX) / JOIN_MOBILE_NAV_PHYSICS.maxVelocity, 1);
+      joinMobileNavIndicatorState.shapeX = -0.055 - impact * 0.035;
+      joinMobileNavIndicatorState.shapeY = 0.055 + impact * 0.04;
+      joinMobileNavIndicatorState.shapeVelocityX = 2.4 + impact * 3.4;
+      joinMobileNavIndicatorState.shapeVelocityY = -1.7 - impact * 2.6;
+      joinMobileNavIndicatorState.impactStarted = true;
+    }
+
+    function renderJoinMobileNavIndicatorFrame(shell, indicator, buttons) {
+      const speedRatio = Math.min(Math.abs(joinMobileNavIndicatorState.velocityX) / JOIN_MOBILE_NAV_PHYSICS.maxVelocity, 1);
+      const moveScaleX = 1 + speedRatio * 0.075;
+      const moveScaleY = 1 - speedRatio * 0.035;
+      const scaleX = clampJoinMobileNavValue(moveScaleX + joinMobileNavIndicatorState.shapeX, 0.91, 1.12);
+      const scaleY = clampJoinMobileNavValue(moveScaleY + joinMobileNavIndicatorState.shapeY, 0.92, 1.12);
+      setJoinMobileNavIndicatorVars(shell, joinMobileNavIndicatorState.positionX, joinMobileNavIndicatorState.width);
+      setJoinMobileNavIndicatorScaleVars(shell, scaleX, scaleY);
+      updateJoinMobileNavIndicatorOverlap(shell, indicator, buttons, joinMobileNavIndicatorState.positionX, joinMobileNavIndicatorState.width, scaleX, scaleY);
+    }
+
+    function animateJoinMobileNavIndicator(now) {
+      const shell = document.querySelector("#joinMobileBottomNav .join-mobile-bottom-nav-shell");
+      const indicator = getJoinMobileNavIndicator(shell);
+      if (!shell || !indicator) {
+        stopJoinMobileNavIndicatorTracking();
+        return;
+      }
+      const buttons = getJoinMobileNavButtons();
+      const state = joinMobileNavIndicatorState;
+      const dt = Math.min((now - (state.lastTime || now)) / 1000, 0.032);
+      state.lastTime = now;
+
+      if (state.targetButton) {
+        const metrics = getJoinMobileNavTargetMetrics(shell, state.targetButton);
+        if (metrics) {
+          state.targetX = metrics.x;
+          state.targetWidth = metrics.width;
+        }
+      }
+
+      const previousDelta = state.targetX - state.positionX;
+      const xSpring = applyJoinMobileNavSpring(
+        state.positionX,
+        state.velocityX,
+        state.targetX,
+        dt,
+        JOIN_MOBILE_NAV_PHYSICS
+      );
+      state.positionX = xSpring.position;
+      state.velocityX = xSpring.velocity;
+
+      const widthSpring = applyJoinMobileNavSpring(
+        state.width,
+        state.widthVelocity,
+        state.targetWidth,
+        dt,
+        { stiffness: 280, damping: 30, mass: 1, maxVelocity: 900 }
+      );
+      state.width = Math.max(0, widthSpring.position);
+      state.widthVelocity = widthSpring.velocity;
+
+      const nextDelta = state.targetX - state.positionX;
+      const crossedTarget = previousDelta !== 0 && Math.sign(previousDelta) !== Math.sign(nextDelta);
+      const nearTarget = Math.abs(nextDelta) < 0.75;
+      if (state.moving && !state.impactStarted && (crossedTarget || nearTarget)) {
+        startJoinMobileNavImpact(state.velocityX);
+      }
+
+      const shapeX = applyJoinMobileNavShapeSpring(state.shapeX, state.shapeVelocityX, dt);
+      state.shapeX = shapeX.value;
+      state.shapeVelocityX = shapeX.velocity;
+      const shapeY = applyJoinMobileNavShapeSpring(state.shapeY, state.shapeVelocityY, dt);
+      state.shapeY = shapeY.value;
+      state.shapeVelocityY = shapeY.velocity;
+
+      renderJoinMobileNavIndicatorFrame(shell, indicator, buttons);
+
+      const positionSettled = Math.abs(state.targetX - state.positionX) < JOIN_MOBILE_NAV_PHYSICS.settlePosition;
+      const velocitySettled = Math.abs(state.velocityX) < JOIN_MOBILE_NAV_PHYSICS.settleVelocity;
+      const widthSettled = Math.abs(state.targetWidth - state.width) < 0.3 && Math.abs(state.widthVelocity) < 4;
+      const shapeSettled = Math.abs(state.shapeX) < 0.001
+        && Math.abs(state.shapeY) < 0.001
+        && Math.abs(state.shapeVelocityX) < 0.02
+        && Math.abs(state.shapeVelocityY) < 0.02;
+
+      if (positionSettled && velocitySettled && widthSettled) {
+        if (state.moving) {
+          finishJoinMobileNavIndicatorMove(shell, indicator, buttons, state.targetButton);
+        }
+        if (shapeSettled) {
+          state.shapeX = 0;
+          state.shapeY = 0;
+          state.shapeVelocityX = 0;
+          state.shapeVelocityY = 0;
+          setJoinMobileNavIndicatorScaleVars(shell, 1, 1);
+          setJoinMobileNavActiveOverlayClip(shell, state.positionX, state.width, 1, 1);
+          joinMobileNavIndicatorFrame = 0;
+          return;
+        }
+      }
+
+      joinMobileNavIndicatorFrame = window.requestAnimationFrame(animateJoinMobileNavIndicator);
+    }
+
+    function startJoinMobileNavIndicatorAnimation() {
+      if (joinMobileNavIndicatorFrame) return;
+      joinMobileNavIndicatorState.lastTime = performance.now();
+      joinMobileNavIndicatorFrame = window.requestAnimationFrame(animateJoinMobileNavIndicator);
+    }
+
+    function cancelJoinMobileFindNavDeferredOpen() {
+      if (!joinMobileFindNavOpenFrame) return;
+      window.cancelAnimationFrame(joinMobileFindNavOpenFrame);
+      joinMobileFindNavOpenFrame = 0;
+    }
+
+    function openCalendarSheetAfterJoinMobileFindNavMotion() {
+      cancelJoinMobileFindNavDeferredOpen();
+      if (document.getElementById("calendarSheet")?.classList.contains("open")) return;
+      const isMobileViewport = window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640;
+      if (!isMobileViewport) {
+        openCalendarSheet();
+        return;
+      }
+      const startedAt = performance.now();
+      const maxDelayMs = 520;
+      const openAfterMotion = () => {
+        joinMobileFindNavOpenFrame = 0;
+        const nav = document.getElementById("joinMobileBottomNav");
+        if (nav?.dataset.mobileNavLayerKey !== "find") return;
+        openCalendarSheet();
+      };
+      const waitForMotion = (now) => {
+        const timedOut = now - startedAt >= maxDelayMs;
+        if (!joinMobileNavIndicatorState.moving || timedOut) {
+          joinMobileFindNavOpenFrame = window.requestAnimationFrame(openAfterMotion);
+          return;
+        }
+        joinMobileFindNavOpenFrame = window.requestAnimationFrame(waitForMotion);
+      };
+      joinMobileFindNavOpenFrame = window.requestAnimationFrame(waitForMotion);
+    }
+
+    function updateJoinMobileNavIndicator(activeButton = null, options = {}) {
+      const shell = document.querySelector("#joinMobileBottomNav .join-mobile-bottom-nav-shell");
+      if (!shell) return;
+      const buttons = getJoinMobileNavButtons();
+      const candidate = activeButton instanceof Element ? activeButton : null;
+      const target = candidate || shell.querySelector("#joinMobileBottomNavInactiveLayer [data-mobile-nav-key].is-active") || joinMobileNavIndicatorState.targetButton;
+      const indicator = getJoinMobileNavIndicator(shell);
+      if (options.clear || !target || !indicator) {
+        stopJoinMobileNavIndicatorTracking();
+        clearJoinMobileNavIndicatorOverlap(buttons);
+        buttons.forEach((button) => button.classList.remove("is-active"));
+        shell.classList.remove("has-active", "is-nav-indicator-moving");
+        joinMobileNavIndicatorState.initialized = false;
+        joinMobileNavIndicatorState.moving = false;
+        joinMobileNavIndicatorState.targetButton = null;
+        return;
+      }
+
+      const metrics = getJoinMobileNavTargetMetrics(shell, target);
+      if (!metrics) return;
+      const state = joinMobileNavIndicatorState;
+      const hadActive = state.initialized && shell.classList.contains("has-active");
+      const isSameSettledTarget = target.classList.contains("is-active") && !state.moving;
+      const reducedMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches);
+      const shouldAnimate = Boolean(options.animate && hadActive && !isSameSettledTarget && !reducedMotion);
+
+      if (!shouldAnimate) {
+        state.initialized = true;
+        state.moving = false;
+        state.positionX = metrics.x;
+        state.velocityX = 0;
+        state.targetX = metrics.x;
+        state.width = metrics.width;
+        state.widthVelocity = 0;
+        state.targetWidth = metrics.width;
+        state.shapeX = 0;
+        state.shapeY = 0;
+        state.shapeVelocityX = 0;
+        state.shapeVelocityY = 0;
+        state.targetButton = target;
+        state.impactStarted = false;
+        setJoinMobileNavIndicatorVars(shell, metrics.x, metrics.width);
+        setJoinMobileNavIndicatorScaleVars(shell, 1, 1);
+        setJoinMobileNavActiveOverlayClip(shell, metrics.x, metrics.width, 1, 1);
+        shell.classList.add("has-active");
+        shell.classList.remove("is-nav-indicator-moving");
+        clearJoinMobileNavIndicatorOverlap(buttons);
+        buttons.forEach((button) => button.classList.toggle("is-active", button === target));
+        return;
+      }
+
+      const nextDirection = Math.sign(metrics.x - state.positionX);
+      const currentDirection = Math.sign(state.velocityX);
+      if (nextDirection && currentDirection && nextDirection !== currentDirection) {
+        state.velocityX *= 0.55;
+      }
+      state.initialized = true;
+      state.moving = true;
+      state.targetButton = target;
+      state.targetX = metrics.x;
+      state.targetWidth = metrics.width;
+      state.impactStarted = false;
+      shell.classList.add("has-active", "is-nav-indicator-moving");
+      buttons.forEach((button) => button.classList.remove("is-active", "is-indicator-overlap"));
+      startJoinMobileNavIndicatorAnimation();
+    }
+
+    function restoreJoinMobileBottomNavAfterNavModalClose() {
+      const nav = document.getElementById("joinMobileBottomNav");
+      const activeKey = nav?.querySelector("[data-mobile-nav-key].is-active")?.dataset.mobileNavKey || "";
+      const isNavModalKey = activeKey === "create" || activeKey === "find";
+      const isMobileViewport = window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640;
+      if (!isNavModalKey || !isMobileViewport || hasOpenBlockingModal()) return;
+      setJoinMobileBottomNavLayerActive("");
+      setJoinMobileBottomNavVisible(true, { force: true });
     }
 
     let joinMobileViewportUpdateTimers = [];
@@ -38633,86 +39475,57 @@
       document.documentElement.classList.toggle("join-mobile-modal-chrome-collapsed", isJoinMobileChromeLikelyCollapsedForModal());
     }
 
-    function initializeJoinMobileBottomNav() {
+    function portalJoinMobileBottomNavToBody() {
       const nav = document.getElementById("joinMobileBottomNav");
+      if (!nav || !document.body || nav.parentElement === document.body) return nav;
+      document.body.appendChild(nav);
+      return nav;
+    }
+
+    function initializeJoinMobileBottomNav() {
+      const nav = portalJoinMobileBottomNavToBody();
       if (!nav) return;
-      const createButton = document.getElementById("joinCreateFloatingButton");
       let lastScrollY = window.scrollY || 0;
       let lastTouchY = 0;
-      let hoverOpenedNav = false;
-      let hoverCloseTimer = 0;
-      let hoverSourceRect = null;
-      let hoverPointerX = -1;
-      let hoverPointerY = -1;
       let ticking = false;
       scheduleJoinMobileVisualViewportVarsUpdate();
       window.visualViewport?.addEventListener("resize", scheduleJoinMobileVisualViewportVarsUpdate, { passive: true });
       window.visualViewport?.addEventListener("scroll", scheduleJoinMobileVisualViewportVarsUpdate, { passive: true });
       window.addEventListener("resize", scheduleJoinMobileVisualViewportVarsUpdate, { passive: true });
-      if (window.matchMedia("(max-width: 640px)").matches) {
-        setJoinMobileBottomNavVisible(true);
-      }
-      const syncByScrollDirection = (delta, currentScrollY) => {
-        if (Math.abs(delta) <= 6) return;
-        setJoinMobileBottomNavVisible(delta < 0 && currentScrollY > 24);
-      };
-      const isMobileBottomNavHoverEnabled = () => window.matchMedia("(max-width: 640px)").matches;
-      const clearHoverCloseTimer = () => {
-        clearTimeout(hoverCloseTimer);
-        hoverCloseTimer = 0;
-      };
-      const updateHoverPointer = (event) => {
-        if (!event) return;
-        hoverPointerX = event.clientX;
-        hoverPointerY = event.clientY;
-      };
-      const isPointInRect = (rect, inset = 0) => {
-        if (!rect) return false;
-        return hoverPointerX >= rect.left - inset
-          && hoverPointerX <= rect.right + inset
-          && hoverPointerY >= rect.top - inset
-          && hoverPointerY <= rect.bottom + inset;
-      };
-      const isPointerInBottomNavHoverArea = () => {
-        return isPointInRect(hoverSourceRect, 8)
-          || isPointInRect(createButton?.getBoundingClientRect(), 8)
-          || isPointInRect(nav.getBoundingClientRect(), 8);
-      };
-      const openBottomNavByButtonHover = (event) => {
-        if (!isMobileBottomNavHoverEnabled()) return;
-        updateHoverPointer(event);
-        clearHoverCloseTimer();
-        hoverSourceRect = createButton?.getBoundingClientRect() || null;
-        hoverOpenedNav = !nav.classList.contains("is-visible");
-        setJoinMobileBottomNavVisible(true);
-      };
-      const scheduleCloseBottomNavByButtonHover = (event) => {
-        if (!hoverOpenedNav) return;
-        updateHoverPointer(event);
-        clearHoverCloseTimer();
-        hoverCloseTimer = setTimeout(() => {
-          hoverCloseTimer = 0;
-          if (isPointerInBottomNavHoverArea()) return;
-          hoverOpenedNav = false;
-          hoverSourceRect = null;
-          setJoinMobileBottomNavVisible(false);
-        }, 120);
-      };
-      createButton?.addEventListener("mouseenter", openBottomNavByButtonHover);
-      createButton?.addEventListener("mouseleave", scheduleCloseBottomNavByButtonHover);
-      nav.addEventListener("mouseenter", (event) => {
-        updateHoverPointer(event);
-        clearHoverCloseTimer();
+      window.visualViewport?.addEventListener("resize", updateJoinMobileNavIndicator, { passive: true });
+      window.addEventListener("resize", updateJoinMobileNavIndicator, { passive: true });
+      setJoinMobileBottomNavVisible(true);
+      requestAnimationFrame(() => {
+        initializeJoinMobileNavIndicator();
+        requestAnimationFrame(initializeJoinMobileNavIndicator);
       });
-      nav.addEventListener("mouseleave", scheduleCloseBottomNavByButtonHover);
-      window.addEventListener("mousemove", (event) => {
-        if (!hoverOpenedNav) return;
-        updateHoverPointer(event);
-        if (isPointerInBottomNavHoverArea()) {
-          clearHoverCloseTimer();
-          return;
+      const isMainPageNavScrollContext = () => !hasOpenBlockingModal()
+        && !document.documentElement.classList.contains("modal-open")
+        && !document.body.classList.contains("modal-open");
+      const hideByScrollStart = () => {
+        setJoinMobileBottomNavVisible(false, { force: true, reason: "scroll" });
+      };
+      const showByMainPageScrollUp = () => {
+        if (!isMainPageNavScrollContext()) return;
+        setJoinMobileBottomNavLayerActive("");
+        setJoinMobileBottomNavVisible(true, { force: true, reason: "scroll-up" });
+      };
+      const syncByScrollDirection = (delta) => {
+        if (Math.abs(delta) <= 6) return;
+        if (delta > 0) {
+          hideByScrollStart();
+        } else {
+          showByMainPageScrollUp();
         }
-        scheduleCloseBottomNavByButtonHover(event);
+      };
+      window.addEventListener("wheel", (event) => {
+        const deltaY = event.deltaY || 0;
+        if (Math.abs(deltaY) <= 4) return;
+        if (deltaY > 0) {
+          hideByScrollStart();
+        } else {
+          showByMainPageScrollUp();
+        }
       }, { passive: true });
       window.addEventListener("scroll", () => {
         if (ticking) return;
@@ -38722,7 +39535,7 @@
           const delta = currentScrollY - lastScrollY;
           scheduleJoinMobileVisualViewportVarsUpdate();
           noteJoinMobileMainScrollDirection(delta, currentScrollY);
-          syncByScrollDirection(delta, currentScrollY);
+          syncByScrollDirection(delta);
           lastScrollY = currentScrollY;
           ticking = false;
         });
@@ -38735,7 +39548,11 @@
         if (!lastTouchY || !currentTouchY) return;
         const touchDelta = currentTouchY - lastTouchY;
         if (Math.abs(touchDelta) > 8) {
-          setJoinMobileBottomNavVisible(touchDelta > 0 && (window.scrollY || 0) > 24);
+          if (touchDelta < 0) {
+            hideByScrollStart();
+          } else {
+            showByMainPageScrollUp();
+          }
           lastTouchY = currentTouchY;
         }
       }, { passive: true });
@@ -38928,7 +39745,7 @@
       const join = findJoinExternalDeepLinkDetailTarget(params);
       if (!join) return false;
       setJoinMobileNavActive("");
-      document.getElementById("joinMobileBottomNav")?.classList.remove("is-my-layer-active");
+      setJoinMobileBottomNavLayerActive("");
       closeJoinMyMenu?.();
       openDetail(join.id);
       return true;
@@ -42611,6 +43428,7 @@
     }
 
     function toggleCalendarDay(monthKey, dateKey) {
+      hideJoinMobileBottomNavForCalendarDateSelection();
       const accordion = document.getElementById(`calendarAccordion-${monthKey}`);
       if (!accordion) return;
       const events = getJoinEventsByDate()[dateKey] || [];
@@ -42689,6 +43507,7 @@
       clearCalendarDesktopSelection();
       sheet.classList.remove("open");
       setWidgetModalOpen(false);
+      restoreJoinMobileBottomNavAfterNavModalClose();
     }
 
     function handleCalendarSheetResize() {
@@ -42972,6 +43791,7 @@
     }
 
     function selectBuilderDate(day, trigger) {
+      hideJoinMobileBottomNavForBuilderDateSelection();
       const selectedDate = new Date(builderState.viewYear, builderState.viewMonth, day);
       const activeSchedule = getBuilderActiveScheduleForDate(selectedDate);
       if (activeSchedule) {
@@ -43272,6 +44092,7 @@
     }
 
     function openBuilderDatePopover(target, trigger) {
+      hideJoinMobileBottomNavForBuilderDateSelection();
       const popover = document.getElementById("builderDatePopover");
       const card = trigger?.closest(".builder-calendar-card");
       if (!popover || !trigger || !card) return;
@@ -43699,7 +44520,7 @@
         next.setAttribute("onclick", step === 4 ? "handleBuilderKakaoInquiry()" : "nextBuilderStep()");
       }
       if (bottom) {
-        bottom.style.display = builderState.mdPickDateChangeMode || step === 2 || step === 4 ? "none" : "grid";
+        bottom.style.display = builderState.mdPickDateChangeMode || step === 1 || step === 2 || step === 4 ? "none" : "grid";
         bottom.classList.toggle("complete-mode", step === 4);
         bottom.classList.toggle("step-3", step === 3);
       }
@@ -43723,10 +44544,11 @@
       const bottom = document.getElementById("builderBottom");
       const bottomStyle = bottom ? window.getComputedStyle(bottom) : null;
       const bottomRect = bottom?.getBoundingClientRect();
-      const height = bottomStyle && bottomStyle.display !== "none" && bottomRect?.height
+      const isVisible = Boolean(bottomStyle && bottomStyle.display !== "none");
+      const height = isVisible && bottomRect?.height
         ? Math.ceil(bottomRect.height)
         : 0;
-      document.getElementById("builderModal")?.style.setProperty("--builder-bottom-offset", `${height || 118}px`);
+      document.getElementById("builderModal")?.style.setProperty("--builder-bottom-offset", `${isVisible ? height || 118 : 0}px`);
       document.getElementById("builderDatePopover")?.style.removeProperty("--builder-bottom-offset");
     }
 
@@ -44764,6 +45586,115 @@
         || joins.find((join) => erpProductId && erpEventSeq && String(join.erpProductId || join.goodSeq || "") === erpProductId && String(join.erpEventSeq || join.eventSeq || "") === erpEventSeq)
         || joins.find((join) => erpProductId && String(join.erpProductId || join.goodSeq || "") === erpProductId)
         || null;
+    }
+
+    function getAdminRecommendedJoinIdFromApplicationId(value = "") {
+      const text = String(value || "").trim();
+      return text ? `admin-recommended-${text.replace(/[^a-z0-9_-]+/gi, "-")}` : "";
+    }
+
+    function getJoinApplicationTargetRow(application = {}) {
+      const applicationJoin = getNestedValue(application, "join") || {};
+      const applicationProduct = getNestedValue(application, "product") || {};
+      const productReference = getSecretTourProductReference(applicationProduct || application);
+      const targetScheduleId = String(
+        application.targetScheduleId
+        || application.scheduleId
+        || getNestedValue(application, "join.scheduleId")
+        || getNestedValue(application, "join.id")
+        || ""
+      ).trim();
+      const targetApplicationId = String(
+        application.targetApplicationId
+        || application.sourceApplicationId
+        || getNestedValue(application, "join.sourceApplicationId")
+        || getNestedValue(application, "product.applicationId")
+        || ""
+      ).trim();
+      const erpProductId = String(
+        application.erpProductId
+        || application.goodSeq
+        || application.productId
+        || getNestedValue(application, "product.erpProductId")
+        || getNestedValue(application, "product.goodSeq")
+        || productReference.id
+        || productReference.goodSeq
+        || ""
+      ).trim();
+      const erpEventSeq = String(
+        application.erpEventSeq
+        || application.eventSeq
+        || getNestedValue(application, "product.erpEventSeq")
+        || getNestedValue(application, "product.eventSeq")
+        || productReference.eventSeq
+        || ""
+      ).trim();
+      return {
+        targetScheduleId,
+        targetApplicationId,
+        erpProductId,
+        erpEventSeq,
+        title: String(applicationJoin.title || applicationProduct.productName || application.productName || application.title || "").trim(),
+        departureDate: String(applicationJoin.departureDate || applicationProduct.departureDate || application.departureDate || "").slice(0, 10),
+        returnDate: String(applicationJoin.returnDate || applicationProduct.returnDate || application.returnDate || "").slice(0, 10)
+      };
+    }
+
+    function findJoinForJoinApplicationPayload(application = {}) {
+      const target = getJoinApplicationTargetRow(application);
+      const scheduleCandidates = [
+        target.targetScheduleId,
+        getAdminRecommendedJoinIdFromApplicationId(target.targetApplicationId)
+      ].filter(Boolean);
+      const applicationCandidates = [target.targetApplicationId].filter(Boolean);
+      const directMatch = joins.find((join) => {
+        const joinIds = [
+          join.id,
+          join.scheduleId,
+          getNestedValue(join.sheetApplication || {}, "scheduleId")
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        return scheduleCandidates.some((candidate) => joinIds.includes(candidate));
+      });
+      if (directMatch) return directMatch;
+      const applicationMatch = joins.find((join) => {
+        const joinIds = [
+          join.sourceApplicationId,
+          join.applicationId,
+          getNestedValue(join.displayRule || {}, "recommendedScheduleId"),
+          getNestedValue(join.displayRule || {}, "displayRuleId"),
+          getNestedValue(join.sheetApplication || {}, "applicationId")
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        return applicationCandidates.some((candidate) => joinIds.includes(candidate));
+      });
+      if (applicationMatch) return applicationMatch;
+      const rowMatch = findJoinForJoinApplicationRow(target);
+      if (rowMatch) return rowMatch;
+      const productMatch = joins.find((join) => {
+        const joinProduct = getSecretTourProductReference(join);
+        const joinProductIds = [
+          join.erpProductId,
+          join.goodSeq,
+          join.productId,
+          joinProduct.id,
+          joinProduct.goodSeq
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        const joinEventIds = [
+          join.erpEventSeq,
+          join.eventSeq,
+          joinProduct.eventSeq
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        const productMatched = target.erpProductId && joinProductIds.includes(target.erpProductId);
+        const eventMatched = !target.erpEventSeq || joinEventIds.includes(target.erpEventSeq);
+        return productMatched && eventMatched;
+      });
+      if (productMatch) return productMatch;
+      return joins.find((join) => {
+        const sameTitle = target.title && String(join.title || "").trim() === target.title;
+        if (!sameTitle) return false;
+        const sameDeparture = !target.departureDate || String(join.departureDate || "").slice(0, 10) === target.departureDate;
+        const sameReturn = !target.returnDate || String(join.returnDate || join.departureDate || "").slice(0, 10) === target.returnDate;
+        return sameDeparture && sameReturn;
+      }) || null;
     }
 
     function normalizeJoinApplyPayload(item = {}) {
@@ -46676,6 +47607,7 @@
     }
 
     function openBuilderActiveScheduleSheet(scheduleKey = "", iso = "") {
+      hideJoinMobileBottomNavForBuilderDateSelection();
       closeBuilderDatePopover(true);
       closeBuilderFlexSheet();
       const schedule = getBuilderActiveScheduleByKey(scheduleKey);
@@ -46923,6 +47855,9 @@
       modal?.classList.remove("open");
       if ((id === "detailModal" || id === "builderModal") && !document.getElementById("detailModal")?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open") && !document.getElementById("regionSearchModal")?.classList.contains("open")) {
         setWidgetModalOpen(hasOpenBlockingModal());
+        if (id === "builderModal") {
+          restoreJoinMobileBottomNavAfterNavModalClose();
+        }
       }
       if (id === "detailModal") {
         closeDetailApply();
@@ -50297,27 +51232,59 @@
         .filter(Boolean);
     }
 
+    function collectApplyBookingNoteTexts(value) {
+      if (Array.isArray(value)) return value.flatMap(collectApplyBookingNoteTexts);
+      if (value && typeof value === "object") return Object.values(value).flatMap(collectApplyBookingNoteTexts);
+      const text = String(value || "").trim();
+      return text ? [text, ...parseApplyBookingList(text)] : [];
+    }
+
     function parseApplyBookingNotes(product = {}) {
-      return [
+      const noteValues = [
+        product.singleRoomSurchargeText,
+        getNestedValue(product, "applicant.singleRoomSurchargeText"),
+        getNestedValue(product, "sheetApplication.applicant.singleRoomSurchargeText"),
+        getNestedValue(product, "displayRule.singleRoomSurchargeText"),
+        product.singleRoomSurchargeNote,
+        product.singleRoomNote,
+        product.singleRoomChargeNote,
+        product.roomSurchargeNote,
+        product.roomChargeNote,
+        product.extraChargeNote,
         product.notes,
         product.notice,
         getNestedValue(product, "trip.notes"),
         getNestedValue(product, "product.notes"),
         getNestedValue(product, "sheetApplication.notes")
-      ].flatMap(parseApplyBookingList).map((item) => String(item || "").trim()).filter(Boolean);
+      ];
+      return [...new Set(noteValues.flatMap(collectApplyBookingNoteTexts).map((item) => String(item || "").trim()).filter(Boolean))];
+    }
+
+    const singleRoomSurchargeKeywordPattern = /(1\s*인\s*1\s*실|1\s*인실|싱글\s*(?:룸|차지|룸차지)?|싱글|독실|single(?:\s*(?:room|charge|supplement))?)/i;
+
+    function parseApplyWonAmount(value) {
+      const text = String(value ?? "").trim();
+      if (!text) return 0;
+      const match = text.match(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만원|만|천원|원)?/);
+      if (!match) return 0;
+      const raw = Number(String(match[1]).replace(/,/g, ""));
+      if (!Number.isFinite(raw) || raw <= 0) return 0;
+      const unit = match[2] || "";
+      if (/만원|만/.test(unit)) return Math.round(raw * 10000);
+      if (/천원/.test(unit)) return Math.round(raw * 1000);
+      if (!unit && !String(match[1]).includes(",") && raw < 10000) return 0;
+      return Math.round(raw);
     }
 
     function extractSingleRoomSurcharge(notes = []) {
-      const candidates = notes.filter((text) => /(1\s*인\s*1\s*실|싱글|독실|single)/i.test(text));
+      const candidates = notes.filter((text) => singleRoomSurchargeKeywordPattern.test(text));
       for (const text of candidates) {
-        const matches = [...text.matchAll(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만원|만|원)?/g)];
+        const matches = [...String(text || "").matchAll(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만원|만|천원|원)?/g)];
         for (const match of matches) {
-          const raw = Number(String(match[1]).replace(/,/g, ""));
-          if (!Number.isFinite(raw) || raw <= 0) continue;
-          const unit = match[2] || "";
-          if (!unit && !String(match[1]).includes(",") && raw < 10000) continue;
+          const amount = parseApplyWonAmount(match[0]);
+          if (!amount) continue;
           return {
-            amount: Math.round(/만원|만/.test(unit) ? raw * 10000 : raw),
+            amount,
             sourceText: text,
             status: "found"
           };
@@ -50331,8 +51298,8 @@
     }
 
     function getSingleRoomSurchargeInfo(product = {}) {
-      const directAmount = Number(product.singleRoomSurcharge || getNestedValue(product, "applicant.singleRoomSurcharge") || 0);
-      const directText = String(product.singleRoomSurchargeText || getNestedValue(product, "applicant.singleRoomSurchargeText") || "").trim();
+      const directAmount = parseApplyWonAmount(product.singleRoomSurcharge || getNestedValue(product, "applicant.singleRoomSurcharge") || getNestedValue(product, "sheetApplication.applicant.singleRoomSurcharge") || 0);
+      const directText = String(product.singleRoomSurchargeText || getNestedValue(product, "applicant.singleRoomSurchargeText") || getNestedValue(product, "sheetApplication.applicant.singleRoomSurchargeText") || "").trim();
       if (Number.isFinite(directAmount) && directAmount > 0) {
         return {
           amount: directAmount,
@@ -50373,13 +51340,16 @@
       document.querySelector(`[data-apply-room-option="${scope}"]`)?.classList.remove("is-hidden");
       const surcharge = document.querySelector(`[data-apply-room-surcharge="${scope}"]`);
       if (!surcharge) return;
+      surcharge.removeAttribute("title");
       if (options.roomType !== "1인1실") {
         surcharge.textContent = "";
       } else if (options.singleRoomSurcharge > 0) {
-        surcharge.innerHTML = `1인1실 추가요금 <strong>${escapeHtml(formatApplyWon(options.singleRoomSurcharge))}</strong>`;
+        surcharge.innerHTML = `1인 1실 추가요금 <strong>${escapeHtml(formatApplyWon(options.singleRoomSurcharge))}</strong>`;
         if (options.singleRoomSurchargeText) surcharge.title = options.singleRoomSurchargeText;
+      } else if (options.singleRoomSurchargeText) {
+        surcharge.textContent = `1인 1실 요금 참고사항: ${options.singleRoomSurchargeText}`;
       } else {
-        surcharge.textContent = "1인1실 추가요금은 상품 참고사항 확인 후 별도 안내됩니다.";
+        surcharge.textContent = "1인 1실 추가요금은 상품 참고사항 확인 후 별도 안내됩니다.";
       }
     }
 
@@ -54478,6 +55448,14 @@
           <button type="button" class="detail-slider-back" onclick="closeModal('detailModal')" aria-label="뒤로가기">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
           </button>
+          <div class="detail-slider-actions" aria-label="상품상세 액션">
+            <button type="button" class="detail-mobile-header-button" data-detail-wish-button aria-label="찜하기" aria-pressed="false">
+              <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-bookmark-check-icon lucide-bookmark-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path><path d="m9 10 2 2 4-4"></path></svg>
+            </button>
+            <button type="button" class="detail-mobile-header-button" aria-label="공유하기">
+              <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+            </button>
+          </div>
           <button type="button" class="detail-slider-nav prev" onclick="changeDetailSlide(-1)" aria-label="이전 이미지">&lt;</button>
           <div class="detail-slider-viewport">
             <div class="detail-slider-track" style="transform: translateX(-${slideIndex * 100}%);">

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elastic Squircle Bottom Navigation Lab</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts - Inter & Noto Sans KR -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <style>
+    body {
+      font-family: 'Noto Sans KR', 'Inter', sans-serif;
+    }
+
+    /* ====== HIGH-PERFORMANCE TRANSFORMATION RULES ====== */
+    .indicator-position {
+      transform: translate3d(var(--x), 0, 0);
+      will-change: transform;
+      pointer-events: none;
+    }
+
+    .indicator-deformation {
+      transform: scaleX(var(--scale-x)) scaleY(var(--scale-y));
+      transform-origin: center;
+      will-change: transform;
+    }
+
+    /* Premium workspace background styling */
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(16px);
+      border: 1px border;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen transition-colors duration-300 overflow-x-hidden">
+
+  <div class="flex flex-col min-h-screen">
+    <!-- Main Top Navigation/Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2.5 bg-blue-500 text-white rounded-2xl shadow-lg shadow-blue-500/20">
+          <i data-lucide="sparkles" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-extrabold tracking-tight flex items-center gap-2">
+            Pill Squircle Nav Studio <span class="text-xs bg-blue-950 text-blue-400 font-bold px-2.5 py-0.5 rounded-full border border-blue-900">Spec image_17e889.png</span>
+          </h1>
+          <p class="text-xs text-slate-400">정밀 햅틱 감쇠 스프링 물리 모델 & 실시간 오버랩 반전 렌더러</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="text-xs text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800 font-mono">Elastic Core v2.6</span>
+      </div>
+    </header>
+
+    <!-- Main Studio Dashboard -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <!-- Left Panel: Interactive Springs & Physics Customizer (4 Cols) -->
+      <section class="lg:col-span-4 flex flex-col space-y-6">
+        <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold flex items-center gap-2 text-blue-400">
+              <i data-lucide="gauge" class="w-5 h-5"></i> 이미지 지정 물리 설정값
+            </h2>
+            <button onclick="resetToSpec()" class="text-[10px] text-blue-400 bg-blue-950/50 hover:bg-blue-950 px-2.5 py-1 rounded-lg border border-blue-900 font-bold transition-all">
+              스펙 초기화
+            </button>
+          </div>
+
+          <!-- Stiffness Control -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">Stiffness (장력 - 원래 위치로 당기는 힘)</span>
+              <span class="text-blue-400 font-mono font-bold" id="val-stiffness">400</span>
+            </div>
+            <input type="range" id="input-stiffness" min="150" max="600" value="400" step="5"
+                   class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500">
+              <span>부드러움 (150)</span>
+              <span class="text-blue-400 font-semibold">지정 스펙 (400)</span>
+              <span>초고속 발진 (600)</span>
+            </div>
+          </div>
+
+          <!-- Damping Control -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">Damping (감쇠 - 진동을 잡아주는 마찰력)</span>
+              <span class="text-blue-400 font-mono font-bold" id="val-damping">20</span>
+            </div>
+            <input type="range" id="input-damping" min="5" max="50" value="20" step="1"
+                   class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500">
+              <span>강한 바운스 (5)</span>
+              <span class="text-blue-400 font-semibold">지정 스펙 (20)</span>
+              <span>묵직한 멈춤 (50)</span>
+            </div>
+          </div>
+
+          <!-- Mass Control -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">Mass (질량 - 도형의 가속 관성 및 무게감)</span>
+              <span class="text-blue-400 font-mono font-bold" id="val-mass">0.7</span>
+            </div>
+            <input type="range" id="input-mass" min="0.3" max="2.0" value="0.7" step="0.05"
+                   class="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-500">
+              <span>가벼운 풍선 (0.3)</span>
+              <span class="text-blue-400 font-semibold">지정 스펙 (0.7)</span>
+              <span>중후한 젤리 (2.0)</span>
+            </div>
+          </div>
+
+          <!-- Physics Sandbox Stress Tools -->
+          <div class="pt-4 border-t border-slate-800 space-y-3">
+            <span class="text-xs font-semibold text-slate-400 block uppercase tracking-wider">탄성 한계 측정 샌드박스</span>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="triggerStressTest()" class="py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/15">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> 연속 왕복 스윕
+              </button>
+              <button onclick="triggerSlapback()" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-700">
+                <i data-lucide="chevrons-left-right" class="w-4 h-4"></i> 연속 급선회 테스트
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Telemetry Diagnostic Panel -->
+        <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
+          <h2 class="text-sm font-bold flex items-center gap-2 text-indigo-400">
+            <i data-lucide="activity" class="w-5 h-5"></i> 실시간 모션 데이터 피드 (Telemetry)
+          </h2>
+          <div class="grid grid-cols-2 gap-3 font-mono text-xs">
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <div class="text-slate-500 text-[9px] uppercase tracking-wider">Position X</div>
+              <div class="text-base font-bold text-white mt-1" id="telemetry-pos">0.00 px</div>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <div class="text-slate-500 text-[9px] uppercase tracking-wider">Velocity</div>
+              <div class="text-base font-bold text-blue-400 mt-1" id="telemetry-vel">0.00 px/s</div>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 col-span-2 flex justify-between items-center">
+              <div>
+                <div class="text-slate-500 text-[9px] uppercase tracking-wider">Deformation Ratio (X / Y)</div>
+                <div class="text-xs font-bold text-indigo-300 mt-1" id="telemetry-deform">1.000 / 1.000</div>
+              </div>
+              <div class="w-16 h-10 bg-slate-900 rounded-xl flex items-center justify-center relative overflow-hidden border border-slate-800">
+                <!-- Visual mesh representation representing physics variables -->
+                <div id="telemetry-visual-node" class="w-7 h-7 rounded-lg bg-blue-500 shadow-lg shadow-blue-500/50"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Center Device Frame Area (4 Cols) -->
+      <section class="lg:col-span-4 flex flex-col items-center justify-center">
+        <!-- Smartphone Mockup matching image_17e889.png aesthetics -->
+        <div class="relative w-[345px] h-[670px] bg-slate-950 rounded-[55px] shadow-[0_25px_65px_-15px_rgba(37,140,255,0.2)] border-[10px] border-slate-900 overflow-hidden ring-4 ring-slate-800">
+          
+          <!-- Screen Notch -->
+          <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-slate-950 rounded-b-2xl z-50 flex items-center justify-center">
+            <div class="w-3 h-3 bg-slate-900 rounded-full ml-auto mr-4"></div>
+          </div>
+
+          <!-- Phone Screen Container (Simulating Premium Travel/Golf Gathering App) -->
+          <div class="w-full h-full bg-[#f4f7fa] flex flex-col justify-between relative overflow-hidden">
+            
+            <!-- App Bar Mock -->
+            <div class="px-5 pt-8 pb-3 bg-white/70 backdrop-blur-md border-b border-slate-100 flex items-center justify-between z-10 text-slate-800">
+              <div class="text-[11px] font-bold tracking-tight">09:41</div>
+              <div class="text-xs font-bold text-slate-800">그린 필드 골프 모임</div>
+              <div class="flex items-center space-x-1 text-xs">
+                <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+                <i data-lucide="battery" class="w-4 h-4"></i>
+              </div>
+            </div>
+
+            <!-- Screen Body Dashboard representing the exact background environment in image_17e889.png -->
+            <div class="flex-1 overflow-y-auto px-4 py-4 pb-28 relative z-0 space-y-4">
+              
+              <!-- Travel and Gathering Landscape Banner (image_17e889.png mockup landscape) -->
+              <div class="relative w-full h-[155px] rounded-3xl overflow-hidden shadow-sm">
+                <!-- CSS Illustration of Scenic Golf/Field Park -->
+                <div class="absolute inset-0 bg-gradient-to-b from-[#87ceeb] via-[#b4e197] to-[#83bd75]"></div>
+                <!-- Mini stylized sun and clouds -->
+                <div class="absolute top-4 right-6 w-10 h-10 bg-yellow-200 rounded-full blur-sm opacity-80"></div>
+                <!-- Hills -->
+                <div class="absolute bottom-0 left-0 right-0 h-16 bg-[#68a05a] rounded-t-[100px] transform scale-x-125 translate-y-3"></div>
+                <div class="absolute bottom-0 left-1/3 right-0 h-14 bg-[#4e8241] rounded-t-[120px] transform translate-y-2 opacity-90"></div>
+                
+                <!-- Stylized characters playing / gathering on field -->
+                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-end space-x-2">
+                  <div class="w-6 h-10 bg-[#258cff] rounded-t-lg shadow-sm flex items-center justify-center text-[8px] text-white font-extrabold">🏌️</div>
+                  <div class="w-5 h-9 bg-yellow-400 rounded-t-md shadow-sm flex items-center justify-center text-[8px] text-slate-800 font-extrabold">👕</div>
+                  <div class="w-7 h-11 bg-emerald-500 rounded-t-lg shadow-sm flex items-center justify-center text-[8px] text-white font-extrabold">⛳</div>
+                  <div class="w-5 h-8 bg-orange-400 rounded-t-md shadow-sm flex items-center justify-center text-[8px] text-white font-extrabold">🏃</div>
+                </div>
+
+                <!-- Flower accents at bottom left/right -->
+                <div class="absolute bottom-1 left-4 text-[9px]">🌸🌼</div>
+                <div class="absolute bottom-1 right-4 text-[9px]">🍀🌷</div>
+
+                <!-- Banner Overlay text -->
+                <div class="absolute top-4 left-4 text-white">
+                  <span class="bg-black/25 backdrop-blur-sm text-[8px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-widest">Premium Gathering</span>
+                  <h3 class="text-xs font-extrabold mt-1 drop-shadow-sm text-slate-900 leading-tight">주말 도심 근교<br>감성 골프 라운딩</h3>
+                </div>
+              </div>
+
+              <!-- Category Card Grid similar to bottom part of image_17e889.png -->
+              <div class="grid grid-cols-2 gap-3 text-slate-800">
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-20">
+                  <span class="text-xs font-bold text-slate-800">추천여행</span>
+                  <span class="text-[9px] text-slate-400">나에게 딱 맞는 추천 코스</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-20">
+                  <span class="text-xs font-bold text-slate-800">취향맞춤</span>
+                  <span class="text-[9px] text-slate-400">골프부터 일상 아웃도어까지</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-20">
+                  <span class="text-xs font-bold text-slate-800">공동방문 모임</span>
+                  <span class="text-[9px] text-slate-400">실시간 인기 급상승 공간</span>
+                </div>
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-20">
+                  <span class="text-xs font-bold text-slate-800">해외모임 패키지</span>
+                  <span class="text-[9px] text-slate-400">동남아/일본 스페셜 케어</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ====== HIGH-FIDELITY CAPSULE FLOATING BOTTOM NAVIGATION (image_17e889.png) ====== -->
+            <div class="absolute bottom-6 left-4 right-4 z-40">
+              
+              <!-- Beautiful Floating Capsule Container -->
+              <div class="relative w-full h-[80px] bg-white rounded-[32px] shadow-[0_12px_36px_rgba(15,23,42,0.12)] border border-slate-100/80 p-2 select-none" id="capsule-nav-bar">
+                
+                <!-- ====== LAYER 1: BASE INACTIVE LAYER (Grey Labels and Icons) ====== -->
+                <div class="absolute inset-0 flex justify-between items-center z-10 px-2" id="inactive-icons-layer">
+                  <!-- Generated dynamically in script -->
+                </div>
+
+                <!-- ====== LAYER 2: INTERACTIVE BLUE FLOATING SHUTTLE (SQUIRCLE) ====== -->
+                <!-- Position-wrapper -> Deformation-wrapper -> Visual-shuttle -->
+                <!-- Crucial: We use left-0 to override browser static positioning padding issues, keeping perfect center alignment -->
+                <div class="indicator-position absolute left-0 top-2 bottom-2 w-[66px] pointer-events-none z-20" id="indicator-shuttle">
+                  <div class="indicator-deformation w-full h-full" id="indicator-deform">
+                    <!-- Rounded squircle to exactly match image_17e889.png. -->
+                    <div class="w-full h-full rounded-[22px] bg-[#258cff] shadow-lg shadow-blue-500/25"></div>
+                  </div>
+                </div>
+
+                <!-- ====== LAYER 3: DUAL-LAYER ACTIVE OVERLAY (White Labels and Icons clipped by Inset) ====== -->
+                <div class="absolute inset-0 flex justify-between items-center z-30 px-2 pointer-events-none" id="active-icons-overlay" style="clip-path: inset(0px 0px 0px 0px round 22px);">
+                  <!-- Duplicate elements here, mapped to change to pure text-white -->
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Live Code Generator (4 Cols) -->
+      <section class="lg:col-span-4 flex flex-col space-y-6">
+        <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-3xl shadow-xl flex-1 flex flex-col min-h-[350px]">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-bold flex items-center gap-2 text-blue-400">
+              <i data-lucide="code-2" class="w-4 h-4"></i> 모션 물리 엔진 코드 내보내기
+            </h2>
+            <button onclick="copyCurrentCode()" class="px-3 py-1.5 bg-blue-500 hover:bg-blue-400 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> 복사
+            </button>
+          </div>
+          <div class="relative flex-1 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-1">
+            <textarea id="code-snippet-box" readonly class="w-full h-full bg-transparent p-3 font-mono text-[11px] leading-relaxed resize-none focus:outline-none text-slate-300 selection:bg-blue-500/20 select-all"></textarea>
+          </div>
+          <p class="text-[10px] text-slate-500 mt-3 flex items-start gap-1.5 leading-normal">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5"></i>
+            <span>상단의 컨트롤러를 통해 Stiffness, Damping, Mass 값을 수정하는 순간 스프링 방정식에 대입된 바닐라 JS 수학 계산 스크립트로 즉시 재생성됩니다.</span>
+          </p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification Alert box -->
+  <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-800 flex items-center gap-3 transition-all duration-300 scale-90 opacity-0 pointer-events-none z-50">
+    <span class="p-1 bg-blue-500 text-white rounded-lg">
+      <i data-lucide="check" class="w-4 h-4"></i>
+    </span>
+    <span class="text-xs font-semibold" id="toast-message">코드가 복사되었습니다!</span>
+  </div>
+
+  <script>
+    // Navigation bar elements matching image_17e889.png
+    const menuItems = [
+      { 
+        id: 'create', 
+        label: '모임생성', 
+        iconSvg: `<svg class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <line x1="9" y1="14" x2="15" y2="14"/>
+                    <line x1="12" y1="11" x2="12" y2="17"/>
+                  </svg>` 
+      },
+      { 
+        id: 'search', 
+        label: '모임찾기', 
+        iconSvg: `<svg class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                    <circle cx="15" cy="16" r="2"/>
+                    <line x1="17" y1="18" x2="20" y2="21"/>
+                  </svg>` 
+      },
+      { 
+        id: 'mygroup', 
+        label: '나의모임', 
+        iconSvg: `<svg class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>` 
+      },
+      { 
+        id: 'support', 
+        label: '고객센터', 
+        iconSvg: `<svg class="w-5.5 h-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 a2 2 0 0 1 2 1.72"/>
+                  </svg>` 
+      }
+    ];
+
+    // Default target starts at tab index 2 ("나의모임" as seen in image_17e889.png)
+    let selectedIndex = 2;
+    let prevIndex = 2;
+
+    // --- MAIN DAMPED SPRING PHYSICS STATE ---
+    // User requested spec constraint: Stiffness: 400, Damping: 20, Mass: 0.7
+    const physics = {
+      stiffness: 400,
+      damping: 20,
+      mass: 0.7
+    };
+
+    let positionX = 0;       // Live position X of the active shuttle (px)
+    let targetX = 0;         // Live target X coordinate (px)
+    let velocity = 0;        // Live movement velocity (px/s)
+    const maxVelocity = 2400; // Capped max flight velocity
+
+    // --- DEFORMATION / BUBBLE SPRINGS STATE ---
+    let scaleX = 1.0;
+    let scaleX_velocity = 0;
+    let scaleY = 1.0;
+    let scaleY_velocity = 0;
+
+    const deformPhysics = {
+      stiffness: 350,
+      damping: 14,
+      mass: 0.70
+    };
+
+    let hasTriggeredImpact = false;
+    let isInitialized = false;
+    let lastTime = performance.now();
+
+    // Automation loops
+    let stressTimer = null;
+    let slapbackTimer = null;
+
+    // ====== DOM CACHING ======
+    const capsuleNavBar = document.getElementById('capsule-nav-bar');
+    const inactiveLayer = document.getElementById('inactive-icons-layer');
+    const activeOverlay = document.getElementById('active-icons-overlay');
+    const shuttle = document.getElementById('indicator-shuttle');
+    const deform = document.getElementById('indicator-deform');
+
+    // Control Elements
+    const inputStiffness = document.getElementById('input-stiffness');
+    const inputDamping = document.getElementById('input-damping');
+    const inputMass = document.getElementById('input-mass');
+    const valStiffness = document.getElementById('val-stiffness');
+    const valDamping = document.getElementById('val-damping');
+    const valMass = document.getElementById('val-mass');
+
+    // Telemetry Outlets
+    const telPos = document.getElementById('telemetry-pos');
+    const telVel = document.getElementById('telemetry-vel');
+    const telDeform = document.getElementById('telemetry-deform');
+    const telVisualNode = document.getElementById('telemetry-visual-node');
+
+    // ====== COMPONENT BUILD ======
+    function initializeStructure() {
+      inactiveLayer.innerHTML = '';
+      activeOverlay.innerHTML = '';
+
+      // Build 1st Layer: Grey Unselected state
+      menuItems.forEach((item, index) => {
+        const btn = document.createElement('button');
+        btn.id = `tab-btn-${index}`;
+        btn.className = 'flex-1 h-full flex flex-col items-center justify-center relative focus:outline-none z-10 transition-colors duration-150 py-1';
+        btn.onclick = () => selectMenu(index);
+        
+        btn.innerHTML = `
+          <div class="text-slate-700 flex flex-col items-center justify-center space-y-1">
+            <div class="w-6 h-6 flex items-center justify-center">
+              ${item.iconSvg}
+            </div>
+            <span class="text-[10px] font-extrabold tracking-tight">${item.label}</span>
+          </div>
+        `;
+        inactiveLayer.appendChild(btn);
+
+        // Build 3rd Layer: Bright White Selected overlay
+        const overlayNode = document.createElement('div');
+        overlayNode.className = 'flex-1 h-full flex flex-col items-center justify-center py-1';
+        overlayNode.innerHTML = `
+          <div class="text-white flex flex-col items-center justify-center space-y-1">
+            <div class="w-6 h-6 flex items-center justify-center">
+              ${item.iconSvg}
+            </div>
+            <span class="text-[10px] font-extrabold tracking-tight">${item.label}</span>
+          </div>
+        `;
+        activeOverlay.appendChild(overlayNode);
+      });
+
+      lucide.createIcons();
+    }
+
+    // ====== PHYSICS UPDATE ENGINE ======
+    function updateSpring(deltaTime) {
+      // 1. Position tracking spring (Damped Harmonic Oscillator calculation)
+      const force = -physics.stiffness * (positionX - targetX);
+      const dampingForce = -physics.damping * velocity;
+      const acceleration = (force + dampingForce) / physics.mass;
+
+      // Accelerate & cap maximum velocity
+      velocity += acceleration * deltaTime;
+      velocity = Math.max(-maxVelocity, Math.min(maxVelocity, velocity));
+
+      // Capture previous tick coordinate to verify boundary crossing
+      const prevPositionX = positionX;
+      positionX += velocity * deltaTime;
+
+      // 2. Squash & Stretch deformation calculation during flight
+      const speedRatio = Math.min(Math.abs(velocity) / maxVelocity, 1);
+      
+      // Scale dynamic stretch (Horizontal expand max 3.5%, Vertical shrink max 1.8%)
+      let targetScaleX = 1.0 + speedRatio * 0.035;
+      let targetScaleY = 1.0 - speedRatio * 0.018;
+
+      // 3. Boundary Crossing (Arrival Impact Injection)
+      const crossedTarget = (prevPositionX < targetX && positionX >= targetX) || 
+                            (prevPositionX > targetX && positionX <= targetX);
+
+      if (crossedTarget && !hasTriggeredImpact) {
+        triggerImpact();
+      }
+
+      // Reset arrival capability when traveling far
+      if (Math.abs(positionX - targetX) > 12) {
+        hasTriggeredImpact = false;
+      }
+
+      // 4. Update Deformation Springs
+      // scaleX spring step
+      const scaleX_force = -deformPhysics.stiffness * (scaleX - targetScaleX);
+      const scaleX_dampingForce = -deformPhysics.damping * scaleX_velocity;
+      const scaleX_acceleration = (scaleX_force + scaleX_dampingForce) / deformPhysics.mass;
+      scaleX_velocity += scaleX_acceleration * deltaTime;
+      scaleX += scaleX_velocity * deltaTime;
+
+      // scaleY spring step
+      const scaleY_force = -deformPhysics.stiffness * (scaleY - targetScaleY);
+      const scaleY_dampingForce = -deformPhysics.damping * scaleY_velocity;
+      const scaleY_acceleration = (scaleY_force + scaleY_dampingForce) / deformPhysics.mass;
+      scaleY_velocity += scaleY_acceleration * deltaTime;
+      scaleY += scaleY_velocity * deltaTime;
+
+      // 5. Settling threshold detection
+      const positionSettled = Math.abs(targetX - positionX) < 0.25;
+      const velocitySettled = Math.abs(velocity) < 4;
+
+      if (positionSettled && velocitySettled) {
+        positionX = targetX;
+        velocity = 0;
+        scaleX_velocity = 0;
+        scaleY_velocity = 0;
+        scaleX = 1.0;
+        scaleY = 1.0;
+      }
+    }
+
+    // ====== ARRIVAL IMPACT IMPULSE ======
+    function triggerImpact() {
+      const impact = Math.min(Math.abs(velocity) / maxVelocity, 1);
+      
+      // Calculate spring impulse using arrival momentum
+      const bubbleVelocity = 1.2 + impact * 2.2;
+
+      // Inject strong physical compression (Shrinks X, inflates Y on landing)
+      scaleX_velocity = -bubbleVelocity * 10;
+      scaleY_velocity = bubbleVelocity * 10;
+      
+      hasTriggeredImpact = true;
+    }
+
+    // ====== CORE RENDER LOOP WITH PERFECT CENTERING ======
+    function renderIndicator() {
+      const containerWidth = capsuleNavBar.clientWidth;
+
+      // Center-offset: Set shuttle left coordinate relative to 0-point
+      // Subtracting 33px (half of squircle's 66px width) positions its center precisely at positionX
+      const offsetPos = positionX - 33;
+      shuttle.style.setProperty('--x', `${offsetPos}px`);
+
+      // Apply deformation scales
+      deform.style.setProperty('--scale-x', scaleX);
+      deform.style.setProperty('--scale-y', scaleY);
+
+      // Dual-Layer Real-Time Clip-Path Inset Calculation
+      const visualWidth = 66 * scaleX;
+      const visualHeight = 64 * scaleY; // height inside vertical padding limits
+
+      const clipLeft = positionX - visualWidth / 2;
+      const clipRight = containerWidth - (positionX + visualWidth / 2);
+      const clipTop = 8 + (64 - visualHeight) / 2; // vertically centered inside padding
+      const clipBottom = 8 + (64 - visualHeight) / 2;
+
+      // Dynamic rounded rectangle inset clip path mapping
+      activeOverlay.style.clipPath = `inset(${clipTop}px ${clipRight}px ${clipBottom}px ${clipLeft}px round 22px)`;
+
+      // Update Telemetry displays
+      telPos.innerText = `${positionX.toFixed(2)} px`;
+      telVel.innerText = `${velocity.toFixed(0)} px/s`;
+      telDeform.innerText = `${scaleX.toFixed(3)} / ${scaleY.toFixed(3)}`;
+      
+      telVisualNode.style.transform = `scaleX(${scaleX}) scaleY(${scaleY})`;
+    }
+
+    // ====== FRAME INDEPENDENT RECURSION ======
+    function animate(now) {
+      // Capped deltaTime to prevent background browser tab freezing glitches
+      const deltaTime = Math.min((now - lastTime) / 1000, 0.032);
+      lastTime = now;
+
+      if (!isInitialized) {
+        targetX = getIndicatorTargetX(selectedIndex);
+        positionX = targetX;
+        isInitialized = true;
+      }
+
+      updateSpring(deltaTime);
+      renderIndicator();
+
+      requestAnimationFrame(animate);
+    }
+
+    // ====== CORE ACTIONS ======
+    function getIndicatorTargetX(index) {
+      const tabElement = document.getElementById(`tab-btn-${index}`);
+      const trackElement = document.getElementById('inactive-icons-layer');
+      if (!tabElement || !trackElement) return 0;
+
+      const tabRect = tabElement.getBoundingClientRect();
+      const trackRect = trackElement.getBoundingClientRect();
+      
+      // Absolute mathematical center of the target button relative to parent bottom bar
+      return (tabRect.left - trackRect.left) + (tabRect.width / 2);
+    }
+
+    function selectMenu(index) {
+      if (index === selectedIndex && isInitialized) return;
+
+      stopStressTests();
+
+      prevIndex = selectedIndex;
+      selectedIndex = index;
+
+      const currentDirection = Math.sign(targetX - positionX);
+      const newTargetX = getIndicatorTargetX(index);
+      const newDirection = Math.sign(newTargetX - positionX);
+
+      // Damp direction switches gracefully to maintain fluidity
+      if (newDirection !== currentDirection && currentDirection !== 0) {
+        velocity *= 0.55;
+      }
+
+      targetX = newTargetX;
+    }
+
+    // ====== SANDBOX HANDLERS ======
+    function stopStressTests() {
+      if (stressTimer) { clearInterval(stressTimer); stressTimer = null; }
+      if (slapbackTimer) { clearInterval(slapbackTimer); slapbackTimer = null; }
+    }
+
+    function triggerStressTest() {
+      stopStressTests();
+      let step = 0;
+      const sequence = [0, 3, 1, 2, 0, 3];
+      selectMenu(sequence[step]);
+      
+      stressTimer = setInterval(() => {
+        step = (step + 1) % sequence.length;
+        selectMenu(sequence[step]);
+      }, 650);
+    }
+
+    function triggerSlapback() {
+      stopStressTests();
+      let flag = false;
+      selectMenu(flag ? 0 : 3);
+
+      slapbackTimer = setInterval(() => {
+        flag = !flag;
+        selectMenu(flag ? 0 : 3);
+        // Intercept mid-flight to stress inertia
+        setTimeout(() => {
+          flag = !flag;
+          selectMenu(flag ? 0 : 3);
+        }, 110);
+      }, 1000);
+    }
+
+    function resetToSpec() {
+      physics.stiffness = 400;
+      physics.damping = 20;
+      physics.mass = 0.7;
+
+      inputStiffness.value = 400;
+      inputDamping.value = 20;
+      inputMass.value = 0.7;
+
+      valStiffness.innerText = "400";
+      valDamping.innerText = "20";
+      valMass.innerText = "0.7";
+
+      updateCodeSnippet();
+    }
+
+    // ====== SLIDERS SYNC ======
+    inputStiffness.addEventListener('input', (e) => {
+      physics.stiffness = parseInt(e.target.value);
+      valStiffness.innerText = e.target.value;
+      updateCodeSnippet();
+    });
+
+    inputDamping.addEventListener('input', (e) => {
+      physics.damping = parseInt(e.target.value);
+      valDamping.innerText = e.target.value;
+      updateCodeSnippet();
+    });
+
+    inputMass.addEventListener('input', (e) => {
+      physics.mass = parseFloat(e.target.value);
+      valMass.innerText = e.target.value;
+      updateCodeSnippet();
+    });
+
+    window.addEventListener('resize', () => {
+      targetX = getIndicatorTargetX(selectedIndex);
+      positionX = targetX;
+      velocity = 0;
+    });
+
+    // ====== CODE SNIPPET GENERATOR ======
+    function updateCodeSnippet() {
+      const codeBox = document.getElementById('code-snippet-box');
+      codeBox.value = `<!-- HTML Shell with Perfect Align Squircle Bottom Navigation (image_17e889.png) -->
+<div class="relative w-[328px] h-[80px] bg-white rounded-[32px] shadow-lg p-2 select-none" id="capsule-nav-bar">
+  
+  <!-- Base Grey Icons -->
+  <div class="absolute inset-0 flex justify-between items-center z-10 px-2" id="inactive-icons-layer">
+    <!-- Active and Inactive buttons rendered here -->
+  </div>
+
+  <!-- Dynamic Sliding Container (left-0 overrides browser static position offsets) -->
+  <div class="indicator-position absolute left-0 top-2 bottom-2 w-[66px] pointer-events-none z-20" id="indicator-shuttle">
+    <div class="indicator-deformation w-full h-full" id="indicator-deform">
+      <div class="w-full h-full rounded-[22px] bg-[#258cff] shadow-md shadow-blue-500/20"></div>
+    </div>
+  </div>
+
+  <!-- White active text overlay layer (Dynamic Clipping) -->
+  <div class="absolute inset-0 flex justify-between items-center z-30 px-2 pointer-events-none" id="active-icons-overlay" style="clip-path: inset(0px 0px 0px 0px round 22px);">
+    <!-- Replicated White version of buttons for seamless overlay inversion -->
+  </div>
+</div>
+
+<style>
+  .indicator-position {
+    transform: translate3d(var(--x), 0, 0);
+    will-change: transform;
+  }
+  .indicator-deformation {
+    transform: scaleX(var(--scale-x)) scaleY(var(--scale-y));
+    transform-origin: center;
+    will-change: transform;
+  }
+</style>
+
+<script>
+  // High-frequency Spring Physics settings matching image_17e889.png
+  const physics = {
+    stiffness: ${physics.stiffness}, // 400
+    damping: ${physics.damping},   // 20
+    mass: ${physics.mass}       // 0.7
+  };
+
+  const deformPhysics = { stiffness: 350, damping: 14, mass: 0.70 };
+  
+  let positionX = 0, targetX = 0, velocity = 0;
+  let scaleX = 1.0, scaleY = 1.0, scaleX_velocity = 0, scaleY_velocity = 0;
+  let lastTime = performance.now();
+
+  function animate(now) {
+    const deltaTime = Math.min((now - lastTime) / 1000, 0.032);
+    lastTime = now;
+
+    // Harmonic spring step
+    const force = -physics.stiffness * (positionX - targetX);
+    const dampingForce = -physics.damping * velocity;
+    const acceleration = (force + dampingForce) / physics.mass;
+    
+    velocity += acceleration * deltaTime;
+    velocity = Math.max(-2400, Math.min(2400, velocity));
+    positionX += velocity * deltaTime;
+
+    // Squeeze factor
+    const speedRatio = Math.min(Math.abs(velocity) / 2400, 1);
+    const targetScaleX = 1.0 + speedRatio * 0.035;
+    const targetScaleY = 1.0 - speedRatio * 0.018;
+
+    // Deformation physics calculation
+    scaleX_velocity += ((-deformPhysics.stiffness * (scaleX - targetScaleX) - deformPhysics.damping * scaleX_velocity) / deformPhysics.mass) * deltaTime;
+    scaleX += scaleX_velocity * deltaTime;
+    scaleY_velocity += ((-deformPhysics.stiffness * (scaleY - targetScaleY) - deformPhysics.damping * scaleY_velocity) / deformPhysics.mass) * deltaTime;
+    scaleY += scaleY_velocity * deltaTime;
+
+    // Coordinate DOM assignment
+    const shuttle = document.getElementById('indicator-shuttle');
+    const deform = document.getElementById('indicator-deform');
+    const overlay = document.getElementById('active-icons-overlay');
+
+    const containerWidth = 328;
+    
+    // Offset by exact half of squircle width (66px / 2 = 33) to maintain pixel-perfect center alignment
+    shuttle.style.setProperty('--x', \`\${positionX - 33}px\`);
+    deform.style.setProperty('--scale-x', scaleX);
+    deform.style.setProperty('--scale-y', scaleY);
+
+    // Dynamic Clip-Path update
+    const visualWidth = 66 * scaleX;
+    const visualHeight = 64 * scaleY;
+    const clipLeft = positionX - visualWidth / 2;
+    const clipRight = containerWidth - (positionX + visualWidth / 2);
+    const clipTop = 8 + (64 - visualHeight) / 2;
+    const clipBottom = 8 + (64 - visualHeight) / 2;
+
+    overlay.style.clipPath = \`inset(\${clipTop}px \${clipRight}px \${clipBottom}px \${clipLeft}px round 22px)\`;
+
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+<\/script>`;
+    }
+
+    // ====== HELPERS ======
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      toastMsg.innerText = message;
+      
+      toast.classList.remove('scale-90', 'opacity-0', 'pointer-events-none');
+      toast.classList.add('scale-100', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('scale-90', 'opacity-0', 'pointer-events-none');
+        toast.classList.remove('scale-100', 'opacity-100');
+      }, 2500);
+    }
+
+    function copyCurrentCode() {
+      const copyText = document.getElementById("code-snippet-box");
+      copyText.select();
+      copyText.setSelectionRange(0, 99999);
+
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast("코드가 클립보드에 복사되었습니다!");
+        } else {
+          showToast("복사에 실패했습니다. 수동으로 복사해주세요.");
+        }
+      } catch (err) {
+        showToast("이 브라우저에서는 복사 기능을 제공하지 않습니다.");
+      }
+    }
+
+    // ====== INITIAL APP EXECUTION ======
+    window.onload = () => {
+      initializeStructure();
+      updateCodeSnippet();
+
+      // Defer coordinate computation right after layout painted
+      setTimeout(() => {
+        targetX = getIndicatorTargetX(2); // Match selected default index 2 ("나의모임")
+        positionX = targetX;
+        requestAnimationFrame(animate);
+      }, 80);
+    }
+  </script>
+</body>
+</html>

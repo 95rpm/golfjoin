@@ -38836,9 +38836,7 @@
       setJoinMobileBottomNavLayerActive("create");
       setJoinMobileBottomNavVisible(true, { force: true });
       if (isBuilderAlreadyOpen) return;
-      Promise.resolve(openBuilderModalFromMain(trigger)).catch((error) => {
-        console.warn("Failed to open builder modal from bottom navigation.", error);
-      });
+      openBuilderModalAfterJoinMobileCreateNavMotion(trigger);
     }
 
     function handleJoinMobileFindClick() {
@@ -38871,6 +38869,7 @@
 
     function closeJoinMobileCalendarSheetBeforeNavAction(nextKey = "") {
       const normalizedKey = String(nextKey || "").trim();
+      if (normalizedKey !== "create") cancelJoinMobileCreateNavDeferredOpen();
       if (normalizedKey !== "find") cancelJoinMobileFindNavDeferredOpen();
       const calendarSheet = document.getElementById("calendarSheet");
       if (!calendarSheet?.classList.contains("open")) return;
@@ -38940,6 +38939,7 @@
 
     let joinMobileNavIndicatorFrame = 0;
     let joinMobileNavVisibleSyncFrame = 0;
+    let joinMobileCreateNavOpenFrame = 0;
     let joinMobileFindNavOpenFrame = 0;
     const JOIN_MOBILE_NAV_PHYSICS = {
       stiffness: 400,
@@ -39305,6 +39305,33 @@
       joinMobileFindNavOpenFrame = 0;
     }
 
+    function cancelJoinMobileCreateNavDeferredOpen() {
+      if (!joinMobileCreateNavOpenFrame) return;
+      window.cancelAnimationFrame(joinMobileCreateNavOpenFrame);
+      joinMobileCreateNavOpenFrame = 0;
+    }
+
+    function openBuilderModalAfterJoinMobileCreateNavMotion(trigger) {
+      cancelJoinMobileCreateNavDeferredOpen();
+      if (isJoinMobileBuilderModalOpen()) return;
+      const openAfterMotion = () => {
+        joinMobileCreateNavOpenFrame = 0;
+        const nav = document.getElementById("joinMobileBottomNav");
+        if (nav?.dataset.mobileNavLayerKey !== "create") return;
+        Promise.resolve(openBuilderModalFromMain(trigger)).catch((error) => {
+          console.warn("Failed to open builder modal from bottom navigation.", error);
+        });
+      };
+      const waitForMotion = () => {
+        if (!joinMobileNavIndicatorState.moving) {
+          joinMobileCreateNavOpenFrame = window.requestAnimationFrame(openAfterMotion);
+          return;
+        }
+        joinMobileCreateNavOpenFrame = window.requestAnimationFrame(waitForMotion);
+      };
+      joinMobileCreateNavOpenFrame = window.requestAnimationFrame(waitForMotion);
+    }
+
     function openCalendarSheetAfterJoinMobileFindNavMotion() {
       cancelJoinMobileFindNavDeferredOpen();
       if (document.getElementById("calendarSheet")?.classList.contains("open")) return;
@@ -39494,6 +39521,14 @@
       window.addEventListener("resize", scheduleJoinMobileVisualViewportVarsUpdate, { passive: true });
       window.visualViewport?.addEventListener("resize", updateJoinMobileNavIndicator, { passive: true });
       window.addEventListener("resize", updateJoinMobileNavIndicator, { passive: true });
+      document.addEventListener("pointerdown", (event) => {
+        const isPcViewport = window.matchMedia?.("(min-width: 641px)")?.matches || window.innerWidth > 640;
+        const activeLayerKey = nav.dataset.mobileNavLayerKey || "";
+        const shouldCloseOnOutsideClick = activeLayerKey === "create" || activeLayerKey === "find";
+        if (!isPcViewport || !shouldCloseOnOutsideClick || nav.contains(event.target)) return;
+        cancelJoinMobileCreateNavDeferredOpen();
+        setJoinMobileBottomNavVisible(false, { force: true, reason: "outside-click" });
+      }, { passive: true });
       setJoinMobileBottomNavVisible(true);
       requestAnimationFrame(() => {
         initializeJoinMobileNavIndicator();

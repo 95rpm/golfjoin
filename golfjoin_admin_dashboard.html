@@ -1539,6 +1539,241 @@
       background: var(--green);
       color: #fff;
     }
+    .quote-generate-button {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      border: 1px solid #3489f8;
+      border-radius: 8px;
+      background: #eef5ff;
+      color: #1f6ed4;
+      padding: 0 10px;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .quote-generate-button.generated {
+      background: #3489f8;
+      color: #fff;
+    }
+    .quote-regenerate-button {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #d7dee9;
+      border-radius: 8px;
+      background: #fff;
+      color: #475467;
+      padding: 0 9px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .quote-document-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .quote-generate-button:disabled {
+      cursor: progress;
+      opacity: 0.72;
+    }
+    .quote-action-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .quote-editor-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 12000;
+      display: none;
+      padding: 22px;
+      background: rgba(15, 23, 42, 0.56);
+      backdrop-filter: blur(6px);
+    }
+    .quote-editor-backdrop.open {
+      display: grid;
+      place-items: center;
+    }
+    .quote-editor-shell {
+      width: min(1500px, 100%);
+      height: min(940px, calc(100vh - 44px));
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      border: 1px solid #dbe2ec;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 26px 70px rgba(15, 23, 42, 0.24);
+    }
+    .quote-editor-head {
+      min-height: 72px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border-bottom: 1px solid #e4e9f0;
+    }
+    .quote-editor-title {
+      margin: 0;
+      color: #172033;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .quote-editor-subtitle {
+      margin-top: 4px;
+      color: #697386;
+      font-size: 13px;
+    }
+    .quote-editor-close {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 7px;
+      background: #f3f5f8;
+      color: #344054;
+    }
+    .quote-editor-close svg {
+      width: 22px;
+      height: 22px;
+    }
+    .quote-editor-body {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(360px, 0.72fr) minmax(560px, 1.28fr);
+    }
+    .quote-editor-form {
+      min-height: 0;
+      overflow-y: auto;
+      padding: 24px;
+      border-right: 1px solid #e4e9f0;
+      background: #fff;
+    }
+    .quote-editor-section + .quote-editor-section {
+      margin-top: 28px;
+      padding-top: 26px;
+      border-top: 1px solid #e4e9f0;
+    }
+    .quote-editor-section-title {
+      margin: 0 0 16px;
+      color: #172033;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .quote-editor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .quote-editor-field {
+      display: grid;
+      gap: 7px;
+    }
+    .quote-editor-field.full {
+      grid-column: 1 / -1;
+    }
+    .quote-editor-field label {
+      color: #475467;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .quote-editor-field input,
+    .quote-editor-field textarea,
+    .quote-editor-field select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #d7dee9;
+      border-radius: 6px;
+      background: #fff;
+      color: #172033;
+      padding: 9px 11px;
+      font-size: 14px;
+      line-height: 1.45;
+      outline: none;
+    }
+    .quote-editor-field textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+    .quote-editor-field input:focus,
+    .quote-editor-field textarea:focus,
+    .quote-editor-field select:focus {
+      border-color: #3489f8;
+      box-shadow: 0 0 0 3px rgba(52, 137, 248, 0.12);
+    }
+    .quote-editor-preview-wrap {
+      min-height: 0;
+      padding: 22px;
+      overflow: hidden;
+      background: #e9eef4;
+    }
+    .quote-editor-preview-label {
+      height: 28px;
+      color: #475467;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .quote-editor-preview {
+      width: 100%;
+      height: calc(100% - 28px);
+      display: block;
+      border: 1px solid #d4dce8;
+      border-radius: 6px;
+      background: #fff;
+    }
+    .quote-editor-foot {
+      min-height: 76px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border-top: 1px solid #e4e9f0;
+      background: #fff;
+    }
+    .quote-editor-foot-note {
+      color: #697386;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .quote-editor-foot-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .quote-editor-button {
+      height: 46px;
+      padding: 0 19px;
+      border: 1px solid #d7dee9;
+      border-radius: 7px;
+      background: #fff;
+      color: #344054;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .quote-editor-button.primary {
+      min-width: 180px;
+      border-color: #3489f8;
+      background: #3489f8;
+      color: #fff;
+    }
+    @media (max-width: 980px) {
+      .quote-editor-backdrop { padding: 0; }
+      .quote-editor-shell { width: 100%; height: 100dvh; border: 0; border-radius: 0; }
+      .quote-editor-body { grid-template-columns: 1fr; overflow-y: auto; }
+      .quote-editor-form { overflow: visible; border-right: 0; }
+      .quote-editor-preview-wrap { min-height: 720px; }
+      .quote-editor-foot { align-items: stretch; flex-direction: column; }
+      .quote-editor-foot-actions { width: 100%; }
+      .quote-editor-button { flex: 1; }
+    }
     .quote-complete-button svg {
       width: 15px;
       height: 15px;
@@ -1771,6 +2006,72 @@
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
 
+  <div class="quote-editor-backdrop" id="quoteEditorBackdrop" aria-hidden="true">
+    <section class="quote-editor-shell" role="dialog" aria-modal="true" aria-labelledby="quoteEditorTitle">
+      <header class="quote-editor-head">
+        <div>
+          <h2 class="quote-editor-title" id="quoteEditorTitle">예약요청 견적서 작성</h2>
+          <div class="quote-editor-subtitle">내용을 수정하면 우측 고객용 견적 페이지에 바로 반영됩니다.</div>
+        </div>
+        <button class="quote-editor-close" type="button" id="quoteEditorClose" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </header>
+      <div class="quote-editor-body">
+        <form class="quote-editor-form" id="quoteEditorForm">
+          <section class="quote-editor-section">
+            <h3 class="quote-editor-section-title">신청 및 상품 정보</h3>
+            <div class="quote-editor-grid">
+              <div class="quote-editor-field"><label for="quoteApplicantName">신청자</label><input id="quoteApplicantName" data-quote-field="applicantName" autocomplete="off"></div>
+              <div class="quote-editor-field"><label for="quoteApplicantPhone">연락처</label><input id="quoteApplicantPhone" data-quote-field="applicantPhone" inputmode="tel" autocomplete="off"></div>
+              <div class="quote-editor-field full"><label for="quoteProductName">상품명</label><textarea id="quoteProductName" data-quote-field="productName"></textarea></div>
+              <div class="quote-editor-field full"><label for="quoteProductImageUrl">대표 이미지 URL</label><input id="quoteProductImageUrl" data-quote-field="productImageUrl" inputmode="url"></div>
+            </div>
+          </section>
+          <section class="quote-editor-section">
+            <h3 class="quote-editor-section-title">일정 및 이용 조건</h3>
+            <div class="quote-editor-grid">
+              <div class="quote-editor-field"><label for="quoteCountry">국가</label><input id="quoteCountry" data-quote-field="country"></div>
+              <div class="quote-editor-field"><label for="quoteRegion">지역</label><input id="quoteRegion" data-quote-field="region"></div>
+              <div class="quote-editor-field"><label for="quoteDepartureDate">출발일</label><input id="quoteDepartureDate" data-quote-field="departureDate" type="date"></div>
+              <div class="quote-editor-field"><label for="quoteReturnDate">도착일</label><input id="quoteReturnDate" data-quote-field="returnDate" type="date"></div>
+              <div class="quote-editor-field"><label for="quoteAirline">항공</label><input id="quoteAirline" data-quote-field="airline"></div>
+              <div class="quote-editor-field"><label for="quoteRoomType">숙소 타입</label><select id="quoteRoomType" data-quote-field="roomType"><option value="2인1실">2인 1실</option><option value="1인1실">1인 1실</option><option value="별도 협의">별도 협의</option></select></div>
+              <div class="quote-editor-field"><label for="quotePeople">신청 인원</label><input id="quotePeople" data-quote-field="people" type="number" min="1" max="4" inputmode="numeric"></div>
+              <div class="quote-editor-field"><label for="quoteApplicationType">신청 유형</label><select id="quoteApplicationType" data-quote-field="applicationType"><option value="새모임 생성">새모임 생성</option><option value="참여신청">참여신청</option></select></div>
+            </div>
+          </section>
+          <section class="quote-editor-section">
+            <h3 class="quote-editor-section-title">견적 금액</h3>
+            <div class="quote-editor-grid">
+              <div class="quote-editor-field"><label for="quoteUnitPrice">1인 상품가</label><input id="quoteUnitPrice" data-quote-field="unitPrice" type="number" min="0" step="1000" inputmode="numeric"></div>
+              <div class="quote-editor-field"><label for="quoteSingleRoomSurcharge">1인 1실 추가요금</label><input id="quoteSingleRoomSurcharge" data-quote-field="singleRoomSurcharge" type="number" min="0" step="1000" inputmode="numeric"></div>
+              <div class="quote-editor-field"><label for="quoteDepositPerPerson">1인 예약금</label><input id="quoteDepositPerPerson" data-quote-field="depositPerPerson" type="number" min="0" step="1000" inputmode="numeric"></div>
+              <div class="quote-editor-field"><label for="quoteAccountText">입금 안내</label><input id="quoteAccountText" data-quote-field="accountText"></div>
+            </div>
+          </section>
+          <section class="quote-editor-section">
+            <h3 class="quote-editor-section-title">포함·불포함 및 안내</h3>
+            <div class="quote-editor-grid">
+              <div class="quote-editor-field full"><label for="quoteIncludedItems">포함 사항 · 한 줄에 한 항목</label><textarea id="quoteIncludedItems" data-quote-field="includedItems"></textarea></div>
+              <div class="quote-editor-field full"><label for="quoteExcludedItems">불포함 사항 · 한 줄에 한 항목</label><textarea id="quoteExcludedItems" data-quote-field="excludedItems"></textarea></div>
+              <div class="quote-editor-field full"><label for="quoteSpecialNotes">견적 안내문</label><textarea id="quoteSpecialNotes" data-quote-field="specialNotes"></textarea></div>
+            </div>
+          </section>
+        </form>
+        <div class="quote-editor-preview-wrap">
+          <div class="quote-editor-preview-label">고객용 견적 페이지 미리보기</div>
+          <iframe class="quote-editor-preview" id="quoteEditorPreview" title="견적서 미리보기"></iframe>
+        </div>
+      </div>
+      <footer class="quote-editor-foot">
+        <div class="quote-editor-foot-note">확정하면 고객용 웹 견적 페이지와 PDF가 동시에 생성됩니다.</div>
+        <div class="quote-editor-foot-actions">
+          <button class="quote-editor-button" type="button" id="quoteEditorCancel">취소</button>
+          <button class="quote-editor-button primary" type="button" id="quoteEditorConfirm">확정 및 PDF 생성</button>
+        </div>
+      </footer>
+    </section>
+  </div>
+
   <div class="confirm-backdrop" id="confirmBackdrop" aria-hidden="true">
     <div class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
       <h2 class="confirm-title" id="confirmTitle">작업 확인</h2>
@@ -1809,6 +2110,9 @@
     const SECRET_TOUR_GOODS_CATEGORY_ROOTS = ["1", "2", "3", "5"];
     const secretTourGoodsDetailCache = new Map();
     let dashboardAutoRefreshTimer = null;
+    let quoteEditorContext = null;
+    let quoteEditorDraft = null;
+    let quoteEditorPreviewTimer = null;
     const state = {
       rawRows: [],
       schedules: [],
@@ -4269,9 +4573,7 @@
           <td class="product-cell">${escapeHtml(getTitle(schedule.row))}</td>
           <td>${escapeHtml(formatDate(item.createdAt))}</td>
           <td>
-            <button class="quote-complete-button" type="button" data-action="quote-complete">
-              견적완료
-            </button>
+            ${renderQuoteActionGroup(row)}
           </td>
         </tr>
       `;
@@ -4331,7 +4633,7 @@
           <td>${escapeHtml(`${getParticipantPeopleTotal(row, item.companions)}명`)}</td>
           <td>${renderParticipantGenderIcons(row, item.companions)}</td>
           <td>
-            <button class="quote-complete-button" type="button" data-action="quote-complete">견적완료</button>
+            ${renderQuoteActionGroup(row)}
           </td>
         </tr>
       `;
@@ -4888,6 +5190,248 @@
       return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
     }
 
+    function renderQuoteGenerateButton(row = {}) {
+      const quoteUrl = asText(row.quotePageUrl || row.quoteUrl);
+      const generated = Boolean(quoteUrl);
+      if (!generated) {
+        return '<button class="quote-generate-button" type="button" data-action="quote-editor">견적생성</button>';
+      }
+      return `
+        <span class="quote-document-actions">
+          <button class="quote-generate-button generated" type="button" data-action="quote-view" data-quote-url="${escapeHtml(quoteUrl)}">견적보기</button>
+          <button class="quote-regenerate-button" type="button" data-action="quote-editor">수정</button>
+        </span>
+      `;
+    }
+
+    function renderQuoteActionGroup(row = {}) {
+      const hasQuote = Boolean(asText(row.quotePageUrl || row.quoteUrl));
+      return `
+        <div class="quote-action-group">
+          ${renderQuoteGenerateButton(row)}
+          <button class="quote-complete-button" type="button" data-action="quote-send-placeholder"${hasQuote ? "" : " disabled"} title="알림톡 템플릿 등록 후 활성화">전송</button>
+        </div>
+      `;
+    }
+
+    function parseQuoteEditorAmount(value) {
+      const amount = Number(String(value == null ? "" : value).replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(amount) && amount > 0 ? Math.round(amount) : 0;
+    }
+
+    function formatQuoteEditorAmount(value, fallback = "담당자 확인") {
+      const amount = Number(value);
+      return Number.isFinite(amount) && amount > 0 ? `${Math.round(amount).toLocaleString("ko-KR")}원` : fallback;
+    }
+
+    function normalizeQuoteEditorDate(value) {
+      return asText(value).match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
+    }
+
+    function getQuoteEditorContext(button) {
+      const rowElement = button?.closest?.("tr[data-schedule-key][data-participant-index]");
+      if (!rowElement) return null;
+      const schedule = findSchedule(rowElement.dataset.scheduleKey);
+      const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
+      if (!schedule || !participant) return null;
+      return { rowElement, schedule, participant };
+    }
+
+    function buildQuoteEditorDraft(context = {}) {
+      const participant = context.participant || {};
+      const schedule = context.schedule || {};
+      const row = schedule.row || {};
+      const product = schedule.product || {};
+      const people = Math.max(1, Math.min(4, Number(participant.applicantPeople || participant.creatorPeople || participant.people || 1) || 1));
+      return {
+        applicantName: getParticipantName(participant) || participant.applicantName || participant.creatorName || "",
+        applicantPhone: participant.applicantMobile || participant.memberMobile || participant.creatorPhone || participant.phone || "",
+        applicationType: getParticipantSheetName(participant) === "new_schedule_applications" ? "새모임 생성" : "참여신청",
+        productName: participant.productName || row.productName || product.productName || product.title || schedule.title || "",
+        productImageUrl: participant.imageUrl || participant.image || row.imageUrl || row.image || product.imageUrl || product.image || product.thumbnailUrl || product.thumbnail || "",
+        country: participant.country || row.country || product.country || "",
+        region: participant.region || row.region || product.region || schedule.region || "",
+        departureDate: normalizeQuoteEditorDate(participant.departureDate || participant.departureDateFrom || row.departureDate || row.departureDateFrom || product.departureDate),
+        returnDate: normalizeQuoteEditorDate(participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate),
+        airline: participant.airline || row.airline || product.airline || product.airlineName || product.air2Nm || "담당자 확인",
+        roomType: participant.applicantRoomType || participant.roomType || row.applicantRoomType || "2인1실",
+        people,
+        unitPrice: parseQuoteEditorAmount(participant.productPrice || participant.price || row.productPrice || row.price || product.productPrice || product.price),
+        singleRoomSurcharge: parseQuoteEditorAmount(participant.singleRoomSurcharge || row.singleRoomSurcharge),
+        depositPerPerson: 200000,
+        accountText: "담당자 확인 후 안내",
+        includedItems: "그린피 및 골프 일정\n일정표 기준 숙박\n일정표 기준 차량 및 미팅·샌딩",
+        excludedItems: "개인 경비 및 매너팁\n견적서에 별도 표기되지 않은 비용",
+        specialNotes: "본 견적서는 현재 신청 정보와 조회 가능한 상품 조건을 기준으로 작성되었습니다. 항공 좌석, 객실 가능 여부, 환율 및 현지 상황에 따라 담당자 확인 후 최종 금액이 변경될 수 있습니다."
+      };
+    }
+
+    function getQuoteEditorComputed(draft = {}) {
+      const people = Math.max(1, Number(draft.people) || 1);
+      const unitPrice = parseQuoteEditorAmount(draft.unitPrice);
+      const singleRoomSurcharge = parseQuoteEditorAmount(draft.singleRoomSurcharge);
+      const depositPerPerson = parseQuoteEditorAmount(draft.depositPerPerson);
+      const productSubtotal = unitPrice * people;
+      const estimatedTotal = productSubtotal + singleRoomSurcharge;
+      const deposit = depositPerPerson * people;
+      const balance = estimatedTotal ? Math.max(0, estimatedTotal - deposit) : 0;
+      return { people, unitPrice, singleRoomSurcharge, depositPerPerson, productSubtotal, estimatedTotal, deposit, balance };
+    }
+
+    function renderQuoteEditorPreviewList(value, fallback) {
+      const items = String(value || "").split(/\n|,/).map(asText).filter(Boolean);
+      return (items.length ? items : [fallback]).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    }
+
+    function buildQuoteEditorPreviewHtml(draft = {}) {
+      const amounts = getQuoteEditorComputed(draft);
+      const regionText = [draft.country, draft.region].map(asText).filter(Boolean).join(" · ") || "해외 골프 조인";
+      const productImage = asText(draft.productImageUrl);
+      return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+        *{box-sizing:border-box}body{margin:0;color:#373a3c;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#edf2f7} .page{width:min(900px,100%);margin:0 auto;background:#fff}
+        .hero{position:relative;min-height:270px;padding:34px;display:flex;align-items:flex-end;overflow:hidden;background:#245b9d;color:#fff}.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after{content:"";position:absolute;inset:0;background:rgba(7,24,47,.58)}.hero-copy{position:relative;z-index:1}.kicker{margin:0 0 10px;color:#dcecff;font-size:12px;font-weight:700}.hero h1{max-width:720px;margin:0;font-size:30px;line-height:1.34;word-break:keep-all}.hero-meta{margin-top:14px;display:flex;gap:18px;font-size:14px;font-weight:600}
+        .body{padding:34px}.head{display:flex;justify-content:space-between;gap:20px;padding-bottom:25px;border-bottom:1px solid #dde3ec}.head h2{margin:0 0 8px;color:#172033;font-size:24px}.head p{margin:0;color:#697386;font-size:12px;line-height:1.6}.status{height:max-content;padding:8px 11px;border-radius:5px;background:#eaf3ff;color:#1769d2;font-size:12px;font-weight:700}
+        .summary{display:grid;grid-template-columns:1.3fr .7fr;margin:26px 0 32px;background:#3489f8;color:#fff}.summary>div{padding:21px}.summary>div+div{border-left:1px solid rgba(255,255,255,.24);text-align:right}.label{display:block;margin-bottom:7px;color:#dcecff;font-size:11px}.summary strong{display:block;font-size:20px}.summary small{display:block;margin-top:6px;color:#eef6ff}.summary .total{font-size:25px}
+        section{margin-top:32px}h3{margin:0 0 14px;color:#172033;font-size:18px}.number{margin-right:10px;color:#3489f8;font-size:11px}.info{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #dde3ec;border-bottom:1px solid #dde3ec}.info div{min-height:70px;padding:15px;border-right:1px solid #dde3ec}.info div:nth-child(3n){border-right:0}.info span{display:block;margin-bottom:7px;color:#697386;font-size:11px}.info strong{font-size:14px;line-height:1.4}
+        table{width:100%;border-collapse:collapse;border-top:2px solid #172033}th,td{height:48px;padding:0 13px;border-bottom:1px solid #dde3ec;text-align:left;font-size:13px}td:last-child{text-align:right;font-weight:700}.total-row{background:#eaf3ff;color:#1769d2}.total-row th,.total-row td:last-child{font-size:16px}
+        .lists{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #dde3ec;border-bottom:1px solid #dde3ec}.lists>div{padding:19px}.lists>div+div{border-left:1px solid #dde3ec}.lists h4{margin:0 0 11px;color:#172033;font-size:14px}.lists ul{margin:0;padding-left:18px}.lists li{margin:6px 0;font-size:12px;line-height:1.55}.notice{margin-top:24px;padding:18px;border-left:4px solid #3489f8;background:#f4f7fa;color:#697386;font-size:12px;line-height:1.7;white-space:pre-line}
+        @media(max-width:620px){.body{padding:24px 18px}.hero{min-height:240px;padding:24px 18px}.hero h1{font-size:24px}.summary{grid-template-columns:1fr}.summary>div+div{border-left:0;border-top:1px solid rgba(255,255,255,.24);text-align:left}.info{grid-template-columns:1fr 1fr}.info div:nth-child(3n){border-right:1px solid #dde3ec}.info div:nth-child(2n){border-right:0}.lists{grid-template-columns:1fr}.lists>div+div{border-left:0;border-top:1px solid #dde3ec}}
+      </style></head><body><main class="page"><section class="hero">${productImage ? `<img src="${escapeHtml(productImage)}" alt="">` : ""}<div class="hero-copy"><p class="kicker">SECRET TOUR · OVERSEAS GOLF JOIN</p><h1>${escapeHtml(draft.productName || "해외 골프 조인 견적")}</h1><div class="hero-meta"><span>${escapeHtml(regionText)}</span><span>${escapeHtml(draft.departureDate || "-")} - ${escapeHtml(draft.returnDate || "-")}</span></div></div></section><div class="body">
+        <header class="head"><div><h2>예약요청 견적서</h2><p>내용 확인용 미리보기<br>확정 시 견적번호가 발급됩니다.</p></div><span class="status">담당자 확인 견적</span></header>
+        <div class="summary"><div><span class="label">신청 일정</span><strong>${escapeHtml(regionText)}</strong><small>${escapeHtml(draft.departureDate || "-")} - ${escapeHtml(draft.returnDate || "-")}</small></div><div><span class="label">예상 총액</span><strong class="total">${formatQuoteEditorAmount(amounts.estimatedTotal)}</strong></div></div>
+        <section><h3><span class="number">01</span>신청 정보</h3><div class="info"><div><span>신청자</span><strong>${escapeHtml(draft.applicantName || "-")}</strong></div><div><span>연락처</span><strong>${escapeHtml(draft.applicantPhone || "-")}</strong></div><div><span>신청 유형</span><strong>${escapeHtml(draft.applicationType || "-")}</strong></div><div><span>신청 인원</span><strong>${amounts.people}명</strong></div><div><span>숙소 타입</span><strong>${escapeHtml(draft.roomType || "-")}</strong></div><div><span>항공</span><strong>${escapeHtml(draft.airline || "-")}</strong></div></div></section>
+        <section><h3><span class="number">02</span>견적 금액</h3><table><tbody><tr><th>상품가</th><td>1인 기준 × ${amounts.people}명</td><td>${formatQuoteEditorAmount(amounts.productSubtotal)}</td></tr><tr><th>1인 1실 추가요금</th><td>${amounts.singleRoomSurcharge ? "신청 기준" : "해당 없음"}</td><td>${formatQuoteEditorAmount(amounts.singleRoomSurcharge, "-")}</td></tr><tr class="total-row"><th>예상 총액</th><td>담당자 산출</td><td>${formatQuoteEditorAmount(amounts.estimatedTotal)}</td></tr><tr><th>예약금</th><td>1인 ${formatQuoteEditorAmount(amounts.depositPerPerson)}</td><td>${formatQuoteEditorAmount(amounts.deposit)}</td></tr><tr><th>잔금</th><td>예약금 제외</td><td>${formatQuoteEditorAmount(amounts.balance, "0원")}</td></tr></tbody></table></section>
+        <section><h3><span class="number">03</span>포함 및 불포함 사항</h3><div class="lists"><div><h4>포함 사항</h4><ul>${renderQuoteEditorPreviewList(draft.includedItems, "담당자 확인 후 안내")}</ul></div><div><h4>불포함 사항</h4><ul>${renderQuoteEditorPreviewList(draft.excludedItems, "담당자 확인 후 안내")}</ul></div></div><div class="notice">${escapeHtml(draft.specialNotes || "-")}</div></section>
+      </div></main></body></html>`;
+    }
+
+    function renderQuoteEditorPreview() {
+      const preview = document.getElementById("quoteEditorPreview");
+      if (!preview || !quoteEditorDraft) return;
+      preview.srcdoc = buildQuoteEditorPreviewHtml(quoteEditorDraft);
+    }
+
+    function scheduleQuoteEditorPreview() {
+      clearTimeout(quoteEditorPreviewTimer);
+      quoteEditorPreviewTimer = setTimeout(renderQuoteEditorPreview, 80);
+    }
+
+    function populateQuoteEditorForm() {
+      document.querySelectorAll("[data-quote-field]").forEach((field) => {
+        const key = field.dataset.quoteField;
+        field.value = quoteEditorDraft?.[key] == null ? "" : quoteEditorDraft[key];
+      });
+    }
+
+    function syncQuoteEditorDraftFromForm() {
+      if (!quoteEditorDraft) return;
+      document.querySelectorAll("[data-quote-field]").forEach((field) => {
+        const key = field.dataset.quoteField;
+        quoteEditorDraft[key] = field.type === "number" ? parseQuoteEditorAmount(field.value) : field.value;
+      });
+      scheduleQuoteEditorPreview();
+    }
+
+    function openQuoteEditor(button) {
+      const context = getQuoteEditorContext(button);
+      if (!context) {
+        alert("견적서를 연결할 신청 정보를 찾을 수 없습니다.");
+        return;
+      }
+      quoteEditorContext = context;
+      quoteEditorDraft = buildQuoteEditorDraft(context);
+      populateQuoteEditorForm();
+      renderQuoteEditorPreview();
+      const backdrop = document.getElementById("quoteEditorBackdrop");
+      backdrop?.classList.add("open");
+      backdrop?.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeQuoteEditor() {
+      const backdrop = document.getElementById("quoteEditorBackdrop");
+      backdrop?.classList.remove("open");
+      backdrop?.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      quoteEditorContext = null;
+      quoteEditorDraft = null;
+      clearTimeout(quoteEditorPreviewTimer);
+    }
+
+    function validateQuoteEditorDraft(draft = {}) {
+      if (!asText(draft.applicantName)) return "신청자명을 입력해 주세요.";
+      if (!asText(draft.productName)) return "상품명을 입력해 주세요.";
+      if (!normalizeQuoteEditorDate(draft.departureDate) || !normalizeQuoteEditorDate(draft.returnDate)) return "출발일과 도착일을 입력해 주세요.";
+      if (!parseQuoteEditorAmount(draft.unitPrice)) return "1인 상품가를 입력해 주세요.";
+      return "";
+    }
+
+    async function submitQuoteEditor() {
+      if (!quoteEditorContext || !quoteEditorDraft) return;
+      syncQuoteEditorDraftFromForm();
+      const validationMessage = validateQuoteEditorDraft(quoteEditorDraft);
+      if (validationMessage) {
+        alert(validationMessage);
+        return;
+      }
+      const { participant, schedule } = quoteEditorContext;
+      const applicationId = getParticipantApplicationId(participant);
+      if (!applicationId) {
+        alert("참여자 신청 정보를 찾을 수 없습니다.");
+        return;
+      }
+      const confirmButton = document.getElementById("quoteEditorConfirm");
+      const auth = getAdminAuth();
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "quote_generate");
+      if (confirmButton) confirmButton.disabled = true;
+      showDashboardLoading("고객용 견적 페이지와 PDF를 생성하는 중입니다.");
+      try {
+        const response = await fetch(url.toString(), {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Golfjoin-Admin-Token": auth.token || ""
+          },
+          body: JSON.stringify({
+            sheet: getParticipantSheetName(participant),
+            keyField: "applicationId",
+            keyValue: applicationId,
+            participant,
+            schedule: schedule?.row || {},
+            product: schedule?.product || {},
+            quote: quoteEditorDraft
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) throw new Error(result.error || `견적서 생성 실패: ${response.status}`);
+        Object.assign(participant, result.fields || {}, {
+          quoteId: result.quoteId || result.fields?.quoteId || participant.quoteId,
+          quoteNo: result.quoteNo || result.fields?.quoteNo || participant.quoteNo,
+          quoteUrl: result.quoteUrl || result.fields?.quoteUrl || participant.quoteUrl,
+          quotePageUrl: result.quotePageUrl || result.fields?.quotePageUrl || participant.quotePageUrl,
+          quotePdfUrl: result.quotePdfUrl || result.fields?.quotePdfUrl || participant.quotePdfUrl,
+          quoteFileName: result.quoteFileName || result.fields?.quoteFileName || participant.quoteFileName,
+          quoteGeneratedAt: result.quoteGeneratedAt || result.fields?.quoteGeneratedAt || participant.quoteGeneratedAt,
+          updatedAt: nowKstISOString()
+        });
+        const pageUrl = result.quotePageUrl || result.quoteUrl || result.fields?.quotePageUrl || result.fields?.quoteUrl || "";
+        closeQuoteEditor();
+        renderMetrics();
+        renderTable();
+        if (pageUrl) window.open(pageUrl, "_blank", "noopener");
+      } catch (error) {
+        const message = String(error?.message || "");
+        alert(/abort|timed out|timeout/i.test(message)
+          ? `견적서 생성 시간이 초과되었습니다.\n${message}\n잠시 후 다시 시도해 주세요.`
+          : message || "견적서 생성에 실패했습니다.");
+      } finally {
+        hideDashboardLoading();
+        if (confirmButton) confirmButton.disabled = false;
+      }
+    }
+
     async function saveQuoteComplete(button) {
       const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
       if (!rowElement) return;
@@ -5123,7 +5667,12 @@
 
     function renderParticipantQuoteBadge(row = {}) {
       const current = normalizeQuoteStatus(row.quoteStatus);
-      return renderParticipantStatusCell("quoteStatus", current === "sent", current === "sent" ? "견적완료" : "미견적", "견적완료", "sent");
+      return `
+        <div class="quote-action-group">
+          ${renderQuoteGenerateButton(row)}
+          ${renderParticipantStatusCell("quoteStatus", current === "sent", current === "sent" ? "견적완료" : "미견적", "견적완료", "sent")}
+        </div>
+      `;
     }
 
     function renderParticipantPaidBadge(field, value) {
@@ -5722,6 +6271,77 @@
       }
     }
 
+    async function generateQuote(button) {
+      const quoteUrl = button.dataset.quoteUrl || "";
+      const forceRegenerate = button.dataset.forceRegenerate === "true";
+      if (quoteUrl && !forceRegenerate) {
+        window.open(quoteUrl, "_blank", "noopener");
+        return;
+      }
+      const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
+      if (!rowElement) return;
+      const schedule = findSchedule(rowElement.dataset.scheduleKey);
+      const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
+      if (!participant) return;
+      const applicationId = getParticipantApplicationId(participant);
+      if (!applicationId) {
+        alert("참여자 신청 정보를 찾을 수 없습니다.");
+        return;
+      }
+      const confirmed = await openConfirmDialog({
+        title: forceRegenerate ? "견적 다시생성" : "견적생성",
+        message: `${getParticipantName(participant) || "참여자"}님의 예약요청 견적서를 ${forceRegenerate ? "새 양식으로 다시 생성" : "생성"}할까요?`,
+        okText: forceRegenerate ? "다시생성" : "견적생성"
+      });
+      if (!confirmed) return;
+      const auth = getAdminAuth();
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", "quote_generate");
+      button.disabled = true;
+      showDashboardLoading("견적서 PDF를 생성하는 중입니다.");
+      try {
+        const response = await fetch(url.toString(), {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Golfjoin-Admin-Token": auth.token || ""
+          },
+          body: JSON.stringify({
+            sheet: getParticipantSheetName(participant),
+            keyField: "applicationId",
+            keyValue: applicationId,
+            participant,
+            schedule: schedule?.row || {},
+            product: schedule?.product || {}
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || !result.ok) throw new Error(result.error || `견적서 생성 실패: ${response.status}`);
+        Object.assign(participant, result.fields || {}, {
+          quoteId: result.quoteId || result.fields?.quoteId || participant.quoteId,
+          quoteUrl: result.quoteUrl || result.fields?.quoteUrl || participant.quoteUrl,
+          quoteFileName: result.quoteFileName || result.fields?.quoteFileName || participant.quoteFileName,
+          quoteGeneratedAt: result.quoteGeneratedAt || result.fields?.quoteGeneratedAt || participant.quoteGeneratedAt,
+          updatedAt: nowKstISOString()
+        });
+        renderMetrics();
+        renderTable();
+        const nextUrl = result.quoteUrl || result.fields?.quoteUrl || "";
+        if (nextUrl) window.open(nextUrl, "_blank", "noopener");
+      } catch (error) {
+        const message = String(error?.message || "");
+        if (/abort|timed out|timeout/i.test(message)) {
+          alert(`견적서 생성 시간이 초과되었습니다.\n${message}\n잠시 후 다시 시도해 주세요.`);
+        } else {
+          alert(message || "견적서 생성에 실패했습니다.");
+        }
+      } finally {
+        hideDashboardLoading();
+        button.disabled = false;
+      }
+    }
+
     async function saveQuoteComplete(button) {
       const rowElement = button.closest("tr[data-schedule-key][data-participant-index]");
       if (!rowElement) return;
@@ -5844,6 +6464,18 @@
       if (input && monthlyToggle.checked && (!Number(input.value) || Number(input.value) === 4)) input.value = "40";
     });
 
+    document.getElementById("quoteEditorForm")?.addEventListener("input", syncQuoteEditorDraftFromForm);
+    document.getElementById("quoteEditorForm")?.addEventListener("change", syncQuoteEditorDraftFromForm);
+    document.getElementById("quoteEditorClose")?.addEventListener("click", closeQuoteEditor);
+    document.getElementById("quoteEditorCancel")?.addEventListener("click", closeQuoteEditor);
+    document.getElementById("quoteEditorConfirm")?.addEventListener("click", submitQuoteEditor);
+    document.getElementById("quoteEditorBackdrop")?.addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeQuoteEditor();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && document.getElementById("quoteEditorBackdrop")?.classList.contains("open")) closeQuoteEditor();
+    });
+
     $("#tableWrap").addEventListener("click", (event) => {
       const recommendationRefreshButton = event.target.closest('[data-action="recommendation-refresh-products"]');
       if (recommendationRefreshButton) {
@@ -5909,9 +6541,20 @@
         });
         return;
       }
-      const quoteButton = event.target.closest('[data-action="quote-complete"]');
-      if (quoteButton) {
-        saveQuoteComplete(quoteButton);
+      const quoteViewButton = event.target.closest('[data-action="quote-view"]');
+      if (quoteViewButton) {
+        const quoteUrl = quoteViewButton.dataset.quoteUrl || "";
+        if (quoteUrl) window.open(quoteUrl, "_blank", "noopener");
+        return;
+      }
+      const quoteEditorButton = event.target.closest('[data-action="quote-editor"]');
+      if (quoteEditorButton) {
+        openQuoteEditor(quoteEditorButton);
+        return;
+      }
+      const quoteSendButton = event.target.closest('[data-action="quote-send-placeholder"]');
+      if (quoteSendButton) {
+        alert("견적서 알림톡 템플릿 등록 후 전송 기능이 활성화됩니다.");
         return;
       }
       const participantStatusButton = event.target.closest('[data-action="participant-status-update"]');

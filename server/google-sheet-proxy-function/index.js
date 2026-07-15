@@ -2,6 +2,8 @@
 
 const crypto = require("crypto");
 const { Storage } = require("@google-cloud/storage");
+const { createGolfjoinQuotePdfBuffer: createGolfjoinQuotePdfBufferV2 } = require("./quote-pdf");
+const { createGolfjoinQuoteHtml } = require("./quote-page");
 
 const SHEET_WEB_APP_URL = process.env.SHEET_WEB_APP_URL || "";
 const GOOGLE_SHEET_ID = String(process.env.GOOGLE_SHEET_ID || "").trim();
@@ -150,7 +152,18 @@ const GOOGLE_SHEET_HEADERS = {
     "requiredAgreed",
     "marketingAgreed",
     "adminMemo",
-    "updatedAt"
+    "updatedAt",
+    "memberKey",
+    "kakaoId",
+    "targetJoinId",
+    "targetProductKey",
+    "quoteId",
+    "quoteNo",
+    "quoteUrl",
+    "quotePageUrl",
+    "quotePdfUrl",
+    "quoteFileName",
+    "quoteGeneratedAt"
   ],
   new_schedule_applications: [
     "applicationId",
@@ -208,7 +221,16 @@ const GOOGLE_SHEET_HEADERS = {
     "displayStatus",
     "applicationStatus",
     "adminMemo",
-    "updatedAt"
+    "updatedAt",
+    "memberKey",
+    "kakaoId",
+    "quoteId",
+    "quoteNo",
+    "quoteUrl",
+    "quotePageUrl",
+    "quotePdfUrl",
+    "quoteFileName",
+    "quoteGeneratedAt"
   ],
   recommended_schedules: [
     "recommendedScheduleId",
@@ -424,7 +446,14 @@ const ADMIN_STATUS_UPDATE_FIELDS = new Set([
   "balanceStatus",
   "refundStatus",
   "applicationStatus",
-  "adminMemo"
+  "adminMemo",
+  "quoteId",
+  "quoteNo",
+  "quoteUrl",
+  "quotePageUrl",
+  "quotePdfUrl",
+  "quoteFileName",
+  "quoteGeneratedAt"
 ]);
 const ALLOWED_GENDERS = new Set(["남성", "여성", "M", "F", "male", "female"]);
 const MAX_STRING_LENGTHS = {
@@ -443,6 +472,9 @@ const MAX_SECRET_TOUR_HTML_BYTES = Number(process.env.MAX_SECRET_TOUR_HTML_BYTES
 const EXTERNAL_FETCH_TIMEOUT_MS = Number(process.env.EXTERNAL_FETCH_TIMEOUT_MS || 15000);
 const GOLFJOIN_PRODUCTS_BUCKET = String(process.env.GOLFJOIN_PRODUCTS_BUCKET || "golfjoin-bucket").trim();
 const GOLFJOIN_PRODUCTS_PREFIX = String(process.env.GOLFJOIN_PRODUCTS_PREFIX || "web").trim().replace(/^\/+|\/+$/g, "");
+const GOLFJOIN_QUOTES_PREFIX = String(process.env.GOLFJOIN_QUOTES_PREFIX || "quotes").trim().replace(/^\/+|\/+$/g, "");
+const GOLFJOIN_QUOTE_DEPOSIT_PER_PERSON = Math.max(0, Number(process.env.GOLFJOIN_QUOTE_DEPOSIT_PER_PERSON || 200000));
+const GOLFJOIN_QUOTE_ACCOUNT_TEXT = String(process.env.GOLFJOIN_QUOTE_ACCOUNT_TEXT || "담당자 확인 후 안내").trim();
 const SECRET_TOUR_GOODS_CATEGORY_ROOTS = String(process.env.SECRET_TOUR_GOODS_CATEGORY_ROOTS || "1,2,3,5")
   .split(",")
   .map((value) => value.trim())
@@ -486,11 +518,16 @@ function getAllowedOrigin(origin = "") {
   return ALLOWED_ORIGINS.includes(origin) ? origin : "";
 }
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = EXTERNAL_FETCH_TIMEOUT_MS) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = EXTERNAL_FETCH_TIMEOUT_MS, label = "upstream request") {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Math.max(1000, timeoutMs));
   try {
     return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw createHttpError(`${label} timed out after ${timeoutMs}ms`, 504, { code: "upstream_timeout" });
+    }
+    throw error;
   } finally {
     clearTimeout(timeout);
   }
@@ -615,9 +652,38 @@ function maskPhone(value = "") {
   return `${digits.slice(0, 3)}****${digits.slice(-4)}`;
 }
 
-function sanitizePublicRow(row = {}) {
+const PRIVATE_QUOTE_FIELD_KEYS = new Set([
+  "quoteid",
+  "quoteno",
+  "quoteurl",
+  "quotepageurl",
+  "quotepdfurl",
+  "quotefilename",
+  "quotegeneratedat"
+]);
+
+function hasMemberLookupParams(params = {}) {
+  return Boolean(
+    asText(params.memberKey)
+    || asText(params.memberSeq)
+    || asText(params.memberId)
+    || normalizePhone(params.memberMobile || params.phone)
+    || asText(params.memberEmail || params.email)
+    || asText(params.kakaoId)
+  );
+}
+
+function sanitizePublicRow(row = {}, options = {}) {
+  const preserveQuoteLinks = Boolean(
+    options
+    && typeof options === "object"
+    && options.preserveQuoteLinks
+  );
   return Object.entries(row).reduce((object, [key, value]) => {
     const lowerKey = String(key || "").toLowerCase();
+    if (!preserveQuoteLinks && (PRIVATE_QUOTE_FIELD_KEYS.has(lowerKey) || lowerKey.startsWith("quote"))) {
+      return object;
+    }
     if (
       lowerKey.includes("email") ||
       lowerKey.includes("memo") ||
@@ -646,16 +712,17 @@ function sanitizePublicRow(row = {}) {
   }, {});
 }
 
-function sanitizePublicPayload(payload) {
+function sanitizePublicPayload(payload, options = {}) {
   if (!payload || typeof payload !== "object") return payload;
-  if (Array.isArray(payload)) return payload.map(sanitizePublicRow);
+  const sanitizeRow = (row) => sanitizePublicRow(row, options);
+  if (Array.isArray(payload)) return payload.map(sanitizeRow);
   const next = { ...payload };
-  if (Array.isArray(next.rows)) next.rows = next.rows.map(sanitizePublicRow);
-  if (Array.isArray(next.items)) next.items = next.items.map(sanitizePublicRow);
+  if (Array.isArray(next.rows)) next.rows = next.rows.map(sanitizeRow);
+  if (Array.isArray(next.items)) next.items = next.items.map(sanitizeRow);
   if (next.sheets && typeof next.sheets === "object") {
     next.sheets = Object.entries(next.sheets).reduce((sheets, [sheetName, rows]) => {
       if (!PUBLIC_READ_SHEETS.has(resolveReadSheetAlias(sheetName))) return sheets;
-      sheets[sheetName] = Array.isArray(rows) ? rows.map(sanitizePublicRow) : rows;
+      sheets[sheetName] = Array.isArray(rows) ? rows.map(sanitizeRow) : rows;
       return sheets;
     }, {});
   }
@@ -703,7 +770,7 @@ function setCorsHeaders(req, res) {
 
 function assertRequestAllowed(req) {
   const action = asText(req.query?.action);
-  const sheetsApiOnlyActions = new Set(["member_profile_lookup", "home_bootstrap", "home_bootstrap_light", "join_wishes_lookup", "admin_status_update", "admin_bootstrap", "refresh_secret_tour_products"]);
+  const sheetsApiOnlyActions = new Set(["member_profile_lookup", "home_bootstrap", "home_bootstrap_light", "join_wishes_lookup", "admin_status_update", "quote_generate", "admin_bootstrap", "refresh_secret_tour_products"]);
   const standaloneActions = new Set(["admin_login", "home_stats", "secret_tour_goods_detail", "secret_tour_flight_schedule", "secret_tour_goods_list", "secret_tour_goods_events"]);
   const canUseSheetsApiOnly = Boolean(GOOGLE_SHEET_ID && sheetsApiOnlyActions.has(action));
   const canUseStandaloneAction = standaloneActions.has(action);
@@ -789,6 +856,33 @@ function normalizePhone(value = "") {
   const digits = asText(value).replace(/\D/g, "");
   if (/^1[016789]\d{8}$/.test(digits)) return `0${digits}`;
   return digits;
+}
+
+function buildMemberKeyFromValues(values = {}) {
+  const existing = asText(values.memberKey);
+  if (existing) return existing;
+  const memberSeq = asText(values.memberSeq);
+  if (memberSeq) return `seq:${memberSeq}`;
+  const memberId = asText(values.memberId).toLowerCase();
+  if (memberId) return `id:${memberId}`;
+  const memberMobile = normalizePhone(values.memberMobile);
+  if (memberMobile) return `phone:${memberMobile}`;
+  const memberEmail = asText(values.memberEmail).toLowerCase();
+  if (memberEmail) return `email:${memberEmail}`;
+  const kakaoId = asText(values.kakaoId);
+  if (kakaoId) return `kakao:${kakaoId}`;
+  return "";
+}
+
+function getPayloadMemberKey(payload = {}) {
+  return buildMemberKeyFromValues({
+    memberKey: payload.memberKey || getValue(payload, "member.memberKey"),
+    memberSeq: getValue(payload, "member.memberSeq") || payload.memberSeq,
+    memberId: getValue(payload, "member.memberId") || payload.memberId,
+    memberMobile: getValue(payload, "member.memberMobile") || payload.memberMobile,
+    memberEmail: getValue(payload, "member.memberEmail") || payload.memberEmail,
+    kakaoId: getValue(payload, "member.kakaoId") || getValue(payload, "kakao.kakaoId") || payload.kakaoId
+  });
 }
 
 function getNumberValue(value, fallback = 0) {
@@ -1143,6 +1237,8 @@ function validateMember(payload) {
 
 function validateApplicationPayload(payload, options = {}) {
   validateMember(payload);
+  const memberKey = getPayloadMemberKey(payload);
+  if (!memberKey) throw createHttpError("memberKey is required");
   assertTextLength(getValue(payload, "applicant.name"), "applicant.name", MAX_STRING_LENGTHS.name, { required: true });
   assertPhone(getValue(payload, "applicant.phone"), "applicant.phone");
   assertBirthYear(getValue(payload, "applicant.birthYear"), "applicant.birthYear", { required: true });
@@ -1164,6 +1260,8 @@ function validateApplicationPayload(payload, options = {}) {
     throw createHttpError("applicant.companions has too many items");
   }
   if (options.requireTrip) {
+    assertTextLength(payload.applicationId, "applicationId", MAX_STRING_LENGTHS.short, { required: true });
+    assertTextLength(payload.scheduleId, "scheduleId", MAX_STRING_LENGTHS.short, { required: true });
     assertTextLength(getValue(payload, "trip.region") || normalizeList(getValue(payload, "trip.regions")).join(","), "trip.region", MAX_STRING_LENGTHS.medium, { required: true });
     assertTextLength(getValue(payload, "trip.airline") || getValue(payload, "product.airline") || getValue(payload, "product.air2Nm") || getValue(payload, "product.air2CdNm"), "trip.airline", MAX_STRING_LENGTHS.short);
     assertTextLength(getValue(payload, "trip.departureAirport") || getValue(payload, "product.departureAirport") || getValue(payload, "product.airport"), "trip.departureAirport", MAX_STRING_LENGTHS.short);
@@ -1172,6 +1270,22 @@ function validateApplicationPayload(payload, options = {}) {
     assertTextLength(getValue(payload, "trip.packTypeName"), "trip.packTypeName", MAX_STRING_LENGTHS.short);
   } else {
     assertTextLength(getValue(payload, "product.productName") || payload.productName, "product.productName", MAX_STRING_LENGTHS.medium, { required: true });
+    const targetType = asText(payload.targetType || getValue(payload, "target.type") || "erp_product");
+    const targetJoinId = asText(payload.targetJoinId || getValue(payload, "target.joinId") || getValue(payload, "join.id"));
+    const targetScheduleId = asText(payload.targetScheduleId || getValue(payload, "target.scheduleId") || getValue(payload, "join.scheduleId"));
+    const targetApplicationId = asText(payload.targetApplicationId || getValue(payload, "target.applicationId") || getValue(payload, "join.applicationId"));
+    const erpProductId = asText(payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"));
+    const erpEventSeq = asText(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"));
+    const targetProductKey = asText(payload.targetProductKey || getValue(payload, "target.productKey") || (erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : ""));
+    if (targetType === "new_schedule" && (!targetJoinId || !targetScheduleId)) {
+      throw createHttpError("join target identity is required");
+    }
+    if (targetType === "recommended_schedule" && (!targetJoinId || (!targetScheduleId && !targetApplicationId))) {
+      throw createHttpError("recommended target identity is required");
+    }
+    if (targetType !== "new_schedule" && targetType !== "recommended_schedule" && (!targetProductKey || !erpProductId || !erpEventSeq)) {
+      throw createHttpError("product target identity is required");
+    }
   }
 }
 
@@ -1311,6 +1425,18 @@ function validateAdminStatusUpdatePayload(payload = {}) {
   });
 }
 
+function validateQuoteGeneratePayload(payload = {}) {
+  const sheet = asText(payload.sheet);
+  if (!["new_schedule_applications", "join_applications"].includes(sheet)) {
+    throw createHttpError("sheet is not allowed");
+  }
+  assertTextLength(payload.keyValue || payload.applicationId, "applicationId", MAX_STRING_LENGTHS.short, { required: true });
+  return {
+    sheet,
+    keyValue: asText(payload.keyValue || payload.applicationId)
+  };
+}
+
 function buildSheetReadUrl(query = {}) {
   const target = new URL(SHEET_WEB_APP_URL);
   Object.entries(query).forEach(([key, value]) => {
@@ -1350,6 +1476,14 @@ function filterSheetRowsForRequest(rows = [], params = {}) {
   const memberMobile = normalizePhone(params.memberMobile || params.phone);
   const memberEmail = asText(params.memberEmail || params.email);
   const kakaoId = asText(params.kakaoId);
+  const memberKey = buildMemberKeyFromValues({
+    memberKey: params.memberKey,
+    memberSeq,
+    memberId,
+    memberMobile,
+    memberEmail,
+    kakaoId
+  });
   const scheduleId = asText(params.scheduleId || params.targetScheduleId);
   const erpProductId = asText(params.erpProductId || params.productId);
   const erpEventSeq = asText(params.erpEventSeq || params.eventSeq);
@@ -1360,15 +1494,24 @@ function filterSheetRowsForRequest(rows = [], params = {}) {
   if (status) filtered = filtered.filter((row) => asText(row.status || row.applicationStatus) === status);
   if (displayStatus) filtered = filtered.filter((row) => asText(row.displayStatus) === displayStatus);
   if (approvalStatus) filtered = filtered.filter((row) => asText(row.approvalStatus) === approvalStatus);
-  if (memberSeq || memberId || memberMobile || memberEmail || kakaoId) {
+  if (memberKey || memberSeq || memberId || memberMobile || memberEmail || kakaoId) {
     filtered = filtered.filter((row) => {
       const rowMemberSeq = asText(row.memberSeq);
       const rowMemberId = asText(row.memberId);
       const rowMemberMobile = normalizePhone(row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone);
       const rowMemberEmail = asText(row.memberEmail || row.email);
       const rowKakaoId = asText(row.kakaoId);
+      const rowMemberKey = buildMemberKeyFromValues({
+        memberKey: row.memberKey,
+        memberSeq: rowMemberSeq,
+        memberId: rowMemberId,
+        memberMobile: rowMemberMobile,
+        memberEmail: rowMemberEmail,
+        kakaoId: rowKakaoId
+      });
       return Boolean(
-        (memberSeq && rowMemberSeq && rowMemberSeq === memberSeq)
+        (memberKey && rowMemberKey && rowMemberKey === memberKey)
+        || (memberSeq && rowMemberSeq && rowMemberSeq === memberSeq)
         || (memberId && rowMemberId && rowMemberId === memberId)
         || (memberMobile && rowMemberMobile && rowMemberMobile === memberMobile)
         || (memberEmail && rowMemberEmail && rowMemberEmail === memberEmail)
@@ -2096,6 +2239,304 @@ function parsePeopleCount(value) {
   return Math.max(1, Math.round(Number(asText(value).replace(/[^\d.-]/g, "")) || 1));
 }
 
+function parseQuoteMoney(value) {
+  const number = Number(asText(value).replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(number) && number > 0 ? Math.round(number) : 0;
+}
+
+function formatQuoteMoney(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) return "담당자 확인";
+  return `${Math.round(number).toLocaleString("ko-KR")}원`;
+}
+
+function getQuoteApplicationType(sheetName = "", row = {}) {
+  if (sheetName === "new_schedule_applications" || asText(row.source).includes("new_schedule")) return "새모임 생성";
+  return "참여신청";
+}
+
+function getQuoteRoomType(row = {}) {
+  return firstText(row.applicantRoomType, row.roomType, getValue(row, "applicant.roomType"), "2인1실");
+}
+
+function getQuoteFlightText(row = {}, schedule = {}, product = {}) {
+  const flightRequestType = firstText(row.flightRequestType, row.applicantFlightRequestType);
+  const airline = firstText(row.airline, schedule.airline, product.airline, product.airlineName, product.air2Nm, product.air2CdNm);
+  if (flightRequestType) return airline ? `${airline} / ${flightRequestType}` : flightRequestType;
+  return airline || "담당자 확인";
+}
+
+function splitQuoteList(value, fallback = []) {
+  if (Array.isArray(value)) return value.map(asText).filter(Boolean).slice(0, 12);
+  const items = asText(value).split(/[\n,]/).map((item) => item.trim()).filter(Boolean).slice(0, 12);
+  return items.length ? items : fallback;
+}
+
+function buildQuoteData(payload = {}, existingRow = {}) {
+  const sheetName = asText(payload.sheet);
+  const row = { ...(existingRow || {}), ...(payload.participant || {}) };
+  const schedule = payload.schedule || {};
+  const product = payload.product || {};
+  const draft = payload.quote || {};
+  const generatedAt = nowKstISOString();
+  const applicationId = firstText(row.applicationId, row.joinApplyId, payload.keyValue);
+  const quoteId = buildGoogleSheetRecordId("quote", applicationId, generatedAt, crypto.randomBytes(4).toString("hex"));
+  const quoteDate = generatedAt.slice(0, 10).replace(/-/g, "") || new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const quoteSuffix = crypto.createHash("sha1").update(quoteId).digest("hex").slice(0, 6).toUpperCase();
+  const people = parsePeopleCount(firstText(draft.people, row.applicantPeople, row.people, row.creatorPeople, "1"));
+  const unitPrice = parseQuoteMoney(firstText(draft.unitPrice, row.productPrice, row.price, schedule.productPrice, product.productPrice, product.price));
+  const singleRoomSurcharge = parseQuoteMoney(firstText(draft.singleRoomSurcharge, row.singleRoomSurcharge, schedule.singleRoomSurcharge));
+  const productSubtotal = unitPrice ? unitPrice * people : 0;
+  const estimatedTotal = productSubtotal + singleRoomSurcharge;
+  const depositPerPerson = parseQuoteMoney(firstText(draft.depositPerPerson, GOLFJOIN_QUOTE_DEPOSIT_PER_PERSON));
+  const deposit = depositPerPerson ? depositPerPerson * people : 0;
+  const balance = estimatedTotal && deposit ? Math.max(0, estimatedTotal - deposit) : 0;
+  const defaultIncludedItems = ["그린피 및 골프 일정", "일정표 기준 숙박", "일정표 기준 차량 및 미팅·샌딩"];
+  const defaultExcludedItems = ["개인 경비 및 매너팁", "견적서에 별도 표기되지 않은 비용"];
+  return {
+    quoteId,
+    quoteNo: `GJQ-${quoteDate}-${quoteSuffix}`,
+    generatedAt,
+    applicationId,
+    applicationType: firstText(draft.applicationType, getQuoteApplicationType(sheetName, row)),
+    applicantName: firstText(draft.applicantName, row.applicantName, row.memberName, row.creatorName, row.name, "고객"),
+    applicantPhone: normalizePhone(firstText(draft.applicantPhone, row.applicantMobile, row.memberMobile, row.creatorPhone, row.phone)),
+    productName: firstText(draft.productName, row.productName, schedule.productName, product.productName, product.title, "골프조인 상품"),
+    productImageUrl: firstText(draft.productImageUrl, row.imageUrl, row.image, schedule.imageUrl, schedule.image, product.imageUrl, product.image, product.thumbnailUrl),
+    country: firstText(draft.country, row.country, schedule.country, product.country),
+    region: firstText(draft.region, row.region, schedule.region, product.region),
+    departureDate: normalizeSheetDateText(firstText(draft.departureDate, row.departureDate, row.departureDateFrom, schedule.departureDate, schedule.departureDateFrom, product.departureDate)),
+    returnDate: normalizeSheetDateText(firstText(draft.returnDate, row.returnDate, row.returnDateTo, schedule.returnDate, schedule.returnDateTo, product.returnDate)),
+    airline: firstText(draft.airline, getQuoteFlightText(row, schedule, product)),
+    roomType: firstText(draft.roomType, getQuoteRoomType(row)),
+    people,
+    companions: asText(row.applicantCompanions || row.companions),
+    styles: asText(row.applicantStyles || row.styles),
+    preferredMembers: asText(row.applicantPreferredMembers || row.memberPreferences),
+    unitPrice,
+    productSubtotal,
+    singleRoomSurcharge,
+    estimatedTotal,
+    deposit,
+    balance,
+    formattedProductSubtotal: formatQuoteMoney(productSubtotal || unitPrice),
+    formattedSingleRoomSurcharge: singleRoomSurcharge ? formatQuoteMoney(singleRoomSurcharge) : "-",
+    formattedEstimatedTotal: formatQuoteMoney(estimatedTotal),
+    formattedDepositPerPerson: formatQuoteMoney(depositPerPerson),
+    formattedDeposit: formatQuoteMoney(deposit),
+    formattedBalance: estimatedTotal ? `${Math.round(balance).toLocaleString("ko-KR")}원` : "담당자 확인",
+    accountText: firstText(draft.accountText, GOLFJOIN_QUOTE_ACCOUNT_TEXT),
+    includedItems: splitQuoteList(draft.includedItems, defaultIncludedItems),
+    excludedItems: splitQuoteList(draft.excludedItems, defaultExcludedItems),
+    specialNotes: firstText(
+      draft.specialNotes,
+      "본 견적서는 현재 신청 정보와 조회 가능한 상품 조건을 기준으로 작성되었습니다. 항공 좌석, 객실 가능 여부, 환율 및 현지 상황에 따라 담당자 확인 후 최종 금액이 변경될 수 있습니다."
+    )
+  };
+}
+
+function pdfHexText(value = "") {
+  let hex = "";
+  const text = String(value == null ? "" : value);
+  for (let index = 0; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+    hex += code.toString(16).padStart(4, "0");
+  }
+  return `<${hex}>`;
+}
+
+function quoteTextWidth(text = "", fontSize = 12) {
+  return Array.from(String(text || "")).reduce((sum, char) => {
+    return sum + fontSize * (/[\u0000-\u007f]/.test(char) ? 0.54 : 0.92);
+  }, 0);
+}
+
+function wrapQuoteText(text = "", maxWidth = 200, fontSize = 12) {
+  const source = asText(text) || "-";
+  const lines = [];
+  let current = "";
+  Array.from(source).forEach((char) => {
+    const next = `${current}${char}`;
+    if (current && quoteTextWidth(next, fontSize) > maxWidth) {
+      lines.push(current);
+      current = char.trimStart();
+    } else {
+      current = next;
+    }
+  });
+  if (current) lines.push(current);
+  return lines.length ? lines : ["-"];
+}
+
+function addPdfText(ops, text, x, y, size = 12, options = {}) {
+  const color = options.color || [31, 41, 51];
+  const font = options.font || "F1";
+  ops.push(`${(color[0] / 255).toFixed(3)} ${(color[1] / 255).toFixed(3)} ${(color[2] / 255).toFixed(3)} rg`);
+  ops.push(`BT /${font} ${size} Tf ${x.toFixed(2)} ${y.toFixed(2)} Td ${pdfHexText(text)} Tj ET`);
+}
+
+function addPdfRect(ops, x, y, width, height, options = {}) {
+  const fill = options.fill;
+  const stroke = options.stroke;
+  if (fill) {
+    ops.push(`${(fill[0] / 255).toFixed(3)} ${(fill[1] / 255).toFixed(3)} ${(fill[2] / 255).toFixed(3)} rg`);
+    ops.push(`${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)} re f`);
+  }
+  if (stroke) {
+    ops.push(`${(stroke[0] / 255).toFixed(3)} ${(stroke[1] / 255).toFixed(3)} ${(stroke[2] / 255).toFixed(3)} RG`);
+    ops.push(`${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)} re S`);
+  }
+}
+
+function addQuoteKeyValue(ops, label, value, x, y, width, options = {}) {
+  addPdfText(ops, label, x, y, 10.5, { color: [95, 107, 122] });
+  const lines = wrapQuoteText(value || "-", width, options.size || 12.8).slice(0, options.maxLines || 2);
+  lines.forEach((line, index) => {
+    addPdfText(ops, line, x, y - 17 - (index * 15), options.size || 12.8, { color: [31, 41, 51] });
+  });
+}
+
+function buildPdfBuffer(objects = []) {
+  let body = "%PDF-1.4\n%\u007f\u007f\u007f\u007f\n";
+  const offsets = [0];
+  objects.forEach((object, index) => {
+    offsets.push(Buffer.byteLength(body, "binary"));
+    body += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+  const xrefOffset = Buffer.byteLength(body, "binary");
+  body += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => {
+    body += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+  body += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  return Buffer.from(body, "binary");
+}
+
+function createGolfjoinQuotePdfBuffer(quote = {}) {
+  const ops = [];
+  addPdfRect(ops, 0, 0, 595, 842, { fill: [255, 255, 255] });
+  addPdfRect(ops, 0, 834, 595, 8, { fill: [52, 137, 248] });
+  addPdfText(ops, "골프조인 예약요청 견적서", 46, 790, 23, { color: [17, 24, 39] });
+  addPdfRect(ops, 456, 768, 88, 30, { fill: [52, 137, 248] });
+  addPdfText(ops, "자동 생성", 474, 778, 12, { color: [255, 255, 255] });
+  addPdfText(ops, `견적번호 ${quote.quoteNo}`, 46, 764, 11.5, { color: [95, 107, 122] });
+  addPdfText(ops, `생성일 ${quote.generatedAt}`, 46, 746, 11.5, { color: [95, 107, 122] });
+
+  addPdfRect(ops, 46, 600, 503, 118, { fill: [246, 248, 251], stroke: [217, 222, 231] });
+  addPdfText(ops, "신청 정보", 64, 692, 15, { color: [17, 24, 39] });
+  addQuoteKeyValue(ops, "신청자", quote.applicantName, 64, 665, 130);
+  addQuoteKeyValue(ops, "연락처", quote.applicantPhone, 220, 665, 140);
+  addQuoteKeyValue(ops, "신청유형", quote.applicationType, 386, 665, 130);
+  addQuoteKeyValue(ops, "신청인원", `${quote.people}명`, 64, 625, 130);
+  addQuoteKeyValue(ops, "숙소타입", quote.roomType, 220, 625, 140);
+  addQuoteKeyValue(ops, "항공", quote.airline, 386, 625, 130);
+
+  addPdfRect(ops, 46, 442, 503, 132, { fill: [255, 255, 255], stroke: [217, 222, 231] });
+  addPdfText(ops, "일정 정보", 64, 548, 15, { color: [17, 24, 39] });
+  addQuoteKeyValue(ops, "상품명", quote.productName, 64, 520, 460, { maxLines: 2 });
+  addQuoteKeyValue(ops, "지역", [quote.country, quote.region].filter(Boolean).join(" / ") || "-", 64, 475, 190);
+  addQuoteKeyValue(ops, "출발일", quote.departureDate || "-", 278, 475, 110);
+  addQuoteKeyValue(ops, "도착일", quote.returnDate || "-", 420, 475, 110);
+
+  addPdfRect(ops, 46, 238, 503, 178, { fill: [246, 248, 251], stroke: [217, 222, 231] });
+  addPdfText(ops, "견적 금액", 64, 390, 15, { color: [17, 24, 39] });
+  const rows = [
+    ["상품가", quote.unitPrice ? `1인 기준 x ${quote.people}명` : "담당자 확인", formatQuoteMoney(quote.productSubtotal || quote.unitPrice)],
+    ["1인1실 추가요금", quote.singleRoomSurcharge ? "신청 기준" : "-", quote.singleRoomSurcharge ? formatQuoteMoney(quote.singleRoomSurcharge) : "-"],
+    ["예상 총액", "자동 산출", formatQuoteMoney(quote.estimatedTotal)],
+    ["예약금", `1인 ${formatQuoteMoney(GOLFJOIN_QUOTE_DEPOSIT_PER_PERSON)}`, formatQuoteMoney(quote.deposit)],
+    ["잔금", "예약금 제외", formatQuoteMoney(quote.balance)]
+  ];
+  let y = 360;
+  rows.forEach((row, index) => {
+    const isTotal = index === 2;
+    addPdfRect(ops, 64, y - 9, 466, 28, { fill: isTotal ? [232, 241, 255] : [255, 255, 255], stroke: [225, 229, 235] });
+    addPdfText(ops, row[0], 78, y, isTotal ? 13.5 : 12.2, { color: [31, 41, 51] });
+    addPdfText(ops, row[1], 218, y, 11.2, { color: [95, 107, 122] });
+    addPdfText(ops, row[2], 406, y, isTotal ? 15.5 : 12.8, { color: isTotal ? [52, 137, 248] : [31, 41, 51] });
+    y -= 30;
+  });
+
+  addPdfRect(ops, 46, 158, 503, 54, { fill: [255, 255, 255], stroke: [217, 222, 231] });
+  addPdfText(ops, "입금 안내", 64, 188, 14, { color: [17, 24, 39] });
+  addPdfText(ops, quote.accountText || "담당자 확인 후 안내", 150, 188, 13.5, { color: [31, 41, 51] });
+  addPdfText(ops, "입금 후 담당자 확인을 거쳐 예약 진행 상태가 변경됩니다.", 64, 170, 11.2, { color: [95, 107, 122] });
+
+  addPdfRect(ops, 46, 76, 503, 58, { fill: [246, 248, 251], stroke: [217, 222, 231] });
+  const notice = "본 견적서는 신청 정보를 기준으로 자동 생성된 예약요청 견적서입니다. 항공 좌석, 객실 가능 여부, 환율, 현지 상황에 따라 담당자 확인 후 최종 금액이 변경될 수 있습니다.";
+  wrapQuoteText(notice, 464, 10.8).slice(0, 3).forEach((line, index) => {
+    addPdfText(ops, line, 64, 112 - (index * 15), 10.8, { color: [55, 58, 60] });
+  });
+  addPdfText(ops, "시크릿투어 · 카카오채널 문의 · www.secret-tour.com", 46, 42, 10.2, { color: [95, 107, 122] });
+
+  const content = ops.join("\n");
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 7 0 R >>",
+    "<< /Type /Font /Subtype /Type0 /BaseFont /HYGoThic-Medium /Encoding /UniKS-UCS2-H /DescendantFonts [5 0 R] >>",
+    "<< /Type /Font /Subtype /CIDFontType0 /BaseFont /HYGoThic-Medium /CIDSystemInfo << /Registry (Adobe) /Ordering (Korea1) /Supplement 2 >> /FontDescriptor 6 0 R /DW 1000 >>",
+    "<< /Type /FontDescriptor /FontName /HYGoThic-Medium /Flags 4 /FontBBox [-6 -145 1000 880] /ItalicAngle 0 /Ascent 880 /Descent -145 /CapHeight 880 /StemV 80 >>",
+    `<< /Length ${Buffer.byteLength(content, "binary")} >>\nstream\n${content}\nendstream`
+  ];
+  return buildPdfBuffer(objects);
+}
+
+function buildStoragePublicUrl(bucketName = "", objectName = "") {
+  return `https://storage.googleapis.com/${encodeURIComponent(bucketName)}/${objectName.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+function buildQuoteObjectName(quote = {}, extension = "pdf") {
+  const date = normalizeSheetDateText(quote.generatedAt).replace(/-/g, "") || new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const safeQuoteId = asText(quote.quoteId).replace(/[^a-z0-9_-]+/gi, "-") || buildGoogleSheetRecordId("quote", date);
+  const safeExtension = asText(extension).toLowerCase().replace(/[^a-z0-9]+/g, "") || "pdf";
+  return `${GOLFJOIN_QUOTES_PREFIX ? `${GOLFJOIN_QUOTES_PREFIX}/` : ""}${date.slice(0, 4)}/${date.slice(4, 6)}/${safeQuoteId}.${safeExtension}`;
+}
+
+async function saveQuotePdfToStorage(buffer, quote = {}) {
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const objectName = buildQuoteObjectName(quote);
+  const file = bucket.file(objectName);
+  await file.save(buffer, {
+    resumable: false,
+    metadata: {
+      cacheControl: "private, max-age=0, no-store",
+      contentType: "application/pdf"
+    }
+  });
+  try {
+    await file.makePublic();
+  } catch (error) {
+    console.warn("Quote PDF makePublic failed; returning bucket URL.", error?.message || error);
+  }
+  return {
+    objectName,
+    url: buildStoragePublicUrl(GOLFJOIN_PRODUCTS_BUCKET, objectName)
+  };
+}
+
+async function saveQuoteHtmlToStorage(html, quote = {}) {
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const objectName = buildQuoteObjectName(quote, "html");
+  const file = bucket.file(objectName);
+  await file.save(Buffer.from(String(html || ""), "utf8"), {
+    resumable: false,
+    metadata: {
+      cacheControl: "private, max-age=0, no-store",
+      contentType: "text/html; charset=utf-8"
+    }
+  });
+  try {
+    await file.makePublic();
+  } catch (error) {
+    console.warn("Quote HTML makePublic failed; returning bucket URL.", error?.message || error);
+  }
+  return {
+    objectName,
+    url: buildStoragePublicUrl(GOLFJOIN_PRODUCTS_BUCKET, objectName)
+  };
+}
+
 function buildPreviewSeed(row = {}, fallback = "") {
   return [
     row.applicationId,
@@ -2328,21 +2769,22 @@ function getScheduleCapacity(schedule = {}) {
 }
 
 function isJoinApplicationForSchedule(join = {}, schedule = {}) {
-  const scheduleId = asText(schedule.scheduleId);
-  const targetType = asText(join.targetType);
-  const targetScheduleId = asText(join.targetScheduleId);
-  if (targetScheduleId && targetScheduleId === scheduleId && (targetType === "new_schedule" || schedule.isAdminRecommendedSchedule)) return true;
+  const targetIds = [
+    join.targetJoinId,
+    join.targetScheduleId,
+    join.targetApplicationId
+  ].map(asText).filter(Boolean);
+  const scheduleIds = [
+    schedule.scheduleId,
+    schedule.applicationId,
+    schedule.sourceApplicationId
+  ].map(asText).filter(Boolean);
+  if (targetIds.some((targetId) => scheduleIds.includes(targetId))) return true;
   if (!schedule.isAdminRecommendedSchedule) return false;
   const productId = asText(schedule.erpProductId);
   const eventSeq = asText(schedule.erpEventSeq);
-  const joinProductId = asText(join.erpProductId || join.goodSeq);
-  const joinEventSeq = asText(join.erpEventSeq || join.eventSeq);
-  const departureDate = asText(schedule.departureDateFrom);
-  const joinDepartureDate = normalizeSheetDateText(join.departureDate);
-  if (!productId || productId !== joinProductId) return false;
-  if (eventSeq && joinEventSeq && eventSeq !== joinEventSeq) return false;
-  if (departureDate && joinDepartureDate && departureDate !== joinDepartureDate) return false;
-  return targetType !== "new_schedule";
+  const targetProductKey = asText(join.targetProductKey || (join.erpProductId && join.erpEventSeq ? `erp:${join.erpProductId}:${join.erpEventSeq}` : ""));
+  return Boolean(productId && eventSeq && targetProductKey === `erp:${productId}:${eventSeq}`);
 }
 
 function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
@@ -2404,12 +2846,12 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
   };
 }
 
-function buildJoinApplicationSheetObject(payload = {}, applicationId = "") {
+function buildJoinApplicationSheetObject(payload = {}, applicationId = "", headers = GOOGLE_SHEET_HEADERS.join_applications) {
   const rowPayload = {
     ...payload,
     applicationId: applicationId || payload.applicationId || payload.joinApplyId
   };
-  return GOOGLE_SHEET_HEADERS.join_applications.reduce((row, header) => {
+  return headers.reduce((row, header) => {
     row[header] = buildJoinApplicationSheetValue(rowPayload, header);
     return row;
   }, {});
@@ -2439,12 +2881,13 @@ function findJoinApplicationTargetSchedule(joinRow = {}, newSchedules = [], reco
   const targetType = asText(joinRow.targetType);
   const targetScheduleId = asText(joinRow.targetScheduleId);
   const targetApplicationId = asText(joinRow.targetApplicationId);
-  const wantsRecommended = targetType === "recommended_schedule" || targetScheduleId.startsWith("admin-recommended-");
+  const targetJoinId = asText(joinRow.targetJoinId);
+  const wantsRecommended = targetType === "recommended_schedule" || targetJoinId.startsWith("admin-recommended-") || targetScheduleId.startsWith("admin-recommended-");
   const primarySchedules = wantsRecommended ? recommendedSchedules : newSchedules;
   const fallbackSchedules = wantsRecommended ? newSchedules : recommendedSchedules;
-  return primarySchedules.find((schedule) => doScheduleIdsMatch(schedule, targetScheduleId, targetApplicationId))
+  return primarySchedules.find((schedule) => doScheduleIdsMatch(schedule, targetJoinId || targetScheduleId, targetApplicationId))
     || primarySchedules.find((schedule) => isJoinApplicationForSchedule(joinRow, schedule))
-    || fallbackSchedules.find((schedule) => doScheduleIdsMatch(schedule, targetScheduleId, targetApplicationId))
+    || fallbackSchedules.find((schedule) => doScheduleIdsMatch(schedule, targetJoinId || targetScheduleId, targetApplicationId))
     || fallbackSchedules.find((schedule) => isJoinApplicationForSchedule(joinRow, schedule))
     || null;
 }
@@ -2722,7 +3165,7 @@ async function getGoogleMetadataAccessToken() {
   const response = await fetchWithTimeout("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token", {
     method: "GET",
     headers: { "Metadata-Flavor": "Google", "Accept": "application/json" }
-  }, 3000);
+  }, 8000, "Google metadata token");
   const text = await response.text();
   if (!response.ok) throw createHttpError(`Google metadata token failed: ${response.status}`, response.status);
   const payload = JSON.parse(text || "{}");
@@ -2759,13 +3202,50 @@ async function readGoogleSheetRowsViaApi(sheetName, options = {}) {
       "Accept": "application/json",
       "Authorization": `Bearer ${token}`
     }
-  }, options.timeoutMs || 5000);
+  }, options.timeoutMs || 5000, `Google Sheets header read ${sheetName}`);
   const text = await response.text();
   if (!response.ok) {
     throw createHttpError(`Google Sheets API read failed: ${response.status} ${text.slice(0, 200)}`, response.status);
   }
   const payload = JSON.parse(text || "{}");
   return mapGoogleSheetValuesToRows(payload.values || []);
+}
+
+async function readGoogleSheetHeaderViaApi(sheetName, options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const token = await getGoogleMetadataAccessToken();
+  const range = `'${escapeGoogleSheetNameForRange(sheetName)}'!1:1`;
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}/values/${encodeURIComponent(range)}`);
+  url.searchParams.set("majorDimension", "ROWS");
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  }, options.timeoutMs || 5000, `Google Sheets read ${sheetName}`);
+  const text = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets API header read failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+  }
+  const payload = JSON.parse(text || "{}");
+  return (payload.values?.[0] || []).map((header) => asText(header)).filter(Boolean);
+}
+
+async function ensureGoogleSheetHeadersViaApi(sheetName, options = {}) {
+  const expectedHeaders = GOOGLE_SHEET_HEADERS[sheetName] || [];
+  if (!expectedHeaders.length) return [];
+  const currentHeaders = await readGoogleSheetHeaderViaApi(sheetName, options);
+  if (!currentHeaders.length) {
+    await writeGoogleSheetValuesViaApi(`'${escapeGoogleSheetNameForRange(sheetName)}'!1:1`, [expectedHeaders], options);
+    return expectedHeaders;
+  }
+  const currentSet = new Set(currentHeaders);
+  const missingHeaders = expectedHeaders.filter((header) => !currentSet.has(header));
+  if (!missingHeaders.length) return currentHeaders;
+  const mergedHeaders = currentHeaders.concat(missingHeaders);
+  await writeGoogleSheetValuesViaApi(`'${escapeGoogleSheetNameForRange(sheetName)}'!1:1`, [mergedHeaders], options);
+  return mergedHeaders;
 }
 
 async function readGoogleSheetRangesViaApi(sheetNames = [], options = {}) {
@@ -2786,7 +3266,7 @@ async function readGoogleSheetRangesViaApi(sheetNames = [], options = {}) {
       "Accept": "application/json",
       "Authorization": `Bearer ${token}`
     }
-  }, options.timeoutMs || 6000);
+  }, options.timeoutMs || 6000, "Google Sheets batch read");
   const text = await response.text();
   if (!response.ok) {
     throw createHttpError(`Google Sheets API batch read failed: ${response.status} ${text.slice(0, 200)}`, response.status);
@@ -2812,7 +3292,7 @@ async function writeGoogleSheetValuesViaApi(range, values = [], options = {}) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ values })
-  }, options.timeoutMs || 6000);
+  }, options.timeoutMs || 6000, "Google Sheets write");
   const text = await response.text();
   if (!response.ok) {
     throw createHttpError(`Google Sheets API write failed: ${response.status} ${text.slice(0, 200)}`, response.status);
@@ -2835,7 +3315,7 @@ async function appendGoogleSheetValuesViaApi(sheetName, values = [], options = {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({ values: [values] })
-  }, options.timeoutMs || 6000);
+  }, options.timeoutMs || 6000, `Google Sheets append ${sheetName}`);
   const text = await response.text();
   if (!response.ok) {
     throw createHttpError(`Google Sheets API append failed: ${response.status} ${text.slice(0, 200)}`, response.status);
@@ -3051,7 +3531,7 @@ function buildNewScheduleApplicationSheetValue(payload = {}, header = "") {
   const applicationId = payload.applicationId || buildGoogleSheetRecordId(
     "nsa",
     createdAt,
-    getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member"
+    getPayloadMemberKey(payload) || getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member"
   );
   const scheduleId = payload.scheduleId || buildGoogleSheetRecordId("sch", applicationId);
   const packTypeValue = getValue(payload, "trip.packType") || payload.packType;
@@ -3122,13 +3602,15 @@ function buildNewScheduleApplicationSheetValue(payload = {}, header = "") {
     displayStatus: payload.displayStatus || "visible",
     applicationStatus: payload.applicationStatus || payload.status || "open",
     adminMemo: payload.adminMemo || "",
-    updatedAt: nowKstISOString()
+    updatedAt: nowKstISOString(),
+    memberKey: getPayloadMemberKey(payload),
+    kakaoId: getValue(payload, "member.kakaoId") || getValue(payload, "kakao.kakaoId") || payload.kakaoId
   };
   return values[header] == null ? "" : values[header];
 }
 
-function buildNewScheduleApplicationSheetRow(payload = {}, existingRow = {}) {
-  return GOOGLE_SHEET_HEADERS.new_schedule_applications.map((header) => {
+function buildNewScheduleApplicationSheetRow(payload = {}, existingRow = {}, headers = GOOGLE_SHEET_HEADERS.new_schedule_applications) {
+  return headers.map((header) => {
     if (header === "createdAt" && existingRow.createdAt) return existingRow.createdAt;
     return buildNewScheduleApplicationSheetValue(payload, header);
   });
@@ -3201,8 +3683,12 @@ function buildJoinApplicationSheetValue(payload = {}, header = "") {
   const applicationId = payload.applicationId || payload.joinApplyId || buildGoogleSheetRecordId(
     "join",
     createdAt,
-    getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member"
+    getPayloadMemberKey(payload) || getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member"
   );
+  const erpProductId = payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId");
+  const erpEventSeq = payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq");
+  const targetJoinId = payload.targetJoinId || getValue(payload, "target.joinId") || getValue(payload, "join.id");
+  const targetProductKey = payload.targetProductKey || getValue(payload, "target.productKey") || (erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : "");
   const values = {
     applicationId,
     createdAt,
@@ -3217,8 +3703,8 @@ function buildJoinApplicationSheetValue(payload = {}, header = "") {
     targetType: payload.targetType || getValue(payload, "target.type") || "erp_product",
     targetScheduleId: payload.targetScheduleId || getValue(payload, "target.scheduleId"),
     targetApplicationId: payload.targetApplicationId || getValue(payload, "target.applicationId"),
-    erpProductId: payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
-    erpEventSeq: payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"),
+    erpProductId,
+    erpEventSeq,
     productName: getValue(payload, "product.productName") || payload.productName,
     departureDate: getValue(payload, "product.departureDate") || payload.departureDate,
     returnDate: getValue(payload, "product.returnDate") || payload.returnDate,
@@ -3254,13 +3740,17 @@ function buildJoinApplicationSheetValue(payload = {}, header = "") {
     requiredAgreed: getValue(payload, "agreements.required"),
     marketingAgreed: getValue(payload, "agreements.marketing"),
     adminMemo: payload.adminMemo || "",
-    updatedAt: nowKstISOString()
+    updatedAt: nowKstISOString(),
+    memberKey: getPayloadMemberKey(payload),
+    kakaoId: getValue(payload, "member.kakaoId") || getValue(payload, "kakao.kakaoId") || payload.kakaoId,
+    targetJoinId,
+    targetProductKey
   };
   return values[header] == null ? "" : values[header];
 }
 
-function buildJoinApplicationSheetRow(payload = {}, existingRow = {}) {
-  return GOOGLE_SHEET_HEADERS.join_applications.map((header) => {
+function buildJoinApplicationSheetRow(payload = {}, existingRow = {}, headers = GOOGLE_SHEET_HEADERS.join_applications) {
+  return headers.map((header) => {
     if (header === "createdAt" && existingRow.createdAt) return existingRow.createdAt;
     return buildJoinApplicationSheetValue(payload, header);
   });
@@ -3270,11 +3760,12 @@ async function saveNewScheduleApplicationViaSheetsApi(payload = {}) {
   const applicationId = asText(payload.applicationId || buildNewScheduleApplicationSheetValue(payload, "applicationId"));
   if (!applicationId) throw createHttpError("applicationId is required", 400);
   const scheduleId = asText(payload.scheduleId || buildNewScheduleApplicationSheetValue({ ...payload, applicationId }, "scheduleId"));
+  const headers = await ensureGoogleSheetHeadersViaApi("new_schedule_applications", { timeoutMs: 6000 });
   const rows = await readGoogleSheetRowsViaApi("new_schedule_applications", { timeoutMs: 5000 });
   const existingIndex = rows.findIndex((row) => asText(row.applicationId) === applicationId);
   const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
   const rowPayload = { ...payload, applicationId, scheduleId };
-  const rowValues = buildNewScheduleApplicationSheetRow(rowPayload, existingRow);
+  const rowValues = buildNewScheduleApplicationSheetRow(rowPayload, existingRow, headers);
   if (existingIndex >= 0) {
     const rowNumber = existingIndex + 2;
     await updateGoogleSheetRowViaApi("new_schedule_applications", rowNumber, rowValues, { timeoutMs: 6000 });
@@ -3345,13 +3836,88 @@ async function updateAdminStatusViaSheetsApi(payload = {}) {
   };
 }
 
+async function generateQuoteViaSheetsApi(payload = {}) {
+  const { sheet, keyValue } = validateQuoteGeneratePayload(payload);
+  let headers;
+  let rows;
+  try {
+    headers = await ensureGoogleSheetHeadersViaApi(sheet, { timeoutMs: 15000 });
+  } catch (error) {
+    throw createHttpError(`quote header sync failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_header_sync_failed" });
+  }
+  try {
+    rows = await readGoogleSheetRowsViaApi(sheet, { timeoutMs: 15000 });
+  } catch (error) {
+    throw createHttpError(`quote row read failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_row_read_failed" });
+  }
+  const existingIndex = rows.findIndex((row) => asText(row.applicationId || row.joinApplyId) === keyValue);
+  if (existingIndex < 0) {
+    return { ok: false, error: "row_not_found", sheet, keyField: "applicationId", keyValue, source: "sheets_api" };
+  }
+  const existingRow = rows[existingIndex] || {};
+  const quote = buildQuoteData({ ...payload, sheet, keyValue }, existingRow);
+  const pdfBuffer = await createGolfjoinQuotePdfBufferV2(quote);
+  let savedPdf;
+  try {
+    savedPdf = await saveQuotePdfToStorage(pdfBuffer, quote);
+  } catch (error) {
+    throw createHttpError(`quote pdf upload failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_pdf_upload_failed" });
+  }
+  let savedPage;
+  try {
+    const quoteHtml = createGolfjoinQuoteHtml(quote, { pdfUrl: savedPdf.url });
+    savedPage = await saveQuoteHtmlToStorage(quoteHtml, quote);
+  } catch (error) {
+    throw createHttpError(`quote page upload failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_page_upload_failed" });
+  }
+  const fields = {
+    quoteId: quote.quoteId,
+    quoteNo: quote.quoteNo,
+    quoteUrl: savedPage.url,
+    quotePageUrl: savedPage.url,
+    quotePdfUrl: savedPdf.url,
+    quoteFileName: savedPdf.objectName,
+    quoteGeneratedAt: quote.generatedAt,
+    quoteStatus: asText(existingRow.quoteStatus) === "sent" ? "sent" : "created"
+  };
+  const nextRow = {
+    ...existingRow,
+    ...fields,
+    updatedAt: nowKstISOString()
+  };
+  const rowValues = headers.map((header) => nextRow[header] == null ? "" : nextRow[header]);
+  const rowNumber = existingIndex + 2;
+  try {
+    await updateGoogleSheetRowViaApi(sheet, rowNumber, rowValues, { timeoutMs: 15000 });
+  } catch (error) {
+    throw createHttpError(`quote row update failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_row_update_failed" });
+  }
+  return {
+    ok: true,
+    sheet,
+    row: rowNumber,
+    keyField: "applicationId",
+    keyValue,
+    quoteId: quote.quoteId,
+    quoteNo: quote.quoteNo,
+    quoteUrl: savedPage.url,
+    quotePageUrl: savedPage.url,
+    quotePdfUrl: savedPdf.url,
+    quoteFileName: savedPdf.objectName,
+    quoteGeneratedAt: quote.generatedAt,
+    fields,
+    source: "sheets_api"
+  };
+}
+
 async function saveJoinApplicationViaSheetsApi(payload = {}) {
   const applicationId = asText(payload.applicationId || payload.joinApplyId || buildJoinApplicationSheetValue(payload, "applicationId"));
   if (!applicationId) throw createHttpError("applicationId is required", 400);
+  const headers = await ensureGoogleSheetHeadersViaApi("join_applications", { timeoutMs: 6000 });
   const capacityCheck = await assertJoinApplicationCapacityAvailable(payload, applicationId);
   const existingIndex = capacityCheck.existingIndex;
   const existingRow = capacityCheck.existingRow || {};
-  const rowValues = buildJoinApplicationSheetRow({ ...payload, applicationId }, existingRow);
+  const rowValues = buildJoinApplicationSheetRow({ ...payload, applicationId }, existingRow, headers);
   if (existingIndex >= 0) {
     const rowNumber = existingIndex + 2;
     await updateGoogleSheetRowViaApi("join_applications", rowNumber, rowValues, { timeoutMs: 6000 });
@@ -4629,6 +5195,10 @@ async function proxyGet(req, res) {
   const requestedSheet = resolveReadSheetAlias(req.query?.sheet || "");
   const adminRequested = req.query?.admin === "1" || requestedSheet === "all" || !PUBLIC_READ_SHEETS.has(requestedSheet);
   const isAdmin = isAdminReadRequest(req);
+  const preserveMemberQuoteLinks = (
+    ["new_schedule_applications", "join_applications"].includes(requestedSheet)
+    && hasMemberLookupParams(req.query || {})
+  );
   if (adminRequested && !isAdmin) {
     const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
     error.status = 403;
@@ -4640,7 +5210,9 @@ async function proxyGet(req, res) {
         ...(req.query || {}),
         sheet: requestedSheet || req.query?.sheet || ""
       });
-      res.status(200).json(isAdmin ? payload : sanitizePublicPayload(payload));
+      res.status(200).json(isAdmin ? payload : sanitizePublicPayload(payload, {
+        preserveQuoteLinks: preserveMemberQuoteLinks
+      }));
       return;
     } catch (error) {
       console.warn("Generic sheet read via Google Sheets API failed; falling back to Apps Script.", {
@@ -4666,7 +5238,9 @@ async function proxyGet(req, res) {
     return;
   }
   try {
-    res.send(JSON.stringify(sanitizePublicPayload(JSON.parse(text))));
+    res.send(JSON.stringify(sanitizePublicPayload(JSON.parse(text), {
+      preserveQuoteLinks: preserveMemberQuoteLinks
+    })));
   } catch (error) {
     res.send(text);
   }
@@ -4761,6 +5335,19 @@ async function proxyPost(req, res) {
     res.status(response.status);
     res.set("Content-Type", response.headers.get("content-type") || "application/json; charset=utf-8");
     res.send(text);
+    return;
+  }
+
+  if (req.query?.action === "quote_generate") {
+    if (!isAdminReadRequest(req)) {
+      const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
+      error.status = 403;
+      throw error;
+    }
+    if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+    const payload = readBody(req);
+    const savedPayload = await generateQuoteViaSheetsApi(payload);
+    res.status(savedPayload.ok ? 200 : 404).json(savedPayload);
     return;
   }
 

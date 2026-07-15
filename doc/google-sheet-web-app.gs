@@ -69,7 +69,16 @@ const SHEET_HEADERS = {
     "displayStatus",
     "applicationStatus",
     "adminMemo",
-    "updatedAt"
+    "updatedAt",
+    "memberKey",
+    "kakaoId",
+    "quoteId",
+    "quoteNo",
+    "quoteUrl",
+    "quotePageUrl",
+    "quotePdfUrl",
+    "quoteFileName",
+    "quoteGeneratedAt"
   ],
   [SHEET_NAMES.JOIN_APPLICATIONS]: [
     "applicationId",
@@ -122,7 +131,18 @@ const SHEET_HEADERS = {
     "requiredAgreed",
     "marketingAgreed",
     "adminMemo",
-    "updatedAt"
+    "updatedAt",
+    "memberKey",
+    "kakaoId",
+    "targetJoinId",
+    "targetProductKey",
+    "quoteId",
+    "quoteNo",
+    "quoteUrl",
+    "quotePageUrl",
+    "quotePdfUrl",
+    "quoteFileName",
+    "quoteGeneratedAt"
   ],
   [SHEET_NAMES.JOIN_MEMBER_PROFILES]: [
     "profileId",
@@ -287,7 +307,18 @@ const TEXT_FORMAT_HEADERS = [
   "displayStartAt",
   "displayEndAt",
   "capacity",
-  "maxPeople"
+  "maxPeople",
+  "memberKey",
+  "kakaoId",
+  "targetJoinId",
+  "targetProductKey",
+  "quoteId",
+  "quoteNo",
+  "quoteUrl",
+  "quotePageUrl",
+  "quotePdfUrl",
+  "quoteFileName",
+  "quoteGeneratedAt"
 ];
 
 const PHONE_VALUE_HEADERS = [
@@ -706,6 +737,14 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
   const createdAt = row.createdAt || row.submittedAt || nowKstISOString_();
   const applicationId = row.applicationId || buildId_("nsa", createdAt, row.memberSeq || row.memberId || row.applicantName || row.creatorName || rowIndex + 1);
   const scheduleId = row.scheduleId || buildId_("sch", applicationId);
+  const memberKey = buildMemberKeyFromValues_({
+    memberKey: row.memberKey,
+    memberSeq: row.memberSeq,
+    memberId: row.memberId,
+    memberMobile: row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone,
+    memberEmail: row.memberEmail || row.email,
+    kakaoId: row.kakaoId
+  });
   if (header === "country") return row.country || normalizeCountryName_(row.region) || normalizeCountryName_(row.regions);
   if (header === "region") return normalizeRegionName_(row.region);
   const aliases = {
@@ -739,7 +778,9 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
     approvalStatus: row.approvalStatus || "pending",
     displayStatus: row.displayStatus || "visible",
     applicationStatus: row.applicationStatus || row.status || "open",
-    updatedAt: row.updatedAt || nowKstISOString_()
+    updatedAt: row.updatedAt || nowKstISOString_(),
+    memberKey: memberKey,
+    kakaoId: row.kakaoId || ""
   };
   return aliases[header] !== undefined ? aliases[header] : row[header] || "";
 }
@@ -748,6 +789,16 @@ function mapLegacyNewScheduleRow_(row, header, rowIndex) {
 function mapLegacyGenericRow_(row, header) {
   if (header === "country") return row.country || normalizeCountryName_(row.region);
   if (header === "region") return normalizeRegionName_(row.region);
+  const erpProductId = row.erpProductId || row.productId || row.goodSeq || "";
+  const erpEventSeq = row.erpEventSeq || row.eventSeq || "";
+  const memberKey = buildMemberKeyFromValues_({
+    memberKey: row.memberKey,
+    memberSeq: row.memberSeq,
+    memberId: row.memberId,
+    memberMobile: row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone,
+    memberEmail: row.memberEmail || row.email,
+    kakaoId: row.kakaoId
+  });
   const aliases = {
     createdAt: row.createdAt || row.submittedAt,
     applicantName: row.applicantName || row.name || row.creatorName,
@@ -778,7 +829,11 @@ function mapLegacyGenericRow_(row, header) {
     overrideTitle: row.overrideTitle || row.customTitle,
     overrideImageUrl: row.overrideImageUrl || row.customImage,
     departureAirport: row.departureAirport,
-    airline: row.airline || row.airlineName || row.airlineNm || row.air2Nm || row.air2CdNm
+    airline: row.airline || row.airlineName || row.airlineNm || row.air2Nm || row.air2CdNm,
+    memberKey: memberKey,
+    kakaoId: row.kakaoId || "",
+    targetJoinId: row.targetJoinId || row.joinId || "",
+    targetProductKey: row.targetProductKey || (erpProductId && erpEventSeq ? "erp:" + erpProductId + ":" + erpEventSeq : "")
   };
   return aliases[header] !== undefined ? aliases[header] : row[header] || "";
 }
@@ -1005,7 +1060,7 @@ function getJoinApplicationCapacityError_(payload, row) {
 
 function getNewScheduleApplicationValue_(payload, header) {
   const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString_();
-  const applicationId = payload.applicationId || buildId_("nsa", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
+  const applicationId = payload.applicationId || buildId_("nsa", createdAt, getPayloadMemberKey_(payload) || value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
   const scheduleId = payload.scheduleId || buildId_("sch", applicationId);
   const packTypeValue = value_(payload, "trip.packType") || payload.packType;
   const packTypeNameValue = value_(payload, "trip.packTypeName") || payload.packTypeName;
@@ -1068,14 +1123,20 @@ function getNewScheduleApplicationValue_(payload, header) {
     displayStatus: payload.displayStatus || "visible",
     applicationStatus: payload.applicationStatus || payload.status || "open",
     adminMemo: payload.adminMemo || "",
-    updatedAt: nowKstISOString_()
+    updatedAt: nowKstISOString_(),
+    memberKey: getPayloadMemberKey_(payload),
+    kakaoId: value_(payload, "member.kakaoId") || value_(payload, "kakao.kakaoId") || payload.kakaoId
   };
   return values[header] !== undefined ? values[header] : "";
 }
 
 function getJoinApplicationValue_(payload, header) {
   const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString_();
-  const applicationId = payload.applicationId || payload.joinApplyId || buildId_("join", createdAt, value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
+  const applicationId = payload.applicationId || payload.joinApplyId || buildId_("join", createdAt, getPayloadMemberKey_(payload) || value_(payload, "member.memberSeq") || value_(payload, "member.memberId") || value_(payload, "member.memberName") || "member");
+  const erpProductId = payload.erpProductId || value_(payload, "product.erpProductId") || value_(payload, "product.productId");
+  const erpEventSeq = payload.erpEventSeq || value_(payload, "product.erpEventSeq") || value_(payload, "product.eventSeq");
+  const targetJoinId = payload.targetJoinId || value_(payload, "target.joinId") || value_(payload, "join.id");
+  const targetProductKey = payload.targetProductKey || value_(payload, "target.productKey") || (erpProductId && erpEventSeq ? "erp:" + erpProductId + ":" + erpEventSeq : "");
   const values = {
     applicationId: applicationId,
     createdAt: createdAt,
@@ -1090,8 +1151,8 @@ function getJoinApplicationValue_(payload, header) {
     targetType: payload.targetType || value_(payload, "target.type") || "erp_product",
     targetScheduleId: payload.targetScheduleId || value_(payload, "target.scheduleId"),
     targetApplicationId: payload.targetApplicationId || value_(payload, "target.applicationId"),
-    erpProductId: payload.erpProductId || value_(payload, "product.erpProductId") || value_(payload, "product.productId"),
-    erpEventSeq: payload.erpEventSeq || value_(payload, "product.erpEventSeq") || value_(payload, "product.eventSeq"),
+    erpProductId: erpProductId,
+    erpEventSeq: erpEventSeq,
     productName: value_(payload, "product.productName") || payload.productName,
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
@@ -1127,7 +1188,11 @@ function getJoinApplicationValue_(payload, header) {
     requiredAgreed: value_(payload, "agreements.required"),
     marketingAgreed: value_(payload, "agreements.marketing"),
     adminMemo: payload.adminMemo || "",
-    updatedAt: nowKstISOString_()
+    updatedAt: nowKstISOString_(),
+    memberKey: getPayloadMemberKey_(payload),
+    kakaoId: value_(payload, "member.kakaoId") || value_(payload, "kakao.kakaoId") || payload.kakaoId,
+    targetJoinId: targetJoinId,
+    targetProductKey: targetProductKey
   };
   return values[header] !== undefined ? values[header] : "";
 }
@@ -1408,6 +1473,34 @@ function value_(object, path) {
   }, object);
 }
 
+function buildMemberKeyFromValues_(values) {
+  values = values || {};
+  const existing = String(values.memberKey || "").trim();
+  if (existing) return existing;
+  const memberSeq = String(values.memberSeq || "").trim();
+  if (memberSeq) return "seq:" + memberSeq;
+  const memberId = String(values.memberId || "").trim().toLowerCase();
+  if (memberId) return "id:" + memberId;
+  const memberMobile = normalizePhone_(values.memberMobile || "");
+  if (memberMobile) return "phone:" + memberMobile;
+  const memberEmail = String(values.memberEmail || "").trim().toLowerCase();
+  if (memberEmail) return "email:" + memberEmail;
+  const kakaoId = String(values.kakaoId || "").trim();
+  if (kakaoId) return "kakao:" + kakaoId;
+  return "";
+}
+
+function getPayloadMemberKey_(payload) {
+  return buildMemberKeyFromValues_({
+    memberKey: payload.memberKey || value_(payload, "member.memberKey"),
+    memberSeq: value_(payload, "member.memberSeq") || payload.memberSeq,
+    memberId: value_(payload, "member.memberId") || payload.memberId,
+    memberMobile: value_(payload, "member.memberMobile") || payload.memberMobile,
+    memberEmail: value_(payload, "member.memberEmail") || payload.memberEmail,
+    kakaoId: value_(payload, "member.kakaoId") || value_(payload, "kakao.kakaoId") || payload.kakaoId
+  });
+}
+
 function join_(value) {
   return Array.isArray(value) ? value.join(", ") : value || "";
 }
@@ -1512,6 +1605,14 @@ function filterRowsForRequest_(rows, params) {
   const memberMobile = normalizePhone_(params.memberMobile || params.phone || "");
   const memberEmail = String(params.memberEmail || params.email || "").trim();
   const kakaoId = String(params.kakaoId || "").trim();
+  const memberKey = buildMemberKeyFromValues_({
+    memberKey: params.memberKey,
+    memberSeq: memberSeq,
+    memberId: memberId,
+    memberMobile: memberMobile,
+    memberEmail: memberEmail,
+    kakaoId: kakaoId
+  });
   const scheduleId = String(params.scheduleId || params.targetScheduleId || "").trim();
   const erpProductId = String(params.erpProductId || params.productId || "").trim();
   const erpEventSeq = String(params.erpEventSeq || params.eventSeq || "").trim();
@@ -1532,15 +1633,24 @@ function filterRowsForRequest_(rows, params) {
   if (approvalStatus) {
     filtered = filtered.filter(function (row) { return String(row.approvalStatus || "") === approvalStatus; });
   }
-  if (memberSeq || memberId || memberMobile || memberEmail || kakaoId) {
+  if (memberKey || memberSeq || memberId || memberMobile || memberEmail || kakaoId) {
     filtered = filtered.filter(function (row) {
       const rowMemberSeq = String(row.memberSeq || "").trim();
       const rowMemberId = String(row.memberId || "").trim();
       const rowMemberMobile = normalizePhone_(row.memberMobile || row.applicantMobile || row.creatorPhone || row.phone || "");
       const rowMemberEmail = String(row.memberEmail || row.email || "").trim();
       const rowKakaoId = String(row.kakaoId || "").trim();
+      const rowMemberKey = buildMemberKeyFromValues_({
+        memberKey: row.memberKey,
+        memberSeq: rowMemberSeq,
+        memberId: rowMemberId,
+        memberMobile: rowMemberMobile,
+        memberEmail: rowMemberEmail,
+        kakaoId: rowKakaoId
+      });
       return Boolean(
-        (memberSeq && rowMemberSeq && rowMemberSeq === memberSeq)
+        (memberKey && rowMemberKey && rowMemberKey === memberKey)
+        || (memberSeq && rowMemberSeq && rowMemberSeq === memberSeq)
         || (memberId && rowMemberId && rowMemberId === memberId)
         || (memberMobile && rowMemberMobile && rowMemberMobile === memberMobile)
         || (memberEmail && rowMemberEmail && rowMemberEmail === memberEmail)

@@ -5597,11 +5597,12 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       background: #fff;
-      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+      box-shadow: none;
     }
     .builder-date-popover.open {
       display: grid;
       gap: 8px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
     }
     .builder-duration-popover {
       position: absolute;
@@ -7723,7 +7724,7 @@
         border-left: 0;
         border-radius: 20px;
         background: #fff;
-        box-shadow: 0 -16px 40px rgba(15, 23, 42, 0.16);
+        box-shadow: none;
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
@@ -7734,6 +7735,7 @@
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
+        box-shadow: 0 -10px 26px rgba(15, 23, 42, 0.08);
         transform: translate(-50%, 0);
       }
       .builder-date-popover-title {
@@ -8183,11 +8185,12 @@
       border-top: 1px solid var(--border);
       border-radius: 24px 24px 0 0;
       background: #fff;
-      box-shadow: 0 -18px 44px rgba(15, 23, 42, 0.16);
+      box-shadow: none;
       transform: translateY(110%);
       transition: transform .24s ease;
     }
     .builder-flex-sheet.open {
+      box-shadow: 0 -10px 26px rgba(15, 23, 42, 0.08);
       transform: translateY(0);
     }
     .builder-active-schedule-backdrop {
@@ -8446,7 +8449,7 @@
         border-bottom: 0;
         border-left: 0;
         border-radius: 22px 22px 0 0;
-        box-shadow: 0 -18px 44px rgba(15, 23, 42, 0.18);
+        box-shadow: none;
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
@@ -8457,6 +8460,7 @@
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
+        box-shadow: 0 -10px 26px rgba(15, 23, 42, 0.08);
         transform: translateY(0);
       }
       .builder-date-popover.above {
@@ -16121,17 +16125,31 @@
         pointer-events: none;
       }
       .calendar-mobile-selected-week {
+        position: relative;
+        z-index: 9;
         flex: 0 0 auto;
         max-height: 96px;
         opacity: 1;
         padding: 0 0px;
         border-bottom: 0;
         background: #fff;
+        overflow: visible;
         transform: translateY(0);
         transition: none;
       }
       .calendar-mobile-selected-week .calendar-week {
+        position: relative;
+        z-index: 9;
         margin-top: 0;
+        overflow: visible;
+      }
+      .calendar-mobile-selected-week .calendar-cell,
+      .calendar-mobile-selected-week .calendar-day-button,
+      .calendar-mobile-selected-week .calendar-cell strong {
+        overflow: visible;
+      }
+      .calendar-mobile-selected-week .calendar-cell.has-data .calendar-day-button strong::after {
+        z-index: 10;
       }
       .calendar-mobile-toggle {
         position: relative;
@@ -20777,10 +20795,20 @@
       background: #fff;
       text-align: left;
       min-height: 92px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #regionSearchModal .region-empty-recommend-card *,
+    #regionSearchModal .region-empty-recommend-tab,
+    #regionSearchModal .region-empty-recommend-more {
+      -webkit-tap-highlight-color: transparent;
     }
     #regionSearchModal .region-empty-recommend-card:hover {
       border-color: #bfdbfe;
       background: #f8fbff;
+    }
+    #regionSearchModal .region-empty-recommend-mobile-list {
+      display: none;
     }
     #regionSearchModal .region-empty-recommend-thumb {
       width: 70px;
@@ -20829,6 +20857,54 @@
       font-size: 12px;
       font-weight: 800;
       white-space: nowrap;
+    }
+    @media (hover: none), (pointer: coarse) {
+      #regionSearchModal .region-empty-recommend-card,
+      #regionSearchModal .region-empty-recommend-card * {
+        -webkit-tap-highlight-color: transparent;
+      }
+      #regionSearchModal .region-empty-recommend-card {
+        touch-action: pan-y;
+      }
+      #regionSearchModal .region-empty-recommend-card:hover,
+      #regionSearchModal .region-empty-recommend-card:active {
+        border-color: var(--border);
+        background: #fff;
+        box-shadow: none;
+        transform: none;
+      }
+      #regionSearchModal .region-empty-recommend-tab:not(.active):hover,
+      #regionSearchModal .region-empty-recommend-tab:not(.active):active,
+      #regionSearchModal .region-product-sort button:not(.active):hover,
+      #regionSearchModal .region-product-sort button:not(.active):active {
+        color: #64748b;
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+        transform: none;
+      }
+      #regionSearchModal .region-empty-recommend-more:hover,
+      #regionSearchModal .region-empty-recommend-more:active {
+        color: #64748b;
+        background: transparent;
+        box-shadow: none;
+        transform: none;
+      }
+    }
+    @media (max-width: 640px) {
+      #regionSearchModal .region-empty-recommend-card {
+        display: none;
+      }
+      #regionSearchModal .region-empty-recommend-mobile-list.calendar-accordion-list {
+        display: grid;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        gap: 10px;
+        overflow: visible;
+      }
     }
     @media (min-width: 641px) {
       #regionSearchModal .region-search-modal .region-search-header,
@@ -23351,6 +23427,55 @@
       line-height: 1.55;
     }
 
+    .join-my-loading-state {
+      display: grid;
+      gap: 12px;
+      padding: 2px 0 12px;
+    }
+
+    .join-my-loading-copy {
+      color: #475569;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .join-my-loading-card {
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      border: 1px solid #edf0f4;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .join-my-loading-line {
+      height: 13px;
+      border-radius: 999px;
+    }
+
+    .join-my-loading-line.title {
+      width: 72%;
+      height: 18px;
+    }
+
+    .join-my-loading-line.meta {
+      width: 54%;
+    }
+
+    .join-my-loading-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .join-my-loading-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+    }
+
     .join-my-reservation-section > .join-my-state {
       text-align: center;
     }
@@ -24202,6 +24327,42 @@
       width: 18px;
       height: 18px;
       stroke-width: 2;
+    }
+
+    .join-my-card-quote-row {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 12px;
+      border-top: 1px solid #e7edf5;
+    }
+
+    .join-my-card-quote-button {
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 15px;
+      border: 1px solid #3489f8;
+      border-radius: 8px;
+      background: #3489f8;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.2;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+
+    .join-my-card-quote-button svg {
+      width: 19px;
+      height: 19px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .join-my-card-product-label-mobile {
@@ -25309,6 +25470,16 @@
 
       .join-my-card-product-button {
         font-size: 14px;
+      }
+
+      .join-my-card-quote-row {
+        padding-top: 10px;
+      }
+
+      .join-my-card-quote-button {
+        width: 100%;
+        min-height: 44px;
+        font-size: 15px;
       }
 
       .join-my-card-product-label-desktop {
@@ -30282,6 +30453,7 @@
     let googleSheetJoinApplicationsLoading = false;
     let googleSheetJoinApplicationsReadCompleted = false;
     let googleSheetJoinApplicationsReadFailed = false;
+    let joinMyReservationsRefreshing = false;
     let googleSheetJoinWishesLoading = false;
     let googleSheetJoinWishesReadCompleted = false;
     let googleSheetJoinWishesReadFailed = false;
@@ -34456,21 +34628,31 @@
       }
     }
 
-    function getJoinWishMemberKey(member = getJoinCachedCurrentMember()) {
+    function getJoinMemberCanonicalKey(member = {}) {
       const normalized = member ? getJoinMemberWithCachedProfile(member) : {};
-      return String(
-        normalized.memberSeq
-        || normalized.memberId
-        || normalizeJoinMemberPhone(normalized.memberMobile || normalized.mobile || normalized.phone || "")
-        || normalized.memberEmail
-        || normalized.kakaoId
-        || ""
-      ).trim();
+      const existingKey = String(normalized.memberKey || "").trim();
+      if (existingKey) return existingKey;
+      const seq = String(normalized.memberSeq || "").trim();
+      if (seq) return `seq:${seq}`;
+      const id = String(normalized.memberId || "").trim().toLowerCase();
+      if (id) return `id:${id}`;
+      const phone = normalizeJoinMemberPhone(normalized.memberMobile || normalized.mobile || normalized.phone || "");
+      if (phone) return `phone:${phone}`;
+      const email = String(normalized.memberEmail || normalized.email || "").trim().toLowerCase();
+      if (email) return `email:${email}`;
+      const kakaoId = String(normalized.kakaoId || "").trim();
+      if (kakaoId) return `kakao:${kakaoId}`;
+      return "";
+    }
+
+    function getJoinWishMemberKey(member = getJoinCachedCurrentMember()) {
+      return getJoinMemberCanonicalKey(member);
     }
 
     function getJoinSheetMemberLookupParams(member = getJoinCachedCurrentMember()) {
       const normalized = member ? getJoinMemberWithCachedProfile(member) : {};
       return {
+        memberKey: getJoinMemberCanonicalKey(normalized),
         memberSeq: normalized.memberSeq || "",
         memberId: normalized.memberId || "",
         memberMobile: normalizeJoinMemberPhone(normalized.memberMobile || normalized.mobile || normalized.phone || ""),
@@ -35121,6 +35303,7 @@
 
     function getJoinMyMemberIdentity(member = {}) {
       return {
+        memberKey: getJoinMemberCanonicalKey(member),
         seq: String(member.memberSeq || "").trim(),
         id: String(member.memberId || "").trim().toLowerCase(),
         phone: normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || ""),
@@ -35231,6 +35414,14 @@
     function getJoinMyBuilderApplicationIdentity(join = {}) {
       const application = join.sheetApplication || {};
       return {
+        memberKey: getJoinMemberCanonicalKey({
+          memberKey: getNestedValue(application, "member.memberKey") || application.memberKey || "",
+          memberSeq: getNestedValue(application, "member.memberSeq") || application.memberSeq || "",
+          memberId: getNestedValue(application, "member.memberId") || application.memberId || "",
+          memberMobile: getNestedValue(application, "member.memberMobile") || getNestedValue(application, "applicant.phone") || application.memberMobile || application.creatorPhone || application.phone || "",
+          memberEmail: getNestedValue(application, "member.memberEmail") || application.memberEmail || application.email || "",
+          kakaoId: getNestedValue(application, "member.kakaoId") || application.kakaoId || ""
+        }),
         seq: String(getNestedValue(application, "member.memberSeq") || application.memberSeq || "").trim(),
         id: String(getNestedValue(application, "member.memberId") || application.memberId || "").trim().toLowerCase(),
         phone: normalizeJoinMemberPhone(
@@ -35253,6 +35444,14 @@
 
     function getJoinMyJoinApplicationIdentity(application = {}) {
       return {
+        memberKey: getJoinMemberCanonicalKey({
+          memberKey: getNestedValue(application, "member.memberKey") || application.memberKey || "",
+          memberSeq: getNestedValue(application, "member.memberSeq") || application.memberSeq || "",
+          memberId: getNestedValue(application, "member.memberId") || application.memberId || "",
+          memberMobile: getNestedValue(application, "member.memberMobile") || getNestedValue(application, "applicant.phone") || application.memberMobile || application.phone || "",
+          memberEmail: getNestedValue(application, "member.memberEmail") || application.memberEmail || application.email || "",
+          kakaoId: getNestedValue(application, "member.kakaoId") || application.kakaoId || ""
+        }),
         seq: String(getNestedValue(application, "member.memberSeq") || application.memberSeq || "").trim(),
         id: String(getNestedValue(application, "member.memberId") || application.memberId || "").trim().toLowerCase(),
         phone: normalizeJoinMemberPhone(
@@ -35275,11 +35474,12 @@
     function isJoinMyJoinApplicationForMember(application = {}, member = {}) {
       const memberIdentity = getJoinMyMemberIdentity(member);
       const applicationIdentity = getJoinMyJoinApplicationIdentity(application);
-      const hasMemberIdentity = Boolean(memberIdentity.seq || memberIdentity.id || memberIdentity.phone || memberIdentity.email || memberIdentity.kakaoId);
-      const hasApplicationIdentity = Boolean(applicationIdentity.seq || applicationIdentity.id || applicationIdentity.phone || applicationIdentity.email || applicationIdentity.kakaoId);
+      const hasMemberIdentity = Boolean(memberIdentity.memberKey || memberIdentity.seq || memberIdentity.id || memberIdentity.phone || memberIdentity.email || memberIdentity.kakaoId);
+      const hasApplicationIdentity = Boolean(applicationIdentity.memberKey || applicationIdentity.seq || applicationIdentity.id || applicationIdentity.phone || applicationIdentity.email || applicationIdentity.kakaoId);
       if (!hasMemberIdentity || !hasApplicationIdentity) return false;
       return Boolean(
-        (memberIdentity.seq && applicationIdentity.seq && memberIdentity.seq === applicationIdentity.seq)
+        (memberIdentity.memberKey && applicationIdentity.memberKey && memberIdentity.memberKey === applicationIdentity.memberKey)
+        || (memberIdentity.seq && applicationIdentity.seq && memberIdentity.seq === applicationIdentity.seq)
         || (memberIdentity.id && applicationIdentity.id && memberIdentity.id === applicationIdentity.id)
         || (memberIdentity.phone && applicationIdentity.phone && memberIdentity.phone === applicationIdentity.phone)
         || (memberIdentity.email && applicationIdentity.email && memberIdentity.email === applicationIdentity.email)
@@ -35311,20 +35511,23 @@
       if (isJoinTempAdminMember(member)) return true;
       const memberIdentity = getJoinMyMemberIdentity(member);
       const applicationIdentity = getJoinMyBuilderApplicationIdentity(join);
-      const hasMemberIdentity = Boolean(memberIdentity.seq || memberIdentity.id || memberIdentity.phone || memberIdentity.email);
-      const hasApplicationIdentity = Boolean(applicationIdentity.seq || applicationIdentity.id || applicationIdentity.phone || applicationIdentity.email);
+      const hasMemberIdentity = Boolean(memberIdentity.memberKey || memberIdentity.seq || memberIdentity.id || memberIdentity.phone || memberIdentity.email || memberIdentity.kakaoId);
+      const hasApplicationIdentity = Boolean(applicationIdentity.memberKey || applicationIdentity.seq || applicationIdentity.id || applicationIdentity.phone || applicationIdentity.email || applicationIdentity.kakaoId);
       if (!hasMemberIdentity || !hasApplicationIdentity) return false;
       return Boolean(
-        (memberIdentity.seq && applicationIdentity.seq && memberIdentity.seq === applicationIdentity.seq)
+        (memberIdentity.memberKey && applicationIdentity.memberKey && memberIdentity.memberKey === applicationIdentity.memberKey)
+        || (memberIdentity.seq && applicationIdentity.seq && memberIdentity.seq === applicationIdentity.seq)
         || (memberIdentity.id && applicationIdentity.id && memberIdentity.id === applicationIdentity.id)
         || (memberIdentity.phone && applicationIdentity.phone && memberIdentity.phone === applicationIdentity.phone)
         || (memberIdentity.email && applicationIdentity.email && memberIdentity.email === applicationIdentity.email)
+        || (memberIdentity.kakaoId && applicationIdentity.kakaoId && memberIdentity.kakaoId === applicationIdentity.kakaoId)
       );
     }
 
     function buildJoinMyCreatedReservationItem(join = {}) {
       const seed = getJoinMyReservationProductSeed(join.id);
       const productReference = getSecretTourProductReference(seed.join?.id ? seed.join : join);
+      const sheetApplication = join.sheetApplication || {};
       return {
         joinId: join.id || "",
         id: join.id || "",
@@ -35352,6 +35555,13 @@
         price: join.price ? `${formatPrice(join.price)}원~` : "",
         golfCourse: join.golfCourse || join.title || "",
         hotel: seed.hotelText,
+        quoteId: sheetApplication.quoteId || "",
+        quoteNo: sheetApplication.quoteNo || "",
+        quoteStatus: sheetApplication.quoteStatus || "",
+        quoteUrl: sheetApplication.quoteUrl || "",
+        quotePageUrl: sheetApplication.quotePageUrl || sheetApplication.quoteUrl || "",
+        quotePdfUrl: sheetApplication.quotePdfUrl || "",
+        quoteGeneratedAt: sheetApplication.quoteGeneratedAt || "",
         actions: [
           { label: "상세정보 열기", action: "accordion", placement: "head" }
         ]
@@ -35395,6 +35605,13 @@
         flightPack: seed.hasFlight,
         flightInfo: seed.flightInfo || application.flightInfo || "",
         price: join.price ? `${formatPrice(join.price)}원~` : (application.price ? `${formatPrice(application.price)}원~` : ""),
+        quoteId: application.quoteId || "",
+        quoteNo: application.quoteNo || "",
+        quoteStatus: application.quoteStatus || "",
+        quoteUrl: application.quoteUrl || "",
+        quotePageUrl: application.quotePageUrl || application.quoteUrl || "",
+        quotePdfUrl: application.quotePdfUrl || "",
+        quoteGeneratedAt: application.quoteGeneratedAt || "",
         actions: [
           { label: "상세정보 열기", action: "accordion", placement: "head" }
         ]
@@ -36403,6 +36620,48 @@
       </div>`;
     }
 
+    function isJoinMyReservationTab(tabKey = "") {
+      return tabKey === "created" || tabKey === "joined";
+    }
+
+    function isJoinMyReservationBootstrapLoading(tabKey = "") {
+      if (!isJoinMyReservationTab(tabKey) || !GOLFJOIN_SHEET_API_ENDPOINT) return false;
+      return Boolean(joinMyReservationsRefreshing || googleSheetBuilderApplicationsLoading || googleSheetJoinApplicationsLoading);
+    }
+
+    function hasJoinMyReservationReadFailed(tabKey = "") {
+      if (tabKey === "created") {
+        return Boolean(googleSheetBuilderApplicationsReadCompleted && googleSheetBuilderApplicationsReadFailed);
+      }
+      if (tabKey === "joined") {
+        return Boolean(googleSheetJoinApplicationsReadCompleted && googleSheetJoinApplicationsReadFailed);
+      }
+      return false;
+    }
+
+    function renderJoinMyLoadingState() {
+      return `<div class="join-my-loading-state" role="status" aria-live="polite" aria-busy="true">
+        <div class="join-my-loading-copy">내 예약을 불러오는 중입니다.</div>
+        ${Array.from({ length: 2 }).map((_, index) => `
+          <div class="join-my-loading-card" aria-hidden="true">
+            <div class="join-my-loading-line title skeleton-glass-shimmer"></div>
+            <div class="join-my-loading-line meta skeleton-glass-shimmer" style="width:${index % 2 ? 62 : 48}%;"></div>
+            <div class="join-my-loading-row">
+              ${Array.from({ length: 4 }).map(() => `<div class="join-my-loading-avatar skeleton-glass-shimmer"></div>`).join("")}
+            </div>
+          </div>
+        `).join("")}
+      </div>`;
+    }
+
+    function renderJoinMyReadFailedState() {
+      return `<div class="join-my-empty">
+        <div class="join-my-empty-box">
+          <div class="join-my-empty-copy">예약 정보를 불러오지 못했습니다. 다시 시도해 주세요.</div>
+        </div>
+      </div>`;
+    }
+
     function getJoinMyActionConfig(rawAction) {
       if (Array.isArray(rawAction)) {
         return { label: rawAction[0] || "", variant: rawAction[1] || "", action: rawAction[2] || "" };
@@ -36471,6 +36730,23 @@
       return `<button type="button" class="join-my-card-product-button" onclick="event.stopPropagation(); handleJoinMyReservationProduct('${escapeJsString(item.joinId || "")}', '${escapeJsString(item.title || "")}', ${item.detailHideParticipants ? "true" : "false"})" aria-label="상품 자세히 보기"><i class="join-my-card-product-label-desktop">상품 자세히 보기</i><i class="join-my-card-product-label-mobile">상품보기</i> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>`;
     }
 
+    function openJoinMyQuotePage(url = "") {
+      try {
+        const target = new URL(String(url || "").trim(), window.location.href);
+        if (target.protocol !== "https:" && target.protocol !== "http:") return;
+        window.open(target.toString(), "_blank", "noopener");
+      } catch (error) {
+        console.warn("Invalid quote page URL.", error);
+      }
+    }
+
+    function renderJoinMyQuoteButton(item = {}) {
+      if (!['created', 'joined'].includes(String(item.scheduleGroup || ""))) return "";
+      const quotePageUrl = String(item.quotePageUrl || item.quoteUrl || "").trim();
+      if (!quotePageUrl) return "";
+      return `<div class="join-my-card-quote-row"><button type="button" class="join-my-card-quote-button" onclick="event.stopPropagation(); openJoinMyQuotePage('${escapeJsString(quotePageUrl)}')"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>견적서 보기</button></div>`;
+    }
+
     function renderJoinMyAccordionCard(item = {}, headAction = null) {
       const dday = item.hideDday ? "" : formatJoinMyCardDateBadge(item);
       const bottomActions = (item.actions || [])
@@ -36509,10 +36785,11 @@
               ${renderJoinMySummaryLine("location", locationValue)}
               ${renderJoinMySummaryLine("period", periodValue)}
             </div>
-            <div class="join-my-card-summary-button">
+          <div class="join-my-card-summary-button">
               ${renderJoinMyProductButton(item)}
             </div>
           </div>
+          ${renderJoinMyQuoteButton(item)}
           ${item.hideParticipants ? "" : `<div class="join-my-card-expanded">${renderJoinMyParticipants(item)}</div>`}
           ${item.submittedReview ? renderJoinMySubmittedReviewBox(item.submittedReview) : ""}
           ${bottomActions.length ? `<div class="join-my-card-actions">
@@ -36533,7 +36810,11 @@
     }
 
     function renderJoinMyCards(items = [], tabKey = "") {
-      if (!items.length) return renderJoinMyEmptyState(tabKey);
+      if (!items.length) {
+        if (isJoinMyReservationBootstrapLoading(tabKey)) return renderJoinMyLoadingState(tabKey);
+        if (hasJoinMyReservationReadFailed(tabKey)) return renderJoinMyReadFailedState(tabKey);
+        return renderJoinMyEmptyState(tabKey);
+      }
       return items.map((item) => {
         const headAction = getJoinMyHeadAction(item);
         const dateBadge = item.hideDday ? "" : formatJoinMyCardDateBadge(item);
@@ -38780,10 +39061,12 @@
       setJoinMobileBottomNavLayerActive("my");
       setJoinMobileBottomNavVisible(true, { force: true });
       setWidgetModalOpen(true);
+      joinMyReservationsRefreshing = true;
       const builderApplicationsRefresh = hydrateBuilderApplicationJoinsFromGoogleSheet();
       const joinApplicationsRefresh = hydrateJoinApplicationsFromGoogleSheet();
       renderJoinMyMenu(member);
       Promise.allSettled([builderApplicationsRefresh, joinApplicationsRefresh]).then(() => {
+        joinMyReservationsRefreshing = false;
         if (document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
           renderJoinMyMenu(member);
         }
@@ -45170,7 +45453,17 @@
       const requiredAgreed = true;
       const marketingAgreed = false;
       const submittedAt = nowKstISOString();
-      const builderMemberKey = memberProfile.member?.memberSeq || memberProfile.member?.memberId || memberProfile.memberId || name || "member";
+      const memberPayload = {
+        memberSeq: memberProfile.member?.memberSeq || "",
+        memberId: memberProfile.member?.memberId || "",
+        memberName: memberProfile.member?.memberName || name,
+        memberChannel: memberProfile.member?.memberChannel || "",
+        memberMobile: normalizeJoinMemberPhone(memberProfile.member?.memberMobile || phone),
+        memberEmail: memberProfile.member?.memberEmail || memberProfile.member?.email || memberProfile.email || "",
+        kakaoId: memberProfile.member?.kakaoId || ""
+      };
+      memberPayload.memberKey = getJoinMemberCanonicalKey(memberPayload);
+      const builderMemberKey = memberPayload.memberKey || memberPayload.memberSeq || memberPayload.memberId || name || "member";
       const applicationId = buildGoogleSheetRecordId("nsa", submittedAt, builderMemberKey);
       const scheduleId = buildGoogleSheetRecordId("sch", applicationId);
       const selectedProduct = getBuilderSelectedFixedProduct()
@@ -45224,14 +45517,8 @@
         source: "new_schedule_builder",
         submittedAt,
         pageUrl: getJoinCanonicalPageUrl(),
-        member: {
-          memberSeq: memberProfile.member?.memberSeq || "",
-          memberId: memberProfile.member?.memberId || "",
-          memberName: memberProfile.member?.memberName || name,
-          memberChannel: memberProfile.member?.memberChannel || "",
-          memberMobile: normalizeJoinMemberPhone(memberProfile.member?.memberMobile || phone),
-          memberEmail: memberProfile.member?.memberEmail || memberProfile.member?.email || memberProfile.email || ""
-        },
+        memberKey: memberPayload.memberKey,
+        member: memberPayload,
         applicant: {
           name,
           gender,
@@ -45286,6 +45573,14 @@
 
     function validateBuilderApplyPayload(payload) {
       clearBuilderApplyErrors();
+      if (!payload.memberKey && !getNestedValue(payload, "member.memberKey")) {
+        openBuilderAlert("회원 정보를 정확히 확인하지 못했습니다. 다시 로그인 후 시도해 주세요.");
+        return false;
+      }
+      if (!payload.applicationId || !payload.scheduleId) {
+        openBuilderAlert("새 모임 일정 정보를 정확히 생성하지 못했습니다. 다시 시도해 주세요.");
+        return false;
+      }
       if (!payload.applicant.name) {
         markBuilderApplyFieldError("name");
         alert("회원정보의 이름이 필요합니다. 회원가입 정보를 확인해 주세요.");
@@ -45494,13 +45789,56 @@
 
     function getCurrentApplyTargetInfo(join = getCurrentApplyJoin()) {
       const sheetApplication = join?.sheetApplication || {};
+      const productReference = getSecretTourProductReference(join || {});
       const scheduleId = join?.scheduleId || sheetApplication.scheduleId || (join?.isAdminRecommendedSchedule ? join.id : "") || "";
       const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || join?.displayRule?.recommendedScheduleId || join?.displayRule?.displayRuleId || "";
+      const erpProductId = String(join?.erpProductId || join?.goodSeq || productReference.id || productReference.goodSeq || "").trim();
+      const erpEventSeq = String(join?.erpEventSeq || join?.eventSeq || productReference.eventSeq || "").trim();
+      const targetType = join?.isAdminRecommendedSchedule ? "recommended_schedule" : (scheduleId ? "new_schedule" : "erp_product");
+      const targetJoinId = String(join?.id || scheduleId || applicationId || "").trim();
+      const targetProductKey = erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : "";
       return {
-        targetType: join?.isAdminRecommendedSchedule ? "recommended_schedule" : (scheduleId ? "new_schedule" : "erp_product"),
+        targetType,
+        targetJoinId,
         targetScheduleId: scheduleId,
-        targetApplicationId: applicationId
+        targetApplicationId: applicationId,
+        targetProductKey,
+        erpProductId,
+        erpEventSeq
       };
+    }
+
+    function hasValidJoinApplyTargetInfo(target = {}) {
+      if (target.targetType === "new_schedule") {
+        return Boolean(target.targetJoinId && target.targetScheduleId);
+      }
+      if (target.targetType === "recommended_schedule") {
+        return Boolean(target.targetJoinId && (target.targetScheduleId || target.targetApplicationId));
+      }
+      return Boolean(target.targetProductKey && target.erpProductId && target.erpEventSeq);
+    }
+
+    function validateJoinApplyCanonicalPayload(payload = {}) {
+      const target = {
+        targetType: payload.targetType,
+        targetJoinId: payload.targetJoinId || getNestedValue(payload, "target.joinId"),
+        targetScheduleId: payload.targetScheduleId || getNestedValue(payload, "target.scheduleId"),
+        targetApplicationId: payload.targetApplicationId || getNestedValue(payload, "target.applicationId"),
+        targetProductKey: payload.targetProductKey || getNestedValue(payload, "target.productKey"),
+        erpProductId: payload.erpProductId || getNestedValue(payload, "product.erpProductId"),
+        erpEventSeq: payload.erpEventSeq || getNestedValue(payload, "product.erpEventSeq")
+      };
+      if (!payload.memberKey && !getNestedValue(payload, "member.memberKey")) {
+        const error = new Error("memberKey is required");
+        error.userMessage = "회원 정보를 정확히 확인하지 못했습니다. 다시 로그인 후 시도해 주세요.";
+        throw error;
+      }
+      if (!hasValidJoinApplyTargetInfo(target)) {
+        const error = new Error("canonical target key is required");
+        error.userMessage = "신청 대상 상품 정보를 정확히 확인하지 못했습니다. 상품상세를 다시 열어 신청해 주세요.";
+        throw error;
+      }
+      return true;
     }
 
     function buildJoinApplyPayload(data) {
@@ -45509,25 +45847,42 @@
       const productReference = getSecretTourProductReference(join);
       const submittedAt = nowKstISOString();
       const phone = data.phone || "";
-      const joinMemberKey = data.member?.memberSeq || data.member?.memberId || data.name || "member";
-      const joinApplyId = buildGoogleSheetRecordId("ja", submittedAt, joinMemberKey, join.id || "");
-      const country = getApplyJoinCountryName(join);
       const member = {
         ...(data.member || {}),
-        memberEmail: data.member?.memberEmail || data.member?.email || data.memberEmail || data.email || ""
+        memberEmail: data.member?.memberEmail || data.member?.email || data.memberEmail || data.email || "",
+        kakaoId: data.member?.kakaoId || data.kakaoId || "",
+        memberMobile: normalizeJoinMemberPhone(data.member?.memberMobile || phone || "")
       };
+      const memberKey = getJoinMemberCanonicalKey(member);
+      member.memberKey = memberKey;
+      const joinMemberKey = memberKey || data.member?.memberSeq || data.member?.memberId || data.name || "member";
+      const joinApplyId = buildGoogleSheetRecordId("ja", submittedAt, joinMemberKey, join.id || "");
+      const country = getApplyJoinCountryName(join);
       return {
         joinApplyId,
+        applicationId: joinApplyId,
         source: "join_apply",
         submittedAt,
         pageUrl: location.href,
+        memberKey,
         member,
         targetType: target.targetType,
+        targetJoinId: target.targetJoinId,
         targetScheduleId: target.targetScheduleId,
         targetApplicationId: target.targetApplicationId,
+        targetProductKey: target.targetProductKey,
+        erpProductId: target.erpProductId,
+        erpEventSeq: target.erpEventSeq,
+        target: {
+          type: target.targetType,
+          joinId: target.targetJoinId,
+          scheduleId: target.targetScheduleId,
+          applicationId: target.targetApplicationId,
+          productKey: target.targetProductKey
+        },
         product: {
-          erpProductId: join.erpProductId || productReference.id || join.id || "",
-          erpEventSeq: join.erpEventSeq || productReference.eventSeq || "",
+          erpProductId: target.erpProductId || join.erpProductId || productReference.id || "",
+          erpEventSeq: target.erpEventSeq || join.erpEventSeq || productReference.eventSeq || "",
           productName: join.title || "",
           departureDate: join.departureDate || "",
           returnDate: join.returnDate || "",
@@ -45577,14 +45932,35 @@
     }
 
     function findJoinForJoinApplicationRow(row = {}) {
+      const targetJoinId = String(row.targetJoinId || row.joinId || "").trim();
       const targetScheduleId = String(row.targetScheduleId || row.scheduleId || "").trim();
       const targetApplicationId = String(row.targetApplicationId || row.sourceApplicationId || "").trim();
       const erpProductId = String(row.erpProductId || row.goodSeq || row.productId || "").trim();
       const erpEventSeq = String(row.erpEventSeq || row.eventSeq || "").trim();
-      return joins.find((join) => targetScheduleId && String(join.scheduleId || join.id || "") === targetScheduleId)
+      const targetProductKey = String(row.targetProductKey || (erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : "")).trim();
+      return joins.find((join) => {
+        if (!targetJoinId) return false;
+        const joinKeys = [
+          join.id,
+          join.scheduleId,
+          join.sourceApplicationId,
+          join.applicationId,
+          getNestedValue(join.sheetApplication || {}, "scheduleId"),
+          getNestedValue(join.sheetApplication || {}, "applicationId"),
+          getNestedValue(join.displayRule || {}, "recommendedScheduleId"),
+          getNestedValue(join.displayRule || {}, "displayRuleId")
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        return joinKeys.includes(targetJoinId);
+      })
+        || joins.find((join) => targetScheduleId && String(join.scheduleId || join.id || "") === targetScheduleId)
         || joins.find((join) => targetApplicationId && String(join.sourceApplicationId || join.applicationId || getNestedValue(join.displayRule || {}, "recommendedScheduleId") || "") === targetApplicationId)
-        || joins.find((join) => erpProductId && erpEventSeq && String(join.erpProductId || join.goodSeq || "") === erpProductId && String(join.erpEventSeq || join.eventSeq || "") === erpEventSeq)
-        || joins.find((join) => erpProductId && String(join.erpProductId || join.goodSeq || "") === erpProductId)
+        || joins.find((join) => {
+          if (!targetProductKey || !erpProductId || !erpEventSeq) return false;
+          const reference = getSecretTourProductReference(join);
+          const joinProductId = String(join.erpProductId || join.goodSeq || reference.id || reference.goodSeq || "").trim();
+          const joinEventSeq = String(join.erpEventSeq || join.eventSeq || reference.eventSeq || "").trim();
+          return targetProductKey === `erp:${joinProductId}:${joinEventSeq}`;
+        })
         || null;
     }
 
@@ -45597,6 +45973,13 @@
       const applicationJoin = getNestedValue(application, "join") || {};
       const applicationProduct = getNestedValue(application, "product") || {};
       const productReference = getSecretTourProductReference(applicationProduct || application);
+      const targetJoinId = String(
+        application.targetJoinId
+        || application.joinId
+        || getNestedValue(application, "target.joinId")
+        || getNestedValue(application, "join.id")
+        || ""
+      ).trim();
       const targetScheduleId = String(
         application.targetScheduleId
         || application.scheduleId
@@ -45629,9 +46012,16 @@
         || productReference.eventSeq
         || ""
       ).trim();
+      const targetProductKey = String(
+        application.targetProductKey
+        || getNestedValue(application, "target.productKey")
+        || (erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : "")
+      ).trim();
       return {
+        targetJoinId,
         targetScheduleId,
         targetApplicationId,
+        targetProductKey,
         erpProductId,
         erpEventSeq,
         title: String(applicationJoin.title || applicationProduct.productName || application.productName || application.title || "").trim(),
@@ -45643,6 +46033,7 @@
     function findJoinForJoinApplicationPayload(application = {}) {
       const target = getJoinApplicationTargetRow(application);
       const scheduleCandidates = [
+        target.targetJoinId,
         target.targetScheduleId,
         getAdminRecommendedJoinIdFromApplicationId(target.targetApplicationId)
       ].filter(Boolean);
@@ -45669,40 +46060,19 @@
       if (applicationMatch) return applicationMatch;
       const rowMatch = findJoinForJoinApplicationRow(target);
       if (rowMatch) return rowMatch;
-      const productMatch = joins.find((join) => {
-        const joinProduct = getSecretTourProductReference(join);
-        const joinProductIds = [
-          join.erpProductId,
-          join.goodSeq,
-          join.productId,
-          joinProduct.id,
-          joinProduct.goodSeq
-        ].map((value) => String(value || "").trim()).filter(Boolean);
-        const joinEventIds = [
-          join.erpEventSeq,
-          join.eventSeq,
-          joinProduct.eventSeq
-        ].map((value) => String(value || "").trim()).filter(Boolean);
-        const productMatched = target.erpProductId && joinProductIds.includes(target.erpProductId);
-        const eventMatched = !target.erpEventSeq || joinEventIds.includes(target.erpEventSeq);
-        return productMatched && eventMatched;
-      });
-      if (productMatch) return productMatch;
-      return joins.find((join) => {
-        const sameTitle = target.title && String(join.title || "").trim() === target.title;
-        if (!sameTitle) return false;
-        const sameDeparture = !target.departureDate || String(join.departureDate || "").slice(0, 10) === target.departureDate;
-        const sameReturn = !target.returnDate || String(join.returnDate || join.departureDate || "").slice(0, 10) === target.returnDate;
-        return sameDeparture && sameReturn;
-      }) || null;
+      return null;
     }
 
     function normalizeJoinApplyPayload(item = {}) {
       if (item.applicant || item.join || item.agreements) {
         return {
           ...item,
+          memberKey: item.memberKey || getNestedValue(item, "member.memberKey") || "",
+          targetJoinId: item.targetJoinId || getNestedValue(item, "target.joinId") || "",
+          targetProductKey: item.targetProductKey || getNestedValue(item, "target.productKey") || "",
           member: {
             ...(item.member || {}),
+            memberKey: getNestedValue(item, "member.memberKey") || item.memberKey || "",
             memberSeq: getNestedValue(item, "member.memberSeq") || item.memberSeq || "",
             memberId: getNestedValue(item, "member.memberId") || item.memberId || "",
             memberName: getNestedValue(item, "member.memberName") || item.memberName || item.name || "",
@@ -45728,10 +46098,23 @@
       const targetScheduleId = String(item.targetScheduleId || item.scheduleId || "").trim();
       const targetApplicationId = String(item.targetApplicationId || item.sourceApplicationId || "").trim();
       const targetJoin = findJoinForJoinApplicationRow({
+        targetJoinId: item.targetJoinId || item.joinId || "",
         targetScheduleId,
         targetApplicationId,
         erpProductId: item.erpProductId || item.productId || productReference.id || "",
-        erpEventSeq: item.erpEventSeq || item.eventSeq || productReference.eventSeq || ""
+        erpEventSeq: item.erpEventSeq || item.eventSeq || productReference.eventSeq || "",
+        targetProductKey: item.targetProductKey || ""
+      });
+      const targetProductId = item.erpProductId || productReference.id || "";
+      const targetEventSeq = item.erpEventSeq || productReference.eventSeq || "";
+      const targetProductKey = item.targetProductKey || (targetProductId && targetEventSeq ? `erp:${targetProductId}:${targetEventSeq}` : "");
+      const memberKey = getJoinMemberCanonicalKey({
+        memberKey: item.memberKey || "",
+        memberSeq: item.memberSeq || "",
+        memberId: item.memberId || "",
+        memberMobile: item.memberMobile || item.memberPhone || item.applicantMobile || item.phone || "",
+        memberEmail: item.memberEmail || item.email || "",
+        kakaoId: item.kakaoId || getNestedValue(item, "kakao.kakaoId") || ""
       });
       const recommendedJoinId = targetScheduleId.startsWith("admin-recommended-")
         ? targetScheduleId
@@ -45742,22 +46125,30 @@
         || recommendedJoinId
         || (item.targetType === "new_schedule" && targetScheduleId ? `${BUILDER_APPLICATION_JOIN_PREFIX}${targetScheduleId}` : "")
         || item.joinId
-        || item.productId
-        || item.erpProductId
-        || productReference.id
         || "";
       return {
         joinApplyId: item.joinApplyId || item.applicationId || "",
         source: item.source || "join_apply",
         submittedAt: item.submittedAt || item.createdAt || "",
+        quoteId: item.quoteId || "",
+        quoteNo: item.quoteNo || "",
+        quoteStatus: item.quoteStatus || "",
+        quoteUrl: item.quoteUrl || "",
+        quotePageUrl: item.quotePageUrl || item.quoteUrl || "",
+        quotePdfUrl: item.quotePdfUrl || "",
+        quoteGeneratedAt: item.quoteGeneratedAt || "",
         pageUrl: item.pageUrl || "",
         targetType: item.targetType || "",
+        targetJoinId: item.targetJoinId || targetJoinId,
         targetScheduleId,
         targetApplicationId,
+        targetProductKey,
+        memberKey,
         member: {
-          memberSeq: item.memberSeq || "",
-          memberId: item.memberId || "",
-          memberName: item.memberName || item.applicantName || item.name || "",
+            memberKey,
+            memberSeq: item.memberSeq || "",
+            memberId: item.memberId || "",
+            memberName: item.memberName || item.applicantName || item.name || "",
           memberChannel: item.memberChannel || "",
           memberMobile: normalizeJoinMemberPhone(item.memberMobile || item.memberPhone || item.applicantMobile || item.phone || ""),
           memberEmail: item.memberEmail || item.email || "",
@@ -45768,7 +46159,7 @@
           erpEventSeq: item.erpEventSeq || productReference.eventSeq || ""
         },
         join: {
-          id: targetJoinId,
+          id: item.targetJoinId || targetJoinId,
           title: item.joinTitle || item.productName || "",
           region: item.joinRegion || item.region || "",
           category: item.joinCategory || item.category || "",
@@ -46216,6 +46607,16 @@
     function normalizeBuilderApplicationPayload(item = {}) {
       if (item.applicant || item.trip || item.agreements) {
         const normalized = ensureBuilderApplicationIdentifiers(item);
+        const memberKey = getJoinMemberCanonicalKey({
+          ...(normalized.member || {}),
+          memberKey: normalized.memberKey || getNestedValue(normalized, "member.memberKey") || ""
+        });
+        normalized.memberKey = normalized.memberKey || memberKey;
+        normalized.member = {
+          ...(normalized.member || {}),
+          memberKey: getNestedValue(normalized, "member.memberKey") || normalized.memberKey || memberKey,
+          kakaoId: getNestedValue(normalized, "member.kakaoId") || normalized.kakaoId || ""
+        };
         const reference = getSecretTourProductReference({
           id: getNestedValue(normalized, "trip.productId"),
           erpProductId: getNestedValue(normalized, "trip.erpProductId"),
@@ -46240,19 +46641,29 @@
         scheduleId: item.scheduleId || "",
         submittedAt: item.submittedAt || item.createdAt || "",
         source: item.source || "new_schedule_builder",
+        memberKey: item.memberKey || "",
         status: item.applicationStatus || item.status || item.scheduleStatus || item.departureStatus || item.managerStatus || item.confirmStatus || "",
         scheduleStatus: item.scheduleStatus || item.applicationStatus || item.status || "",
         departureStatus: item.departureStatus || item.confirmStatus || "",
         managerStatus: item.managerStatus || "",
         paymentStatus: item.paymentStatus || item.balanceStatus || "",
+        quoteId: item.quoteId || "",
+        quoteNo: item.quoteNo || "",
+        quoteStatus: item.quoteStatus || "",
+        quoteUrl: item.quoteUrl || "",
+        quotePageUrl: item.quotePageUrl || item.quoteUrl || "",
+        quotePdfUrl: item.quotePdfUrl || "",
+        quoteGeneratedAt: item.quoteGeneratedAt || "",
         pageUrl: item.pageUrl || "",
         member: {
+          memberKey: item.memberKey || "",
           memberSeq: item.memberSeq || "",
           memberId: item.memberId || "",
           memberName: item.memberName || item.applicantName || item.creatorName || item.name || "",
           memberChannel: item.memberChannel || "",
           memberMobile: normalizeJoinMemberPhone(item.memberMobile || item.mobile || item.applicantMobile || item.creatorPhone || item.phone || ""),
-          memberEmail: item.memberEmail || item.email || ""
+          memberEmail: item.memberEmail || item.email || "",
+          kakaoId: item.kakaoId || ""
         },
         applicant: {
           name: item.applicantName || item.creatorName || item.name || "",
@@ -47164,11 +47575,40 @@
       googleSheetBuilderApplicationsReadFailed = false;
       renderJoins();
       try {
-        const rows = await fetchGolfJoinSheetRows({
-          sheet: "new_schedule_applications",
-          source: "new_schedule_builder",
-          limit: "100"
-        }, "Builder applications");
+        const memberLookupParams = getJoinSheetMemberLookupParams(getJoinCachedCurrentMember());
+        const hasMemberLookup = Object.values(memberLookupParams).some((value) => String(value || "").trim());
+        const [publicRows, memberRows] = await Promise.all([
+          fetchGolfJoinSheetRows({
+            sheet: "new_schedule_applications",
+            source: "new_schedule_builder",
+            limit: "100"
+          }, "Builder applications"),
+          hasMemberLookup ? fetchGolfJoinSheetRows({
+            sheet: "new_schedule_applications",
+            source: "new_schedule_builder",
+            ...memberLookupParams,
+            limit: "100"
+          }, "Member builder applications").catch((error) => {
+            console.warn("Failed to load member builder applications.", error);
+            return [];
+          }) : Promise.resolve([])
+        ]);
+        const rows = [];
+        const rowIndexesByKey = new Map();
+        const mergeRow = (row) => {
+          const keys = getBuilderPayloadIdentityKeys(row);
+          const existingIndex = keys.map((key) => rowIndexesByKey.get(key)).find((index) => Number.isInteger(index));
+          if (Number.isInteger(existingIndex)) {
+            rows[existingIndex] = { ...rows[existingIndex], ...row };
+            getBuilderPayloadIdentityKeys(rows[existingIndex]).forEach((key) => rowIndexesByKey.set(key, existingIndex));
+            return;
+          }
+          const nextIndex = rows.length;
+          rows.push(row);
+          keys.forEach((key) => rowIndexesByKey.set(key, nextIndex));
+        };
+        publicRows.forEach(mergeRow);
+        memberRows.forEach(mergeRow);
         const authoritativeKeys = rows.flatMap(getBuilderPayloadIdentityKeys);
         clearBuilderApplicationLocalCache({ authoritativeKeys });
         syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys);
@@ -50881,6 +51321,9 @@
               </div>
             </button>
           `).join("")}
+          <div class="region-empty-recommend-mobile-list calendar-accordion-list">
+            ${products.map((join) => renderRegionProductCard(join, { showDetailButton: true })).join("")}
+          </div>
         </div>
       `;
       return `
@@ -52168,6 +52611,7 @@
       openJoinActionLoading("참여 신청을 접수하고 있어요");
       try {
         const applyPayload = buildJoinApplyPayload(applyData);
+        validateJoinApplyCanonicalPayload(applyPayload);
         try {
           await saveJoinApplyToGoogleSheet(applyPayload);
         } catch (error) {
@@ -52188,7 +52632,7 @@
           await closeJoinActionLoading();
           openJoinScheduleFullAlert();
         } else {
-          alert("참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+          alert(error?.userMessage || "참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
       } finally {
         await closeJoinActionLoading();

@@ -95,6 +95,8 @@ function createGolfjoinQuoteHtml(quote = {}, options = {}) {
     .quote-document-head h2{margin:0 0 10px;color:var(--ink);font-size:29px;line-height:1.3}
     .quote-document-head p{margin:0;color:var(--muted);font-size:14px;line-height:1.7}
     .quote-status{flex:none;padding:9px 13px;border-radius:5px;background:var(--blue-soft);color:var(--blue-dark);font-size:13px;font-weight:700}
+    .quote-total-callout{margin:34px 0 42px;padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px;background:var(--blue);color:#fff}
+    .quote-total-callout span{color:#dcecff;font-size:14px}.quote-total-callout strong{font-size:30px}
     .quote-summary{display:grid;grid-template-columns:1.35fr .65fr;margin:34px 0 42px;background:var(--blue)}
     .quote-summary-main,.quote-summary-total{padding:25px 28px}
     .quote-summary-total{border-left:1px solid rgba(255,255,255,.24);text-align:right}
@@ -128,7 +130,7 @@ function createGolfjoinQuoteHtml(quote = {}, options = {}) {
     .quote-detail-block ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
     .quote-detail-block li{position:relative;padding-left:18px;color:var(--text);font-size:14px;line-height:1.65}
     .quote-detail-block li::before{content:"";position:absolute;left:1px;top:.7em;width:6px;height:6px;border-radius:50%;background:var(--blue)}
-    .quote-process{display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--panel)}
+    .quote-process{margin-top:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--panel)}
     .quote-step{position:relative;padding:25px 25px 25px 66px}
     .quote-step + .quote-step{border-left:1px solid var(--line)}
     .quote-step-number{position:absolute;left:24px;top:25px;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:var(--blue-soft);color:var(--blue-dark);font-size:13px;font-weight:700}
@@ -136,6 +138,7 @@ function createGolfjoinQuoteHtml(quote = {}, options = {}) {
     .quote-step strong{display:block;margin-bottom:5px;color:var(--ink);font-size:15px}
     .quote-step span{color:var(--muted);font-size:12px}
     .quote-notice{margin-top:28px;padding:22px 24px;border-left:4px solid var(--blue);background:var(--panel);color:var(--muted);font-size:14px;line-height:1.75;white-space:pre-line}
+    .quote-detail-block .quote-notice{margin-top:0;padding:0;border-left:0;background:transparent}
     .quote-footer{padding:28px 48px;display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
     @media(max-width:700px){
       body{padding-bottom:82px}
@@ -143,7 +146,7 @@ function createGolfjoinQuoteHtml(quote = {}, options = {}) {
       .quote-topbar-inner{height:74px;padding:10px 16px}.quote-brand{display:none}.quote-actions{width:100%}.quote-action{flex:1;height:50px}
       .quote-page{width:100%;margin:0;box-shadow:none}.quote-hero{min-height:290px;padding:32px 22px}.quote-hero h1{font-size:28px}.quote-hero-meta{font-size:15px}
       .quote-body{padding:32px 20px 38px}.quote-document-head{display:block}.quote-status{display:inline-block;margin-top:18px}
-      .quote-summary{grid-template-columns:1fr}.quote-summary-main,.quote-summary-total{padding:22px}.quote-summary-total{border-left:0;border-top:1px solid rgba(255,255,255,.24);text-align:left}.quote-summary-total strong{font-size:27px}
+      .quote-total-callout{align-items:flex-start;flex-direction:column;padding:22px}.quote-total-callout strong{font-size:27px}
       .quote-info-grid{grid-template-columns:1fr 1fr}.quote-info-item:nth-child(3n){border-right:1px solid var(--line)}.quote-info-item:nth-child(2n){border-right:0}.quote-info-item:nth-child(n+3){border-top:1px solid var(--line)}
       .quote-price-table th,.quote-price-table td{padding:0 10px}.quote-price-table th{width:34%;font-size:14px}.quote-price-table td:nth-child(2){font-size:12px}.quote-price-table td:last-child{width:32%;font-size:14px}.quote-price-table tr.total th,.quote-price-table tr.total td:last-child{font-size:17px}
       .quote-detail-columns,.quote-process{grid-template-columns:1fr}.quote-detail-block + .quote-detail-block,.quote-step + .quote-step{border-left:0;border-top:1px solid var(--line)}
@@ -175,28 +178,22 @@ function createGolfjoinQuoteHtml(quote = {}, options = {}) {
         <div><h2>예약요청 견적서</h2><p>견적번호 ${escapeHtml(quote.quoteNo)}<br>생성일 ${escapeHtml(formatGeneratedAt(quote.generatedAt))}</p></div>
         <span class="quote-status">담당자 확인 견적</span>
       </header>
-      <section class="quote-summary">
-        <div class="quote-summary-main"><span class="quote-summary-label">신청 일정</span><strong>${escapeHtml(regionText)}</strong><span>${escapeHtml(dateText)}</span></div>
-        <div class="quote-summary-total"><span class="quote-summary-label">예상 총액</span><strong>${escapeHtml(quote.formattedEstimatedTotal)}</strong></div>
-      </section>
       <section class="quote-section">
-        <h3 class="quote-section-title"><span class="quote-section-number">01</span>신청 정보</h3>
+        <h3 class="quote-section-title"><span class="quote-section-number">01</span>예약 정보</h3>
         <div class="quote-info-grid">
           <div class="quote-info-item"><span>신청자</span><strong>${escapeHtml(quote.applicantName)}</strong></div>
           <div class="quote-info-item"><span>연락처</span><strong>${escapeHtml(maskPhone(quote.applicantPhone))}</strong></div>
           <div class="quote-info-item"><span>신청 유형</span><strong>${escapeHtml(quote.applicationType)}</strong></div>
-          <div class="quote-info-item"><span>신청 인원</span><strong>${escapeHtml(quote.people)}명</strong></div>
           <div class="quote-info-item"><span>숙소 타입</span><strong>${escapeHtml(quote.roomType)}</strong></div>
           <div class="quote-info-item"><span>항공</span><strong>${escapeHtml(quote.airline)}</strong></div>
+          <div class="quote-info-item"><span>이용 공항</span><strong>${escapeHtml([quote.departureAirport, quote.arrivalAirport].filter(Boolean).join(" → ") || "-")}</strong></div>
         </div>
       </section>
       <section class="quote-section">
-        <h3 class="quote-section-title"><span class="quote-section-number">02</span>일정 정보</h3>
-        <div class="quote-product-name"><span>상품명</span><strong>${escapeHtml(quote.productName)}</strong></div>
-        <div class="quote-info-grid">
-          <div class="quote-info-item"><span>지역</span><strong>${escapeHtml(regionText)}</strong></div>
-          <div class="quote-info-item"><span>출발일</span><strong>${escapeHtml(quote.departureDate)}</strong></div>
-          <div class="quote-info-item"><span>도착일</span><strong>${escapeHtml(quote.returnDate)}</strong></div>
+        <h3 class="quote-section-title"><span class="quote-section-number">02</span>실제 상품 정보</h3>
+        <div class="quote-detail-columns">
+          <div class="quote-detail-block"><h4>항공 일정</h4><ul>${renderList(quote.flightScheduleItems, "상품 상세 확인 필요")}</ul></div>
+          <div class="quote-detail-block"><h4>주요 일정</h4><ul>${renderList(quote.itineraryItems, "상품 상세 확인 필요")}</ul></div>
         </div>
       </section>
       <section class="quote-section">
@@ -212,20 +209,23 @@ function createGolfjoinQuoteHtml(quote = {}, options = {}) {
         </table>
       </section>
       <section class="quote-section">
-        <h3 class="quote-section-title"><span class="quote-section-number">04</span>포함 및 불포함 사항</h3>
+        <h3 class="quote-section-title"><span class="quote-section-number">04</span>실제 상품 포함·불포함 사항</h3>
         <div class="quote-detail-columns">
           <div class="quote-detail-block"><h4>포함 사항</h4><ul>${renderList(quote.includedItems)}</ul></div>
           <div class="quote-detail-block"><h4>불포함 사항</h4><ul>${renderList(quote.excludedItems)}</ul></div>
         </div>
       </section>
       <section class="quote-section">
-        <h3 class="quote-section-title"><span class="quote-section-number">05</span>예약 진행 안내</h3>
+        <h3 class="quote-section-title"><span class="quote-section-number">05</span>상품 참고 및 예약 안내</h3>
+        <div class="quote-detail-columns">
+          <div class="quote-detail-block"><h4>상품 참고사항</h4><ul>${renderList(quote.productNotes, "등록된 상품 참고사항 없음")}</ul></div>
+          <div class="quote-detail-block"><h4>견적 유의사항</h4><div class="quote-notice">${escapeHtml(quote.specialNotes)}</div></div>
+        </div>
         <div class="quote-process">
           <div class="quote-step"><span class="quote-step-number">1</span><strong>견적 확인</strong><span>상품·일정·금액 확인</span></div>
           <div class="quote-step"><span class="quote-step-number">2</span><strong>예약금 입금</strong><span>${escapeHtml(quote.accountText)}</span></div>
           <div class="quote-step"><span class="quote-step-number">3</span><strong>예약 진행</strong><span>담당자 확인 후 확정 안내</span></div>
         </div>
-        <div class="quote-notice">${escapeHtml(quote.specialNotes)}</div>
       </section>
     </div>
     <footer class="quote-footer"><strong>시크릿투어 해외 골프 조인</strong><span>카카오채널 문의 · www.secret-tour.com</span></footer>

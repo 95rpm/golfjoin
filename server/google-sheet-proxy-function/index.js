@@ -2272,6 +2272,14 @@ function splitQuoteList(value, fallback = []) {
   return items.length ? items : fallback;
 }
 
+function firstQuoteList(...values) {
+  for (const value of values) {
+    const items = splitQuoteList(value, []);
+    if (items.length) return items;
+  }
+  return [];
+}
+
 function buildQuoteData(payload = {}, existingRow = {}) {
   const sheetName = asText(payload.sheet);
   const row = { ...(existingRow || {}), ...(payload.participant || {}) };
@@ -2291,8 +2299,24 @@ function buildQuoteData(payload = {}, existingRow = {}) {
   const depositPerPerson = parseQuoteMoney(firstText(draft.depositPerPerson, GOLFJOIN_QUOTE_DEPOSIT_PER_PERSON));
   const deposit = depositPerPerson ? depositPerPerson * people : 0;
   const balance = estimatedTotal && deposit ? Math.max(0, estimatedTotal - deposit) : 0;
-  const defaultIncludedItems = ["그린피 및 골프 일정", "일정표 기준 숙박", "일정표 기준 차량 및 미팅·샌딩"];
-  const defaultExcludedItems = ["개인 경비 및 매너팁", "견적서에 별도 표기되지 않은 비용"];
+  const includedItems = firstQuoteList(
+    draft.includedItems,
+    product.includes,
+    product.includeItems,
+    row.includes,
+    row.includeItems,
+    getValue(row, "product.includes"),
+    getValue(row, "trip.includes")
+  );
+  const excludedItems = firstQuoteList(
+    draft.excludedItems,
+    product.excludes,
+    product.excludeItems,
+    row.excludes,
+    row.excludeItems,
+    getValue(row, "product.excludes"),
+    getValue(row, "trip.excludes")
+  );
   return {
     quoteId,
     quoteNo: `GJQ-${quoteDate}-${quoteSuffix}`,
@@ -2308,6 +2332,8 @@ function buildQuoteData(payload = {}, existingRow = {}) {
     departureDate: normalizeSheetDateText(firstText(draft.departureDate, row.departureDate, row.departureDateFrom, schedule.departureDate, schedule.departureDateFrom, product.departureDate)),
     returnDate: normalizeSheetDateText(firstText(draft.returnDate, row.returnDate, row.returnDateTo, schedule.returnDate, schedule.returnDateTo, product.returnDate)),
     airline: firstText(draft.airline, getQuoteFlightText(row, schedule, product)),
+    departureAirport: firstText(draft.departureAirport, row.departureAirport, schedule.departureAirport, product.departureAirport, product.depAirport),
+    arrivalAirport: firstText(draft.arrivalAirport, row.arrivalAirport, schedule.arrivalAirport, product.arrivalAirport, product.arrAirport),
     roomType: firstText(draft.roomType, getQuoteRoomType(row)),
     people,
     companions: asText(row.applicantCompanions || row.companions),
@@ -2326,8 +2352,11 @@ function buildQuoteData(payload = {}, existingRow = {}) {
     formattedDeposit: formatQuoteMoney(deposit),
     formattedBalance: estimatedTotal ? `${Math.round(balance).toLocaleString("ko-KR")}원` : "담당자 확인",
     accountText: firstText(draft.accountText, GOLFJOIN_QUOTE_ACCOUNT_TEXT),
-    includedItems: splitQuoteList(draft.includedItems, defaultIncludedItems),
-    excludedItems: splitQuoteList(draft.excludedItems, defaultExcludedItems),
+    flightScheduleItems: firstQuoteList(draft.flightScheduleItems, product.flightScheduleItems, row.flightScheduleItems),
+    itineraryItems: firstQuoteList(draft.itineraryItems, product.itineraryItems, row.itineraryItems),
+    includedItems: includedItems.length ? includedItems : ["실제 상품 포함 사항 확인 필요"],
+    excludedItems: excludedItems.length ? excludedItems : ["실제 상품 불포함 사항 확인 필요"],
+    productNotes: firstQuoteList(draft.productNotes, product.notes, product.notice, row.notes, row.notice),
     specialNotes: firstText(
       draft.specialNotes,
       "본 견적서는 현재 신청 정보와 조회 가능한 상품 조건을 기준으로 작성되었습니다. 항공 좌석, 객실 가능 여부, 환율 및 현지 상황에 따라 담당자 확인 후 최종 금액이 변경될 수 있습니다."

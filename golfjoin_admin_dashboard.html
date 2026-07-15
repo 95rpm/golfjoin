@@ -156,12 +156,13 @@
       gap: 6px;
     }
     .nav-button {
+      position: relative;
       width: 100%;
       min-height: 42px;
       display: flex;
       align-items: center;
       gap: 10px;
-      border: 1px solid transparent;
+      border: 0;
       border-radius: 8px;
       background: transparent;
       color: var(--muted);
@@ -171,21 +172,51 @@
       font-weight: 700;
       overflow: hidden;
       white-space: nowrap;
-      transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+      transition: background 0.18s ease, color 0.18s ease;
     }
-    .nav-button.active,
-    .nav-button:hover {
-      border-color: var(--line);
-      background: var(--primary-soft);
+    .nav-button::before {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 50%;
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: var(--primary);
+      opacity: 0;
+      transform: translateY(-50%) scale(0.9);
+      transition: opacity 0.16s ease, transform 0.18s ease;
+    }
+    .nav-button.active {
+      background: transparent;
       color: var(--text);
     }
+    .nav-button.active::before {
+      opacity: 1;
+      transform: translateY(-50%) scale(1);
+    }
+    .nav-button:hover {
+      background: #f6f7f9;
+      color: var(--text);
+    }
+    .sidebar:hover .nav-button.active {
+      background: var(--primary-soft);
+    }
     .nav-icon {
+      position: relative;
+      z-index: 1;
       width: 24px;
       height: 24px;
       flex: 0 0 24px;
       color: currentColor;
+      transition: color 0.16s ease;
+    }
+    .nav-button.active .nav-icon {
+      color: #ffffff;
     }
     .nav-label {
+      position: relative;
+      z-index: 1;
       max-width: 140px;
       white-space: nowrap;
       opacity: 1;
@@ -222,8 +253,8 @@
       white-space: nowrap;
     }
     .sidebar-footer .button:hover {
-      border-color: var(--line);
-      background: var(--primary-soft);
+      border-color: transparent;
+      background: #f6f7f9;
       color: var(--text);
       filter: none;
     }
@@ -1231,15 +1262,15 @@
     }
     .participant-table th:nth-child(7),
     .participant-table td:nth-child(7) {
-      width: 124px;
+      width: 88px;
     }
     .participant-table th:nth-child(8),
     .participant-table td:nth-child(8) {
-      width: 104px;
+      width: 60px;
     }
     .participant-table th:nth-child(9),
     .participant-table td:nth-child(9) {
-      width: 76px;
+      width: 64px;
     }
     .participant-table th:nth-child(10),
     .participant-table td:nth-child(10) {
@@ -1668,6 +1699,24 @@
       font-size: 16px;
       font-weight: 800;
     }
+    .quote-editor-source-state {
+      margin: -5px 0 16px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #f4f7fa;
+      color: #5f6b7b;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .quote-editor-source-state.success {
+      background: #edf8f2;
+      color: #197149;
+    }
+    .quote-editor-source-state.warning {
+      background: #fff7e8;
+      color: #9a6700;
+    }
     .quote-editor-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2034,6 +2083,8 @@
               <div class="quote-editor-field"><label for="quoteDepartureDate">출발일</label><input id="quoteDepartureDate" data-quote-field="departureDate" type="date"></div>
               <div class="quote-editor-field"><label for="quoteReturnDate">도착일</label><input id="quoteReturnDate" data-quote-field="returnDate" type="date"></div>
               <div class="quote-editor-field"><label for="quoteAirline">항공</label><input id="quoteAirline" data-quote-field="airline"></div>
+              <div class="quote-editor-field"><label for="quoteDepartureAirport">출발공항</label><input id="quoteDepartureAirport" data-quote-field="departureAirport"></div>
+              <div class="quote-editor-field"><label for="quoteArrivalAirport">도착공항</label><input id="quoteArrivalAirport" data-quote-field="arrivalAirport"></div>
               <div class="quote-editor-field"><label for="quoteRoomType">숙소 타입</label><select id="quoteRoomType" data-quote-field="roomType"><option value="2인1실">2인 1실</option><option value="1인1실">1인 1실</option><option value="별도 협의">별도 협의</option></select></div>
               <div class="quote-editor-field"><label for="quotePeople">신청 인원</label><input id="quotePeople" data-quote-field="people" type="number" min="1" max="4" inputmode="numeric"></div>
               <div class="quote-editor-field"><label for="quoteApplicationType">신청 유형</label><select id="quoteApplicationType" data-quote-field="applicationType"><option value="새모임 생성">새모임 생성</option><option value="참여신청">참여신청</option></select></div>
@@ -2049,11 +2100,15 @@
             </div>
           </section>
           <section class="quote-editor-section">
-            <h3 class="quote-editor-section-title">포함·불포함 및 안내</h3>
+            <h3 class="quote-editor-section-title">실제 상품 상세 정보</h3>
+            <div class="quote-editor-source-state" id="quoteProductSourceState">상품 상세 정보를 확인하기 전입니다.</div>
             <div class="quote-editor-grid">
+              <div class="quote-editor-field full"><label for="quoteFlightScheduleItems">항공 일정 · 한 줄에 한 항목</label><textarea id="quoteFlightScheduleItems" data-quote-field="flightScheduleItems"></textarea></div>
+              <div class="quote-editor-field full"><label for="quoteItineraryItems">주요 일정 · 한 줄에 한 항목</label><textarea id="quoteItineraryItems" data-quote-field="itineraryItems"></textarea></div>
               <div class="quote-editor-field full"><label for="quoteIncludedItems">포함 사항 · 한 줄에 한 항목</label><textarea id="quoteIncludedItems" data-quote-field="includedItems"></textarea></div>
               <div class="quote-editor-field full"><label for="quoteExcludedItems">불포함 사항 · 한 줄에 한 항목</label><textarea id="quoteExcludedItems" data-quote-field="excludedItems"></textarea></div>
-              <div class="quote-editor-field full"><label for="quoteSpecialNotes">견적 안내문</label><textarea id="quoteSpecialNotes" data-quote-field="specialNotes"></textarea></div>
+              <div class="quote-editor-field full"><label for="quoteProductNotes">상품 참고사항 · 한 줄에 한 항목</label><textarea id="quoteProductNotes" data-quote-field="productNotes"></textarea></div>
+              <div class="quote-editor-field full"><label for="quoteSpecialNotes">견적 유의사항</label><textarea id="quoteSpecialNotes" data-quote-field="specialNotes"></textarea></div>
             </div>
           </section>
         </form>
@@ -5254,16 +5309,65 @@
         departureDate: normalizeQuoteEditorDate(participant.departureDate || participant.departureDateFrom || row.departureDate || row.departureDateFrom || product.departureDate),
         returnDate: normalizeQuoteEditorDate(participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate),
         airline: participant.airline || row.airline || product.airline || product.airlineName || product.air2Nm || "담당자 확인",
+        departureAirport: participant.departureAirport || row.departureAirport || product.departureAirport || product.depAirport || "",
+        arrivalAirport: participant.arrivalAirport || row.arrivalAirport || product.arrivalAirport || product.arrAirport || "",
         roomType: participant.applicantRoomType || participant.roomType || row.applicantRoomType || "2인1실",
         people,
         unitPrice: parseQuoteEditorAmount(participant.productPrice || participant.price || row.productPrice || row.price || product.productPrice || product.price),
         singleRoomSurcharge: parseQuoteEditorAmount(participant.singleRoomSurcharge || row.singleRoomSurcharge),
         depositPerPerson: 200000,
         accountText: "담당자 확인 후 안내",
-        includedItems: "그린피 및 골프 일정\n일정표 기준 숙박\n일정표 기준 차량 및 미팅·샌딩",
-        excludedItems: "개인 경비 및 매너팁\n견적서에 별도 표기되지 않은 비용",
+        flightScheduleItems: "",
+        itineraryItems: "",
+        includedItems: "",
+        excludedItems: "",
+        productNotes: "",
         specialNotes: "본 견적서는 현재 신청 정보와 조회 가능한 상품 조건을 기준으로 작성되었습니다. 항공 좌석, 객실 가능 여부, 환율 및 현지 상황에 따라 담당자 확인 후 최종 금액이 변경될 수 있습니다."
       };
+    }
+
+    function formatQuoteEditorList(items = []) {
+      return [...new Set(parseList(items).map(asText).filter(Boolean))].join("\n");
+    }
+
+    function formatQuoteEditorItinerary(schedule = []) {
+      if (!Array.isArray(schedule)) return "";
+      return schedule.map((item, index) => {
+        const heading = [item?.day || `${index + 1}일차`, item?.dateText].map(asText).filter(Boolean).join(" ");
+        const points = parseList(item?.points);
+        const content = points.length ? points.join(" / ") : asText(item?.content || item?.rawText);
+        const extras = [
+          item?.hotel ? `숙소 ${asText(item.hotel)}` : "",
+          Array.isArray(item?.meals) && item.meals.length
+            ? `식사 ${item.meals.map((meal) => [meal?.label, meal?.menu].map(asText).filter(Boolean).join(" ")).filter(Boolean).join(" / ")}`
+            : ""
+        ].filter(Boolean);
+        return [heading, content, ...extras].filter(Boolean).join(" · ");
+      }).filter(Boolean).join("\n");
+    }
+
+    function setQuoteProductSourceState(message, status = "") {
+      const target = document.getElementById("quoteProductSourceState");
+      if (!target) return;
+      target.textContent = message;
+      target.className = `quote-editor-source-state${status ? ` ${status}` : ""}`;
+    }
+
+    function applyQuoteProductDetailToDraft(detail = {}) {
+      if (!quoteEditorDraft) return;
+      const includedItems = formatQuoteEditorList(detail.includes);
+      const excludedItems = formatQuoteEditorList(detail.excludes);
+      const productNotes = formatQuoteEditorList(detail.notes);
+      const flightScheduleItems = formatQuoteEditorList(detail.flightScheduleItems);
+      const itineraryItems = formatQuoteEditorItinerary(detail.schedule);
+      if (includedItems) quoteEditorDraft.includedItems = includedItems;
+      if (excludedItems) quoteEditorDraft.excludedItems = excludedItems;
+      if (productNotes) quoteEditorDraft.productNotes = productNotes;
+      if (flightScheduleItems) quoteEditorDraft.flightScheduleItems = flightScheduleItems;
+      if (itineraryItems) quoteEditorDraft.itineraryItems = itineraryItems;
+      if (asText(detail.airline)) quoteEditorDraft.airline = asText(detail.airline);
+      if (asText(detail.departureAirport)) quoteEditorDraft.departureAirport = asText(detail.departureAirport);
+      if (asText(detail.arrivalAirport)) quoteEditorDraft.arrivalAirport = asText(detail.arrivalAirport);
     }
 
     function getQuoteEditorComputed(draft = {}) {
@@ -5291,17 +5395,18 @@
         *{box-sizing:border-box}body{margin:0;color:#373a3c;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#edf2f7} .page{width:min(900px,100%);margin:0 auto;background:#fff}
         .hero{position:relative;min-height:270px;padding:34px;display:flex;align-items:flex-end;overflow:hidden;background:#245b9d;color:#fff}.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after{content:"";position:absolute;inset:0;background:rgba(7,24,47,.58)}.hero-copy{position:relative;z-index:1}.kicker{margin:0 0 10px;color:#dcecff;font-size:12px;font-weight:700}.hero h1{max-width:720px;margin:0;font-size:30px;line-height:1.34;word-break:keep-all}.hero-meta{margin-top:14px;display:flex;gap:18px;font-size:14px;font-weight:600}
         .body{padding:34px}.head{display:flex;justify-content:space-between;gap:20px;padding-bottom:25px;border-bottom:1px solid #dde3ec}.head h2{margin:0 0 8px;color:#172033;font-size:24px}.head p{margin:0;color:#697386;font-size:12px;line-height:1.6}.status{height:max-content;padding:8px 11px;border-radius:5px;background:#eaf3ff;color:#1769d2;font-size:12px;font-weight:700}
-        .summary{display:grid;grid-template-columns:1.3fr .7fr;margin:26px 0 32px;background:#3489f8;color:#fff}.summary>div{padding:21px}.summary>div+div{border-left:1px solid rgba(255,255,255,.24);text-align:right}.label{display:block;margin-bottom:7px;color:#dcecff;font-size:11px}.summary strong{display:block;font-size:20px}.summary small{display:block;margin-top:6px;color:#eef6ff}.summary .total{font-size:25px}
+        .amount-callout{margin:26px 0 32px;padding:21px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:#3489f8;color:#fff}.amount-callout span{color:#dcecff;font-size:12px}.amount-callout strong{font-size:25px}
         section{margin-top:32px}h3{margin:0 0 14px;color:#172033;font-size:18px}.number{margin-right:10px;color:#3489f8;font-size:11px}.info{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #dde3ec;border-bottom:1px solid #dde3ec}.info div{min-height:70px;padding:15px;border-right:1px solid #dde3ec}.info div:nth-child(3n){border-right:0}.info span{display:block;margin-bottom:7px;color:#697386;font-size:11px}.info strong{font-size:14px;line-height:1.4}
         table{width:100%;border-collapse:collapse;border-top:2px solid #172033}th,td{height:48px;padding:0 13px;border-bottom:1px solid #dde3ec;text-align:left;font-size:13px}td:last-child{text-align:right;font-weight:700}.total-row{background:#eaf3ff;color:#1769d2}.total-row th,.total-row td:last-child{font-size:16px}
         .lists{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #dde3ec;border-bottom:1px solid #dde3ec}.lists>div{padding:19px}.lists>div+div{border-left:1px solid #dde3ec}.lists h4{margin:0 0 11px;color:#172033;font-size:14px}.lists ul{margin:0;padding-left:18px}.lists li{margin:6px 0;font-size:12px;line-height:1.55}.notice{margin-top:24px;padding:18px;border-left:4px solid #3489f8;background:#f4f7fa;color:#697386;font-size:12px;line-height:1.7;white-space:pre-line}
-        @media(max-width:620px){.body{padding:24px 18px}.hero{min-height:240px;padding:24px 18px}.hero h1{font-size:24px}.summary{grid-template-columns:1fr}.summary>div+div{border-left:0;border-top:1px solid rgba(255,255,255,.24);text-align:left}.info{grid-template-columns:1fr 1fr}.info div:nth-child(3n){border-right:1px solid #dde3ec}.info div:nth-child(2n){border-right:0}.lists{grid-template-columns:1fr}.lists>div+div{border-left:0;border-top:1px solid #dde3ec}}
+        @media(max-width:620px){.body{padding:24px 18px}.hero{min-height:240px;padding:24px 18px}.hero h1{font-size:24px}.amount-callout{align-items:flex-start;flex-direction:column}.info{grid-template-columns:1fr 1fr}.info div:nth-child(3n){border-right:1px solid #dde3ec}.info div:nth-child(2n){border-right:0}.lists{grid-template-columns:1fr}.lists>div+div{border-left:0;border-top:1px solid #dde3ec}}
       </style></head><body><main class="page"><section class="hero">${productImage ? `<img src="${escapeHtml(productImage)}" alt="">` : ""}<div class="hero-copy"><p class="kicker">SECRET TOUR · OVERSEAS GOLF JOIN</p><h1>${escapeHtml(draft.productName || "해외 골프 조인 견적")}</h1><div class="hero-meta"><span>${escapeHtml(regionText)}</span><span>${escapeHtml(draft.departureDate || "-")} - ${escapeHtml(draft.returnDate || "-")}</span></div></div></section><div class="body">
         <header class="head"><div><h2>예약요청 견적서</h2><p>내용 확인용 미리보기<br>확정 시 견적번호가 발급됩니다.</p></div><span class="status">담당자 확인 견적</span></header>
-        <div class="summary"><div><span class="label">신청 일정</span><strong>${escapeHtml(regionText)}</strong><small>${escapeHtml(draft.departureDate || "-")} - ${escapeHtml(draft.returnDate || "-")}</small></div><div><span class="label">예상 총액</span><strong class="total">${formatQuoteEditorAmount(amounts.estimatedTotal)}</strong></div></div>
-        <section><h3><span class="number">01</span>신청 정보</h3><div class="info"><div><span>신청자</span><strong>${escapeHtml(draft.applicantName || "-")}</strong></div><div><span>연락처</span><strong>${escapeHtml(draft.applicantPhone || "-")}</strong></div><div><span>신청 유형</span><strong>${escapeHtml(draft.applicationType || "-")}</strong></div><div><span>신청 인원</span><strong>${amounts.people}명</strong></div><div><span>숙소 타입</span><strong>${escapeHtml(draft.roomType || "-")}</strong></div><div><span>항공</span><strong>${escapeHtml(draft.airline || "-")}</strong></div></div></section>
-        <section><h3><span class="number">02</span>견적 금액</h3><table><tbody><tr><th>상품가</th><td>1인 기준 × ${amounts.people}명</td><td>${formatQuoteEditorAmount(amounts.productSubtotal)}</td></tr><tr><th>1인 1실 추가요금</th><td>${amounts.singleRoomSurcharge ? "신청 기준" : "해당 없음"}</td><td>${formatQuoteEditorAmount(amounts.singleRoomSurcharge, "-")}</td></tr><tr class="total-row"><th>예상 총액</th><td>담당자 산출</td><td>${formatQuoteEditorAmount(amounts.estimatedTotal)}</td></tr><tr><th>예약금</th><td>1인 ${formatQuoteEditorAmount(amounts.depositPerPerson)}</td><td>${formatQuoteEditorAmount(amounts.deposit)}</td></tr><tr><th>잔금</th><td>예약금 제외</td><td>${formatQuoteEditorAmount(amounts.balance, "0원")}</td></tr></tbody></table></section>
-        <section><h3><span class="number">03</span>포함 및 불포함 사항</h3><div class="lists"><div><h4>포함 사항</h4><ul>${renderQuoteEditorPreviewList(draft.includedItems, "담당자 확인 후 안내")}</ul></div><div><h4>불포함 사항</h4><ul>${renderQuoteEditorPreviewList(draft.excludedItems, "담당자 확인 후 안내")}</ul></div></div><div class="notice">${escapeHtml(draft.specialNotes || "-")}</div></section>
+        <section><h3><span class="number">01</span>예약 정보</h3><div class="info"><div><span>신청자</span><strong>${escapeHtml(draft.applicantName || "-")}</strong></div><div><span>연락처</span><strong>${escapeHtml(draft.applicantPhone || "-")}</strong></div><div><span>신청 유형</span><strong>${escapeHtml(draft.applicationType || "-")}</strong></div><div><span>숙소 타입</span><strong>${escapeHtml(draft.roomType || "-")}</strong></div><div><span>항공</span><strong>${escapeHtml(draft.airline || "-")}</strong></div><div><span>이용 공항</span><strong>${escapeHtml([draft.departureAirport, draft.arrivalAirport].map(asText).filter(Boolean).join(" → ") || "-")}</strong></div></div></section>
+        <section><h3><span class="number">02</span>실제 상품 정보</h3><div class="lists"><div><h4>항공 일정</h4><ul>${renderQuoteEditorPreviewList(draft.flightScheduleItems, "상품 상세 확인 필요")}</ul></div><div><h4>주요 일정</h4><ul>${renderQuoteEditorPreviewList(draft.itineraryItems, "상품 상세 확인 필요")}</ul></div></div></section>
+        <section><h3><span class="number">03</span>견적 금액</h3><table><tbody><tr><th>상품가</th><td>1인 기준 × ${amounts.people}명</td><td>${formatQuoteEditorAmount(amounts.productSubtotal)}</td></tr><tr><th>1인 1실 추가요금</th><td>${amounts.singleRoomSurcharge ? "신청 기준" : "해당 없음"}</td><td>${formatQuoteEditorAmount(amounts.singleRoomSurcharge, "-")}</td></tr><tr class="total-row"><th>예상 총액</th><td>담당자 산출</td><td>${formatQuoteEditorAmount(amounts.estimatedTotal)}</td></tr><tr><th>예약금</th><td>1인 ${formatQuoteEditorAmount(amounts.depositPerPerson)}</td><td>${formatQuoteEditorAmount(amounts.deposit)}</td></tr><tr><th>잔금</th><td>예약금 제외</td><td>${formatQuoteEditorAmount(amounts.balance, "0원")}</td></tr></tbody></table></section>
+        <section><h3><span class="number">04</span>실제 상품 포함·불포함 사항</h3><div class="lists"><div><h4>포함 사항</h4><ul>${renderQuoteEditorPreviewList(draft.includedItems, "실제 상품 정보 확인 필요")}</ul></div><div><h4>불포함 사항</h4><ul>${renderQuoteEditorPreviewList(draft.excludedItems, "실제 상품 정보 확인 필요")}</ul></div></div></section>
+        <section><h3><span class="number">05</span>상품 참고 및 견적 유의사항</h3><div class="lists"><div><h4>상품 참고사항</h4><ul>${renderQuoteEditorPreviewList(draft.productNotes, "등록된 상품 참고사항 없음")}</ul></div><div><h4>견적 유의사항</h4><div class="notice">${escapeHtml(draft.specialNotes || "-")}</div></div></div></section>
       </div></main></body></html>`;
     }
 
@@ -5332,7 +5437,7 @@
       scheduleQuoteEditorPreview();
     }
 
-    function openQuoteEditor(button) {
+    async function openQuoteEditor(button) {
       const context = getQuoteEditorContext(button);
       if (!context) {
         alert("견적서를 연결할 신청 정보를 찾을 수 없습니다.");
@@ -5346,6 +5451,28 @@
       backdrop?.classList.add("open");
       backdrop?.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
+      setQuoteProductSourceState("실제 상품 상세 정보를 불러오는 중입니다.");
+      const activeContext = context;
+      try {
+        const detail = await getProductDetailContent(context.schedule.row || {}, context.schedule.product || {});
+        if (quoteEditorContext !== activeContext || !quoteEditorDraft) return;
+        applyQuoteProductDetailToDraft(detail);
+        populateQuoteEditorForm();
+        renderQuoteEditorPreview();
+        const hasRequiredProductDetail = Boolean(parseList(detail.includes).length && parseList(detail.excludes).length);
+        if (hasRequiredProductDetail && !detail.loadError) {
+          setQuoteProductSourceState("시크릿투어 실제 상품 상세의 포함·불포함·일정 정보를 불러왔습니다.", "success");
+        } else if (hasRequiredProductDetail) {
+          setQuoteProductSourceState("저장된 상품 정보에서 포함·불포함 사항을 불러왔습니다. 내용을 확인해 주세요.", "warning");
+        } else {
+          setQuoteProductSourceState("실제 상품의 포함·불포함 사항을 찾지 못했습니다. 상품 상세를 확인해 직접 입력해 주세요.", "warning");
+        }
+      } catch (error) {
+        console.warn("Failed to load quote product detail.", error);
+        if (quoteEditorContext === activeContext) {
+          setQuoteProductSourceState("실제 상품 정보를 불러오지 못했습니다. 상품 상세를 확인해 직접 입력해 주세요.", "warning");
+        }
+      }
     }
 
     function closeQuoteEditor() {
@@ -5363,6 +5490,8 @@
       if (!asText(draft.productName)) return "상품명을 입력해 주세요.";
       if (!normalizeQuoteEditorDate(draft.departureDate) || !normalizeQuoteEditorDate(draft.returnDate)) return "출발일과 도착일을 입력해 주세요.";
       if (!parseQuoteEditorAmount(draft.unitPrice)) return "1인 상품가를 입력해 주세요.";
+      if (!parseList(draft.includedItems).length) return "실제 상품의 포함 사항을 입력해 주세요.";
+      if (!parseList(draft.excludedItems).length) return "실제 상품의 불포함 사항을 입력해 주세요.";
       return "";
     }
 
@@ -5670,7 +5799,7 @@
       return `
         <div class="quote-action-group">
           ${renderQuoteGenerateButton(row)}
-          ${renderParticipantStatusCell("quoteStatus", current === "sent", current === "sent" ? "견적완료" : "미견적", "견적완료", "sent")}
+          <span class="participant-status-badge${current === "sent" ? " is-complete" : ""}">${current === "sent" ? "견적완료" : "미견적"}</span>
         </div>
       `;
     }

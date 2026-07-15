@@ -119,18 +119,19 @@ function drawBulletList(doc, title, items, x, y, width, height) {
   roundedPanel(doc, x, y, width, height, { fill: COLORS.panel, radius: 7 });
   doc.font("Pretendard-Bold").fontSize(14).fillColor(COLORS.ink)
     .text(title, x + 18, y + 18, { width: width - 36, lineBreak: false });
-  const list = Array.isArray(items) && items.length ? items.slice(0, 7) : ["담당자 확인 후 안내"];
-  let cursorY = y + 51;
+  const maxItems = Math.max(1, Math.min(12, Math.floor((height - 49) / 26)));
+  const list = Array.isArray(items) && items.length ? items.slice(0, maxItems) : ["담당자 확인 후 안내"];
+  let cursorY = y + 49;
   list.forEach((item) => {
     doc.circle(x + 22, cursorY + 6, 2.7).fill(COLORS.blue);
-    doc.font("Pretendard").fontSize(10.5).fillColor(COLORS.text)
+    doc.font("Pretendard").fontSize(9.5).fillColor(COLORS.text)
       .text(asText(item), x + 33, cursorY, {
         width: width - 51,
-        height: 31,
+        height: 24,
         ellipsis: true,
-        lineGap: 2
+        lineGap: 1
       });
-    cursorY += 29;
+    cursorY += 26;
   });
 }
 
@@ -174,82 +175,47 @@ function createGolfjoinQuotePdfBuffer(quote = {}) {
     doc.font("Pretendard-SemiBold").fontSize(10.5).fillColor(COLORS.blueDark)
       .text("담당자 확인 전", 466, 47.5, { width: 72, align: "center", lineBreak: false });
 
-    roundedPanel(doc, MARGIN, 120, CONTENT_WIDTH, 78, { fill: COLORS.blue, radius: 9 });
+    roundedPanel(doc, MARGIN, 120, CONTENT_WIDTH, 84, { fill: COLORS.blue, radius: 9 });
     doc.font("Pretendard").fontSize(9.6).fillColor("#DCEBFF")
-      .text("신청 일정", MARGIN + 20, 136, { lineBreak: false });
-    const summaryTitle = [quote.country, quote.region].filter(Boolean).join(" · ") || asText(quote.productName);
-    doc.font("Pretendard-Bold").fontSize(17).fillColor(COLORS.white)
-      .text(summaryTitle, MARGIN + 20, 155, { width: 280, height: 24, ellipsis: true, lineBreak: false });
-    doc.font("Pretendard").fontSize(10).fillColor("#DCEBFF")
-      .text(`${asText(quote.departureDate)} - ${asText(quote.returnDate)}`, MARGIN + 20, 179, {
-        width: 280,
+      .text("선택 상품", MARGIN + 20, 136, { lineBreak: false });
+    doc.font("Pretendard-Bold").fontSize(14.5).fillColor(COLORS.white)
+      .text(asText(quote.productName), MARGIN + 20, 154, { width: CONTENT_WIDTH - 40, height: 23, ellipsis: true, lineBreak: false });
+    const productMeta = `${[quote.country, quote.region].filter(Boolean).join(" · ")}  |  ${asText(quote.departureDate)} - ${asText(quote.returnDate)}`;
+    doc.font("Pretendard").fontSize(9.6).fillColor("#DCEBFF")
+      .text(productMeta, MARGIN + 20, 181, {
+        width: CONTENT_WIDTH - 40,
         lineBreak: false
       });
-    doc.font("Pretendard").fontSize(9.6).fillColor("#DCEBFF")
-      .text("예상 총액", MARGIN + 326, 136, { width: 160, align: "right", lineBreak: false });
-    doc.font("Pretendard-Bold").fontSize(20).fillColor(COLORS.white)
-      .text(asText(quote.formattedEstimatedTotal), MARGIN + 306, 158, {
-        width: 180,
-        align: "right",
-        lineBreak: false,
-        ellipsis: true
-      });
 
-    drawSectionHeading(doc, 1, "신청 정보", 220);
-    const applicantY = 254;
+    drawSectionHeading(doc, 1, "예약 정보", 225);
+    const applicantY = 259;
     const applicantGap = 16;
     const applicantWidth = (CONTENT_WIDTH - (applicantGap * 2)) / 3;
     drawLabelValue(doc, "신청자", quote.applicantName, MARGIN, applicantY, applicantWidth);
     drawLabelValue(doc, "연락처", quote.applicantPhone, MARGIN + applicantWidth + applicantGap, applicantY, applicantWidth);
     drawLabelValue(doc, "신청 유형", quote.applicationType, MARGIN + ((applicantWidth + applicantGap) * 2), applicantY, applicantWidth);
-    drawLabelValue(doc, "신청 인원", `${quote.people || 1}명`, MARGIN, applicantY + 48, applicantWidth);
-    drawLabelValue(doc, "숙소 타입", quote.roomType, MARGIN + applicantWidth + applicantGap, applicantY + 48, applicantWidth);
-    drawLabelValue(doc, "항공", quote.airline, MARGIN + ((applicantWidth + applicantGap) * 2), applicantY + 48, applicantWidth);
+    drawLabelValue(doc, "숙소 타입", quote.roomType, MARGIN, applicantY + 48, applicantWidth);
+    drawLabelValue(doc, "항공", quote.airline, MARGIN + applicantWidth + applicantGap, applicantY + 48, applicantWidth);
+    const airportText = [quote.departureAirport, quote.arrivalAirport].filter(Boolean).join(" → ") || "-";
+    drawLabelValue(doc, "이용 공항", airportText, MARGIN + ((applicantWidth + applicantGap) * 2), applicantY + 48, applicantWidth);
 
-    drawSectionHeading(doc, 2, "일정 정보", 354);
-    roundedPanel(doc, MARGIN, 388, CONTENT_WIDTH, 98, { fill: COLORS.panel, radius: 7 });
-    drawLabelValue(doc, "상품명", quote.productName, MARGIN + 16, 403, CONTENT_WIDTH - 32, {
-      bold: true,
-      valueSize: 12.4,
-      height: 34,
-      ellipsis: true
-    });
-    const scheduleWidth = (CONTENT_WIDTH - 32 - 36) / 3;
-    drawLabelValue(doc, "지역", [quote.country, quote.region].filter(Boolean).join(" / "), MARGIN + 16, 449, scheduleWidth, { valueSize: 10.8 });
-    drawLabelValue(doc, "출발일", quote.departureDate, MARGIN + 16 + scheduleWidth + 18, 449, scheduleWidth, { valueSize: 10.8 });
-    drawLabelValue(doc, "도착일", quote.returnDate, MARGIN + 16 + ((scheduleWidth + 18) * 2), 449, scheduleWidth, { valueSize: 10.8 });
+    drawSectionHeading(doc, 2, "견적 금액", 363);
+    roundedPanel(doc, MARGIN, 397, CONTENT_WIDTH, 164, { fill: COLORS.white, stroke: COLORS.line, radius: 7 });
+    drawAmountRow(doc, 407, "상품가", `1인 기준 × ${quote.people || 1}명`, asText(quote.formattedProductSubtotal));
+    drawAmountRow(doc, 436, "1인 1실 추가요금", quote.singleRoomSurcharge ? "신청 기준" : "해당 없음", asText(quote.formattedSingleRoomSurcharge));
+    drawAmountRow(doc, 466, "예상 총액", "담당자 산출", asText(quote.formattedEstimatedTotal), { highlight: true, height: 32 });
+    drawAmountRow(doc, 502, "예약금", `1인 ${asText(quote.formattedDepositPerPerson)}`, asText(quote.formattedDeposit));
+    drawAmountRow(doc, 531, "잔금", "예약금 제외", asText(quote.formattedBalance), { last: true });
 
-    drawSectionHeading(doc, 3, "견적 금액", 507);
-    roundedPanel(doc, MARGIN, 541, CONTENT_WIDTH, 164, { fill: COLORS.white, stroke: COLORS.line, radius: 7 });
-    drawAmountRow(doc, 551, "상품가", `1인 기준 × ${quote.people || 1}명`, asText(quote.formattedProductSubtotal));
-    drawAmountRow(doc, 580, "1인 1실 추가요금", quote.singleRoomSurcharge ? "신청 기준" : "해당 없음", asText(quote.formattedSingleRoomSurcharge));
-    drawAmountRow(doc, 610, "예상 총액", "자동 산출", asText(quote.formattedEstimatedTotal), { highlight: true, height: 32 });
-    drawAmountRow(doc, 646, "예약금", `1인 ${asText(quote.formattedDepositPerPerson)}`, asText(quote.formattedDeposit));
-    drawAmountRow(doc, 675, "잔금", "예약금 제외", asText(quote.formattedBalance), { last: true });
+    drawSectionHeading(doc, 3, "실제 상품 항공 및 주요 일정", 588);
+    const productColumnGap = 16;
+    const productColumnWidth = (CONTENT_WIDTH - productColumnGap) / 2;
+    drawBulletList(doc, "항공 일정", quote.flightScheduleItems, MARGIN, 624, productColumnWidth, 171);
+    drawBulletList(doc, "주요 일정", quote.itineraryItems, MARGIN + productColumnWidth + productColumnGap, 624, productColumnWidth, 171);
 
     doc.font("Pretendard").fontSize(8.8).fillColor(COLORS.muted)
-      .text("※ 항공 좌석, 객실 가능 여부 및 현지 상황에 따라 담당자 확인 후 최종 금액이 변경될 수 있습니다.", MARGIN, 715, {
+      .text("시크릿투어 · 카카오채널 문의 · www.secret-tour.com", MARGIN, 817, {
         width: CONTENT_WIDTH,
-        lineBreak: false,
-        ellipsis: true
-      });
-
-    roundedPanel(doc, MARGIN, 738, CONTENT_WIDTH, 58, { fill: COLORS.panel, radius: 7 });
-    drawStep(doc, 1, "신청 접수", "현재 단계", MARGIN + 16, 753, 142, true);
-    drawStep(doc, 2, "견적 확정", "담당자 확인", MARGIN + 177, 753, 142);
-    drawStep(doc, 3, "예약금 입금", "입금 후 예약 진행", MARGIN + 338, 753, 153);
-    doc.moveTo(MARGIN + 154, 766).lineTo(MARGIN + 170, 766).lineWidth(1).strokeColor(COLORS.line).stroke();
-    doc.moveTo(MARGIN + 315, 766).lineTo(MARGIN + 331, 766).lineWidth(1).strokeColor(COLORS.line).stroke();
-
-    doc.font("Pretendard-SemiBold").fontSize(9.2).fillColor(COLORS.ink)
-      .text(`입금 안내  ${asText(quote.accountText, "담당자 확인 후 안내")}`, MARGIN, 813, {
-        width: 300,
-        lineBreak: false,
-        ellipsis: true
-      });
-    doc.font("Pretendard").fontSize(8.8).fillColor(COLORS.muted)
-      .text("시크릿투어 · 카카오채널 문의 · www.secret-tour.com", MARGIN + 300, 813, {
-        width: CONTENT_WIDTH - 300,
         align: "right",
         lineBreak: false
       });
@@ -265,50 +231,40 @@ function createGolfjoinQuotePdfBuffer(quote = {}) {
       .text(`견적번호  ${asText(quote.quoteNo)}`, MARGIN, 94, { width: 300, lineBreak: false });
     doc.text("2 / 2", MARGIN + 390, 94, { width: CONTENT_WIDTH - 390, align: "right", lineBreak: false });
 
-    roundedPanel(doc, MARGIN, 124, CONTENT_WIDTH, 80, { fill: COLORS.blue, radius: 8 });
-    doc.font("Pretendard").fontSize(9.5).fillColor("#DCEBFF")
-      .text("해외 골프 조인 상품", MARGIN + 20, 140, { lineBreak: false });
-    doc.font("Pretendard-Bold").fontSize(15.5).fillColor(COLORS.white)
-      .text(asText(quote.productName), MARGIN + 20, 161, {
-        width: CONTENT_WIDTH - 40,
-        height: 36,
-        ellipsis: true,
-        lineGap: 3
-      });
-
-    drawSectionHeading(doc, 4, "포함 및 불포함 사항", 230);
+    drawSectionHeading(doc, 4, "실제 상품 포함 및 불포함 사항", 125);
     const columnGap = 16;
     const columnWidth = (CONTENT_WIDTH - columnGap) / 2;
-    drawBulletList(doc, "포함 사항", quote.includedItems, MARGIN, 266, columnWidth, 225);
-    drawBulletList(doc, "불포함 사항", quote.excludedItems, MARGIN + columnWidth + columnGap, 266, columnWidth, 225);
+    const includedCount = Array.isArray(quote.includedItems) ? quote.includedItems.length : 0;
+    const excludedCount = Array.isArray(quote.excludedItems) ? quote.excludedItems.length : 0;
+    const inclusionBoxHeight = Math.max(190, Math.min(370, 64 + (Math.max(includedCount, excludedCount, 1) * 26)));
+    drawBulletList(doc, "포함 사항", quote.includedItems, MARGIN, 161, columnWidth, inclusionBoxHeight);
+    drawBulletList(doc, "불포함 사항", quote.excludedItems, MARGIN + columnWidth + columnGap, 161, columnWidth, inclusionBoxHeight);
 
-    drawSectionHeading(doc, 5, "견적 및 예약 안내", 522);
-    roundedPanel(doc, MARGIN, 558, CONTENT_WIDTH, 116, { fill: COLORS.panel, radius: 7 });
-    doc.font("Pretendard").fontSize(10.5).fillColor(COLORS.text)
-      .text(asText(quote.specialNotes), MARGIN + 20, 578, {
-        width: CONTENT_WIDTH - 40,
-        height: 75,
-        lineGap: 5,
+    const notesHeadingY = 161 + inclusionBoxHeight + 24;
+    const notesBoxY = notesHeadingY + 36;
+    drawSectionHeading(doc, 5, "상품 참고 및 견적 유의사항", notesHeadingY);
+    drawBulletList(doc, "상품 참고사항", quote.productNotes, MARGIN, notesBoxY, columnWidth, 130);
+    roundedPanel(doc, MARGIN + columnWidth + columnGap, notesBoxY, columnWidth, 130, { fill: COLORS.panel, radius: 7 });
+    doc.font("Pretendard-Bold").fontSize(11.5).fillColor(COLORS.ink)
+      .text("견적 유의사항", MARGIN + columnWidth + columnGap + 18, notesBoxY + 16, { lineBreak: false });
+    doc.font("Pretendard").fontSize(9.3).fillColor(COLORS.text)
+      .text(asText(quote.specialNotes), MARGIN + columnWidth + columnGap + 18, notesBoxY + 42, {
+        width: columnWidth - 36,
+        height: 72,
+        lineGap: 3,
         ellipsis: true
       });
 
-    roundedPanel(doc, MARGIN, 696, CONTENT_WIDTH, 55, { fill: COLORS.blueSoft, radius: 7 });
-    doc.font("Pretendard-Bold").fontSize(12.5).fillColor(COLORS.blueDark)
-      .text("입금 안내", MARGIN + 18, 715, { width: 70, lineBreak: false });
-    doc.font("Pretendard-SemiBold").fontSize(12).fillColor(COLORS.ink)
-      .text(asText(quote.accountText, "담당자 확인 후 안내"), MARGIN + 100, 715, {
-        width: CONTENT_WIDTH - 118,
-        lineBreak: false,
-        ellipsis: true
-      });
-
-    drawStep(doc, 1, "견적 확인", "상품·일정·금액 확인", MARGIN, 777, 150, true);
-    drawStep(doc, 2, "예약금 입금", "담당자 계좌 안내", MARGIN + 174, 777, 150);
-    drawStep(doc, 3, "예약 진행", "확정 내용 별도 안내", MARGIN + 348, 777, 159);
-    doc.moveTo(MARGIN + 153, 790).lineTo(MARGIN + 168, 790).lineWidth(1).strokeColor(COLORS.line).stroke();
-    doc.moveTo(MARGIN + 327, 790).lineTo(MARGIN + 342, 790).lineWidth(1).strokeColor(COLORS.line).stroke();
+    const reservationHeadingY = notesBoxY + 153;
+    const reservationStepY = reservationHeadingY + 36;
+    drawSectionHeading(doc, 6, "예약 진행 안내", reservationHeadingY);
+    drawStep(doc, 1, "견적 확인", "상품·일정·금액 확인", MARGIN, reservationStepY, 150, true);
+    drawStep(doc, 2, "예약금 입금", asText(quote.accountText, "담당자 확인 후 안내"), MARGIN + 174, reservationStepY, 150);
+    drawStep(doc, 3, "예약 진행", "확정 내용 별도 안내", MARGIN + 348, reservationStepY, 159);
+    doc.moveTo(MARGIN + 153, reservationStepY + 13).lineTo(MARGIN + 168, reservationStepY + 13).lineWidth(1).strokeColor(COLORS.line).stroke();
+    doc.moveTo(MARGIN + 327, reservationStepY + 13).lineTo(MARGIN + 342, reservationStepY + 13).lineWidth(1).strokeColor(COLORS.line).stroke();
     doc.font("Pretendard").fontSize(8.8).fillColor(COLORS.muted)
-      .text("시크릿투어 · 카카오채널 문의 · www.secret-tour.com", MARGIN, 822, {
+      .text("시크릿투어 · 카카오채널 문의 · www.secret-tour.com", MARGIN, 826, {
         width: CONTENT_WIDTH,
         align: "right",
         lineBreak: false

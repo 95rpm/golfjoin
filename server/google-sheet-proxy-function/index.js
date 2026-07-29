@@ -3,11 +3,13 @@
 const crypto = require("crypto");
 const { Storage } = require("@google-cloud/storage");
 const { createGolfjoinQuotePdfBuffer: createGolfjoinQuotePdfBufferV2 } = require("./quote-pdf");
-const { createGolfjoinQuoteHtml } = require("./quote-page");
+const { createGolfjoinQuoteHtml, QUOTE_HERO_IMAGE_URL } = require("./quote-page");
+const { getErpSessionCookie, postErpFormJson } = require("./erp-client");
+const MAX_PARTICIPANT_PREVIEW_COUNT = 40;
 
 const SHEET_WEB_APP_URL = process.env.SHEET_WEB_APP_URL || "";
 const GOOGLE_SHEET_ID = String(process.env.GOOGLE_SHEET_ID || "").trim();
-const ALLOWED_ORIGINS = String(process.env.ALLOWED_ORIGINS || "https://m.secret-tour.com,https://www.secret-tour.com")
+const ALLOWED_ORIGINS = String(process.env.ALLOWED_ORIGINS || "https://m.secret-tour.com,https://www.secret-tour.com,https://admin.secret-tour.com,https://dashboad-golfjoin-secrettour.web.app")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -68,7 +70,16 @@ const GOOGLE_SHEET_HEADERS = {
     "kakaoId",
     "kakaoNickname",
     "adminMemo",
-    "updatedAt"
+    "updatedAt",
+    "memberKey",
+    "birthDate",
+    "profileStatus",
+    "profileOrigin",
+    "identityMatchStatus",
+    "erpLinkedAt",
+    "mergedIntoProfileId",
+    "createdByAdmin",
+    "updatedByAdmin"
   ],
   join_reviews: [
     "reviewId",
@@ -120,7 +131,6 @@ const GOOGLE_SHEET_HEADERS = {
     "productName",
     "departureDate",
     "returnDate",
-    "category",
     "country",
     "region",
     "airline",
@@ -163,7 +173,25 @@ const GOOGLE_SHEET_HEADERS = {
     "quotePageUrl",
     "quotePdfUrl",
     "quoteFileName",
-    "quoteGeneratedAt"
+    "quotePageFileName",
+    "quoteDataFileName",
+    "quoteGeneratedAt",
+    "quoteAdditionalAmountsJson",
+    "quoteFlightDetailsJson",
+    "quoteAccessTokenHash",
+    "quoteExpiresAt",
+    "profileId",
+    "registrationSource",
+    "adminRosterItemId",
+    "rosterBatchId",
+    "applicantBirthDate",
+    "identityMatchStatus",
+    "scheduleSnapshotJson",
+    "createdByAdmin",
+    "updatedByAdmin",
+    "cancelledAt",
+    "cancelledBy",
+    "cancelReason"
   ],
   new_schedule_applications: [
     "applicationId",
@@ -230,7 +258,13 @@ const GOOGLE_SHEET_HEADERS = {
     "quotePageUrl",
     "quotePdfUrl",
     "quoteFileName",
-    "quoteGeneratedAt"
+    "quotePageFileName",
+    "quoteDataFileName",
+    "quoteGeneratedAt",
+    "quoteAdditionalAmountsJson",
+    "quoteFlightDetailsJson",
+    "quoteAccessTokenHash",
+    "quoteExpiresAt"
   ],
   recommended_schedules: [
     "recommendedScheduleId",
@@ -325,7 +359,7 @@ const ADMIN_READ_TOKEN = String(process.env.ADMIN_READ_TOKEN || "").trim();
 const ADMIN_LOGIN_ID = String(process.env.ADMIN_LOGIN_ID || "").trim();
 const ADMIN_LOGIN_PASSWORD = String(process.env.ADMIN_LOGIN_PASSWORD || "").trim();
 const ADMIN_LOGIN_PASSWORD_SHA256 = String(process.env.ADMIN_LOGIN_PASSWORD_SHA256 || "").trim().toLowerCase();
-const ADMIN_SESSION_TTL_SECONDS = Number(process.env.ADMIN_SESSION_TTL_SECONDS || 60 * 60);
+const ADMIN_SESSION_TTL_SECONDS = Number(process.env.ADMIN_SESSION_TTL_SECONDS || 8 * 60 * 60);
 const WRITE_TOKEN = String(process.env.WRITE_TOKEN || "").trim();
 const ALIGO_USERID = String(process.env.ALIGO_USERID || "").trim();
 const ALIGO_APIKEY = String(process.env.ALIGO_APIKEY || "").trim();
@@ -334,6 +368,13 @@ const ALIGO_SENDER = String(process.env.ALIGO_SENDER || process.env.SENDER || "0
 const ALIGO_TESTMODE = String(process.env.ALIGO_TESTMODE || process.env.TESTMODE || "N").trim();
 const ALIGO_ENABLED = String(process.env.ALIGO_ENABLED || "N").trim().toUpperCase() === "Y";
 const ALIGO_REQUEST_TIMEOUT_MS = Number(process.env.ALIGO_REQUEST_TIMEOUT_MS || 8000);
+const GOLFJOIN_ALIGO_SERVICE_URL = String(process.env.GOLFJOIN_ALIGO_SERVICE_URL || "").trim();
+const GOLFJOIN_INTERNAL_SERVICE_TOKEN = String(process.env.GOLFJOIN_INTERNAL_SERVICE_TOKEN || "").trim();
+const GOLFJOIN_SERVICE_ROLE = String(process.env.GOLFJOIN_SERVICE_ROLE || "all").trim().toLowerCase();
+const GOLFJOIN_ALIGO_TASK_QUEUE = String(process.env.GOLFJOIN_ALIGO_TASK_QUEUE || "").trim();
+const GOLFJOIN_ALIGO_TASK_LOCATION = String(process.env.GOLFJOIN_ALIGO_TASK_LOCATION || "asia-northeast3").trim();
+const GOLFJOIN_TASKS_SERVICE_ACCOUNT = String(process.env.GOLFJOIN_TASKS_SERVICE_ACCOUNT || "").trim();
+const GOLFJOIN_PROJECT_ID = String(process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "").trim();
 const GOLFJOIN_MY_PAGE_PC_URL = String(process.env.GOLFJOIN_MY_PAGE_PC_URL || "https://www.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1&golfjoinOpen=my").trim();
 const GOLFJOIN_MY_PAGE_MO_URL = String(process.env.GOLFJOIN_MY_PAGE_MO_URL || "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1&golfjoinOpen=my").trim();
 const ALIGO_ALIMTALK_SEND_URL = "https://kakaoapi.aligo.in/akv10/alimtalk/send/";
@@ -474,7 +515,8 @@ const GOLFJOIN_PRODUCTS_BUCKET = String(process.env.GOLFJOIN_PRODUCTS_BUCKET || 
 const GOLFJOIN_PRODUCTS_PREFIX = String(process.env.GOLFJOIN_PRODUCTS_PREFIX || "web").trim().replace(/^\/+|\/+$/g, "");
 const GOLFJOIN_QUOTES_PREFIX = String(process.env.GOLFJOIN_QUOTES_PREFIX || "quotes").trim().replace(/^\/+|\/+$/g, "");
 const GOLFJOIN_QUOTE_DEPOSIT_PER_PERSON = Math.max(0, Number(process.env.GOLFJOIN_QUOTE_DEPOSIT_PER_PERSON || 200000));
-const GOLFJOIN_QUOTE_ACCOUNT_TEXT = String(process.env.GOLFJOIN_QUOTE_ACCOUNT_TEXT || "담당자 확인 후 안내").trim();
+const GOLFJOIN_QUOTE_ACCOUNT_TEXT = String(process.env.GOLFJOIN_QUOTE_ACCOUNT_TEXT || "신한은행 140-013-991111 (주)시크릿투어").trim();
+const GOLFJOIN_QUOTE_PDF_MAX_QUEUE = Math.max(1, Math.min(20, Number(process.env.GOLFJOIN_QUOTE_PDF_MAX_QUEUE || 5) || 5));
 const SECRET_TOUR_GOODS_CATEGORY_ROOTS = String(process.env.SECRET_TOUR_GOODS_CATEGORY_ROOTS || "1,2,3,5")
   .split(",")
   .map((value) => value.trim())
@@ -618,6 +660,13 @@ function isWriteRequestAuthorized(req) {
   return !WRITE_TOKEN || getHeader(req, "x-golfjoin-write-token") === WRITE_TOKEN;
 }
 
+function isInternalServiceRequest(req) {
+  return Boolean(
+    GOLFJOIN_INTERNAL_SERVICE_TOKEN
+    && safeEqual(getHeader(req, "x-golfjoin-internal-token"), GOLFJOIN_INTERNAL_SERVICE_TOKEN)
+  );
+}
+
 function resolveReadSheetAlias(sheet = "") {
   const requested = normalizeSheetName(sheet);
   const aliases = {
@@ -659,7 +708,34 @@ const PRIVATE_QUOTE_FIELD_KEYS = new Set([
   "quotepageurl",
   "quotepdfurl",
   "quotefilename",
-  "quotegeneratedat"
+  "quotegeneratedat",
+  "quotepagefilename",
+  "quotedatafilename",
+  "quoteaccesstokenhash",
+  "quoteexpiresat"
+]);
+
+const ALWAYS_PRIVATE_QUOTE_FIELD_KEYS = new Set([
+  "quotefilename",
+  "quotepagefilename",
+  "quotedatafilename",
+  "quoteaccesstokenhash"
+]);
+
+const PRIVATE_IDENTITY_FIELD_KEYS = new Set([
+  "memberkey",
+  "profileid",
+  "birthdate",
+  "applicantbirthdate",
+  "identitymatchstatus",
+  "adminrosteritemid",
+  "rosterbatchid",
+  "createdbyadmin",
+  "updatedbyadmin",
+  "cancelledby",
+  "cancelreason",
+  "mergedintoprofileid",
+  "scheduleSnapshotJson".toLowerCase()
 ]);
 
 function hasMemberLookupParams(params = {}) {
@@ -681,6 +757,8 @@ function sanitizePublicRow(row = {}, options = {}) {
   );
   return Object.entries(row).reduce((object, [key, value]) => {
     const lowerKey = String(key || "").toLowerCase();
+    if (ALWAYS_PRIVATE_QUOTE_FIELD_KEYS.has(lowerKey)) return object;
+    if (PRIVATE_IDENTITY_FIELD_KEYS.has(lowerKey)) return object;
     if (!preserveQuoteLinks && (PRIVATE_QUOTE_FIELD_KEYS.has(lowerKey) || lowerKey.startsWith("quote"))) {
       return object;
     }
@@ -770,8 +848,8 @@ function setCorsHeaders(req, res) {
 
 function assertRequestAllowed(req) {
   const action = asText(req.query?.action);
-  const sheetsApiOnlyActions = new Set(["member_profile_lookup", "home_bootstrap", "home_bootstrap_light", "join_wishes_lookup", "admin_status_update", "quote_generate", "admin_bootstrap", "refresh_secret_tour_products"]);
-  const standaloneActions = new Set(["admin_login", "home_stats", "secret_tour_goods_detail", "secret_tour_flight_schedule", "secret_tour_goods_list", "secret_tour_goods_events"]);
+  const sheetsApiOnlyActions = new Set(["member_profile_lookup", "home_bootstrap", "home_bootstrap_light", "join_wishes_lookup", "admin_status_update", "admin_participant_lookup", "admin_participant_batch_upsert", "admin_participant_delete", "quote_generate", "admin_bootstrap", "refresh_secret_tour_products"]);
+  const standaloneActions = new Set(["admin_login", "admin_erp_login_check", "admin_erp_member_lookup", "home_stats", "secret_tour_goods_detail", "secret_tour_flight_schedule", "secret_tour_goods_list", "secret_tour_goods_events"]);
   const canUseSheetsApiOnly = Boolean(GOOGLE_SHEET_ID && sheetsApiOnlyActions.has(action));
   const canUseStandaloneAction = standaloneActions.has(action);
   const canUseSheetsApiRead = Boolean(GOOGLE_SHEET_ID && req.method === "GET" && !asText(req.query?.action));
@@ -856,6 +934,30 @@ function normalizePhone(value = "") {
   const digits = asText(value).replace(/\D/g, "");
   if (/^1[016789]\d{8}$/.test(digits)) return `0${digits}`;
   return digits;
+}
+
+function normalizeErpProductId(value = "", eventSeq = "") {
+  const text = asText(value);
+  if (!text) return "";
+  const normalizedEventSeq = asText(eventSeq);
+  if (text.startsWith("secret-tour-")) {
+    const withoutPrefix = text.slice("secret-tour-".length);
+    if (normalizedEventSeq && withoutPrefix.endsWith(`-${normalizedEventSeq}`)) {
+      return withoutPrefix.slice(0, -(normalizedEventSeq.length + 1));
+    }
+    const numericMatch = withoutPrefix.match(/^(\d+)(?:-\d+)?$/);
+    if (numericMatch) return numericMatch[1];
+  }
+  return text;
+}
+
+function isCancelledJoinApplication(row = {}) {
+  const applicationStatus = asText(row.applicationStatus || row.status).toLowerCase();
+  const participantStatus = asText(row.participantStatus).toLowerCase();
+  const cancelledValues = new Set(["cancelled", "canceled", "cancel", "취소", "참여취소", "환불완료"]);
+  return [applicationStatus, participantStatus].some((status) => (
+    cancelledValues.has(status) || /cancel|취소|환불/.test(status)
+  ));
 }
 
 function buildMemberKeyFromValues(values = {}) {
@@ -1289,6 +1391,19 @@ function validateApplicationPayload(payload, options = {}) {
   }
 }
 
+function assertServiceRole(req) {
+  if (!GOLFJOIN_SERVICE_ROLE || GOLFJOIN_SERVICE_ROLE === "all") return;
+  const action = asText(req.query?.action);
+  const isAllowed = GOLFJOIN_SERVICE_ROLE === "main"
+    ? !["quote_generate", "send_application_notifications"].includes(action)
+    : GOLFJOIN_SERVICE_ROLE === "quote"
+      ? ["quote_generate", "quote_pdf", "quote_view"].includes(action)
+      : GOLFJOIN_SERVICE_ROLE === "aligo"
+        ? action === "send_application_notifications"
+        : false;
+  if (!isAllowed) throw createHttpError("Not found", 404);
+}
+
 function validateMemberProfilePayload(payload) {
   validateMember(payload);
   assertTextLength(getValue(payload, "member.memberName"), "member.memberName", MAX_STRING_LENGTHS.name, { required: true });
@@ -1437,6 +1552,32 @@ function validateQuoteGeneratePayload(payload = {}) {
   };
 }
 
+async function getAlimtalkTripInfoWithLatestPhone(payload = {}, summary = {}) {
+  const info = getAlimtalkTripInfo(payload, summary);
+  if (!GOOGLE_SHEET_ID) return info;
+  const identifiers = {
+    memberSeq: getValue(payload, "member.memberSeq") || payload.memberSeq,
+    memberId: getValue(payload, "member.memberId") || payload.memberId,
+    memberMobile: getValue(payload, "member.memberMobile") || getValue(payload, "applicant.phone") || payload.memberMobile,
+    memberEmail: getValue(payload, "member.memberEmail") || payload.memberEmail,
+    kakaoId: getValue(payload, "member.kakaoId") || payload.kakaoId
+  };
+  if (!identifiers.memberSeq && !identifiers.memberId && !identifiers.memberMobile && !identifiers.memberEmail && !identifiers.kakaoId) {
+    return info;
+  }
+  try {
+    const profiles = await readMemberProfileLookupRowsViaSheetsApi(identifiers);
+    const latestPhone = normalizePhone(profiles[0]?.memberMobile);
+    return latestPhone ? { ...info, phone: latestPhone } : info;
+  } catch (error) {
+    console.warn("Failed to resolve latest member phone before Alimtalk send; using application phone.", {
+      name: error?.name || "",
+      message: error?.message || ""
+    });
+    return info;
+  }
+}
+
 function buildSheetReadUrl(query = {}) {
   const target = new URL(SHEET_WEB_APP_URL);
   Object.entries(query).forEach(([key, value]) => {
@@ -1555,7 +1696,7 @@ async function readScheduleParticipantSummariesViaSheetsApi(params = {}) {
   ], { timeoutMs: 7000 });
   const newSchedules = sheetRows.new_schedule_applications || [];
   const recommendedSchedules = (sheetRows.recommended_schedules || [])
-    .filter(isActiveRecommendedScheduleRule)
+    .filter(isManageableRecommendedScheduleRule)
     .map(buildRecommendedScheduleSummarySource);
   const summaries = newSchedules
     .concat(recommendedSchedules)
@@ -1618,7 +1759,7 @@ async function readScheduleSummaryViaSheetsApi(scheduleId = "") {
   ], { timeoutMs: 7000 });
   const newSchedules = sheetRows.new_schedule_applications || [];
   const recommendedSchedules = (sheetRows.recommended_schedules || [])
-    .filter(isActiveRecommendedScheduleRule)
+    .filter(isManageableRecommendedScheduleRule)
     .map(buildRecommendedScheduleSummarySource);
   const schedules = newSchedules.concat(recommendedSchedules);
   const schedule = schedules.find((item) => (
@@ -1664,14 +1805,16 @@ async function sendGolfjoinApplicationNotifications(payload = {}, beforeSummary 
   const source = asText(payload.source);
   const results = [];
   if (source === "new_schedule_builder") {
+    const info = await getAlimtalkTripInfoWithLatestPhone(payload, afterSummary || {});
     results.push({
       type: "create",
-      result: await sendGolfjoinAlimtalk("create", getAlimtalkTripInfo(payload, afterSummary || {}))
+      result: await sendGolfjoinAlimtalk("create", info)
     });
   } else if (source === "join_apply") {
+    const info = await getAlimtalkTripInfoWithLatestPhone(payload, afterSummary || {});
     results.push({
       type: "join",
-      result: await sendGolfjoinAlimtalk("join", getAlimtalkTripInfo(payload, afterSummary || {}))
+      result: await sendGolfjoinAlimtalk("join", info)
     });
   }
 
@@ -1700,42 +1843,154 @@ async function sendGolfjoinApplicationNotifications(payload = {}, beforeSummary 
   return results;
 }
 
+async function processGolfjoinApplicationNotifications(payload = {}, notificationScheduleId = "", requestId = "") {
+  const source = asText(payload.source);
+  let beforeSummary = null;
+  let afterSummary = null;
+  if (source === "join_apply" && notificationScheduleId) {
+    try {
+      afterSummary = await readScheduleSummary(notificationScheduleId);
+      beforeSummary = afterSummary
+        ? {
+            ...afterSummary,
+            confirmedPeople: Math.max(0, getNumberValue(afterSummary.confirmedPeople, 0) - getApplicantPeople(payload))
+          }
+        : null;
+    } catch (summaryError) {
+      console.warn("Failed to read schedule summary before join alimtalk; sending join notification without summary.", {
+        requestId,
+        scheduleId: notificationScheduleId,
+        name: summaryError?.name || "",
+        message: summaryError?.message || ""
+      });
+    }
+  }
+  const notifications = await sendGolfjoinApplicationNotifications(payload, beforeSummary, afterSummary);
+  console.log("golfjoin alimtalk completed", { requestId, source, notifications });
+  return notifications;
+}
+
 function sendGolfjoinApplicationNotificationsInBackground(payload = {}, notificationScheduleId = "", requestId = "") {
   if (!ALIGO_ENABLED || !(asText(payload.source) === "new_schedule_builder" || asText(payload.source) === "join_apply")) return;
-  setImmediate(async () => {
-    try {
-      const source = asText(payload.source);
-      let beforeSummary = null;
-      let afterSummary = null;
-      if (source === "join_apply" && notificationScheduleId) {
-        try {
-          afterSummary = await readScheduleSummary(notificationScheduleId);
-          beforeSummary = afterSummary
-            ? {
-                ...afterSummary,
-                confirmedPeople: Math.max(0, getNumberValue(afterSummary.confirmedPeople, 0) - getApplicantPeople(payload))
-              }
-            : null;
-        } catch (summaryError) {
-          console.warn("Failed to read schedule summary before join alimtalk; sending join notification without summary.", {
-            requestId,
-            scheduleId: notificationScheduleId,
-            name: summaryError?.name || "",
-            message: summaryError?.message || ""
-          });
-        }
-      }
-      const notifications = await sendGolfjoinApplicationNotifications(payload, beforeSummary, afterSummary);
-      console.log("golfjoin alimtalk background completed", { requestId, source, notifications });
-    } catch (error) {
+  setImmediate(() => {
+    processGolfjoinApplicationNotifications(payload, notificationScheduleId, requestId).catch((error) => {
       console.warn("Failed to send golfjoin alimtalk notification in background.", {
         requestId,
         source: asText(payload.source),
         name: error?.name || "",
         message: error?.message || ""
       });
-    }
+    });
   });
+}
+
+async function enqueueGolfjoinApplicationNotifications(payload = {}, notificationScheduleId = "", requestId = "") {
+  if (!GOLFJOIN_PROJECT_ID || !GOLFJOIN_ALIGO_TASK_QUEUE || !GOLFJOIN_TASKS_SERVICE_ACCOUNT) {
+    throw createHttpError("Cloud Tasks notification queue is not fully configured", 500, { code: "aligo_task_queue_not_configured" });
+  }
+  const target = new URL(GOLFJOIN_ALIGO_SERVICE_URL);
+  target.searchParams.set("action", "send_application_notifications");
+  const audienceUrl = new URL(GOLFJOIN_ALIGO_SERVICE_URL);
+  audienceUrl.search = "";
+  audienceUrl.hash = "";
+  const taskKey = firstText(
+    payload.applicationId,
+    payload.joinApplyId,
+    getValue(payload, "application.applicationId"),
+    `${asText(payload.source)}|${notificationScheduleId}|${requestId}`
+  );
+  const taskId = `aligo-${asText(payload.source).replace(/[^a-z0-9_-]+/gi, "-")}-${sha256(taskKey).slice(0, 32)}`;
+  const parent = `projects/${GOLFJOIN_PROJECT_ID}/locations/${GOLFJOIN_ALIGO_TASK_LOCATION}/queues/${GOLFJOIN_ALIGO_TASK_QUEUE}`;
+  const accessToken = await getGoogleMetadataAccessToken();
+  const response = await fetchWithTimeout(`https://cloudtasks.googleapis.com/v2/${parent}/tasks`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      task: {
+        name: `${parent}/tasks/${taskId}`,
+        dispatchDeadline: "180s",
+        httpRequest: {
+          httpMethod: "POST",
+          url: target.toString(),
+          headers: {
+            "Content-Type": "application/json",
+            "X-Golfjoin-Internal-Token": GOLFJOIN_INTERNAL_SERVICE_TOKEN
+          },
+          body: Buffer.from(JSON.stringify({ payload, notificationScheduleId, requestId }), "utf8").toString("base64"),
+          oidcToken: {
+            serviceAccountEmail: GOLFJOIN_TASKS_SERVICE_ACCOUNT,
+            audience: audienceUrl.toString().replace(/\/$/, "")
+          }
+        }
+      }
+    })
+  }, 10_000, "Cloud Tasks enqueue");
+  const result = await response.json().catch(() => ({}));
+  if (response.status === 409) return { queued: true, duplicate: true, reason: "notification_already_queued" };
+  if (!response.ok) throw createHttpError(result.error?.message || `Cloud Tasks enqueue failed: ${response.status}`, response.status || 502);
+  return { queued: true, taskName: asText(result.name), reason: "notification_queued" };
+}
+
+async function dispatchGolfjoinApplicationNotifications(payload = {}, notificationScheduleId = "", requestId = "") {
+  const source = asText(payload.source);
+  if (!(source === "new_schedule_builder" || source === "join_apply")) {
+    return [{ skipped: true, reason: "notification source is not supported" }];
+  }
+  if (!GOLFJOIN_ALIGO_SERVICE_URL) {
+    sendGolfjoinApplicationNotificationsInBackground(payload, notificationScheduleId, requestId);
+    return ALIGO_ENABLED
+      ? [{ queued: true, reason: "notification_queued_locally" }]
+      : [{ skipped: true, reason: "aligo service is not configured" }];
+  }
+  if (!GOLFJOIN_INTERNAL_SERVICE_TOKEN) {
+    return [{ ok: false, reason: "internal service token is not configured" }];
+  }
+  if (GOLFJOIN_ALIGO_TASK_QUEUE) {
+    try {
+      return [await enqueueGolfjoinApplicationNotifications(payload, notificationScheduleId, requestId)];
+    } catch (error) {
+      console.warn("Failed to enqueue golfjoin alimtalk notification.", {
+        requestId,
+        source,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+      return [{ ok: false, reason: error?.message || "aligo task enqueue failed" }];
+    }
+  }
+  try {
+    const target = new URL(GOLFJOIN_ALIGO_SERVICE_URL);
+    target.searchParams.set("action", "send_application_notifications");
+    const audienceUrl = new URL(GOLFJOIN_ALIGO_SERVICE_URL);
+    audienceUrl.search = "";
+    audienceUrl.hash = "";
+    const identityToken = await getGoogleMetadataIdentityToken(audienceUrl.toString().replace(/\/$/, ""));
+    const response = await fetchWithTimeout(target.toString(), {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${identityToken}`,
+        "Content-Type": "application/json",
+        "X-Golfjoin-Internal-Token": GOLFJOIN_INTERNAL_SERVICE_TOKEN
+      },
+      body: JSON.stringify({ payload, notificationScheduleId, requestId })
+    }, Math.max(12_000, ALIGO_REQUEST_TIMEOUT_MS + 8_000), "Aligo service request");
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) {
+      return [{ ok: false, status: response.status, reason: result.error || "aligo service request failed" }];
+    }
+    return Array.isArray(result.notifications) ? result.notifications : [];
+  } catch (error) {
+    console.warn("Failed to dispatch golfjoin alimtalk notification.", {
+      requestId,
+      source,
+      name: error?.name || "",
+      message: error?.message || ""
+    });
+    return [{ ok: false, reason: error?.message || "aligo service request failed" }];
+  }
 }
 
 function sanitizeMemberProfileLookupRow(row = {}) {
@@ -2078,7 +2333,6 @@ async function readHomeBootstrapLightViaAppsScript(params = {}) {
 
 async function readHomeBootstrapLightViaSheetsApi(params = {}) {
   const newScheduleLimit = Math.min(Math.max(Number(params.newScheduleLimit || 100), 1), 100);
-  const joinApplicationLimit = Math.min(Math.max(Number(params.joinApplicationLimit || 100), 1), 200);
   const sheetRows = await readGoogleSheetRangesViaApi([
     "new_schedule_applications",
     "join_applications",
@@ -2089,21 +2343,17 @@ async function readHomeBootstrapLightViaSheetsApi(params = {}) {
     limit: newScheduleLimit
   });
   const joinApplications = filterSheetRowsForHome(sheetRows.join_applications || [], {
-    source: "join_apply",
-    limit: joinApplicationLimit
+    source: "join_apply"
   });
   const displayRules = filterSheetRowsForHome(sheetRows.recommended_schedules || [], {
     limit: 100
-  }).filter((row) => (
-    asText(row.section) === "available_schedule"
-    && asText(row.isVisible || "true").toLowerCase() !== "false"
-  ));
+  }).filter(isActiveRecommendedScheduleRule);
   return sanitizeHomeBootstrapLightPayload({
     ok: true,
     serverTime: nowKstISOString(),
     updatedAt: nowKstISOString(),
     newScheduleSummaries: newSchedules.map(buildNewScheduleSummary),
-    participantSummaries: buildParticipantSummaries(joinApplications),
+    participantSummaries: buildParticipantSummaries(joinApplications, newSchedules, displayRules),
     displayRules: displayRules.map(buildDisplayRuleSummary),
     wishTargetKeys: [],
     memberBasic: {
@@ -2205,9 +2455,12 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
       targetApplicationId: asText(item.targetApplicationId),
       erpProductId: asText(item.erpProductId),
       erpEventSeq: asText(item.erpEventSeq),
+      capacity: Math.max(1, Math.round(Number(item.capacity) || 4)),
       confirmedCount: Math.max(0, Math.round(Number(item.confirmedCount) || 0)),
       remainingSlots: Math.max(0, Math.round(Number(item.remainingSlots) || 0)),
-      participantsPreview: (Array.isArray(item.participantsPreview) ? item.participantsPreview : []).map(sanitizePreviewItem).slice(0, 4),
+      participantsPreview: (Array.isArray(item.participantsPreview) ? item.participantsPreview : [])
+        .map(sanitizePreviewItem)
+        .slice(0, Math.min(MAX_PARTICIPANT_PREVIEW_COUNT, Math.max(1, Math.round(Number(item.capacity) || 4)))),
       lastAppliedAt: asText(item.lastAppliedAt)
     })),
     displayRules: (Array.isArray(payload.displayRules) ? payload.displayRules : []).map(sanitizePublicRow),
@@ -2250,6 +2503,65 @@ function formatQuoteMoney(value) {
   return `${Math.round(number).toLocaleString("ko-KR")}원`;
 }
 
+function normalizeQuoteAdditionalAmounts(value = []) {
+  let source = value;
+  if (typeof source === "string") {
+    try {
+      source = JSON.parse(source);
+    } catch (error) {
+      source = [];
+    }
+  }
+  if (!Array.isArray(source)) return [];
+  return source.slice(0, 12).map((item) => ({
+    label: firstText(item?.label, item?.title, item?.name),
+    amount: parseQuoteMoney(item?.amount ?? item?.value)
+  })).filter((item) => item.label && item.amount);
+}
+
+const QUOTE_FLIGHT_DETAIL_KEYS = [
+  "outboundFlightName",
+  "outboundDepartureTime",
+  "outboundArrivalTime",
+  "inboundFlightName",
+  "inboundDepartureTime",
+  "inboundArrivalTime"
+];
+
+function normalizeQuoteFlightDetails(value = {}) {
+  let source = value;
+  if (typeof source === "string") {
+    try {
+      source = JSON.parse(source);
+    } catch (error) {
+      source = {};
+    }
+  }
+  if (!source || typeof source !== "object" || Array.isArray(source)) source = {};
+  return QUOTE_FLIGHT_DETAIL_KEYS.reduce((details, key) => {
+    details[key] = asText(source[key]);
+    return details;
+  }, {});
+}
+
+function buildQuoteFlightScheduleItems(details = {}) {
+  const normalized = normalizeQuoteFlightDetails(details);
+  return [
+    {
+      label: "출발편",
+      flightName: normalized.outboundFlightName,
+      departureTime: normalized.outboundDepartureTime,
+      arrivalTime: normalized.outboundArrivalTime
+    },
+    {
+      label: "귀국편",
+      flightName: normalized.inboundFlightName,
+      departureTime: normalized.inboundDepartureTime,
+      arrivalTime: normalized.inboundArrivalTime
+    }
+  ].filter((item) => item.flightName || item.departureTime || item.arrivalTime);
+}
+
 function getQuoteApplicationType(sheetName = "", row = {}) {
   if (sheetName === "new_schedule_applications" || asText(row.source).includes("new_schedule")) return "새모임 생성";
   return "참여신청";
@@ -2266,10 +2578,115 @@ function getQuoteFlightText(row = {}, schedule = {}, product = {}) {
   return airline || "담당자 확인";
 }
 
+function normalizeQuoteFlightRequestType(...values) {
+  const text = firstText(...values).replace(/\s+/g, "");
+  if (text.includes("직접예약")) return "직접예약";
+  if (text.includes("대행요청")) return "대행요청";
+  return "";
+}
+
+function isQuoteFlightExcluded(draft = {}, row = {}, schedule = {}, product = {}) {
+  const packType = firstText(
+    draft.packType,
+    row.packType,
+    schedule.packType,
+    product.packType,
+    row.packTypeName,
+    schedule.packTypeName,
+    product.packTypeName
+  ).replace(/\s+/g, "").toLowerCase();
+  if (["golf", "골프팩", "golftel", "landonly", "land"].includes(packType)) return true;
+  const flightIncluded = firstText(draft.flightIncluded, row.flightIncluded, schedule.flightIncluded, product.flightIncluded).replace(/\s+/g, "").toLowerCase();
+  if (["n", "no", "false", "0", "불포함", "별도", "excluded"].includes(flightIncluded)) return true;
+  const airline = firstText(draft.airline, row.airline, schedule.airline, product.airline, product.airlineName, product.air2Nm);
+  return /개별항공|항공별도|항공불포함/.test(airline.replace(/\s+/g, ""));
+}
+
 function splitQuoteList(value, fallback = []) {
   if (Array.isArray(value)) return value.map(asText).filter(Boolean).slice(0, 12);
   const items = asText(value).split(/[\n,]/).map((item) => item.trim()).filter(Boolean).slice(0, 12);
   return items.length ? items : fallback;
+}
+
+function firstQuoteList(...values) {
+  for (const value of values) {
+    const items = splitQuoteList(value, []);
+    if (items.length) return items;
+  }
+  return [];
+}
+
+function splitQuoteLineList(value, fallback = []) {
+  if (Array.isArray(value)) return value.map(asText).filter(Boolean).slice(0, 12);
+  const items = asText(value).split(/\r?\n/).map((item) => item.trim()).filter(Boolean).slice(0, 12);
+  return items.length ? items : fallback;
+}
+
+function firstQuoteLineList(...values) {
+  for (const value of values) {
+    const items = splitQuoteLineList(value, []);
+    if (items.length) return items;
+  }
+  return [];
+}
+
+function normalizeQuoteItinerarySchedule(value) {
+  let source = value;
+  if (typeof source === "string") {
+    try {
+      source = JSON.parse(source);
+    } catch (error) {
+      source = [];
+    }
+  }
+  if (!Array.isArray(source)) return [];
+  return source.slice(0, 15).map((item, index) => {
+    if (!item || typeof item !== "object") return null;
+    const points = (Array.isArray(item.points) ? item.points : splitQuoteList(item.content || item.rawText, []))
+      .map((point) => {
+        if (point && typeof point === "object") {
+          return {
+            title: firstText(point.title, point.main, point.name, point.text, point.content),
+            description: firstText(point.description, point.subText, point.subtitle, point.detail)
+          };
+        }
+        return { title: asText(point), description: "" };
+      })
+      .filter((point) => point.title)
+      .slice(0, 20);
+    const meals = Array.isArray(item.meals)
+      ? item.meals.slice(0, 6).map((meal) => ({
+        label: asText(meal?.label),
+        menu: asText(meal?.menu)
+      })).filter((meal) => meal.label || meal.menu)
+      : [];
+    return {
+      day: firstText(item.day, `${index + 1}일차`),
+      dateText: asText(item.dateText),
+      points,
+      content: firstText(item.content, item.rawText),
+      hotel: asText(item.hotel),
+      meals
+    };
+  }).filter(Boolean);
+}
+
+function getQuoteNightCount(values = [], departureDate = "", returnDate = "") {
+  for (const value of values) {
+    const match = asText(value).match(/(\d{1,2})\s*박/);
+    if (match) return Math.max(1, Math.min(30, Number(match[1]) || 1));
+  }
+  const start = normalizeSheetDateText(departureDate);
+  const end = normalizeSheetDateText(returnDate);
+  const startMatch = start.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const endMatch = end.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (startMatch && endMatch) {
+    const startUtc = Date.UTC(Number(startMatch[1]), Number(startMatch[2]) - 1, Number(startMatch[3]));
+    const endUtc = Date.UTC(Number(endMatch[1]), Number(endMatch[2]) - 1, Number(endMatch[3]));
+    const nights = Math.round((endUtc - startUtc) / 86400000);
+    if (nights > 0 && nights <= 30) return nights;
+  }
+  return 1;
 }
 
 function buildQuoteData(payload = {}, existingRow = {}) {
@@ -2284,15 +2701,69 @@ function buildQuoteData(payload = {}, existingRow = {}) {
   const quoteDate = generatedAt.slice(0, 10).replace(/-/g, "") || new Date().toISOString().slice(0, 10).replace(/-/g, "");
   const quoteSuffix = crypto.createHash("sha1").update(quoteId).digest("hex").slice(0, 6).toUpperCase();
   const people = parsePeopleCount(firstText(draft.people, row.applicantPeople, row.people, row.creatorPeople, "1"));
+  const departureDate = normalizeSheetDateText(firstText(draft.departureDate, row.departureDate, row.departureDateFrom, schedule.departureDate, schedule.departureDateFrom, product.departureDate));
+  const returnDate = normalizeSheetDateText(firstText(draft.returnDate, row.returnDate, row.returnDateTo, schedule.returnDate, schedule.returnDateTo, product.returnDate));
+  const tripSummary = firstText(
+    draft.tripSummary,
+    row.tripSummary,
+    schedule.tripSummary,
+    schedule.duration,
+    product.tripSummary,
+    product.dayNightCnt,
+    product.duration
+  );
+  const nightCount = getQuoteNightCount([
+    tripSummary,
+    draft.productName,
+    row.productName,
+    schedule.productName,
+    product.productName,
+    product.title
+  ], departureDate, returnDate);
   const unitPrice = parseQuoteMoney(firstText(draft.unitPrice, row.productPrice, row.price, schedule.productPrice, product.productPrice, product.price));
-  const singleRoomSurcharge = parseQuoteMoney(firstText(draft.singleRoomSurcharge, row.singleRoomSurcharge, schedule.singleRoomSurcharge));
+  const singleRoomSurchargePerNight = parseQuoteMoney(firstText(draft.singleRoomSurcharge, row.singleRoomSurcharge, schedule.singleRoomSurcharge));
+  const singleRoomSurcharge = singleRoomSurchargePerNight * nightCount;
+  const additionalAmounts = normalizeQuoteAdditionalAmounts(draft.additionalAmounts || row.quoteAdditionalAmountsJson);
+  const additionalAmountTotal = additionalAmounts.reduce((sum, item) => sum + item.amount, 0);
+  const airfareItem = additionalAmounts.find((item) => item.label.replace(/\s+/g, "") === "항공료");
+  const airfare = airfareItem?.amount || 0;
   const productSubtotal = unitPrice ? unitPrice * people : 0;
-  const estimatedTotal = productSubtotal + singleRoomSurcharge;
+  const estimatedTotal = productSubtotal + additionalAmountTotal + singleRoomSurcharge;
   const depositPerPerson = parseQuoteMoney(firstText(draft.depositPerPerson, GOLFJOIN_QUOTE_DEPOSIT_PER_PERSON));
   const deposit = depositPerPerson ? depositPerPerson * people : 0;
   const balance = estimatedTotal && deposit ? Math.max(0, estimatedTotal - deposit) : 0;
-  const defaultIncludedItems = ["그린피 및 골프 일정", "일정표 기준 숙박", "일정표 기준 차량 및 미팅·샌딩"];
-  const defaultExcludedItems = ["개인 경비 및 매너팁", "견적서에 별도 표기되지 않은 비용"];
+  const flightExcluded = isQuoteFlightExcluded(draft, row, schedule, product);
+  const flightRequestType = normalizeQuoteFlightRequestType(
+    draft.flightRequestType,
+    row.flightRequestType,
+    row.applicantFlightRequestType,
+    getValue(row, "applicant.flightRequestType"),
+    flightExcluded ? "대행요청" : ""
+  );
+  const savedFlightDetails = normalizeQuoteFlightDetails(row.quoteFlightDetailsJson);
+  const flightDetails = normalizeQuoteFlightDetails(QUOTE_FLIGHT_DETAIL_KEYS.reduce((details, key) => {
+    details[key] = Object.prototype.hasOwnProperty.call(draft, key) ? asText(draft[key]) : savedFlightDetails[key];
+    return details;
+  }, {}));
+  const structuredFlightSchedule = buildQuoteFlightScheduleItems(flightDetails);
+  const includedItems = firstQuoteList(
+    draft.includedItems,
+    product.includes,
+    product.includeItems,
+    row.includes,
+    row.includeItems,
+    getValue(row, "product.includes"),
+    getValue(row, "trip.includes")
+  );
+  const excludedItems = firstQuoteList(
+    draft.excludedItems,
+    product.excludes,
+    product.excludeItems,
+    row.excludes,
+    row.excludeItems,
+    getValue(row, "product.excludes"),
+    getValue(row, "trip.excludes")
+  );
   return {
     quoteId,
     quoteNo: `GJQ-${quoteDate}-${quoteSuffix}`,
@@ -2302,32 +2773,53 @@ function buildQuoteData(payload = {}, existingRow = {}) {
     applicantName: firstText(draft.applicantName, row.applicantName, row.memberName, row.creatorName, row.name, "고객"),
     applicantPhone: normalizePhone(firstText(draft.applicantPhone, row.applicantMobile, row.memberMobile, row.creatorPhone, row.phone)),
     productName: firstText(draft.productName, row.productName, schedule.productName, product.productName, product.title, "골프조인 상품"),
-    productImageUrl: firstText(draft.productImageUrl, row.imageUrl, row.image, schedule.imageUrl, schedule.image, product.imageUrl, product.image, product.thumbnailUrl),
+    productImageUrl: QUOTE_HERO_IMAGE_URL,
     country: firstText(draft.country, row.country, schedule.country, product.country),
     region: firstText(draft.region, row.region, schedule.region, product.region),
-    departureDate: normalizeSheetDateText(firstText(draft.departureDate, row.departureDate, row.departureDateFrom, schedule.departureDate, schedule.departureDateFrom, product.departureDate)),
-    returnDate: normalizeSheetDateText(firstText(draft.returnDate, row.returnDate, row.returnDateTo, schedule.returnDate, schedule.returnDateTo, product.returnDate)),
+    departureDate,
+    returnDate,
     airline: firstText(draft.airline, getQuoteFlightText(row, schedule, product)),
+    flightExcluded,
+    flightRequestType,
+    flightDetails,
+    ...flightDetails,
+    departureAirport: firstText(draft.departureAirport, row.departureAirport, schedule.departureAirport, product.departureAirport, product.depAirport),
+    arrivalAirport: firstText(draft.arrivalAirport, row.arrivalAirport, schedule.arrivalAirport, product.arrivalAirport, product.arrAirport),
     roomType: firstText(draft.roomType, getQuoteRoomType(row)),
     people,
+    nightCount,
+    tripDuration: tripSummary.match(/\d{1,2}\s*박/) ? tripSummary : `${nightCount}박 ${nightCount + 1}일`,
     companions: asText(row.applicantCompanions || row.companions),
     styles: asText(row.applicantStyles || row.styles),
     preferredMembers: asText(row.applicantPreferredMembers || row.memberPreferences),
     unitPrice,
     productSubtotal,
+    singleRoomSurchargePerNight,
     singleRoomSurcharge,
+    additionalAmounts: additionalAmounts.map((item) => ({ ...item, formattedAmount: formatQuoteMoney(item.amount) })),
+    additionalAmountTotal,
+    airfare,
+    airfareIncluded: Boolean(airfare),
     estimatedTotal,
     deposit,
     balance,
     formattedProductSubtotal: formatQuoteMoney(productSubtotal || unitPrice),
+    formattedSingleRoomSurchargePerNight: singleRoomSurchargePerNight ? formatQuoteMoney(singleRoomSurchargePerNight) : "-",
     formattedSingleRoomSurcharge: singleRoomSurcharge ? formatQuoteMoney(singleRoomSurcharge) : "-",
     formattedEstimatedTotal: formatQuoteMoney(estimatedTotal),
+    formattedAirfare: airfare ? formatQuoteMoney(airfare) : "-",
     formattedDepositPerPerson: formatQuoteMoney(depositPerPerson),
     formattedDeposit: formatQuoteMoney(deposit),
     formattedBalance: estimatedTotal ? `${Math.round(balance).toLocaleString("ko-KR")}원` : "담당자 확인",
     accountText: firstText(draft.accountText, GOLFJOIN_QUOTE_ACCOUNT_TEXT),
-    includedItems: splitQuoteList(draft.includedItems, defaultIncludedItems),
-    excludedItems: splitQuoteList(draft.excludedItems, defaultExcludedItems),
+    flightScheduleItems: structuredFlightSchedule.length
+      ? structuredFlightSchedule
+      : firstQuoteList(draft.flightScheduleItems, product.flightScheduleItems, row.flightScheduleItems),
+    itinerarySchedule: normalizeQuoteItinerarySchedule(draft.itinerarySchedule || product.itinerarySchedule || product.schedule || row.itinerarySchedule),
+    itineraryItems: firstQuoteList(draft.itineraryItems, product.itineraryItems, row.itineraryItems),
+    includedItems: includedItems.length ? includedItems : ["실제 상품 포함 사항 확인 필요"],
+    excludedItems: excludedItems.length ? excludedItems : ["실제 상품 불포함 사항 확인 필요"],
+    productNotes: firstQuoteLineList(draft.productNotes, product.notes, product.notice, row.notes, row.notice),
     specialNotes: firstText(
       draft.specialNotes,
       "본 견적서는 현재 신청 정보와 조회 가능한 상품 조건을 기준으로 작성되었습니다. 항공 좌석, 객실 가능 여부, 환율 및 현지 상황에 따라 담당자 확인 후 최종 금액이 변경될 수 있습니다."
@@ -2482,8 +2974,33 @@ function createGolfjoinQuotePdfBuffer(quote = {}) {
   return buildPdfBuffer(objects);
 }
 
-function buildStoragePublicUrl(bucketName = "", objectName = "") {
-  return `https://storage.googleapis.com/${encodeURIComponent(bucketName)}/${objectName.split("/").map(encodeURIComponent).join("/")}`;
+const QUOTE_ENCRYPTED_FILE_MAGIC = Buffer.from("GJQ1", "ascii");
+
+function getQuoteEncryptionKey(accessToken = "") {
+  if (!asText(accessToken)) throw createHttpError("quote access token is required", 500);
+  return crypto.createHash("sha256").update(String(accessToken), "utf8").digest();
+}
+
+function encryptQuoteBuffer(buffer, accessToken = "") {
+  const source = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer || "");
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", getQuoteEncryptionKey(accessToken), iv);
+  const encrypted = Buffer.concat([cipher.update(source), cipher.final()]);
+  return Buffer.concat([QUOTE_ENCRYPTED_FILE_MAGIC, iv, cipher.getAuthTag(), encrypted]);
+}
+
+function decryptQuoteBuffer(buffer, accessToken = "") {
+  const source = Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer || "");
+  const headerLength = QUOTE_ENCRYPTED_FILE_MAGIC.length + 12 + 16;
+  if (source.length <= headerLength || !source.subarray(0, QUOTE_ENCRYPTED_FILE_MAGIC.length).equals(QUOTE_ENCRYPTED_FILE_MAGIC)) {
+    throw createHttpError("invalid quote file", 404);
+  }
+  const ivStart = QUOTE_ENCRYPTED_FILE_MAGIC.length;
+  const tagStart = ivStart + 12;
+  const encryptedStart = tagStart + 16;
+  const decipher = crypto.createDecipheriv("aes-256-gcm", getQuoteEncryptionKey(accessToken), source.subarray(ivStart, tagStart));
+  decipher.setAuthTag(source.subarray(tagStart, encryptedStart));
+  return Buffer.concat([decipher.update(source.subarray(encryptedStart)), decipher.final()]);
 }
 
 function buildQuoteObjectName(quote = {}, extension = "pdf") {
@@ -2493,48 +3010,128 @@ function buildQuoteObjectName(quote = {}, extension = "pdf") {
   return `${GOLFJOIN_QUOTES_PREFIX ? `${GOLFJOIN_QUOTES_PREFIX}/` : ""}${date.slice(0, 4)}/${date.slice(4, 6)}/${safeQuoteId}.${safeExtension}`;
 }
 
-async function saveQuotePdfToStorage(buffer, quote = {}) {
-  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
-  const objectName = buildQuoteObjectName(quote);
-  const file = bucket.file(objectName);
-  await file.save(buffer, {
-    resumable: false,
-    metadata: {
-      cacheControl: "private, max-age=0, no-store",
-      contentType: "application/pdf"
+function getQuoteAccessBaseUrl(requestUrl = "", action = "quote_view") {
+  const configuredBase = action === "quote_pdf"
+    ? firstText(process.env.GOLFJOIN_QUOTE_PDF_BASE_URL, process.env.GOLFJOIN_QUOTE_VIEW_BASE_URL)
+    : asText(process.env.GOLFJOIN_QUOTE_VIEW_BASE_URL);
+  const candidates = [configuredBase, asText(requestUrl)].filter(Boolean);
+  let lastError = null;
+  for (const candidate of candidates) {
+    try {
+      const url = new URL(candidate);
+      const host = url.hostname.toLowerCase();
+      if (host.endsWith(".cloudfunctions.net") && (!url.pathname || url.pathname === "/")) {
+        const functionName = asText(process.env.GOLFJOIN_QUOTE_FUNCTION_NAME || process.env.K_SERVICE || "golfjoin-sheet-api");
+        url.pathname = `/${functionName || "golfjoin-sheet-api"}`;
+      } else if (host.endsWith(".a.run.app")) {
+        url.pathname = "/";
+      }
+      url.search = "";
+      url.hash = "";
+      return url;
+    } catch (error) {
+      lastError = error;
     }
-  });
-  try {
-    await file.makePublic();
-  } catch (error) {
-    console.warn("Quote PDF makePublic failed; returning bucket URL.", error?.message || error);
   }
-  return {
-    objectName,
-    url: buildStoragePublicUrl(GOLFJOIN_PRODUCTS_BUCKET, objectName)
-  };
+  throw createHttpError(`quote view base URL is invalid: ${lastError?.message || "missing URL"}`, 500, {
+    code: "quote_view_base_url_invalid"
+  });
 }
 
-async function saveQuoteHtmlToStorage(html, quote = {}) {
+function buildQuoteAccessUrl(requestUrl = "", action = "quote_view", quoteId = "", accessToken = "") {
+  const url = getQuoteAccessBaseUrl(requestUrl, action);
+  url.search = "";
+  url.hash = "";
+  url.searchParams.set("action", action);
+  url.searchParams.set("quoteId", quoteId);
+  url.searchParams.set("token", accessToken);
+  return url.toString();
+}
+
+async function saveQuoteHtmlToStorage(html, quote = {}, accessToken = "") {
   const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
   const objectName = buildQuoteObjectName(quote, "html");
   const file = bucket.file(objectName);
-  await file.save(Buffer.from(String(html || ""), "utf8"), {
+  await file.save(encryptQuoteBuffer(Buffer.from(String(html || ""), "utf8"), accessToken), {
     resumable: false,
     metadata: {
       cacheControl: "private, max-age=0, no-store",
-      contentType: "text/html; charset=utf-8"
+      contentType: "application/octet-stream",
+      metadata: { golfjoinQuoteEncrypted: "aes-256-gcm" }
     }
   });
-  try {
-    await file.makePublic();
-  } catch (error) {
-    console.warn("Quote HTML makePublic failed; returning bucket URL.", error?.message || error);
-  }
   return {
-    objectName,
-    url: buildStoragePublicUrl(GOLFJOIN_PRODUCTS_BUCKET, objectName)
+    objectName
   };
+}
+
+async function saveQuoteDataToStorage(quote = {}, accessToken = "") {
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const objectName = buildQuoteObjectName(quote, "json");
+  const file = bucket.file(objectName);
+  const body = Buffer.from(JSON.stringify(quote), "utf8");
+  await file.save(encryptQuoteBuffer(body, accessToken), {
+    resumable: false,
+    metadata: {
+      cacheControl: "private, max-age=0, no-store",
+      contentType: "application/octet-stream",
+      metadata: { golfjoinQuoteEncrypted: "aes-256-gcm" }
+    }
+  });
+  return { objectName };
+}
+
+function getQuoteObjectNameFromStorageUrl(value = "") {
+  try {
+    const url = new URL(asText(value));
+    if (url.hostname !== "storage.googleapis.com") return "";
+    const parts = url.pathname.split("/").filter(Boolean).map((part) => decodeURIComponent(part));
+    if (parts.shift() !== GOLFJOIN_PRODUCTS_BUCKET) return "";
+    return parts.join("/");
+  } catch (error) {
+    return "";
+  }
+}
+
+function isManagedQuoteObjectName(value = "") {
+  const objectName = asText(value);
+  if (!objectName || !/\.(?:html|json|pdf)$/i.test(objectName) || !/(?:^|\/)quote_[a-z0-9_-]+\.(?:html|json|pdf)$/i.test(objectName)) return false;
+  return !GOLFJOIN_QUOTES_PREFIX || objectName.startsWith(`${GOLFJOIN_QUOTES_PREFIX}/`);
+}
+
+function getQuoteDataObjectName(row = {}) {
+  const configured = asText(row.quoteDataFileName);
+  if (configured) return configured;
+  const pageObjectName = asText(row.quotePageFileName);
+  return pageObjectName.toLowerCase().endsWith(".html")
+    ? `${pageObjectName.slice(0, -5)}.json`
+    : "";
+}
+
+async function deleteQuoteObjects(objectNames = []) {
+  const candidates = [...new Set(objectNames.map(asText).filter(isManagedQuoteObjectName))];
+  if (!candidates.length) return;
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  await Promise.allSettled(candidates.map((objectName) => bucket.file(objectName).delete({ ignoreNotFound: true })));
+}
+
+async function deleteSupersededQuoteFiles(row = {}, keepObjectNames = []) {
+  const keep = new Set(keepObjectNames.map(asText).filter(Boolean));
+  const candidates = new Set([
+    asText(row.quoteFileName),
+    asText(row.quotePageFileName),
+    getQuoteDataObjectName(row),
+    getQuoteObjectNameFromStorageUrl(row.quotePdfUrl),
+    getQuoteObjectNameFromStorageUrl(row.quotePageUrl || row.quoteUrl)
+  ].filter((objectName) => isManagedQuoteObjectName(objectName) && !keep.has(objectName)));
+  if (!candidates.size) return;
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const results = await Promise.allSettled([...candidates].map((objectName) => bucket.file(objectName).delete({ ignoreNotFound: true })));
+  results.forEach((result, index) => {
+    if (result.status === "rejected") {
+      console.warn("Superseded quote cleanup failed.", { objectName: [...candidates][index], message: result.reason?.message || String(result.reason) });
+    }
+  });
 }
 
 function buildPreviewSeed(row = {}, fallback = "") {
@@ -2669,37 +3266,56 @@ function getParticipantSummaryKey(row = {}) {
     targetType,
     row.targetScheduleId || "",
     row.targetApplicationId || "",
-    row.erpProductId || "",
+    normalizeErpProductId(row.erpProductId, row.erpEventSeq),
     row.erpEventSeq || ""
   ].map(asText).join("|");
 }
 
-function buildParticipantSummaries(rows = []) {
+function buildParticipantSummaries(rows = [], newSchedules = [], recommendedRows = []) {
   const groups = new Map();
-  rows.forEach((row) => {
+  rows.filter((row) => !isCancelledJoinApplication(row)).forEach((row) => {
     const key = getParticipantSummaryKey(row);
+    const targetSchedule = findJoinApplicationTargetSchedule(row, newSchedules, recommendedRows);
+    if (getParticipantSummaryTargetType(row) === "recommended_schedule" && !targetSchedule) return;
+    const capacity = getScheduleCapacity(targetSchedule || {});
     if (!groups.has(key)) {
+      const creatorPeople = targetSchedule && !targetSchedule.isAdminRecommendedSchedule
+        ? parsePeopleCount(targetSchedule.applicantPeople || targetSchedule.creatorPeople || "1")
+        : 0;
+      const creatorPreview = creatorPeople > 0
+        ? buildParticipantPreviewList({
+            applicantName: targetSchedule.applicantName || targetSchedule.creatorName,
+            applicantGender: targetSchedule.applicantGender || targetSchedule.creatorGender,
+            applicantAgeBand: targetSchedule.applicantAgeBand || targetSchedule.creatorAgeDisplay
+          }, creatorPeople)
+        : [];
       groups.set(key, {
         targetType: getParticipantSummaryTargetType(row),
         targetScheduleId: asText(row.targetScheduleId),
         targetApplicationId: asText(row.targetApplicationId),
-        erpProductId: asText(row.erpProductId),
+        erpProductId: normalizeErpProductId(row.erpProductId, row.erpEventSeq),
         erpEventSeq: asText(row.erpEventSeq),
-        confirmedCount: 0,
-        remainingSlots: 4,
-        participantsPreview: [],
+        capacity,
+        requestedCount: creatorPeople,
+        confirmedCount: Math.min(capacity, creatorPeople),
+        remainingSlots: Math.max(0, capacity - creatorPeople),
+        participantsPreview: creatorPreview.slice(0, Math.min(MAX_PARTICIPANT_PREVIEW_COUNT, capacity)),
         lastAppliedAt: ""
       });
     }
     const group = groups.get(key);
+    group.capacity = Math.max(group.capacity, capacity);
     const count = parsePeopleCount(row.applicantPeople || row.people || "1");
-    group.confirmedCount = Math.min(4, group.confirmedCount + count);
-    group.participantsPreview = group.participantsPreview.concat(buildParticipantPreviewList(row, count)).slice(0, 4);
-    group.remainingSlots = Math.max(0, 4 - group.confirmedCount);
+    group.requestedCount += count;
+    group.confirmedCount = Math.min(group.capacity, group.requestedCount);
+    group.participantsPreview = group.participantsPreview
+      .concat(buildParticipantPreviewList(row, count))
+      .slice(0, Math.min(MAX_PARTICIPANT_PREVIEW_COUNT, group.capacity));
+    group.remainingSlots = Math.max(0, group.capacity - group.confirmedCount);
     const appliedAt = asText(row.updatedAt || row.createdAt);
     if (appliedAt > asText(group.lastAppliedAt)) group.lastAppliedAt = appliedAt;
   });
-  return Array.from(groups.values());
+  return Array.from(groups.values()).map(({ requestedCount, ...group }) => group);
 }
 
 function summarizeSheetValues(values = []) {
@@ -2730,7 +3346,15 @@ function isActiveRecommendedScheduleRule(rule = {}) {
   const section = asText(rule.section) || "available_schedule";
   const visible = asText(rule.isVisible === undefined || rule.isVisible === "" ? "true" : rule.isVisible).toLowerCase();
   const status = asText(rule.status).toLowerCase();
-  return section === "available_schedule" && visible !== "false" && visible !== "0" && visible !== "no" && status !== "cancelled" && status !== "hidden";
+  return section === "available_schedule"
+    && !["false", "0", "no", "hidden", "deleted"].includes(visible)
+    && !["cancelled", "hidden", "deleted"].includes(status);
+}
+
+function isManageableRecommendedScheduleRule(rule = {}) {
+  const section = asText(rule.section) || "available_schedule";
+  const status = asText(rule.status).toLowerCase();
+  return section === "available_schedule" && status !== "deleted";
 }
 
 function buildRecommendedScheduleSummarySource(rule = {}) {
@@ -2741,6 +3365,9 @@ function buildRecommendedScheduleSummarySource(rule = {}) {
     productName: rule.overrideTitle || rule.productName || rule.erpProductId || "Recommended schedule",
     country: rule.country || "",
     region: rule.region || "",
+    airline: rule.airline || "",
+    departureAirport: rule.departureAirport || "",
+    arrivalAirport: rule.arrivalAirport || "",
     departureDateFrom: normalizeSheetDateText(rule.displayStartAt || ""),
     departureDateTo: normalizeSheetDateText(rule.displayStartAt || ""),
     returnDateFrom: normalizeSheetDateText(rule.displayEndAt || rule.displayStartAt || ""),
@@ -2754,9 +3381,9 @@ function buildRecommendedScheduleSummarySource(rule = {}) {
     maxPeople: rule.maxPeople || rule.capacity || "4",
     scheduleType: rule.scheduleType || "",
     scheduleLabel: rule.scheduleLabel || "",
-    status: "open",
+    status: asText(rule.status) || "open",
     approvalStatus: "approved",
-    displayStatus: "visible",
+    displayStatus: isActiveRecommendedScheduleRule(rule) ? "visible" : "hidden",
     erpProductId: rule.erpProductId || "",
     erpEventSeq: rule.erpEventSeq || "",
     isAdminRecommendedSchedule: true
@@ -2780,19 +3407,30 @@ function isJoinApplicationForSchedule(join = {}, schedule = {}) {
     schedule.sourceApplicationId
   ].map(asText).filter(Boolean);
   if (targetIds.some((targetId) => scheduleIds.includes(targetId))) return true;
+  if (targetIds.length) return false;
   if (!schedule.isAdminRecommendedSchedule) return false;
-  const productId = asText(schedule.erpProductId);
   const eventSeq = asText(schedule.erpEventSeq);
-  const targetProductKey = asText(join.targetProductKey || (join.erpProductId && join.erpEventSeq ? `erp:${join.erpProductId}:${join.erpEventSeq}` : ""));
-  return Boolean(productId && eventSeq && targetProductKey === `erp:${productId}:${eventSeq}`);
+  const productId = normalizeErpProductId(schedule.erpProductId, eventSeq);
+  const targetProductKeyParts = asText(join.targetProductKey).split(":");
+  const joinEventSeq = asText(join.erpEventSeq || (targetProductKeyParts[0] === "erp" ? targetProductKeyParts[targetProductKeyParts.length - 1] : ""));
+  const targetProductId = targetProductKeyParts[0] === "erp" && targetProductKeyParts.length >= 3
+    ? targetProductKeyParts.slice(1, -1).join(":")
+    : "";
+  const joinProductId = normalizeErpProductId(join.erpProductId || targetProductId, joinEventSeq);
+  return Boolean(productId && eventSeq && joinProductId === productId && joinEventSeq === eventSeq);
 }
 
 function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
   const relatedJoins = joinRows.filter((join) => isJoinApplicationForSchedule(join, schedule));
-  const confirmedJoins = relatedJoins.filter((join) => asText(join.applicationStatus || join.status) !== "cancelled");
-  const cancelledJoins = relatedJoins.filter((join) => asText(join.applicationStatus || join.status) === "cancelled");
-  const pendingJoins = relatedJoins.filter((join) => asText(join.applicationStatus || join.status) === "pending");
-  const creatorPeople = schedule.isAdminRecommendedSchedule ? 0 : parsePeopleCount(schedule.applicantPeople || schedule.creatorPeople || "1");
+  const confirmedJoins = relatedJoins.filter((join) => !isCancelledJoinApplication(join));
+  const cancelledJoins = relatedJoins.filter(isCancelledJoinApplication);
+  const pendingJoins = relatedJoins.filter((join) => (
+    !isCancelledJoinApplication(join)
+    && asText(join.applicationStatus || join.status) === "pending"
+  ));
+  const creatorCancelled = !schedule.isAdminRecommendedSchedule && isCancelledJoinApplication(schedule);
+  const creatorBasePeople = schedule.isAdminRecommendedSchedule ? 0 : parsePeopleCount(schedule.applicantPeople || schedule.creatorPeople || "1");
+  const creatorPeople = creatorCancelled ? 0 : creatorBasePeople;
   const joinedPeople = confirmedJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0);
   const capacity = getScheduleCapacity(schedule);
   const confirmedPeople = Math.min(capacity, creatorPeople + joinedPeople);
@@ -2830,7 +3468,8 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
     joinedPeople,
     confirmedPeople,
     pendingPeople: pendingJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0),
-    cancelledPeople: cancelledJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0),
+    cancelledPeople: (creatorCancelled ? creatorBasePeople : 0)
+      + cancelledJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0),
     remainingSeats: Math.max(0, capacity - confirmedPeople),
     participantNames: participants.map((item) => asText(item.name)).filter(Boolean).join(", "),
     participantPhones: participants.map((item) => normalizePhone(item.phone)).filter(Boolean).join(", "),
@@ -2844,6 +3483,65 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
     displayStatus: asText(schedule.displayStatus || "visible"),
     updatedAt: nowKstISOString()
   };
+}
+
+async function syncScheduleParticipantSummarySheetViaApi(sourceSheet = "", updatedRow = {}) {
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "recommended_schedules",
+    "schedule_participant_summary"
+  ], { timeoutMs: 9000 });
+  const schedules = (sheetRows.new_schedule_applications || []).concat(
+    (sheetRows.recommended_schedules || [])
+      .filter(isManageableRecommendedScheduleRule)
+      .map(buildRecommendedScheduleSummarySource)
+  );
+  const updatedIds = new Set([
+    updatedRow.scheduleId,
+    updatedRow.applicationId,
+    updatedRow.sourceApplicationId
+  ].map(asText).filter(Boolean));
+  const targetSchedules = sourceSheet === "new_schedule_applications"
+    ? schedules.filter((schedule) => [
+      schedule.scheduleId,
+      schedule.applicationId,
+      schedule.sourceApplicationId
+    ].map(asText).some((id) => id && updatedIds.has(id)))
+    : schedules.filter((schedule) => isJoinApplicationForSchedule(updatedRow, schedule));
+  if (!targetSchedules.length) {
+    return { ok: true, updated: 0, appended: 0, reason: "schedule_not_found" };
+  }
+
+  const headers = GOOGLE_SHEET_HEADERS.schedule_participant_summary;
+  const summaryRows = sheetRows.schedule_participant_summary || [];
+  let updated = 0;
+  let appended = 0;
+  for (const schedule of targetSchedules) {
+    const summary = buildScheduleParticipantSummary(schedule, sheetRows.join_applications || []);
+    const summaryIds = new Set([summary.scheduleId, summary.sourceApplicationId].map(asText).filter(Boolean));
+    const existingIndex = summaryRows.findIndex((row) => [
+      row.scheduleId,
+      row.sourceApplicationId
+    ].map(asText).some((id) => id && summaryIds.has(id)));
+    const values = headers.map((header) => summary[header] == null ? "" : summary[header]);
+    if (existingIndex >= 0) {
+      await updateGoogleSheetRowViaApi("schedule_participant_summary", existingIndex + 2, values, {
+        timeoutMs: 7000,
+        valueInputOption: "RAW"
+      });
+      summaryRows[existingIndex] = summary;
+      updated += 1;
+    } else {
+      await appendGoogleSheetValuesViaApi("schedule_participant_summary", values, {
+        timeoutMs: 7000,
+        valueInputOption: "RAW"
+      });
+      summaryRows.push(summary);
+      appended += 1;
+    }
+  }
+  return { ok: true, updated, appended };
 }
 
 function buildJoinApplicationSheetObject(payload = {}, applicationId = "", headers = GOOGLE_SHEET_HEADERS.join_applications) {
@@ -2876,7 +3574,7 @@ function doScheduleIdsMatch(schedule = {}, scheduleId = "", applicationId = "") 
 
 function findJoinApplicationTargetSchedule(joinRow = {}, newSchedules = [], recommendedRows = []) {
   const recommendedSchedules = (recommendedRows || [])
-    .filter(isActiveRecommendedScheduleRule)
+    .filter(isManageableRecommendedScheduleRule)
     .map(buildRecommendedScheduleSummarySource);
   const targetType = asText(joinRow.targetType);
   const targetScheduleId = asText(joinRow.targetScheduleId);
@@ -2885,11 +3583,14 @@ function findJoinApplicationTargetSchedule(joinRow = {}, newSchedules = [], reco
   const wantsRecommended = targetType === "recommended_schedule" || targetJoinId.startsWith("admin-recommended-") || targetScheduleId.startsWith("admin-recommended-");
   const primarySchedules = wantsRecommended ? recommendedSchedules : newSchedules;
   const fallbackSchedules = wantsRecommended ? newSchedules : recommendedSchedules;
-  return primarySchedules.find((schedule) => doScheduleIdsMatch(schedule, targetJoinId || targetScheduleId, targetApplicationId))
-    || primarySchedules.find((schedule) => isJoinApplicationForSchedule(joinRow, schedule))
-    || fallbackSchedules.find((schedule) => doScheduleIdsMatch(schedule, targetJoinId || targetScheduleId, targetApplicationId))
-    || fallbackSchedules.find((schedule) => isJoinApplicationForSchedule(joinRow, schedule))
-    || null;
+  const targetIds = [targetJoinId, targetScheduleId, targetApplicationId].filter(Boolean);
+  const exactMatch = [...primarySchedules, ...fallbackSchedules]
+    .find((schedule) => targetIds.some((targetId) => doScheduleIdsMatch(schedule, targetId, targetId)));
+  if (exactMatch) return exactMatch;
+  if (targetJoinId || targetScheduleId || targetApplicationId) return null;
+  const legacyMatches = [...primarySchedules, ...fallbackSchedules]
+    .filter((schedule) => isJoinApplicationForSchedule(joinRow, schedule));
+  return legacyMatches.length === 1 ? legacyMatches[0] : null;
 }
 
 function getJoinApplicationRequestedPeople(payload = {}, row = {}) {
@@ -3067,10 +3768,7 @@ async function readHomeBootstrapViaSheetsApi(params = {}) {
   }).map(normalizeSheetRowForJson).map(sanitizePublicRow);
   const displayRules = filterSheetRowsForHome(sheetRows.recommended_schedules || [], {
     limit: 100
-  }).filter((row) => (
-    asText(row.section) === "available_schedule"
-    && asText(row.isVisible || "true").toLowerCase() !== "false"
-  )).map(normalizeSheetRowForJson).map(sanitizePublicRow);
+  }).filter(isActiveRecommendedScheduleRule).map(normalizeSheetRowForJson).map(sanitizePublicRow);
   const wishes = canReadWishes
     ? sortRowsByUpdatedAtDesc((sheetRows.join_wishes || []).filter((row) => (
       asText(row.source) === "join_wish"
@@ -3171,6 +3869,31 @@ async function getGoogleMetadataAccessToken() {
   const payload = JSON.parse(text || "{}");
   const token = asText(payload.access_token);
   if (!token) throw createHttpError("Google metadata token is empty", 502);
+  return token;
+}
+
+const googleMetadataIdentityTokenCache = new Map();
+
+async function getGoogleMetadataIdentityToken(audience = "") {
+  const safeAudience = asText(audience);
+  if (!safeAudience) throw createHttpError("Google identity token audience is empty", 500);
+  const cached = googleMetadataIdentityTokenCache.get(safeAudience);
+  if (cached && cached.expiresAt > Date.now() + 60_000) return cached.token;
+  const url = new URL("http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/identity");
+  url.searchParams.set("audience", safeAudience);
+  url.searchParams.set("format", "full");
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "GET",
+    headers: { "Metadata-Flavor": "Google", "Accept": "text/plain" }
+  }, 8000, "Google metadata identity token");
+  const token = asText(await response.text());
+  if (!response.ok || !token) throw createHttpError(`Google metadata identity token failed: ${response.status}`, response.status || 502);
+  let expiresAt = Date.now() + 5 * 60_000;
+  try {
+    const payload = parseBase64UrlJson(token.split(".")[1]);
+    expiresAt = Number(payload.exp || 0) * 1000 || expiresAt;
+  } catch (error) {}
+  googleMetadataIdentityTokenCache.set(safeAudience, { token, expiresAt });
   return token;
 }
 
@@ -3412,37 +4135,223 @@ function buildJoinMemberProfileSheetValue(payload = {}, header = "") {
     kakaoId: getValue(payload, "kakao.kakaoId") || payload.kakaoId,
     kakaoNickname: getValue(payload, "kakao.nickname") || payload.kakaoNickname,
     adminMemo: payload.adminMemo || "",
-    updatedAt: nowKstISOString()
+    updatedAt: nowKstISOString(),
+    memberKey: payload.memberKey || getValue(payload, "member.memberKey") || buildMemberKeyFromValues({
+      memberSeq: getValue(payload, "member.memberSeq") || payload.memberSeq,
+      memberId: getValue(payload, "member.memberId") || payload.memberId,
+      memberMobile: getValue(payload, "member.memberMobile") || payload.memberMobile
+    }),
+    birthDate: getValue(payload, "profile.birthDate") || payload.birthDate,
+    profileStatus: getValue(payload, "profile.profileStatus") || payload.profileStatus,
+    profileOrigin: getValue(payload, "profile.profileOrigin") || payload.profileOrigin,
+    identityMatchStatus: payload.identityMatchStatus,
+    erpLinkedAt: payload.erpLinkedAt,
+    mergedIntoProfileId: payload.mergedIntoProfileId,
+    createdByAdmin: payload.createdByAdmin,
+    updatedByAdmin: payload.updatedByAdmin
   };
   return values[header] == null ? "" : values[header];
 }
 
-function buildJoinMemberProfileSheetRow(payload = {}, existingRow = {}) {
-  return GOOGLE_SHEET_HEADERS.join_member_profiles.map((header) => {
+function buildJoinMemberProfileSheetRow(payload = {}, existingRow = {}, headers = GOOGLE_SHEET_HEADERS.join_member_profiles, options = {}) {
+  return headers.map((header) => {
     if (header === "createdAt" && existingRow.createdAt) return existingRow.createdAt;
-    return buildJoinMemberProfileSheetValue(payload, header);
+    const value = buildJoinMemberProfileSheetValue(payload, header);
+    if (
+      options.preserveExistingWhenEmpty
+      && (value == null || value === "")
+      && existingRow[header] != null
+      && existingRow[header] !== ""
+    ) {
+      return existingRow[header];
+    }
+    return value;
   });
 }
 
+function findAdminRosterTemporaryProfileIndex(rows = [], payload = {}) {
+  const memberName = normalizeErpMemberName(getValue(payload, "member.memberName") || payload.memberName);
+  const memberMobile = normalizePhone(getValue(payload, "member.memberMobile") || payload.memberMobile);
+  if (!memberName || !memberMobile) return -1;
+  const matches = rows.map((row, index) => ({ row, index })).filter(({ row }) => (
+    !asText(row.mergedIntoProfileId)
+    && (asText(row.profileStatus) === "temporary" || asText(row.profileOrigin) === "admin_roster")
+    && normalizeErpMemberName(row.memberName || row.name) === memberName
+    && normalizePhone(row.memberMobile || row.mobile || row.phone) === memberMobile
+  ));
+  matches.sort((left, right) => (
+    asText(right.row.updatedAt || right.row.createdAt).localeCompare(asText(left.row.updatedAt || left.row.createdAt))
+  ));
+  return matches[0]?.index ?? -1;
+}
+
+async function claimAdminRosterApplicationsForProfile(profileId = "", profilePayload = {}) {
+  const safeProfileId = asText(profileId);
+  if (!safeProfileId) return 0;
+  const headers = await ensureGoogleSheetHeadersViaApi("join_applications", { timeoutMs: 7000 });
+  const rows = await readGoogleSheetRowsViaApi("join_applications", { timeoutMs: 7000 });
+  const memberName = asText(getValue(profilePayload, "member.memberName") || profilePayload.memberName);
+  const memberMobile = normalizePhone(getValue(profilePayload, "member.memberMobile") || profilePayload.memberMobile);
+  const memberSeq = asText(getValue(profilePayload, "member.memberSeq") || profilePayload.memberSeq);
+  const memberId = asText(getValue(profilePayload, "member.memberId") || profilePayload.memberId);
+  const memberEmail = asText(getValue(profilePayload, "member.memberEmail") || profilePayload.memberEmail);
+  const memberChannel = asText(getValue(profilePayload, "member.memberChannel") || profilePayload.memberChannel);
+  const profileMemberKey = `profile:${safeProfileId}`;
+  const matches = rows.map((row, index) => ({ row, index })).filter(({ row }) => {
+    if (asText(row.registrationSource).toLowerCase() !== "admin") return false;
+    if (asText(row.profileId) === safeProfileId || asText(row.memberKey) === profileMemberKey) return true;
+    return Boolean(
+      memberName
+      && memberMobile
+      && normalizeErpMemberName(row.applicantName || row.memberName) === normalizeErpMemberName(memberName)
+      && normalizePhone(row.applicantMobile || row.memberMobile) === memberMobile
+    );
+  });
+  for (const { row, index } of matches) {
+    const next = {
+      ...row,
+      profileId: safeProfileId,
+      memberKey: profileMemberKey,
+      memberSeq: memberSeq || row.memberSeq,
+      memberId: memberId || row.memberId,
+      memberName: memberName || row.memberName,
+      memberMobile: memberMobile || row.memberMobile,
+      memberEmail: memberEmail || row.memberEmail,
+      memberChannel: memberChannel || row.memberChannel,
+      identityMatchStatus: "member_profile",
+      updatedAt: nowKstISOString()
+    };
+    await updateGoogleSheetRowViaApi(
+      "join_applications",
+      index + 2,
+      headers.map((header) => next[header] == null ? "" : next[header]),
+      { timeoutMs: 7000 }
+    );
+  }
+  if (matches.length) refreshGolfJoinHomeSummaryInBackground("admin_roster_profile_claim");
+  return matches.length;
+}
+
+async function syncApplicationPhonesForMemberProfile(profileId = "", profilePayload = {}, previousProfile = {}) {
+  const nextPhone = normalizePhone(getValue(profilePayload, "member.memberMobile") || profilePayload.memberMobile);
+  if (!nextPhone) return 0;
+  const identifiers = {
+    profileId: asText(profileId),
+    memberKey: asText(profilePayload.memberKey || getValue(profilePayload, "member.memberKey")),
+    memberSeq: asText(getValue(profilePayload, "member.memberSeq") || profilePayload.memberSeq || previousProfile.memberSeq),
+    memberId: asText(getValue(profilePayload, "member.memberId") || profilePayload.memberId || previousProfile.memberId),
+    memberEmail: asText(getValue(profilePayload, "member.memberEmail") || profilePayload.memberEmail || previousProfile.memberEmail).toLowerCase(),
+    kakaoId: asText(getValue(profilePayload, "member.kakaoId") || profilePayload.kakaoId || previousProfile.kakaoId),
+    previousPhone: normalizePhone(previousProfile.memberMobile || previousProfile.mobile || previousProfile.phone),
+    memberName: normalizeErpMemberName(getValue(profilePayload, "member.memberName") || profilePayload.memberName || previousProfile.memberName)
+  };
+  const matchesProfile = (row = {}) => {
+    if (identifiers.profileId && asText(row.profileId) === identifiers.profileId) return true;
+    if (identifiers.memberKey && asText(row.memberKey) === identifiers.memberKey) return true;
+    if (identifiers.memberSeq && asText(row.memberSeq) === identifiers.memberSeq) return true;
+    if (identifiers.memberId && asText(row.memberId) === identifiers.memberId) return true;
+    if (identifiers.memberEmail && asText(row.memberEmail).toLowerCase() === identifiers.memberEmail) return true;
+    if (identifiers.kakaoId && asText(row.kakaoId) === identifiers.kakaoId) return true;
+    return Boolean(
+      identifiers.previousPhone
+      && identifiers.memberName
+      && normalizePhone(row.memberMobile || row.applicantMobile) === identifiers.previousPhone
+      && normalizeErpMemberName(row.memberName || row.applicantName) === identifiers.memberName
+    );
+  };
+  let updatedCount = 0;
+  for (const sheetName of ["join_applications", "new_schedule_applications"]) {
+    const [headers, rows] = await Promise.all([
+      ensureGoogleSheetHeadersViaApi(sheetName, { timeoutMs: 7000 }),
+      readGoogleSheetRowsViaApi(sheetName, { timeoutMs: 7000 })
+    ]);
+    const matches = rows.map((row, index) => ({ row, index })).filter(({ row }) => matchesProfile(row));
+    for (const { row, index } of matches) {
+      const next = {
+        ...row,
+        memberMobile: nextPhone,
+        applicantMobile: nextPhone
+      };
+      await updateGoogleSheetRowViaApi(
+        sheetName,
+        index + 2,
+        headers.map((header) => next[header] == null ? "" : next[header]),
+        { timeoutMs: 7000 }
+      );
+      updatedCount += 1;
+    }
+  }
+  if (updatedCount) refreshGolfJoinHomeSummaryInBackground("member_profile_phone_sync");
+  return updatedCount;
+}
+
 async function saveJoinMemberProfileViaSheetsApi(payload = {}) {
-  const profileId = asText(payload.profileId || buildJoinMemberProfileSheetValue(payload, "profileId"));
-  if (!profileId) throw createHttpError("profileId is required", 400);
+  const requestedProfileId = asText(payload.profileId || buildJoinMemberProfileSheetValue(payload, "profileId"));
+  if (!requestedProfileId) throw createHttpError("profileId is required", 400);
+  const headers = await ensureGoogleSheetHeadersViaApi("join_member_profiles", { timeoutMs: 6000 });
   const rows = await readGoogleSheetRowsViaApi("join_member_profiles", { timeoutMs: 5000 });
-  const existingIndex = rows.findIndex((row) => asText(row.profileId) === profileId);
+  const profileIdIndex = rows.findIndex((row) => asText(row.profileId) === requestedProfileId);
+  const temporaryProfileIndex = findAdminRosterTemporaryProfileIndex(rows, payload);
+  const existingIndex = profileIdIndex >= 0 ? profileIdIndex : temporaryProfileIndex;
   const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
-  const rowValues = buildJoinMemberProfileSheetRow({ ...payload, profileId }, existingRow);
+  const profileId = asText(existingRow.profileId) || requestedProfileId;
+  const claimsAdminRoster = asText(existingRow.profileStatus) === "temporary" || asText(existingRow.profileOrigin) === "admin_roster";
+  const rowPayload = claimsAdminRoster ? {
+    ...payload,
+    profileId,
+    memberKey: `profile:${profileId}`,
+    profileStatus: "active",
+    profileOrigin: existingRow.profileOrigin || "admin_roster",
+    identityMatchStatus: "member_profile",
+    erpLinkedAt: existingRow.erpLinkedAt,
+    createdByAdmin: existingRow.createdByAdmin,
+    updatedByAdmin: existingRow.updatedByAdmin
+  } : { ...payload, profileId };
+  const rowValues = buildJoinMemberProfileSheetRow(rowPayload, existingRow, headers, {
+    preserveExistingWhenEmpty: claimsAdminRoster
+  });
   if (existingIndex >= 0) {
     const rowNumber = existingIndex + 2;
     await updateGoogleSheetRowViaApi("join_member_profiles", rowNumber, rowValues, { timeoutMs: 6000 });
-    return { ok: true, sheet: "join_member_profiles", write: "update", row: rowNumber, source: "sheets_api" };
+    const claimedApplicationCount = claimsAdminRoster
+      ? await claimAdminRosterApplicationsForProfile(profileId, rowPayload)
+      : 0;
+    const syncedApplicationCount = await syncApplicationPhonesForMemberProfile(profileId, rowPayload, existingRow).catch((error) => {
+      console.warn("Failed to synchronize member phone to application rows after profile update.", {
+        profileId,
+        name: error?.name || "",
+        message: error?.message || ""
+      });
+      return 0;
+    });
+    return {
+      ok: true,
+      sheet: "join_member_profiles",
+      write: "update",
+      row: rowNumber,
+      source: "sheets_api",
+      profileId,
+      claimedApplicationCount,
+      syncedApplicationCount
+    };
   }
   const response = await appendGoogleSheetValuesViaApi("join_member_profiles", rowValues, { timeoutMs: 6000 });
+  const syncedApplicationCount = await syncApplicationPhonesForMemberProfile(profileId, rowPayload, existingRow).catch((error) => {
+    console.warn("Failed to synchronize member phone to application rows after profile append.", {
+      profileId,
+      name: error?.name || "",
+      message: error?.message || ""
+    });
+    return 0;
+  });
   return {
     ok: true,
     sheet: "join_member_profiles",
     write: "append",
     row: response.updates?.updatedRange || "",
-    source: "sheets_api"
+    source: "sheets_api",
+    profileId,
+    syncedApplicationCount
   };
 }
 
@@ -3616,6 +4525,30 @@ function buildNewScheduleApplicationSheetRow(payload = {}, existingRow = {}, hea
   });
 }
 
+async function appendGoogleSheetRowsViaApi(sheetName, rows = [], options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  if (!Array.isArray(rows) || !rows.length) return { updates: { updatedRows: 0 } };
+  const token = await getGoogleMetadataAccessToken();
+  const range = `'${escapeGoogleSheetNameForRange(sheetName)}'!A:ZZ`;
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}/values/${encodeURIComponent(range)}:append`);
+  url.searchParams.set("valueInputOption", options.valueInputOption || "USER_ENTERED");
+  url.searchParams.set("insertDataOption", options.insertDataOption || "INSERT_ROWS");
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ values: rows })
+  }, options.timeoutMs || 10_000, `Google Sheets batch append ${sheetName}`);
+  const text = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets API batch append failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+  }
+  return JSON.parse(text || "{}");
+}
+
 function buildRecommendedScheduleSheetValue(payload = {}, header = "") {
   const erpProductId = getValue(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq || "";
   const erpEventSeq = getValue(payload, "product.erpEventSeq") || payload.erpEventSeq || payload.eventSeq || "";
@@ -3685,8 +4618,11 @@ function buildJoinApplicationSheetValue(payload = {}, header = "") {
     createdAt,
     getPayloadMemberKey(payload) || getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member"
   );
-  const erpProductId = payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId");
   const erpEventSeq = payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq");
+  const erpProductId = normalizeErpProductId(
+    payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
+    erpEventSeq
+  );
   const targetJoinId = payload.targetJoinId || getValue(payload, "target.joinId") || getValue(payload, "join.id");
   const targetProductKey = payload.targetProductKey || getValue(payload, "target.productKey") || (erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : "");
   const values = {
@@ -3708,7 +4644,6 @@ function buildJoinApplicationSheetValue(payload = {}, header = "") {
     productName: getValue(payload, "product.productName") || payload.productName,
     departureDate: getValue(payload, "product.departureDate") || payload.departureDate,
     returnDate: getValue(payload, "product.returnDate") || payload.returnDate,
-    category: getValue(payload, "product.category") || payload.category,
     country: getValue(payload, "product.country") || payload.country || "",
     region: getValue(payload, "product.region") || payload.region,
     airline: getValue(payload, "product.airline") || getValue(payload, "product.airlineName") || getValue(payload, "product.airlineNm") || getValue(payload, "product.air2Nm") || getValue(payload, "product.air2CdNm"),
@@ -3744,7 +4679,21 @@ function buildJoinApplicationSheetValue(payload = {}, header = "") {
     memberKey: getPayloadMemberKey(payload),
     kakaoId: getValue(payload, "member.kakaoId") || getValue(payload, "kakao.kakaoId") || payload.kakaoId,
     targetJoinId,
-    targetProductKey
+    targetProductKey,
+    profileId: payload.profileId || getValue(payload, "member.profileId"),
+    registrationSource: payload.registrationSource,
+    adminRosterItemId: payload.adminRosterItemId,
+    rosterBatchId: payload.rosterBatchId,
+    applicantBirthDate: getValue(payload, "applicant.birthDate") || payload.applicantBirthDate,
+    identityMatchStatus: payload.identityMatchStatus,
+    scheduleSnapshotJson: typeof payload.scheduleSnapshotJson === "string"
+      ? payload.scheduleSnapshotJson
+      : JSON.stringify(payload.scheduleSnapshot || {}),
+    createdByAdmin: payload.createdByAdmin,
+    updatedByAdmin: payload.updatedByAdmin,
+    cancelledAt: payload.cancelledAt,
+    cancelledBy: payload.cancelledBy,
+    cancelReason: payload.cancelReason
   };
   return values[header] == null ? "" : values[header];
 }
@@ -3826,17 +4775,34 @@ async function updateAdminStatusViaSheetsApi(payload = {}) {
   const rowValues = headers.map((header) => nextRow[header] == null ? "" : nextRow[header]);
   const rowNumber = existingIndex + 2;
   await updateGoogleSheetRowViaApi(sheetName, rowNumber, rowValues, { timeoutMs: 6000 });
+  let participantSummarySync = null;
+  if (!payload.skipSummaryRefresh) {
+    try {
+      participantSummarySync = await syncScheduleParticipantSummarySheetViaApi(sheetName, nextRow);
+    } catch (error) {
+      participantSummarySync = {
+        ok: false,
+        error: error?.message || String(error)
+      };
+      console.warn("Failed to sync schedule participant summary sheet.", {
+        sheet: sheetName,
+        keyValue,
+        message: participantSummarySync.error
+      });
+    }
+  }
   return {
     ok: true,
     sheet: sheetName,
     row: rowNumber,
     keyField,
     keyValue,
-    source: "sheets_api"
+    source: "sheets_api",
+    ...(participantSummarySync ? { participantSummarySync } : {})
   };
 }
 
-async function generateQuoteViaSheetsApi(payload = {}) {
+async function generateQuoteViaSheetsApi(payload = {}, requestUrl = "") {
   const { sheet, keyValue } = validateQuoteGeneratePayload(payload);
   let headers;
   let rows;
@@ -3856,28 +4822,38 @@ async function generateQuoteViaSheetsApi(payload = {}) {
   }
   const existingRow = rows[existingIndex] || {};
   const quote = buildQuoteData({ ...payload, sheet, keyValue }, existingRow);
-  const pdfBuffer = await createGolfjoinQuotePdfBufferV2(quote);
-  let savedPdf;
+  const quoteAccessToken = crypto.randomBytes(32).toString("base64url");
+  const quoteAccessTokenHash = sha256(quoteAccessToken);
+  const quotePageUrl = buildQuoteAccessUrl(requestUrl, "quote_view", quote.quoteId, quoteAccessToken);
+  const quotePdfUrl = buildQuoteAccessUrl(requestUrl, "quote_pdf", quote.quoteId, quoteAccessToken);
+  let savedData;
   try {
-    savedPdf = await saveQuotePdfToStorage(pdfBuffer, quote);
+    savedData = await saveQuoteDataToStorage(quote, quoteAccessToken);
   } catch (error) {
-    throw createHttpError(`quote pdf upload failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_pdf_upload_failed" });
+    throw createHttpError(`quote data upload failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_data_upload_failed" });
   }
   let savedPage;
   try {
-    const quoteHtml = createGolfjoinQuoteHtml(quote, { pdfUrl: savedPdf.url });
-    savedPage = await saveQuoteHtmlToStorage(quoteHtml, quote);
+    const quoteHtml = createGolfjoinQuoteHtml(quote, { pdfUrl: quotePdfUrl });
+    savedPage = await saveQuoteHtmlToStorage(quoteHtml, quote, quoteAccessToken);
   } catch (error) {
+    await deleteQuoteObjects([savedData.objectName]);
     throw createHttpError(`quote page upload failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_page_upload_failed" });
   }
   const fields = {
     quoteId: quote.quoteId,
     quoteNo: quote.quoteNo,
-    quoteUrl: savedPage.url,
-    quotePageUrl: savedPage.url,
-    quotePdfUrl: savedPdf.url,
-    quoteFileName: savedPdf.objectName,
+    quoteUrl: quotePageUrl,
+    quotePageUrl,
+    quotePdfUrl,
+    quoteFileName: "",
+    quotePageFileName: savedPage.objectName,
+    quoteDataFileName: savedData.objectName,
     quoteGeneratedAt: quote.generatedAt,
+    quoteAdditionalAmountsJson: JSON.stringify(quote.additionalAmounts || []),
+    quoteFlightDetailsJson: JSON.stringify(quote.flightDetails || {}),
+    quoteAccessTokenHash,
+    quoteExpiresAt: "",
     quoteStatus: asText(existingRow.quoteStatus) === "sent" ? "sent" : "created"
   };
   const nextRow = {
@@ -3890,8 +4866,10 @@ async function generateQuoteViaSheetsApi(payload = {}) {
   try {
     await updateGoogleSheetRowViaApi(sheet, rowNumber, rowValues, { timeoutMs: 15000 });
   } catch (error) {
+    await deleteQuoteObjects([savedPage.objectName, savedData.objectName]);
     throw createHttpError(`quote row update failed: ${error.message || error}`, error.status || 502, { code: error.code || "quote_row_update_failed" });
   }
+  await deleteSupersededQuoteFiles(existingRow, [savedPage.objectName, savedData.objectName]);
   return {
     ok: true,
     sheet,
@@ -3900,12 +4878,26 @@ async function generateQuoteViaSheetsApi(payload = {}) {
     keyValue,
     quoteId: quote.quoteId,
     quoteNo: quote.quoteNo,
-    quoteUrl: savedPage.url,
-    quotePageUrl: savedPage.url,
-    quotePdfUrl: savedPdf.url,
-    quoteFileName: savedPdf.objectName,
+    quoteUrl: quotePageUrl,
+    quotePageUrl,
+    quotePdfUrl,
+    quoteFileName: "",
     quoteGeneratedAt: quote.generatedAt,
-    fields,
+    quoteStatus: fields.quoteStatus,
+    fields: {
+      quoteId: fields.quoteId,
+      quoteNo: fields.quoteNo,
+      quoteUrl: fields.quoteUrl,
+      quotePageUrl: fields.quotePageUrl,
+      quotePdfUrl: fields.quotePdfUrl,
+      quoteFileName: fields.quoteFileName,
+      quotePageFileName: fields.quotePageFileName,
+      quoteDataFileName: fields.quoteDataFileName,
+      quoteGeneratedAt: fields.quoteGeneratedAt,
+      quoteAdditionalAmountsJson: fields.quoteAdditionalAmountsJson,
+      quoteFlightDetailsJson: fields.quoteFlightDetailsJson,
+      quoteStatus: fields.quoteStatus
+    },
     source: "sheets_api"
   };
 }
@@ -4500,6 +5492,198 @@ function getRequestAbsoluteUrl(req) {
   const originalUrl = req.originalUrl || req.url || "";
   if (!host) return normalizeShareTargetUrl("");
   return `${protocol}://${host}${originalUrl}`;
+}
+
+function setProtectedQuoteHeaders(res) {
+  res.set("Cache-Control", "private, no-store, max-age=0, must-revalidate");
+  res.set("Pragma", "no-cache");
+  res.set("Expires", "0");
+  res.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  res.set("Referrer-Policy", "no-referrer");
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+}
+
+function sendProtectedQuoteError(res, status = 404) {
+  setProtectedQuoteHeaders(res);
+  res.status(status);
+  res.set("Content-Type", "text/html; charset=utf-8");
+  res.send(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>견적서 확인 안내</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:#f4f7fa;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.box{max-width:460px;padding:36px;border:1px solid #dde3ec;background:#fff;text-align:center}.box h1{margin:0 0 12px;font-size:22px}.box p{margin:0;color:#697386;line-height:1.7}</style></head><body><div class="box"><h1>견적서를 확인할 수 없습니다.</h1><p>링크가 올바르지 않거나 접근 권한이 없습니다.</p></div></body></html>`);
+}
+
+async function findQuoteAccessRecord(quoteId = "") {
+  const safeQuoteId = asText(quoteId);
+  if (!/^quote_[a-z0-9_-]{8,80}$/i.test(safeQuoteId)) return null;
+  const sheets = ["new_schedule_applications", "join_applications"];
+  const results = await Promise.all(sheets.map(async (sheetName) => ({
+    sheetName,
+    rows: await readGoogleSheetRowsViaApi(sheetName, { timeoutMs: 8000 })
+  })));
+  for (const result of results) {
+    const row = result.rows.find((item) => asText(item.quoteId) === safeQuoteId);
+    if (row) return { sheetName: result.sheetName, row };
+  }
+  return null;
+}
+
+let quotePdfGenerationTail = Promise.resolve();
+let quotePdfGenerationQueueDepth = 0;
+
+async function withQuotePdfGenerationSlot(task) {
+  if (quotePdfGenerationQueueDepth >= GOLFJOIN_QUOTE_PDF_MAX_QUEUE) {
+    throw createHttpError("quote pdf generation queue is full", 429, { code: "quote_pdf_queue_full" });
+  }
+  quotePdfGenerationQueueDepth += 1;
+  const previous = quotePdfGenerationTail;
+  let release;
+  quotePdfGenerationTail = new Promise((resolve) => {
+    release = resolve;
+  });
+  await previous;
+  try {
+    return await task();
+  } finally {
+    quotePdfGenerationQueueDepth = Math.max(0, quotePdfGenerationQueueDepth - 1);
+    release();
+  }
+}
+
+async function createProtectedQuotePdf(record = {}, accessToken = "") {
+  const objectName = getQuoteDataObjectName(record.row || {});
+  if (!objectName || !objectName.toLowerCase().endsWith(".json") || !isManagedQuoteObjectName(objectName)) {
+    throw createHttpError("quote data file is unavailable", 404, { code: "quote_data_file_unavailable" });
+  }
+  return withQuotePdfGenerationSlot(async () => {
+    const [encryptedBuffer] = await storage.bucket(GOLFJOIN_PRODUCTS_BUCKET).file(objectName).download();
+    const content = decryptQuoteBuffer(encryptedBuffer, accessToken);
+    let quote;
+    try {
+      quote = JSON.parse(content.toString("utf8"));
+    } catch (error) {
+      throw createHttpError("quote data file is invalid", 404, { code: "quote_data_file_invalid" });
+    }
+    if (!quote || typeof quote !== "object" || asText(quote.quoteId) !== asText(record.row?.quoteId)) {
+      throw createHttpError("quote data does not match", 404, { code: "quote_data_mismatch" });
+    }
+    return createGolfjoinQuotePdfBufferV2(quote);
+  });
+}
+
+async function deleteGoogleSheetRowViaApi(sheetName, rowNumber, options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const safeRowNumber = Number(rowNumber);
+  if (!Number.isInteger(safeRowNumber) || safeRowNumber < 2) throw createHttpError("삭제할 시트 행이 올바르지 않습니다.", 400);
+  const token = await getGoogleMetadataAccessToken();
+  const metadataUrl = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}`);
+  metadataUrl.searchParams.set("fields", "sheets.properties(sheetId,title)");
+  const metadataResponse = await fetchWithTimeout(metadataUrl.toString(), {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  }, options.timeoutMs || 6000, `Google Sheets metadata read ${sheetName}`);
+  const metadataText = await metadataResponse.text();
+  if (!metadataResponse.ok) {
+    throw createHttpError(`Google Sheets API metadata read failed: ${metadataResponse.status} ${metadataText.slice(0, 200)}`, metadataResponse.status);
+  }
+  const metadata = JSON.parse(metadataText || "{}");
+  const sheet = (metadata.sheets || []).find((item) => asText(item?.properties?.title) === asText(sheetName));
+  const sheetId = Number(sheet?.properties?.sheetId);
+  if (!Number.isInteger(sheetId)) throw createHttpError(`${sheetName} 시트를 찾지 못했습니다.`, 404);
+
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}:batchUpdate`;
+  const response = await fetchWithTimeout(url, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      requests: [{
+        deleteDimension: {
+          range: {
+            sheetId,
+            dimension: "ROWS",
+            startIndex: safeRowNumber - 1,
+            endIndex: safeRowNumber
+          }
+        }
+      }]
+    })
+  }, options.timeoutMs || 8000, `Google Sheets row delete ${sheetName}`);
+  const text = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets API row delete failed: ${response.status} ${text.slice(0, 200)}`, response.status);
+  }
+  return JSON.parse(text || "{}");
+}
+
+async function proxyProtectedQuote(req, res, assetType = "html") {
+  setProtectedQuoteHeaders(res);
+  const quoteId = asText(req.query?.quoteId);
+  const accessToken = asText(req.query?.token);
+  if (!quoteId || !/^[A-Za-z0-9_-]{40,100}$/.test(accessToken)) {
+    sendProtectedQuoteError(res, 404);
+    return;
+  }
+  let record;
+  try {
+    record = await findQuoteAccessRecord(quoteId);
+  } catch (error) {
+    console.error("Protected quote lookup failed.", { quoteId, message: error?.message || String(error) });
+    sendProtectedQuoteError(res, 503);
+    return;
+  }
+  const tokenHash = asText(record?.row?.quoteAccessTokenHash);
+  if (!record || !tokenHash || !safeEqual(sha256(accessToken), tokenHash)) {
+    sendProtectedQuoteError(res, 404);
+    return;
+  }
+  const isPdf = assetType === "pdf";
+  if (isPdf && asText(record.row.quoteDataFileName)) {
+    if (GOLFJOIN_SERVICE_ROLE === "main") {
+      sendProtectedQuoteError(res, 404);
+      return;
+    }
+    try {
+      const content = await createProtectedQuotePdf(record, accessToken);
+      const safeFileName = `${firstText(record.row.quoteNo, "golfjoin-quote").replace(/[^A-Za-z0-9_-]+/g, "-")}.pdf`;
+      res.set("Content-Type", "application/pdf");
+      res.set("Content-Disposition", `attachment; filename="${safeFileName}"`);
+      res.set("Content-Length", String(content.length));
+      res.set("X-Golfjoin-Pdf-Generation", "on-demand");
+      res.status(200).send(content);
+    } catch (error) {
+      console.error("Protected quote PDF generation failed.", { quoteId, message: error?.message || String(error) });
+      sendProtectedQuoteError(res, error.status || 503);
+    }
+    return;
+  }
+  const objectName = asText(isPdf ? record.row.quoteFileName : record.row.quotePageFileName);
+  const expectedExtension = isPdf ? ".pdf" : ".html";
+  if (!objectName || !objectName.toLowerCase().endsWith(expectedExtension) || (GOLFJOIN_QUOTES_PREFIX && !objectName.startsWith(`${GOLFJOIN_QUOTES_PREFIX}/`))) {
+    sendProtectedQuoteError(res, 404);
+    return;
+  }
+  try {
+    const [encryptedBuffer] = await storage.bucket(GOLFJOIN_PRODUCTS_BUCKET).file(objectName).download();
+    const content = decryptQuoteBuffer(encryptedBuffer, accessToken);
+    if (isPdf) {
+      const safeFileName = `${firstText(record.row.quoteNo, "golfjoin-quote").replace(/[^A-Za-z0-9_-]+/g, "-")}.pdf`;
+      res.set("Content-Type", "application/pdf");
+      res.set("Content-Disposition", `attachment; filename="${safeFileName}"`);
+      res.set("X-Golfjoin-Pdf-Generation", "stored-legacy");
+    } else {
+      res.set("Content-Type", "text/html; charset=utf-8");
+      res.set("Content-Security-Policy", "default-src 'none'; img-src https: data:; style-src 'unsafe-inline' https://cdn.jsdelivr.net; font-src https://cdn.jsdelivr.net; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
+    }
+    res.status(200).send(content);
+  } catch (error) {
+    console.error("Protected quote file read failed.", { quoteId, assetType, message: error?.message || String(error) });
+    sendProtectedQuoteError(res, 404);
+  }
 }
 
 function proxyShareOg(req, res) {
@@ -5266,8 +6450,650 @@ function proxyAdminLogin(req, res) {
   });
 }
 
+function assertAdminErpRequest(req) {
+  if (isAdminReadRequest(req)) return;
+  throw createHttpError(
+    hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured",
+    403
+  );
+}
+
+function normalizeErpMemberPhone(value = "") {
+  let digits = normalizePhone(value);
+  if (digits.length === 10 && digits.startsWith("10")) digits = `0${digits}`;
+  return digits;
+}
+
+function getErpMemberPhone(row = {}) {
+  const direct = normalizeErpMemberPhone(row.mobile || row.mobileNo || row.mobilePhone || "");
+  if (direct) return direct;
+  return normalizeErpMemberPhone([row.mobile1, row.mobile2, row.mobile3].map(asText).filter(Boolean).join(""));
+}
+
+function normalizeErpMemberName(value = "") {
+  return asText(value).replace(/\s+/g, "").toLowerCase();
+}
+
+function sanitizeErpMemberMatch(row = {}) {
+  const custId = asText(row.custId);
+  return {
+    custSeq: asText(row.custSeq || row.custSeqDisp),
+    custId,
+    memberName: asText(row.custNm),
+    mobile: getErpMemberPhone(row),
+    hasWebAccount: Boolean(custId),
+    memberJoinCd: asText(row.memberJoinCd),
+    payMemberCd: asText(row.payMemberCd),
+    siteCd: asText(row.siteCd),
+    siteName: asText(row.siteNm),
+    joinChannel: asText(row.extnChnlLinkNm)
+  };
+}
+
+async function lookupErpMemberExact(memberName = "", memberMobile = "") {
+  const normalizedName = asText(memberName);
+  const normalizedMobile = normalizeErpMemberPhone(memberMobile);
+  const searchStartDate = asText(process.env.ERP_MEMBER_SEARCH_START_DATE || "2000-01-01");
+  const searchEndDate = nowKstISOString().slice(0, 10);
+  const result = await postErpFormJson("/cu/cu03/cu03_101_01_list.json", {
+    schOrderBy: "cu02_106_01_list",
+    delYn: "N",
+    searchDate: "insDt",
+    searchStDate: searchStartDate,
+    searchEnDate: searchEndDate,
+    memberJoinCd: "",
+    payMemberCd: "",
+    validTermCd: "",
+    memberAreaCd: "",
+    ddayCnt: "",
+    custNm: normalizedName,
+    orderBy: "cu02_106_01_list",
+    pagingYn: "Y",
+    startRow: "1",
+    endRow: "100",
+    asyncPage: "true"
+  }, {
+    referer: `${process.env.ERP_MEMBER_LIST_REFERER || "https://secrettour.toursoft.co.kr/erp/cu/cu03/pop/cu03_101_01_list"}`,
+    timeoutMs: 20_000
+  });
+  const status = Number(result?.status || 200);
+  if (status !== 200) throw createHttpError(asText(result?.msg) || "ERP member lookup failed", 502);
+  const expectedName = normalizeErpMemberName(normalizedName);
+  const matches = (Array.isArray(result?.list) ? result.list : []).filter((row) => (
+    normalizeErpMemberName(row.custNm) === expectedName
+    && getErpMemberPhone(row) === normalizedMobile
+    && asText(row.delYn || "N").toUpperCase() !== "Y"
+  ));
+  if (!matches.length) return { matchStatus: "not_found", memberExists: false, matchCount: 0, member: null };
+  if (matches.length > 1) return { matchStatus: "multiple_matches", memberExists: true, matchCount: matches.length, member: null };
+  const member = sanitizeErpMemberMatch(matches[0]);
+  return {
+    matchStatus: member.hasWebAccount ? "web_member" : "erp_customer",
+    memberExists: true,
+    matchCount: 1,
+    member
+  };
+}
+
+function findExactMemberProfile(rows = [], memberName = "", memberMobile = "") {
+  const expectedName = normalizeErpMemberName(memberName);
+  const expectedMobile = normalizeErpMemberPhone(memberMobile);
+  return rows
+    .filter((row) => (
+      normalizeErpMemberName(row.memberName || row.name) === expectedName
+      && normalizeErpMemberPhone(row.memberMobile || row.mobile || row.phone) === expectedMobile
+      && !asText(row.mergedIntoProfileId)
+    ))
+    .sort((left, right) => asText(right.updatedAt || right.createdAt).localeCompare(asText(left.updatedAt || left.createdAt)))[0] || null;
+}
+
+function parseAdminRosterBirthDate(value = "") {
+  const digits = asText(value).replace(/\D/g, "");
+  if (!/^\d{6}$/.test(digits)) throw createHttpError("생년월일은 yymmdd 6자리로 입력해 주세요.", 400);
+  const yy = Number(digits.slice(0, 2));
+  const month = Number(digits.slice(2, 4));
+  const day = Number(digits.slice(4, 6));
+  const currentYear = Number(nowKstISOString().slice(0, 4));
+  const year = yy <= (currentYear % 100) ? 2000 + yy : 1900 + yy;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    throw createHttpError("생년월일을 확인해 주세요.", 400);
+  }
+  return {
+    birthDate: `${year}${digits.slice(2)}`,
+    birthYear: String(year),
+    ageBand: buildAdminRosterAgeBand(year)
+  };
+}
+
+function buildAdminRosterAgeBand(birthYear = "") {
+  const year = Number(asText(birthYear).replace(/\D/g, ""));
+  const currentYear = Number(nowKstISOString().slice(0, 4));
+  const age = currentYear - year;
+  if (!Number.isFinite(age) || age < 1 || age > 99) return "";
+  const decade = Math.min(Math.floor(age / 10) * 10, 70);
+  const ones = age % 10;
+  const phase = ones <= 3 ? "초반" : ones <= 6 ? "중반" : "후반";
+  return `${decade >= 70 ? "70대이상" : `${decade}대`} ${phase}`;
+}
+
+function validateAdminRosterParticipant(item = {}, index = 0) {
+  const label = `participants[${index}]`;
+  const name = assertTextLength(item.name, `${label}.name`, MAX_STRING_LENGTHS.name, { required: true });
+  const phone = normalizeErpMemberPhone(item.phone);
+  if (!phone) throw createHttpError(`${label}.phone is required`, 400);
+  assertPhone(phone, `${label}.phone`);
+  const birth = parseAdminRosterBirthDate(item.birthDate);
+  const gender = asText(item.gender);
+  if (!["남성", "여성"].includes(gender)) throw createHttpError(`${label}.gender is invalid`, 400);
+  const roomType = asText(item.roomType);
+  if (!["2인1실", "1인1실"].includes(roomType)) throw createHttpError(`${label}.roomType is invalid`, 400);
+  const flightRequestType = asText(item.flightRequestType);
+  if (!["대행요청", "직접예약"].includes(flightRequestType)) throw createHttpError(`${label}.flightRequestType is invalid`, 400);
+  const level = assertTextLength(item.level, `${label}.level`, MAX_STRING_LENGTHS.short);
+  const rosterItemId = assertTextLength(item.rosterItemId, `${label}.rosterItemId`, MAX_STRING_LENGTHS.short, { required: true });
+  return { name, phone, ...birth, gender, roomType, flightRequestType, level, rosterItemId };
+}
+
+function resolveAdminRosterSchedule(payload = {}, newSchedules = [], recommendedRows = []) {
+  const scheduleId = asText(payload.targetScheduleId || payload.scheduleId || payload.scheduleKey);
+  const applicationId = asText(payload.targetApplicationId || payload.applicationId);
+  const targetType = asText(payload.targetType);
+  const recommendedSchedules = recommendedRows.filter(isManageableRecommendedScheduleRule).map(buildRecommendedScheduleSummarySource);
+  const recommendedMatches = recommendedSchedules.filter((schedule) => doScheduleIdsMatch(schedule, scheduleId, applicationId));
+  const newMatches = newSchedules.filter((schedule) => doScheduleIdsMatch(schedule, scheduleId, applicationId));
+  const matches = targetType === "recommended_schedule"
+    ? recommendedMatches
+    : targetType === "new_schedule"
+      ? newMatches
+      : [...recommendedMatches, ...newMatches];
+  if (matches.length !== 1) throw createHttpError(matches.length ? "일정 식별값이 중복되었습니다." : "대상 일정을 찾지 못했습니다.", 404);
+  const schedule = matches[0];
+  const isRecommended = Boolean(schedule.isAdminRecommendedSchedule);
+  const canonicalScheduleId = asText(schedule.scheduleId);
+  const canonicalApplicationId = asText(schedule.applicationId || schedule.sourceApplicationId);
+  return {
+    schedule,
+    targetType: isRecommended ? "recommended_schedule" : "new_schedule",
+    targetScheduleId: canonicalScheduleId,
+    targetApplicationId: canonicalApplicationId,
+    targetJoinId: isRecommended ? canonicalScheduleId : `sheet-builder-application-${canonicalScheduleId}`
+  };
+}
+
+async function mapWithConcurrency(items = [], concurrency = 4, mapper) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(Math.max(1, concurrency), items.length) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await mapper(items[index], index);
+    }
+  });
+  await Promise.all(workers);
+  return results;
+}
+
+async function proxyAdminErpLoginCheck(req, res) {
+  assertAdminErpRequest(req);
+  await getErpSessionCookie({ force: true });
+  res.status(200).json({ ok: true, authenticated: true });
+}
+
+async function proxyAdminErpMemberLookup(req, res) {
+  assertAdminErpRequest(req);
+  const payload = readBody(req);
+  const memberName = asText(payload.memberName || payload.name);
+  const memberMobile = normalizeErpMemberPhone(payload.memberMobile || payload.mobile || payload.phone);
+  assertTextLength(memberName, "memberName", MAX_STRING_LENGTHS.name, { required: true });
+  if (!memberMobile) throw createHttpError("memberMobile is required", 400);
+  assertPhone(memberMobile, "memberMobile");
+
+  const [erpResult, profiles] = await Promise.all([
+    lookupErpMemberExact(memberName, memberMobile),
+    readGoogleSheetRowsViaApi("join_member_profiles", { timeoutMs: 6000 })
+  ]);
+  const profile = findExactMemberProfile(profiles, memberName, memberMobile);
+  res.status(200).json({
+    ok: true,
+    ...erpResult,
+    profile: profile ? {
+      profileId: asText(profile.profileId),
+      profileStatus: asText(profile.profileStatus || "active"),
+      hasAdditionalInfo: asText(profile.profileStatus) !== "temporary" && hasCompletedJoinMemberProfile(profile)
+    } : null
+  });
+}
+
+function buildAdminRosterScheduleSnapshot(canonical = {}, fallbackProduct = {}) {
+  const schedule = canonical.schedule || {};
+  return {
+    targetType: canonical.targetType,
+    targetScheduleId: canonical.targetScheduleId,
+    targetApplicationId: canonical.targetApplicationId,
+    targetJoinId: canonical.targetJoinId,
+    productName: asText(schedule.productName || schedule.title),
+    departureDate: normalizeSheetDateText(schedule.departureDateFrom || schedule.departureDate || schedule.displayStartAt),
+    returnDate: normalizeSheetDateText(schedule.returnDateFrom || schedule.returnDate || schedule.displayEndAt),
+    country: asText(schedule.country),
+    region: asText(schedule.region),
+    airline: firstText(
+      schedule.airline,
+      fallbackProduct.airline,
+      fallbackProduct.airlineName,
+      fallbackProduct.airlineNm,
+      fallbackProduct.air2Nm,
+      fallbackProduct.air2CdNm
+    ),
+    departureAirport: firstText(
+      schedule.departureAirport,
+      fallbackProduct.departureAirport,
+      fallbackProduct.depAirport,
+      fallbackProduct.airport
+    ),
+    arrivalAirport: firstText(
+      schedule.arrivalAirport,
+      fallbackProduct.arrivalAirport,
+      fallbackProduct.arrAirport
+    ),
+    erpProductId: normalizeErpProductId(schedule.erpProductId, schedule.erpEventSeq),
+    erpEventSeq: asText(schedule.erpEventSeq)
+  };
+}
+
+function buildAdminRosterApplicationPayload(participant = {}, identity = {}, canonical = {}, batchId = "", context = {}) {
+  const schedule = canonical.schedule || {};
+  const snapshot = buildAdminRosterScheduleSnapshot(canonical, context.product || {});
+  const profile = identity.profile || {};
+  const erpMember = identity.erp?.member || {};
+  const profileId = asText(identity.profileId);
+  const memberKey = `profile:${profileId}`;
+  const applicationId = buildGoogleSheetRecordId("join_admin", canonical.targetScheduleId, participant.rosterItemId);
+  return {
+    applicationId,
+    createdAt: nowKstISOString(),
+    source: "join_apply",
+    pageUrl: asText(context.pageUrl),
+    registrationSource: "admin",
+    adminRosterItemId: participant.rosterItemId,
+    rosterBatchId: batchId,
+    profileId,
+    memberKey,
+    identityMatchStatus: identity.identityMatchStatus,
+    createdByAdmin: ADMIN_LOGIN_ID || "dashboard",
+    updatedByAdmin: ADMIN_LOGIN_ID || "dashboard",
+    targetType: canonical.targetType,
+    targetScheduleId: canonical.targetScheduleId,
+    targetApplicationId: canonical.targetApplicationId,
+    targetJoinId: canonical.targetJoinId,
+    targetProductKey: snapshot.erpProductId && snapshot.erpEventSeq ? `erp:${snapshot.erpProductId}:${snapshot.erpEventSeq}` : "",
+    erpProductId: snapshot.erpProductId,
+    erpEventSeq: snapshot.erpEventSeq,
+    scheduleSnapshot: snapshot,
+    member: {
+      memberKey,
+      profileId,
+      memberSeq: asText(profile.memberSeq || erpMember.custSeq),
+      memberId: asText(profile.memberId || erpMember.custId),
+      memberName: participant.name,
+      memberChannel: asText(profile.memberChannel || erpMember.joinChannel),
+      memberMobile: participant.phone,
+      memberEmail: asText(profile.memberEmail)
+    },
+    product: {
+      productName: snapshot.productName,
+      departureDate: snapshot.departureDate,
+      returnDate: snapshot.returnDate,
+      country: snapshot.country,
+      region: snapshot.region,
+      airline: snapshot.airline,
+      departureAirport: snapshot.departureAirport,
+      arrivalAirport: snapshot.arrivalAirport,
+      erpProductId: snapshot.erpProductId,
+      erpEventSeq: snapshot.erpEventSeq
+    },
+    applicant: {
+      name: participant.name,
+      phone: participant.phone,
+      birthDate: participant.birthDate,
+      birthYear: participant.birthYear,
+      ageDisplay: participant.ageBand,
+      gender: participant.gender,
+      people: "1",
+      companions: [],
+      level: participant.level,
+      styles: [],
+      preferredMemberComposition: [],
+      greeting: "",
+      roomType: participant.roomType,
+      flightRequestType: participant.flightRequestType
+    },
+    participantStatus: "신청",
+    applicationStatus: "confirmed",
+    adminMemo: "관리자 명단 등록"
+  };
+}
+
+function buildAdminTemporaryProfileRow(participant = {}, erp = {}, profileId = "") {
+  const erpMember = erp.member || {};
+  const now = nowKstISOString();
+  const identityMatchStatus = erp.matchStatus === "web_member"
+    ? "web_member"
+    : erp.matchStatus === "erp_customer"
+      ? "erp_customer"
+      : "temporary_guest";
+  return {
+    profileId,
+    createdAt: now,
+    source: "join_member_profile",
+    pageUrl: "",
+    memberSeq: asText(erpMember.custSeq),
+    memberId: asText(erpMember.custId),
+    memberName: participant.name,
+    memberChannel: asText(erpMember.joinChannel),
+    memberMobile: participant.phone,
+    memberEmail: "",
+    birthYear: participant.birthYear,
+    birthDate: participant.birthDate,
+    gender: participant.gender,
+    profession: "",
+    level: participant.level,
+    travelStyles: "",
+    profileImageUrl: "",
+    profileImageObjectName: "",
+    profileImageSize: "",
+    requiredAgreed: "",
+    marketingAgreed: "",
+    termsAgreedAt: "",
+    kakaoId: "",
+    kakaoNickname: "",
+    adminMemo: "관리자 명단 등록 임시 프로필",
+    updatedAt: now,
+    memberKey: `profile:${profileId}`,
+    profileStatus: "temporary",
+    profileOrigin: "admin_roster",
+    identityMatchStatus,
+    erpLinkedAt: erp.memberExists ? now : "",
+    mergedIntoProfileId: "",
+    createdByAdmin: ADMIN_LOGIN_ID || "dashboard",
+    updatedByAdmin: ADMIN_LOGIN_ID || "dashboard"
+  };
+}
+
+async function proxyAdminParticipantLookup(req, res) {
+  assertAdminErpRequest(req);
+  const payload = readBody(req);
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "recommended_schedules"
+  ], { timeoutMs: 9000 });
+  const canonical = resolveAdminRosterSchedule(
+    payload,
+    sheetRows.new_schedule_applications || [],
+    sheetRows.recommended_schedules || []
+  );
+  const rows = (sheetRows.join_applications || []).filter((row) => isJoinApplicationForSchedule(row, canonical.schedule));
+  res.status(200).json({ ok: true, rows, schedule: buildAdminRosterScheduleSnapshot(canonical) });
+}
+
+async function proxyAdminParticipantBatchUpsert(req, res) {
+  assertAdminErpRequest(req);
+  const payload = readBody(req);
+  const rawParticipants = Array.isArray(payload.participants) ? payload.participants : [];
+  if (!rawParticipants.length || rawParticipants.length > 40) {
+    throw createHttpError("참여자는 한 번에 1명 이상 40명 이하로 등록해 주세요.", 400);
+  }
+  const participants = rawParticipants.map(validateAdminRosterParticipant);
+  const duplicateKeys = new Set();
+  participants.forEach((participant) => {
+    const key = `${normalizeErpMemberName(participant.name)}|${participant.phone}`;
+    if (duplicateKeys.has(key)) throw createHttpError("같은 이름과 연락처가 명단에 중복되었습니다.", 409);
+    duplicateKeys.add(key);
+  });
+
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "join_member_profiles",
+    "recommended_schedules"
+  ], { timeoutMs: 12_000 });
+  const canonical = resolveAdminRosterSchedule(
+    payload,
+    sheetRows.new_schedule_applications || [],
+    sheetRows.recommended_schedules || []
+  );
+  const allJoinRows = sheetRows.join_applications || [];
+  const plannedApplicationIds = new Set(participants.map((participant) => (
+    buildGoogleSheetRecordId("join_admin", canonical.targetScheduleId, participant.rosterItemId)
+  )));
+  const relatedActiveRows = allJoinRows.filter((row) => isJoinApplicationForSchedule(row, canonical.schedule) && !isCancelledJoinApplication(row));
+  const creatorName = asText(canonical.schedule.applicantName || canonical.schedule.creatorName);
+  const creatorPhone = normalizeErpMemberPhone(canonical.schedule.applicantMobile || canonical.schedule.creatorPhone);
+  participants.forEach((participant) => {
+    const alreadyJoined = relatedActiveRows.some((row) => (
+      !plannedApplicationIds.has(asText(row.applicationId || row.joinApplyId))
+      &&
+      normalizeErpMemberName(row.applicantName || row.memberName) === normalizeErpMemberName(participant.name)
+      && normalizeErpMemberPhone(row.applicantMobile || row.memberMobile) === participant.phone
+    ));
+    const isCreator = creatorPhone === participant.phone && normalizeErpMemberName(creatorName) === normalizeErpMemberName(participant.name);
+    if (alreadyJoined || isCreator) throw createHttpError(`${participant.name}님은 이미 이 일정에 등록되어 있습니다.`, 409);
+  });
+  const capacityRows = allJoinRows.filter((row) => !plannedApplicationIds.has(asText(row.applicationId || row.joinApplyId)));
+  const summary = buildScheduleParticipantSummary(canonical.schedule, capacityRows);
+  if (participants.length > Number(summary.remainingSeats || 0)) {
+    throw createJoinScheduleFullError({
+      scheduleId: canonical.targetScheduleId,
+      remainingSeats: Number(summary.remainingSeats || 0),
+      requestedPeople: participants.length,
+      capacity: Number(summary.capacity || getScheduleCapacity(canonical.schedule)),
+      confirmedPeople: Number(summary.confirmedPeople || 0)
+    });
+  }
+
+  const erpResults = await mapWithConcurrency(participants, 4, (participant) => lookupErpMemberExact(participant.name, participant.phone));
+  const profileRows = sheetRows.join_member_profiles || [];
+  const profileById = new Map(profileRows.map((row) => [asText(row.profileId), row]));
+  const existingApplicationById = new Map(allJoinRows.map((row) => [asText(row.applicationId || row.joinApplyId), row]));
+  const identities = participants.map((participant, index) => {
+    const erp = erpResults[index];
+    if (erp.matchStatus === "multiple_matches") {
+      throw createHttpError(`${participant.name}님의 ERP 회원 정보가 여러 건입니다. ERP에서 연락처를 확인해 주세요.`, 409);
+    }
+    const applicationId = buildGoogleSheetRecordId("join_admin", canonical.targetScheduleId, participant.rosterItemId);
+    const existingApplication = existingApplicationById.get(applicationId);
+    const linkedProfile = profileById.get(asText(existingApplication?.profileId));
+    const canReuseLinkedTemporaryProfile = Boolean(
+      linkedProfile
+      && (asText(linkedProfile.profileStatus) === "temporary" || asText(linkedProfile.profileOrigin) === "admin_roster")
+    );
+    const profile = findExactMemberProfile(profileRows, participant.name, participant.phone)
+      || (canReuseLinkedTemporaryProfile ? linkedProfile : null);
+    const profileId = asText(profile?.profileId) || buildGoogleSheetRecordId("jmp_admin", normalizeErpMemberName(participant.name), participant.phone);
+    const profileIsActive = Boolean(profile && asText(profile.profileStatus || "active") !== "temporary");
+    const identityMatchStatus = profileIsActive
+      ? "member_profile"
+      : erp.matchStatus === "web_member"
+        ? "web_member"
+        : erp.matchStatus === "erp_customer"
+          ? "erp_customer"
+          : "temporary_guest";
+    return { profile, profileId, erp, identityMatchStatus };
+  });
+
+  const profileHeaders = await ensureGoogleSheetHeadersViaApi("join_member_profiles", { timeoutMs: 8000 });
+  const applicationHeaders = await ensureGoogleSheetHeadersViaApi("join_applications", { timeoutMs: 8000 });
+  const newProfiles = identities
+    .map((identity, index) => identity.profile ? null : buildAdminTemporaryProfileRow(participants[index], identity.erp, identity.profileId))
+    .filter(Boolean);
+  if (newProfiles.length) {
+    await appendGoogleSheetRowsViaApi(
+      "join_member_profiles",
+      newProfiles.map((row) => profileHeaders.map((header) => row[header] == null ? "" : row[header])),
+      { timeoutMs: 12_000 }
+    );
+  }
+  for (let index = 0; index < identities.length; index += 1) {
+    const identity = identities[index];
+    const profile = identity.profile;
+    if (!profile || (asText(profile.profileStatus) !== "temporary" && asText(profile.profileOrigin) !== "admin_roster")) continue;
+    const profileRowIndex = profileRows.indexOf(profile);
+    if (profileRowIndex < 0) continue;
+    const participant = participants[index];
+    const nextProfile = {
+      ...profile,
+      memberName: participant.name,
+      memberMobile: participant.phone,
+      birthYear: participant.birthYear,
+      birthDate: participant.birthDate,
+      gender: participant.gender,
+      level: participant.level,
+      identityMatchStatus: identity.identityMatchStatus,
+      updatedAt: nowKstISOString(),
+      updatedByAdmin: ADMIN_LOGIN_ID || "dashboard"
+    };
+    await updateGoogleSheetRowViaApi(
+      "join_member_profiles",
+      profileRowIndex + 2,
+      profileHeaders.map((header) => nextProfile[header] == null ? "" : nextProfile[header]),
+      { timeoutMs: 8000 }
+    );
+  }
+
+  const batchId = asText(payload.rosterBatchId) || buildGoogleSheetRecordId("roster", canonical.targetScheduleId, nowKstISOString());
+  const pageUrl = asText(payload.pageUrl || req.headers.origin || process.env.ADMIN_DASHBOARD_URL || "");
+  const rosterContext = {
+    pageUrl,
+    product: payload.product && typeof payload.product === "object" ? payload.product : {}
+  };
+  const applicationPayloads = participants.map((participant, index) => (
+    buildAdminRosterApplicationPayload(participant, identities[index], canonical, batchId, rosterContext)
+  ));
+  const existingById = new Map(allJoinRows.map((row, index) => [asText(row.applicationId || row.joinApplyId), { row, index }]));
+  const appendRows = [];
+  const savedRows = [];
+  for (const applicationPayload of applicationPayloads) {
+    const applicationId = asText(applicationPayload.applicationId);
+    const existing = existingById.get(applicationId);
+    const nextObject = buildJoinApplicationSheetObject(applicationPayload, applicationId, applicationHeaders);
+    if (existing) {
+      const preserved = { ...existing.row, ...nextObject };
+      preserved.createdAt = existing.row.createdAt || nextObject.createdAt;
+      ["participantStatus", "applicationStatus", "depositStatus", "balanceStatus", "refundStatus"].forEach((key) => {
+        if (existing.row[key] != null) preserved[key] = existing.row[key];
+      });
+      ["quoteId", "quoteNo", "quoteUrl", "quotePageUrl", "quotePdfUrl", "quoteFileName", "quotePageFileName", "quoteDataFileName", "quoteGeneratedAt", "quoteAdditionalAmountsJson", "quoteFlightDetailsJson", "quoteAccessTokenHash", "quoteExpiresAt"].forEach((key) => {
+        if (!asText(nextObject[key]) && existing.row[key] != null) preserved[key] = existing.row[key];
+      });
+      await updateGoogleSheetRowViaApi(
+        "join_applications",
+        existing.index + 2,
+        applicationHeaders.map((header) => preserved[header] == null ? "" : preserved[header]),
+        { timeoutMs: 8000 }
+      );
+      savedRows.push(preserved);
+    } else {
+      appendRows.push(applicationHeaders.map((header) => nextObject[header] == null ? "" : nextObject[header]));
+      savedRows.push(nextObject);
+    }
+  }
+  if (appendRows.length) await appendGoogleSheetRowsViaApi("join_applications", appendRows, { timeoutMs: 12_000 });
+  refreshGolfJoinHomeSummaryInBackground("admin_roster_batch_upsert");
+  res.status(200).json({
+    ok: true,
+    savedCount: savedRows.length,
+    profileCreatedCount: newProfiles.length,
+    rosterBatchId: batchId,
+    rows: savedRows,
+    identities: identities.map((identity, index) => ({
+      rosterItemId: participants[index].rosterItemId,
+      profileId: identity.profileId,
+      matchStatus: identity.identityMatchStatus,
+      hasWebAccount: Boolean(identity.erp.member?.hasWebAccount)
+    }))
+  });
+}
+
+async function proxyAdminParticipantDelete(req, res) {
+  assertAdminErpRequest(req);
+  const payload = readBody(req);
+  const applicationId = assertTextLength(
+    payload.applicationId || payload.joinApplyId,
+    "applicationId",
+    MAX_STRING_LENGTHS.short,
+    { required: true }
+  );
+  const sheetRows = await readGoogleSheetRangesViaApi([
+    "new_schedule_applications",
+    "join_applications",
+    "join_member_profiles",
+    "recommended_schedules"
+  ], { timeoutMs: 9000 });
+  const canonical = resolveAdminRosterSchedule(
+    payload,
+    sheetRows.new_schedule_applications || [],
+    sheetRows.recommended_schedules || []
+  );
+  const joinRows = sheetRows.join_applications || [];
+  const rowIndex = joinRows.findIndex((row) => asText(row.applicationId || row.joinApplyId) === applicationId);
+  if (rowIndex < 0) throw createHttpError("삭제할 참여자 정보를 찾지 못했습니다.", 404);
+  const row = joinRows[rowIndex];
+  if (!isJoinApplicationForSchedule(row, canonical.schedule)) {
+    throw createHttpError("선택한 일정의 참여자 정보가 아닙니다.", 409);
+  }
+  if (asText(row.registrationSource).toLowerCase() !== "admin" && !asText(row.adminRosterItemId)) {
+    throw createHttpError("관리자가 직접 등록한 참여자만 삭제할 수 있습니다.", 403);
+  }
+  await deleteGoogleSheetRowViaApi("join_applications", rowIndex + 2, { timeoutMs: 9000 });
+  let profileDeleted = false;
+  const profileId = asText(row.profileId);
+  const isProfileUsedElsewhere = Boolean(profileId && joinRows.some((item, index) => (
+    index !== rowIndex && asText(item.profileId) === profileId
+  )));
+  if (profileId && !isProfileUsedElsewhere) {
+    const profileRows = sheetRows.join_member_profiles || [];
+    const profileIndex = profileRows.findIndex((item) => asText(item.profileId) === profileId);
+    const profile = profileIndex >= 0 ? profileRows[profileIndex] : null;
+    if (profile && (asText(profile.profileStatus) === "temporary" || asText(profile.profileOrigin) === "admin_roster")) {
+      try {
+        await deleteGoogleSheetRowViaApi("join_member_profiles", profileIndex + 2, { timeoutMs: 9000 });
+        profileDeleted = true;
+      } catch (error) {
+        console.warn("Admin roster orphan profile cleanup failed", error);
+      }
+    }
+  }
+  refreshGolfJoinHomeSummaryInBackground("admin_participant_delete");
+  res.status(200).json({
+    ok: true,
+    deleted: true,
+    sheet: "join_applications",
+    applicationId,
+    adminRosterItemId: asText(row.adminRosterItemId),
+    profileDeleted
+  });
+}
+
 async function proxyPost(req, res) {
   const requestId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  if (req.query?.action === "send_application_notifications") {
+    if (!isInternalServiceRequest(req)) throw createHttpError("Internal service credentials are required", 403);
+    if (!ALIGO_ENABLED) throw createHttpError("Aligo is not enabled", 503);
+    const body = readBody(req);
+    const payload = body.payload;
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw createHttpError("Invalid notification payload", 400);
+    const source = asText(payload.source);
+    if (!(source === "new_schedule_builder" || source === "join_apply")) throw createHttpError("Unsupported notification source", 400);
+    const notifications = await processGolfjoinApplicationNotifications(
+      payload,
+      asText(body.notificationScheduleId),
+      asText(body.requestId || requestId)
+    );
+    res.status(200).json({ ok: true, notifications });
+    return;
+  }
   if (req.query?.action === "member_profile_lookup") {
     const payload = readBody(req);
     await proxyMemberProfileLookup(payload, res);
@@ -5302,6 +7128,31 @@ async function proxyPost(req, res) {
     return;
   }
 
+  if (req.query?.action === "admin_erp_login_check") {
+    await proxyAdminErpLoginCheck(req, res);
+    return;
+  }
+
+  if (req.query?.action === "admin_erp_member_lookup") {
+    await proxyAdminErpMemberLookup(req, res);
+    return;
+  }
+
+  if (req.query?.action === "admin_participant_lookup") {
+    await proxyAdminParticipantLookup(req, res);
+    return;
+  }
+
+  if (req.query?.action === "admin_participant_batch_upsert") {
+    await proxyAdminParticipantBatchUpsert(req, res);
+    return;
+  }
+
+  if (req.query?.action === "admin_participant_delete") {
+    await proxyAdminParticipantDelete(req, res);
+    return;
+  }
+
   if (req.query?.action === "admin_status_update") {
     if (!isAdminReadRequest(req)) {
       const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
@@ -5313,10 +7164,28 @@ async function proxyPost(req, res) {
     if (GOOGLE_SHEET_ID) {
       try {
         const savedPayload = await updateAdminStatusViaSheetsApi(payload);
+        let homeSummaryRefresh = null;
         if (savedPayload.ok && !payload.skipSummaryRefresh) {
-          refreshGolfJoinHomeSummaryInBackground("admin_status_update");
+          try {
+            const summary = await refreshGolfJoinHomeSummaryFromCurrentData("admin_status_update");
+            homeSummaryRefresh = {
+              ok: true,
+              participantSummaryCount: summary.homeBootstrapLight?.participantSummaries?.length || 0
+            };
+          } catch (error) {
+            homeSummaryRefresh = {
+              ok: false,
+              error: error?.message || String(error)
+            };
+            console.warn("Failed to refresh home summary after admin status update.", {
+              message: homeSummaryRefresh.error
+            });
+          }
         }
-        res.status(200).json(savedPayload);
+        res.status(200).json({
+          ...savedPayload,
+          ...(homeSummaryRefresh ? { homeSummaryRefresh } : {})
+        });
         return;
       } catch (error) {
         console.warn("Admin status update via Google Sheets API failed; falling back to Apps Script.", {
@@ -5346,7 +7215,7 @@ async function proxyPost(req, res) {
     }
     if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
     const payload = readBody(req);
-    const savedPayload = await generateQuoteViaSheetsApi(payload);
+    const savedPayload = await generateQuoteViaSheetsApi(payload, getRequestAbsoluteUrl(req));
     res.status(savedPayload.ok ? 200 : 404).json(savedPayload);
     return;
   }
@@ -5396,13 +7265,11 @@ async function proxyPost(req, res) {
         applicationId: savedPayload.applicationId || payload.applicationId,
         scheduleId: savedPayload.scheduleId || payload.scheduleId
       };
-      sendGolfjoinApplicationNotificationsInBackground(notificationPayload, asText(notificationPayload.scheduleId), requestId);
+      const notifications = await dispatchGolfjoinApplicationNotifications(notificationPayload, asText(notificationPayload.scheduleId), requestId);
       refreshGolfJoinHomeSummaryInBackground(source);
       res.status(200).json({
         ...savedPayload,
-        notifications: ALIGO_ENABLED
-          ? [{ queued: true, reason: "notification_queued" }]
-          : [{ skipped: true, reason: "aligo is disabled" }]
+        notifications
       });
       return;
     } catch (error) {
@@ -5416,13 +7283,11 @@ async function proxyPost(req, res) {
   if (source === "join_apply" && GOOGLE_SHEET_ID) {
     try {
       const savedPayload = await saveJoinApplicationViaSheetsApi(payload);
-      sendGolfjoinApplicationNotificationsInBackground(payload, asText(payload.targetScheduleId || getValue(payload, "target.scheduleId")), requestId);
+      const notifications = await dispatchGolfjoinApplicationNotifications(payload, asText(payload.targetScheduleId || getValue(payload, "target.scheduleId")), requestId);
       refreshGolfJoinHomeSummaryInBackground(source);
       res.status(200).json({
         ...savedPayload,
-        notifications: ALIGO_ENABLED
-          ? [{ queued: true, reason: "notification_queued" }]
-          : [{ skipped: true, reason: "aligo is disabled" }]
+        notifications
       });
       return;
     } catch (error) {
@@ -5529,13 +7394,11 @@ async function proxyPost(req, res) {
       res.status(409).send(JSON.stringify(savedPayload));
       return;
     }
-    sendGolfjoinApplicationNotificationsInBackground(payload, notificationScheduleId, requestId);
+    const notifications = await dispatchGolfjoinApplicationNotifications(payload, notificationScheduleId, requestId);
     refreshGolfJoinHomeSummaryInBackground(source);
     res.send(JSON.stringify({
       ...savedPayload,
-      notifications: ALIGO_ENABLED
-        ? [{ queued: true, reason: "notification_queued" }]
-        : [{ skipped: true, reason: "aligo is disabled" }]
+      notifications
     }));
   } catch (error) {
     console.warn("Failed to queue golfjoin alimtalk notification.", error);
@@ -5551,8 +7414,17 @@ exports.proxyGoogleSheet = async (req, res) => {
   }
 
   try {
+    assertServiceRole(req);
+    if (req.method === "POST" && req.query?.action === "send_application_notifications") {
+      await proxyPost(req, res);
+      return;
+    }
     if (req.method === "GET" && req.query?.action === "share_og") {
       proxyShareOg(req, res);
+      return;
+    }
+    if (req.method === "GET" && (req.query?.action === "quote_view" || req.query?.action === "quote_pdf")) {
+      await proxyProtectedQuote(req, res, req.query.action === "quote_pdf" ? "pdf" : "html");
       return;
     }
     assertRequestAllowed(req);

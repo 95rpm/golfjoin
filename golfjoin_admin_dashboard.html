@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>골프조인 운영 대시보드</title>
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
   <style>
     :root {
       --bg: #f8fafc;
@@ -156,12 +157,13 @@
       gap: 6px;
     }
     .nav-button {
+      position: relative;
       width: 100%;
       min-height: 42px;
       display: flex;
       align-items: center;
       gap: 10px;
-      border: 1px solid transparent;
+      border: 0;
       border-radius: 8px;
       background: transparent;
       color: var(--muted);
@@ -171,21 +173,48 @@
       font-weight: 700;
       overflow: hidden;
       white-space: nowrap;
-      transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+      transition: background 0.18s ease, color 0.18s ease;
     }
-    .nav-button.active,
-    .nav-button:hover {
-      border-color: var(--line);
-      background: var(--primary-soft);
+    .nav-button.active {
+      background: transparent;
       color: var(--text);
     }
+    .nav-button:hover {
+      background: #f6f7f9;
+      color: var(--text);
+    }
+    .sidebar:hover .nav-button.active {
+      background: #f3f4f6;
+    }
     .nav-icon {
+      position: relative;
+      z-index: 1;
       width: 24px;
       height: 24px;
       flex: 0 0 24px;
       color: currentColor;
+      transition: color 0.16s ease;
+    }
+    .nav-button.active .nav-icon {
+      color: var(--primary);
+    }
+    .nav-icon-solid {
+      opacity: 0;
+      transition: opacity 0.16s ease;
+    }
+    .nav-icon-outline {
+      opacity: 1;
+      transition: opacity 0.16s ease;
+    }
+    .nav-button.active .nav-icon-solid {
+      opacity: 1;
+    }
+    .nav-button.active .nav-icon-outline {
+      opacity: 0;
     }
     .nav-label {
+      position: relative;
+      z-index: 1;
       max-width: 140px;
       white-space: nowrap;
       opacity: 1;
@@ -222,8 +251,8 @@
       white-space: nowrap;
     }
     .sidebar-footer .button:hover {
-      border-color: var(--line);
-      background: var(--primary-soft);
+      border-color: transparent;
+      background: #f6f7f9;
       color: var(--text);
       filter: none;
     }
@@ -1007,7 +1036,7 @@
     .dashboard-loading-overlay {
       position: fixed;
       inset: 0;
-      z-index: 120;
+      z-index: 13000;
       display: none;
       place-items: center;
       background: rgba(15, 23, 42, 0.38);
@@ -1169,7 +1198,7 @@
     }
     .participant-table {
       width: 100%;
-      min-width: 1520px;
+      min-width: 1680px;
       table-layout: fixed;
     }
     .participant-table th,
@@ -1200,14 +1229,154 @@
     .participant-table tbody tr:last-child td {
       border-bottom: 0;
     }
+    .participant-roster-actions {
+      display: flex;
+      justify-content: center;
+      padding: 4px 0 0;
+    }
+    .participant-roster-add-button {
+      min-height: 40px;
+      padding: 0 18px;
+      border: 1px solid #3489f8;
+      border-radius: 8px;
+      background: #fff;
+      color: #2478e8;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .participant-roster-add-button:hover { background: #f3f8ff; }
+    .participant-role-badge.admin { background: #eeecff; color: #5b55c6; }
+
+    .roster-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 12040;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(17, 24, 39, .48);
+    }
+    .roster-backdrop.open { display: flex; }
+    .roster-shell {
+      width: min(980px, 100%);
+      max-height: min(860px, calc(100vh - 48px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(16, 24, 40, .22);
+    }
+    .roster-head, .roster-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e6eaf0;
+    }
+    .roster-foot { border-top: 1px solid #e6eaf0; border-bottom: 0; }
+    .roster-title { margin: 0; color: #172033; font-size: 22px; font-weight: 700; }
+    .roster-subtitle { margin-top: 5px; color: #667085; font-size: 14px; }
+    .roster-close, .roster-item-remove {
+      width: 36px;
+      height: 36px;
+      display: inline-grid;
+      place-items: center;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #667085;
+      cursor: pointer;
+    }
+    .roster-close svg, .roster-item-remove svg { width: 20px; height: 20px; }
+    .roster-item-remove { color: #d92d20; }
+    .roster-body { overflow-y: auto; padding: 22px 24px; background: #f7f9fc; }
+    .roster-erp-state {
+      margin-bottom: 14px;
+      color: #667085;
+      font-size: 14px;
+    }
+    .roster-erp-state.ok { color: #26851d; }
+    .roster-erp-state.error { color: #d92d20; }
+    .roster-list { display: grid; gap: 14px; }
+    .roster-item {
+      padding: 18px;
+      border: 1px solid #dde3ec;
+      border-radius: 12px;
+      background: #fff;
+    }
+    .roster-item-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .roster-item-head-main { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+    .roster-item-number { color: #172033; font-size: 17px; font-weight: 700; }
+    .roster-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .roster-field { display: grid; gap: 7px; min-width: 0; }
+    .roster-field > label, .roster-field-label { color: #475467; font-size: 14px; font-weight: 700; }
+    .roster-field input, .roster-field select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #d7dee9;
+      border-radius: 7px;
+      background: #fff;
+      padding: 8px 11px;
+      color: #172033;
+      font: inherit;
+      outline: none;
+    }
+    .roster-field input:focus, .roster-field select:focus { border-color: #3489f8; box-shadow: 0 0 0 3px rgba(52, 137, 248, .12); }
+    .roster-radio-group { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .roster-radio-group label { cursor: pointer; }
+    .roster-radio-group input { position: absolute; opacity: 0; pointer-events: none; }
+    .roster-radio-group span {
+      min-height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #d7dee9;
+      border-radius: 7px;
+      background: #fff;
+      color: #667085;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .roster-radio-group input:checked + span { border-color: #3489f8; background: #eef6ff; color: #2478e8; }
+    .roster-identity-badge { padding: 5px 9px; border-radius: 999px; background: #f2f4f7; color: #667085; font-size: 13px; font-weight: 700; }
+    .roster-identity-badge.member { background: #eaf8e7; color: #26851d; }
+    .roster-identity-badge.guest { background: #fff3e8; color: #b54708; }
+    .roster-identity-badge.error { background: #feeceb; color: #d92d20; }
+    .roster-lookup-button, .roster-add-row-button, .roster-button {
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid #d7dee9;
+      border-radius: 7px;
+      background: #fff;
+      color: #475467;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .roster-add-row-button { margin-top: 14px; width: 100%; border-style: dashed; color: #2478e8; }
+    .roster-item-head .roster-lookup-button { min-height: 30px; padding: 0 10px; font-size: 13px; }
+    .roster-foot-actions { display: flex; gap: 8px; margin-left: auto; }
+    .roster-button.primary { border-color: #3489f8; background: #3489f8; color: #fff; }
+    .roster-button:disabled, .roster-lookup-button:disabled { opacity: .55; cursor: wait; }
+    @media (max-width: 760px) {
+      .roster-backdrop { padding: 0; align-items: flex-end; }
+      .roster-shell { max-height: 94vh; border-radius: 16px 16px 0 0; }
+      .roster-head, .roster-foot, .roster-body { padding-left: 16px; padding-right: 16px; }
+      .roster-grid { grid-template-columns: 1fr; }
+      .roster-item-head { align-items: flex-start; }
+      .roster-item-head-main { flex: 1; }
+    }
     .participant-table th:first-child,
     .participant-table td:first-child {
-      padding-left: 6px;
+      padding-left: 8px;
       padding-right: 6px;
     }
     .participant-table th:nth-child(1),
     .participant-table td:nth-child(1) {
-      width: 58px;
+      width: 68px;
     }
     .participant-table th:nth-child(2),
     .participant-table td:nth-child(2) {
@@ -1219,27 +1388,27 @@
     }
     .participant-table th:nth-child(4),
     .participant-table td:nth-child(4) {
-      width: 70px;
+      width: 54px;
     }
     .participant-table th:nth-child(5),
     .participant-table td:nth-child(5) {
-      width: 98px;
+      width: 124px;
     }
     .participant-table th:nth-child(6),
     .participant-table td:nth-child(6) {
-      width: 76px;
+      width: 86px;
     }
     .participant-table th:nth-child(7),
     .participant-table td:nth-child(7) {
-      width: 124px;
+      width: 88px;
     }
     .participant-table th:nth-child(8),
     .participant-table td:nth-child(8) {
-      width: 104px;
+      width: 60px;
     }
     .participant-table th:nth-child(9),
     .participant-table td:nth-child(9) {
-      width: 76px;
+      width: 64px;
     }
     .participant-table th:nth-child(10),
     .participant-table td:nth-child(10) {
@@ -1247,7 +1416,7 @@
     }
     .participant-table th:nth-child(11),
     .participant-table td:nth-child(11) {
-      width: 160px;
+      width: 220px;
     }
     .participant-table th:nth-child(12),
     .participant-table td:nth-child(12) {
@@ -1260,6 +1429,15 @@
     .participant-table th:nth-child(14),
     .participant-table td:nth-child(14) {
       width: 156px;
+    }
+    .participant-table th:nth-child(15),
+    .participant-table td:nth-child(15) {
+      width: 74px;
+      padding-right: 8px;
+      text-align: center;
+    }
+    .participant-table td:nth-child(15) {
+      padding-left: 0;
     }
     .participant-table th:nth-child(1),
     .participant-table td:nth-child(1),
@@ -1297,6 +1475,29 @@
       background: var(--green-soft);
       color: var(--green);
     }
+    .participant-admin-row-actions {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .participant-admin-row-action {
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid #d7dee9;
+      border-radius: 6px;
+      background: #fff;
+      color: #475467;
+      cursor: pointer;
+    }
+    .participant-admin-row-action:hover { border-color: #98a2b3; background: #f8fafc; }
+    .participant-admin-row-action.delete { color: #d92d20; }
+    .participant-admin-row-action:disabled { opacity: .5; cursor: wait; }
+    .participant-admin-row-action svg { width: 17px; height: 17px; }
     .participant-name-cell {
       display: grid;
       gap: 4px;
@@ -1332,11 +1533,37 @@
       font-weight: 700;
       white-space: nowrap;
     }
+    .schedule-group-people-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .schedule-group-gender-count {
+      color: #667085;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .schedule-group-gender-dot {
+      width: 3px;
+      height: 3px;
+      flex: 0 0 3px;
+      border-radius: 50%;
+      background: #d0d5dd;
+    }
     .participant-people-cell {
       justify-content: center;
       gap: 6px;
     }
     .participant-gender-icons {
+      justify-content: flex-start;
+    }
+    .participant-table td:nth-child(5) {
+      text-align: left;
+    }
+    .participant-table td:nth-child(5) .participant-gender-icons {
+      width: 100%;
       justify-content: flex-start;
     }
     .schedule-people-icon {
@@ -1380,11 +1607,11 @@
     }
     .schedule-table th:nth-child(1),
     .schedule-table td:nth-child(1) {
-      width: 75px;
+      width: 92px;
       padding-right: 8px;
     }
     .consultation-table {
-      min-width: 1480px;
+      min-width: 0;
       table-layout: fixed;
     }
     .consultation-table th,
@@ -1394,53 +1621,106 @@
     }
     .consultation-table th:nth-child(1),
     .consultation-table td:nth-child(1) {
-      width: 160px;
+      width: 100px;
     }
     .consultation-table th:nth-child(2),
     .consultation-table td:nth-child(2) {
-      width: 64px;
+      width: 92px;
     }
     .consultation-table th:nth-child(3),
     .consultation-table td:nth-child(3) {
-      width: 70px;
+      width: 74px;
     }
     .consultation-table th:nth-child(4),
     .consultation-table td:nth-child(4) {
-      width: 140px;
+      width: 141px;
     }
     .consultation-table th:nth-child(5),
     .consultation-table td:nth-child(5) {
-      width: 62px;
+      width: 56px;
     }
     .consultation-table th:nth-child(6),
     .consultation-table td:nth-child(6) {
-      width: 58px;
+      width: 52px;
     }
     .consultation-table th:nth-child(7),
     .consultation-table td:nth-child(7) {
-      width: 280px;
+      width: auto;
     }
     .consultation-table th:nth-child(8),
     .consultation-table td:nth-child(8) {
-      width: 78px;
+      width: 72px;
     }
     .consultation-table th:nth-child(9),
     .consultation-table td:nth-child(9),
     .consultation-table th:nth-child(10),
     .consultation-table td:nth-child(10) {
-      width: 116px;
+      width: 118px;
     }
     .consultation-table th:nth-child(11),
     .consultation-table td:nth-child(11) {
-      width: 62px;
+      width: 54px;
     }
     .consultation-table th:nth-child(12),
     .consultation-table td:nth-child(12) {
-      width: 126px;
+      width: 112px;
+    }
+    .consultation-table th:nth-child(1),
+    .consultation-table td:nth-child(1),
+    .consultation-table th:nth-child(4),
+    .consultation-table td:nth-child(4),
+    .consultation-table th:nth-child(5),
+    .consultation-table td:nth-child(5),
+    .consultation-table th:nth-child(6),
+    .consultation-table td:nth-child(6),
+    .consultation-table th:nth-child(8),
+    .consultation-table td:nth-child(8),
+    .consultation-table th:nth-child(9),
+    .consultation-table td:nth-child(9),
+    .consultation-table th:nth-child(10),
+    .consultation-table td:nth-child(10),
+    .consultation-table th:nth-child(11),
+    .consultation-table td:nth-child(11),
+    .consultation-table th:nth-child(12),
+    .consultation-table td:nth-child(12) {
+      padding-left: 12px;
+      padding-right: 12px;
     }
     .consultation-table th:nth-child(13),
     .consultation-table td:nth-child(13) {
-      width: 90px;
+      width: 200px;
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+    .consultation-table .schedule-created-at {
+      display: block;
+      font-size: 14px;
+      line-height: 1.35;
+      white-space: normal;
+    }
+    .consultation-table .product-cell {
+      max-width: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .consultation-table .quote-action-group {
+      gap: 4px;
+    }
+    .consultation-table .quote-document-actions {
+      gap: 4px;
+    }
+    .consultation-table .quote-generate-button,
+    .consultation-table .quote-complete-button {
+      height: 30px;
+      padding-left: 8px;
+      padding-right: 8px;
+      font-size: 13px;
+    }
+    .consultation-table .quote-regenerate-button {
+      height: 30px;
+      padding-left: 7px;
+      padding-right: 7px;
+      font-size: 13px;
     }
     .consultation-table .participant-role-badge {
       min-width: 54px;
@@ -1537,6 +1817,10 @@
     .quote-complete-button.completed {
       border-color: var(--green);
       background: var(--green);
+      color: #fff;
+    }
+    .participant-status-badge.is-created {
+      background: #41bb2c;
       color: #fff;
     }
     .quote-generate-button {
@@ -1665,8 +1949,26 @@
     .quote-editor-section-title {
       margin: 0 0 16px;
       color: #172033;
-      font-size: 16px;
-      font-weight: 800;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .quote-editor-source-state {
+      margin: -5px 0 16px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #f4f7fa;
+      color: #5f6b7b;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .quote-editor-source-state.success {
+      background: #edf8f2;
+      color: #197149;
+    }
+    .quote-editor-source-state.warning {
+      background: #fff7e8;
+      color: #9a6700;
     }
     .quote-editor-grid {
       display: grid;
@@ -1682,7 +1984,7 @@
     }
     .quote-editor-field label {
       color: #475467;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
     }
     .quote-editor-field input,
@@ -1695,7 +1997,8 @@
       background: #fff;
       color: #172033;
       padding: 9px 11px;
-      font-size: 14px;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
       line-height: 1.45;
       outline: none;
     }
@@ -1709,25 +2012,396 @@
       border-color: #3489f8;
       box-shadow: 0 0 0 3px rgba(52, 137, 248, 0.12);
     }
+    .quote-editor-flight-details {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid #e4e9f0;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .quote-editor-flight-details[hidden] {
+      display: none;
+    }
+    .quote-editor-flight-row {
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
+      align-items: end;
+      gap: 9px;
+    }
+    .quote-editor-flight-row + .quote-editor-flight-row {
+      padding-top: 10px;
+      border-top: 1px solid #e4e9f0;
+    }
+    .quote-editor-flight-row-title {
+      align-self: center;
+      color: #344054;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .quote-editor-flight-input {
+      display: grid;
+      gap: 6px;
+    }
+    .quote-editor-flight-input span {
+      color: #667085;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .quote-editor-flight-input input {
+      width: 100%;
+      min-width: 0;
+      min-height: 40px;
+      padding: 9px 11px;
+      border: 1px solid #d7dee9;
+      border-radius: 6px;
+      background: #fff;
+      color: #172033;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+      outline: none;
+    }
+    .quote-editor-flight-input input:focus {
+      border-color: #3489f8;
+      box-shadow: 0 0 0 3px rgba(52, 137, 248, 0.12);
+    }
+    .quote-editor-additional-amounts {
+      grid-column: 1 / -1;
+      display: grid;
+      gap: 10px;
+      padding-top: 4px;
+    }
+    .quote-editor-additional-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .quote-editor-additional-head strong {
+      color: #475467;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .quote-editor-additional-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .quote-editor-additional-add,
+    .quote-editor-additional-remove {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid #d7dee9;
+      border-radius: 6px;
+      background: #fff;
+      color: #475467;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .quote-editor-additional-add {
+      padding: 0 12px;
+    }
+    .quote-editor-additional-add:disabled {
+      opacity: .48;
+      cursor: default;
+    }
+    .quote-editor-additional-remove {
+      width: 42px;
+      min-height: 42px;
+      padding: 0;
+      color: #d92d20;
+    }
+    .quote-editor-additional-add svg,
+    .quote-editor-additional-remove svg {
+      width: 18px;
+      height: 18px;
+    }
+    .quote-editor-additional-list {
+      display: grid;
+      gap: 14px;
+    }
+    .quote-editor-additional-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px;
+      gap: 14px;
+      align-items: end;
+    }
+    .quote-editor-additional-field {
+      min-width: 0;
+      display: grid;
+      gap: 7px;
+    }
+    .quote-editor-additional-field > span {
+      color: #475467;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .quote-editor-additional-field input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #d7dee9;
+      border-radius: 6px;
+      background: #fff;
+      color: #172033;
+      padding: 9px 11px;
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+      outline: none;
+    }
+    .quote-editor-additional-field input:focus {
+      border-color: #3489f8;
+      box-shadow: 0 0 0 3px rgba(52, 137, 248, 0.12);
+    }
+    .quote-editor-itinerary-field {
+      gap: 10px;
+    }
+    .quote-editor-itinerary-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .quote-editor-itinerary-guide {
+      color: #667085;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .quote-editor-itinerary-add,
+    .quote-editor-itinerary-action {
+      min-height: 32px;
+      padding: 0 11px;
+      border: 1px solid #d7dee9;
+      border-radius: 6px;
+      background: #fff;
+      color: #475467;
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .quote-editor-itinerary-add {
+      border-color: #3489f8;
+      color: #2176df;
+      margin-left: auto;
+    }
+    .quote-editor-itinerary-action.danger {
+      color: #d92d20;
+    }
+    .quote-editor-itinerary-action.icon {
+      width: 34px;
+      min-width: 34px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .quote-editor-itinerary-action.icon svg,
+    .quote-editor-itinerary-drag svg {
+      width: 17px;
+      height: 17px;
+    }
+    .quote-editor-itinerary-list {
+      display: grid;
+      gap: 12px;
+    }
+    .quote-editor-itinerary-day {
+      overflow: hidden;
+      border: 1px solid #d7dee9;
+      border-radius: 12px;
+      background: #fff;
+    }
+    .quote-editor-itinerary-day-head {
+      padding: 12px;
+      display: grid;
+      grid-template-columns: minmax(88px, .65fr) minmax(132px, 1.35fr) auto;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+    }
+    .quote-editor-field .quote-editor-itinerary-day-head input {
+      min-height: 38px;
+      font-weight: 700;
+    }
+    .quote-editor-itinerary-extra {
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+      background: #f4f4f6;
+    }
+    .quote-editor-itinerary-extra-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+    }
+    .quote-editor-itinerary-extra-row span {
+      color: #475467;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .quote-editor-field .quote-editor-itinerary-extra-row input {
+      min-height: 38px;
+      background: #fff;
+    }
+    .quote-editor-itinerary-points {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      background: #fff;
+    }
+    .quote-editor-itinerary-point {
+      display: grid;
+      grid-template-columns: 24px 9px minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 8px;
+    }
+    .quote-editor-itinerary-point.dragging {
+      opacity: .48;
+    }
+    .quote-editor-itinerary-drag {
+      width: 24px;
+      height: 34px;
+      margin-top: 2px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      background: transparent;
+      color: #98a2b3;
+      cursor: grab;
+    }
+    .quote-editor-itinerary-drag:active {
+      cursor: grabbing;
+    }
+    .quote-editor-itinerary-dot {
+      width: 7px;
+      height: 7px;
+      margin-top: 15px;
+      border-radius: 50%;
+      background: #172033;
+    }
+    .quote-editor-itinerary-copy {
+      display: grid;
+      gap: 6px;
+    }
+    .quote-editor-field .quote-editor-itinerary-copy input {
+      min-height: 38px;
+      font-weight: 700;
+    }
+    .quote-editor-field .quote-editor-itinerary-copy textarea {
+      min-height: 58px;
+    }
+    .quote-editor-itinerary-point-actions {
+      margin-top: 3px;
+      display: flex;
+      gap: 5px;
+    }
+    .quote-editor-itinerary-point-actions .quote-editor-itinerary-action:not(.danger) {
+      color: #2176df;
+    }
+    .quote-editor-itinerary-point > .quote-editor-itinerary-action {
+      margin-top: 3px;
+    }
+    .quote-editor-itinerary-points-footer {
+      display: grid;
+      grid-template-columns: 24px 9px minmax(0, 1fr) 73px;
+      gap: 8px;
+    }
+    .quote-editor-itinerary-points-footer .quote-editor-itinerary-action {
+      grid-column: 3;
+      width: 100%;
+      min-height: 38px;
+    }
+    @media (max-width: 720px) {
+      .quote-editor-itinerary-toolbar {
+        align-items: flex-start;
+      }
+      .quote-editor-itinerary-day-head {
+        grid-template-columns: minmax(76px, .65fr) minmax(0, 1.35fr);
+      }
+      .quote-editor-itinerary-day-head .quote-editor-itinerary-action {
+        grid-column: 1 / -1;
+        justify-self: end;
+      }
+    }
     .quote-editor-preview-wrap {
       min-height: 0;
       padding: 22px;
       overflow: hidden;
       background: #e9eef4;
     }
+    .quote-editor-preview-toolbar {
+      min-height: 36px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
     .quote-editor-preview-label {
-      height: 28px;
+      padding-top: 4px;
       color: #475467;
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 700;
+    }
+    .quote-editor-device-toggle {
+      display: inline-flex;
+      align-items: center;
+      transform: translateY(-10px);
+      padding: 3px;
+      border: 1px solid #d4dce8;
+      border-radius: 7px;
+      background: #fff;
+    }
+    .quote-editor-device-button {
+      height: 30px;
+      min-width: 58px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: #697386;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .quote-editor-device-button.active {
+      background: #3489f8;
+      color: #fff;
+    }
+    .quote-editor-preview-stage {
+      width: 100%;
+      height: calc(100% - 36px);
+      display: flex;
+      justify-content: center;
+      overflow: auto;
     }
     .quote-editor-preview {
       width: 100%;
-      height: calc(100% - 28px);
+      height: 100%;
+      flex: none;
       display: block;
       border: 1px solid #d4dce8;
       border-radius: 6px;
       background: #fff;
+      transition: width 0.18s ease, box-shadow 0.18s ease;
+    }
+    .quote-editor-preview-stage.mobile {
+      padding: 12px;
+    }
+    .quote-editor-preview-stage.mobile .quote-editor-preview {
+      width: 390px;
+      max-width: 100%;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
     }
     .quote-editor-foot {
       min-height: 76px;
@@ -1773,6 +2447,8 @@
       .quote-editor-foot { align-items: stretch; flex-direction: column; }
       .quote-editor-foot-actions { width: 100%; }
       .quote-editor-button { flex: 1; }
+      .quote-editor-flight-row { grid-template-columns: 1fr; }
+      .quote-editor-flight-row-title { padding-bottom: 1px; }
     }
     .quote-complete-button svg {
       width: 15px;
@@ -1854,6 +2530,23 @@
       border: 0;
       background: #2f80ed;
       color: #fff;
+    }
+    .confirm-dialog.roster-success-dialog {
+      width: min(380px, 100%);
+      padding: 28px 24px 24px;
+      text-align: center;
+    }
+    .confirm-dialog.roster-success-dialog .confirm-message {
+      margin-top: 12px;
+      color: var(--text);
+      font-size: 17px;
+    }
+    .confirm-dialog.roster-success-dialog .confirm-actions {
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .confirm-dialog.roster-success-dialog #confirmOkButton {
+      min-width: 120px;
     }
     .info-grid {
       display: grid;
@@ -1950,9 +2643,9 @@
         <h1 class="brand-title">골프조인 대시보드</h1>
       </div>
       <nav class="nav" aria-label="대시보드 메뉴">
-        <button class="nav-button active" type="button" data-menu="schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-calendar-check-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="m16 20 2 2 4-4"/></svg><span class="nav-label">일정 관리</span></button>
-        <button class="nav-button" type="button" data-menu="recommended-schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 2.9a.6.6 0 0 1 1 0l2.5 5.1a.6.6 0 0 0 .5.3l5.6.8a.6.6 0 0 1 .3 1l-4 3.9a.6.6 0 0 0-.2.6l1 5.5a.6.6 0 0 1-.9.6l-5-2.6a.6.6 0 0 0-.6 0l-5 2.6a.6.6 0 0 1-.9-.6l1-5.5a.6.6 0 0 0-.2-.6l-4-3.9a.6.6 0 0 1 .3-1l5.6-.8a.6.6 0 0 0 .5-.3z"/></svg><span class="nav-label">추천 일정</span></button>
-        <button class="nav-button" type="button" data-menu="participant-management"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-users-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg><span class="nav-label">고객 관리</span></button>
+        <button class="nav-button active" type="button" data-menu="schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-calendar-check-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="nav-icon-outline"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="m16 20 2 2 4-4"/></g><g class="nav-icon-solid" stroke="none"><rect x="2" y="4" width="20" height="18" rx="3" fill="currentColor"/><rect x="6" y="2" width="2" height="5" rx="1" fill="currentColor"/><rect x="16" y="2" width="2" height="5" rx="1" fill="currentColor"/><path d="M3 10h18" fill="none" stroke="#fff" stroke-width="2"/><path d="m14.5 16.5 2.1 2.1 4-4.3" fill="none" stroke="#fff" stroke-width="2"/></g></svg><span class="nav-label">일정 관리</span></button>
+        <button class="nav-button" type="button" data-menu="recommended-schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="nav-icon-outline"><path d="M11.5 2.9a.6.6 0 0 1 1 0l2.5 5.1a.6.6 0 0 0 .5.3l5.6.8a.6.6 0 0 1 .3 1l-4 3.9a.6.6 0 0 0-.2.6l1 5.5a.6.6 0 0 1-.9.6l-5-2.6a.6.6 0 0 0-.6 0l-5 2.6a.6.6 0 0 1-.9-.6l1-5.5a.6.6 0 0 0-.2-.6l-4-3.9a.6.6 0 0 1 .3-1l5.6-.8a.6.6 0 0 0 .5-.3z"/></g><path class="nav-icon-solid" d="M11.1 2.5a1 1 0 0 1 1.8 0l2.6 5.3 5.8.8a1 1 0 0 1 .6 1.7l-4.2 4.1 1 5.8a1 1 0 0 1-1.5 1.1L12 18.6l-5.2 2.7a1 1 0 0 1-1.5-1.1l1-5.8-4.2-4.1a1 1 0 0 1 .6-1.7l5.8-.8z" fill="currentColor" stroke="none"/></svg><span class="nav-label">추천 일정</span></button>
+        <button class="nav-button" type="button" data-menu="participant-management"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-users-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="nav-icon-outline"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></g><g class="nav-icon-solid" fill="currentColor" stroke="none"><circle cx="17.5" cy="7.5" r="3.5"/><path d="M15.2 13.1c4.9-.3 7.8 3.2 7.8 7.9h-4.2c0-3.2-1.3-5.9-3.6-7.9Z"/><circle cx="9" cy="8" r="5"/><path d="M1 22a8 8 0 0 1 16 0Z"/></g></svg><span class="nav-label">고객 관리</span></button>
       </nav>
       <div class="sidebar-footer">
         <button class="button ghost" type="button" id="reloadButton" aria-label="새로고침"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg><span class="nav-label">새로고침</span></button>
@@ -2010,7 +2703,7 @@
     <section class="quote-editor-shell" role="dialog" aria-modal="true" aria-labelledby="quoteEditorTitle">
       <header class="quote-editor-head">
         <div>
-          <h2 class="quote-editor-title" id="quoteEditorTitle">예약요청 견적서 작성</h2>
+          <h2 class="quote-editor-title" id="quoteEditorTitle">견적서 작성</h2>
           <div class="quote-editor-subtitle">내용을 수정하면 우측 고객용 견적 페이지에 바로 반영됩니다.</div>
         </div>
         <button class="quote-editor-close" type="button" id="quoteEditorClose" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
@@ -2018,55 +2711,121 @@
       <div class="quote-editor-body">
         <form class="quote-editor-form" id="quoteEditorForm">
           <section class="quote-editor-section">
-            <h3 class="quote-editor-section-title">신청 및 상품 정보</h3>
+            <h3 class="quote-editor-section-title">고객정보</h3>
             <div class="quote-editor-grid">
-              <div class="quote-editor-field"><label for="quoteApplicantName">신청자</label><input id="quoteApplicantName" data-quote-field="applicantName" autocomplete="off"></div>
+              <div class="quote-editor-field"><label for="quoteApplicantName">고객명</label><input id="quoteApplicantName" data-quote-field="applicantName" autocomplete="off"></div>
               <div class="quote-editor-field"><label for="quoteApplicantPhone">연락처</label><input id="quoteApplicantPhone" data-quote-field="applicantPhone" inputmode="tel" autocomplete="off"></div>
-              <div class="quote-editor-field full"><label for="quoteProductName">상품명</label><textarea id="quoteProductName" data-quote-field="productName"></textarea></div>
-              <div class="quote-editor-field full"><label for="quoteProductImageUrl">대표 이미지 URL</label><input id="quoteProductImageUrl" data-quote-field="productImageUrl" inputmode="url"></div>
+              <div class="quote-editor-field"><label for="quotePeople">신청 인원</label><input id="quotePeople" data-quote-field="people" type="number" min="1" max="4" inputmode="numeric"></div>
+              <div class="quote-editor-field"><label for="quoteRoomType">숙소 타입</label><select id="quoteRoomType" data-quote-field="roomType"><option value="2인1실">2인 1실</option><option value="1인1실">1인 1실</option><option value="별도 협의">별도 협의</option></select></div>
             </div>
           </section>
           <section class="quote-editor-section">
-            <h3 class="quote-editor-section-title">일정 및 이용 조건</h3>
+            <h3 class="quote-editor-section-title">상품정보</h3>
             <div class="quote-editor-grid">
+              <div class="quote-editor-field full"><label for="quoteProductName">상품명</label><textarea id="quoteProductName" data-quote-field="productName"></textarea></div>
               <div class="quote-editor-field"><label for="quoteCountry">국가</label><input id="quoteCountry" data-quote-field="country"></div>
               <div class="quote-editor-field"><label for="quoteRegion">지역</label><input id="quoteRegion" data-quote-field="region"></div>
               <div class="quote-editor-field"><label for="quoteDepartureDate">출발일</label><input id="quoteDepartureDate" data-quote-field="departureDate" type="date"></div>
               <div class="quote-editor-field"><label for="quoteReturnDate">도착일</label><input id="quoteReturnDate" data-quote-field="returnDate" type="date"></div>
-              <div class="quote-editor-field"><label for="quoteAirline">항공</label><input id="quoteAirline" data-quote-field="airline"></div>
-              <div class="quote-editor-field"><label for="quoteRoomType">숙소 타입</label><select id="quoteRoomType" data-quote-field="roomType"><option value="2인1실">2인 1실</option><option value="1인1실">1인 1실</option><option value="별도 협의">별도 협의</option></select></div>
-              <div class="quote-editor-field"><label for="quotePeople">신청 인원</label><input id="quotePeople" data-quote-field="people" type="number" min="1" max="4" inputmode="numeric"></div>
-              <div class="quote-editor-field"><label for="quoteApplicationType">신청 유형</label><select id="quoteApplicationType" data-quote-field="applicationType"><option value="새모임 생성">새모임 생성</option><option value="참여신청">참여신청</option></select></div>
+              <div class="quote-editor-field full"><label for="quoteAirline">항공사명</label><input id="quoteAirline" data-quote-field="airline" placeholder="항공사명을 입력해 주세요"></div>
+              <div class="quote-editor-flight-details" id="quoteFlightDetailFields" hidden>
+                <div class="quote-editor-flight-row">
+                  <strong class="quote-editor-flight-row-title">출발편</strong>
+                  <label class="quote-editor-flight-input"><span>출발편명</span><input data-quote-field="outboundFlightName" autocomplete="off"></label>
+                  <label class="quote-editor-flight-input"><span>출발시간</span><input data-quote-field="outboundDepartureTime" type="time"></label>
+                  <label class="quote-editor-flight-input"><span>도착시간</span><input data-quote-field="outboundArrivalTime" type="time"></label>
+                </div>
+                <div class="quote-editor-flight-row">
+                  <strong class="quote-editor-flight-row-title">귀국편</strong>
+                  <label class="quote-editor-flight-input"><span>도착편명</span><input data-quote-field="inboundFlightName" autocomplete="off"></label>
+                  <label class="quote-editor-flight-input"><span>출발시간</span><input data-quote-field="inboundDepartureTime" type="time"></label>
+                  <label class="quote-editor-flight-input"><span>도착시간</span><input data-quote-field="inboundArrivalTime" type="time"></label>
+                </div>
+              </div>
+              <div class="quote-editor-field"><label for="quoteDepartureAirport">출발공항</label><input id="quoteDepartureAirport" data-quote-field="departureAirport"></div>
+              <div class="quote-editor-field"><label for="quoteArrivalAirport">도착공항</label><input id="quoteArrivalAirport" data-quote-field="arrivalAirport"></div>
             </div>
           </section>
           <section class="quote-editor-section">
-            <h3 class="quote-editor-section-title">견적 금액</h3>
+            <h3 class="quote-editor-section-title">상품가</h3>
             <div class="quote-editor-grid">
-              <div class="quote-editor-field"><label for="quoteUnitPrice">1인 상품가</label><input id="quoteUnitPrice" data-quote-field="unitPrice" type="number" min="0" step="1000" inputmode="numeric"></div>
-              <div class="quote-editor-field"><label for="quoteSingleRoomSurcharge">1인 1실 추가요금</label><input id="quoteSingleRoomSurcharge" data-quote-field="singleRoomSurcharge" type="number" min="0" step="1000" inputmode="numeric"></div>
-              <div class="quote-editor-field"><label for="quoteDepositPerPerson">1인 예약금</label><input id="quoteDepositPerPerson" data-quote-field="depositPerPerson" type="number" min="0" step="1000" inputmode="numeric"></div>
-              <div class="quote-editor-field"><label for="quoteAccountText">입금 안내</label><input id="quoteAccountText" data-quote-field="accountText"></div>
+              <div class="quote-editor-field"><label for="quoteUnitPrice">상품가 1인</label><input id="quoteUnitPrice" data-quote-field="unitPrice" data-quote-amount type="text" inputmode="numeric" autocomplete="off"></div>
+              <div class="quote-editor-field"><label for="quoteSingleRoomSurcharge">싱글차지 1인 1박</label><input id="quoteSingleRoomSurcharge" data-quote-field="singleRoomSurcharge" data-quote-amount type="text" inputmode="numeric" autocomplete="off"></div>
+              <div class="quote-editor-field"><label for="quoteDepositPerPerson">예약금 1인</label><input id="quoteDepositPerPerson" data-quote-field="depositPerPerson" data-quote-amount type="text" inputmode="numeric" autocomplete="off"></div>
+              <div class="quote-editor-additional-amounts">
+                <div class="quote-editor-additional-head">
+                  <strong>추가금액</strong>
+                  <div class="quote-editor-additional-actions">
+                    <button class="quote-editor-additional-add" type="button" data-additional-amount-action="add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>항목 추가</button>
+                    <button class="quote-editor-additional-add" type="button" data-additional-amount-action="add-airfare" id="quoteAirfareAddButton" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>항공료 추가</button>
+                  </div>
+                </div>
+                <div class="quote-editor-additional-list" id="quoteAdditionalAmountEditor"></div>
+              </div>
             </div>
           </section>
           <section class="quote-editor-section">
-            <h3 class="quote-editor-section-title">포함·불포함 및 안내</h3>
+            <h3 class="quote-editor-section-title">실제 상품 상세 정보</h3>
+            <div class="quote-editor-source-state" id="quoteProductSourceState">상품 상세 정보를 확인하기 전입니다.</div>
             <div class="quote-editor-grid">
-              <div class="quote-editor-field full"><label for="quoteIncludedItems">포함 사항 · 한 줄에 한 항목</label><textarea id="quoteIncludedItems" data-quote-field="includedItems"></textarea></div>
-              <div class="quote-editor-field full"><label for="quoteExcludedItems">불포함 사항 · 한 줄에 한 항목</label><textarea id="quoteExcludedItems" data-quote-field="excludedItems"></textarea></div>
-              <div class="quote-editor-field full"><label for="quoteSpecialNotes">견적 안내문</label><textarea id="quoteSpecialNotes" data-quote-field="specialNotes"></textarea></div>
+              <div class="quote-editor-field full"><label for="quoteFlightScheduleItems">항공 일정 · 한 줄에 한 항목</label><textarea id="quoteFlightScheduleItems" data-quote-field="flightScheduleItems"></textarea></div>
+              <div class="quote-editor-field full quote-editor-itinerary-field">
+                <h3 class="quote-editor-section-title">일정표</h3>
+                <div class="quote-editor-itinerary-toolbar">
+                  <button class="quote-editor-itinerary-add" type="button" data-itinerary-action="add-day">일차 추가</button>
+                </div>
+                <div class="quote-editor-itinerary-list" id="quoteItineraryEditor"></div>
+                <textarea id="quoteItineraryItems" data-quote-field="itineraryItems" hidden></textarea>
+              </div>
+              <div class="quote-editor-field full"><h3 class="quote-editor-section-title">포함 사항</h3><textarea id="quoteIncludedItems" data-quote-field="includedItems" aria-label="포함 사항"></textarea></div>
+              <div class="quote-editor-field full"><h3 class="quote-editor-section-title">불포함 사항</h3><textarea id="quoteExcludedItems" data-quote-field="excludedItems" aria-label="불포함 사항"></textarea></div>
+              <div class="quote-editor-field full"><h3 class="quote-editor-section-title">상품 참고사항</h3><textarea id="quoteProductNotes" data-quote-field="productNotes" aria-label="상품 참고사항"></textarea></div>
+              <div class="quote-editor-field full"><h3 class="quote-editor-section-title">견적 유의사항</h3><textarea id="quoteSpecialNotes" data-quote-field="specialNotes" aria-label="견적 유의사항"></textarea></div>
             </div>
           </section>
         </form>
         <div class="quote-editor-preview-wrap">
-          <div class="quote-editor-preview-label">고객용 견적 페이지 미리보기</div>
-          <iframe class="quote-editor-preview" id="quoteEditorPreview" title="견적서 미리보기"></iframe>
+          <div class="quote-editor-preview-toolbar">
+            <div class="quote-editor-preview-label">고객용 견적 페이지 미리보기</div>
+            <div class="quote-editor-device-toggle" role="group" aria-label="미리보기 화면 선택">
+              <button class="quote-editor-device-button active" type="button" data-quote-preview-device="pc" aria-pressed="true">PC용</button>
+              <button class="quote-editor-device-button" type="button" data-quote-preview-device="mobile" aria-pressed="false">MO용</button>
+            </div>
+          </div>
+          <div class="quote-editor-preview-stage" id="quoteEditorPreviewStage">
+            <iframe class="quote-editor-preview" id="quoteEditorPreview" title="견적서 미리보기"></iframe>
+          </div>
         </div>
       </div>
       <footer class="quote-editor-foot">
-        <div class="quote-editor-foot-note">확정하면 고객용 웹 견적 페이지와 PDF가 동시에 생성됩니다.</div>
+        <div class="quote-editor-foot-note">확정하면 고객용 웹 견적 페이지만 저장됩니다. PDF는 견적보기에서 다운로드할 때 생성됩니다.</div>
         <div class="quote-editor-foot-actions">
           <button class="quote-editor-button" type="button" id="quoteEditorCancel">취소</button>
-          <button class="quote-editor-button primary" type="button" id="quoteEditorConfirm">확정 및 PDF 생성</button>
+          <button class="quote-editor-button primary" type="button" id="quoteEditorConfirm">확정</button>
+        </div>
+      </footer>
+    </section>
+  </div>
+
+  <div class="roster-backdrop" id="rosterBackdrop" aria-hidden="true">
+    <section class="roster-shell" role="dialog" aria-modal="true" aria-labelledby="rosterTitle">
+      <header class="roster-head">
+        <div>
+          <h2 class="roster-title" id="rosterTitle">참여자 명단 추가</h2>
+          <div class="roster-subtitle" id="rosterSubtitle"></div>
+        </div>
+        <button class="roster-close" type="button" id="rosterClose" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </header>
+      <div class="roster-body">
+        <div class="roster-erp-state" id="rosterErpState">ERP 연결을 확인하는 중입니다.</div>
+        <div class="roster-list" id="rosterList"></div>
+        <button class="roster-add-row-button" type="button" id="rosterAddRow">+ 참여자 추가</button>
+      </div>
+      <footer class="roster-foot">
+        <div class="roster-subtitle">이름과 연락처를 기준으로 ERP 및 회원 프로필을 확인합니다.</div>
+        <div class="roster-foot-actions">
+          <button class="roster-button" type="button" id="rosterCancel">취소</button>
+          <button class="roster-button primary" type="button" id="rosterSave">명단 등록</button>
         </div>
       </footer>
     </section>
@@ -2093,8 +2852,9 @@
   <script src="web/golfjoin_local_data.js"></script>
   <script>
     const SHEET_API_ENDPOINT = "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api";
+    const QUOTE_API_ENDPOINT = String(window.GOLFJOIN_QUOTE_API_ENDPOINT || "https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-quote-api").trim();
+    const QUOTE_HERO_IMAGE_URL = "https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/bg_invoice.webp";
     const ADMIN_AUTH_SESSION_KEY = "golfjoinAdminAuth";
-    const RECOMMENDATION_REGISTER_RELOAD_KEY = "golfjoinRecommendationRegisterReload";
     const $ = (selector) => document.querySelector(selector);
     let products = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items) ? window.SECRET_GOLF_JOIN_PRODUCTS.items : [];
     let productDataInfo = {
@@ -2113,6 +2873,12 @@
     let quoteEditorContext = null;
     let quoteEditorDraft = null;
     let quoteEditorPreviewTimer = null;
+    let quoteEditorDraggedPoint = null;
+    let rosterEditorSchedule = null;
+    let rosterEditorItems = [];
+    let rosterEditorMode = "create";
+    let rosterEditorBatchId = "";
+    const rosterLookupTimers = new Map();
     const state = {
       rawRows: [],
       schedules: [],
@@ -2128,6 +2894,21 @@
 
     function asText(value) {
       return value === undefined || value === null ? "" : String(value).trim();
+    }
+
+    function normalizeQuoteAccessUrl(value = "") {
+      const raw = asText(value);
+      if (!raw) return "";
+      try {
+        const url = new URL(raw, window.location.href);
+        if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+        if (url.hostname.toLowerCase().endsWith(".cloudfunctions.net") && (!url.pathname || url.pathname === "/")) {
+          url.pathname = new URL(SHEET_API_ENDPOINT).pathname;
+        }
+        return url.toString();
+      } catch (error) {
+        return raw;
+      }
     }
 
     function escapeHtml(value) {
@@ -2634,7 +3415,7 @@
       const text = cleanSecretTourDetailText(value);
       const match = /(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})\s*\(([^)]+)\)/.exec(text);
       if (!match) return text;
-      return `${Number(match[2])}/${String(Number(match[3])).padStart(2, "0")}(${match[4].trim()})`;
+      return `${match[1].slice(-2)}.${String(Number(match[2])).padStart(2, "0")}.${String(Number(match[3])).padStart(2, "0")}(${match[4].trim()})`;
     }
 
     function parseSecretTourSchedule(doc) {
@@ -2889,6 +3670,21 @@
       return digits;
     }
 
+    function normalizeErpProductId(value = "", eventSeq = "") {
+      const text = asText(value);
+      if (!text) return "";
+      const normalizedEventSeq = asText(eventSeq);
+      if (text.startsWith("secret-tour-")) {
+        const withoutPrefix = text.slice("secret-tour-".length);
+        if (normalizedEventSeq && withoutPrefix.endsWith(`-${normalizedEventSeq}`)) {
+          return withoutPrefix.slice(0, -(normalizedEventSeq.length + 1));
+        }
+        const numericMatch = withoutPrefix.match(/^(\d+)(?:-\d+)?$/);
+        if (numericMatch) return numericMatch[1];
+      }
+      return text;
+    }
+
     function formatPhone(value) {
       const digits = normalizePhone(value);
       if (/^010\d{8}$/.test(digits)) return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
@@ -3075,7 +3871,7 @@
       if (!response.ok) throw new Error("아이디 또는 비밀번호가 올바르지 않습니다.");
       const data = await response.json();
       if (!data.token) throw new Error("관리자 세션 토큰을 발급받지 못했습니다.");
-      setAdminAuth(data.token, Date.now() + Number(data.expiresIn || 3600) * 1000);
+      setAdminAuth(data.token, Date.now() + Number(data.expiresIn || 28800) * 1000);
     }
 
     async function fetchSheet(sheet, params = {}) {
@@ -3153,6 +3949,37 @@
       return { builderRows, joinRows, profileRows, displayRuleRows };
     }
 
+    async function postAdminAction(action, payload = {}) {
+      const auth = getAdminAuth();
+      if (!auth.token) throw new Error("관리자 로그인이 필요합니다.");
+      if (auth.expiresAt && Number(auth.expiresAt) <= Date.now()) {
+        clearAdminAuth();
+        throw new Error("로그인이 만료되었습니다. 다시 로그인해 주세요.");
+      }
+      const url = new URL(SHEET_API_ENDPOINT);
+      url.searchParams.set("action", action);
+      const response = await fetch(url.toString(), {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Golfjoin-Admin-Token": auth.token
+        },
+        body: JSON.stringify(payload)
+      });
+      if (response.status === 401 || response.status === 403) clearAdminAuth();
+      const text = await response.text();
+      let data = {};
+      try { data = JSON.parse(text || "{}"); } catch (error) {}
+      if (!response.ok) {
+        const message = data.message === "join_schedule_full"
+          ? `잔여 정원은 ${Number(data.remainingSeats || data.details?.remainingSeats || 0)}명입니다.`
+          : (data.message || data.error || text || `요청 실패: ${response.status}`);
+        throw new Error(message);
+      }
+      return data;
+    }
+
     function getScheduleKey(row = {}, options = {}) {
       if (options.preferTarget) {
         return asText(row.targetScheduleId) || asText(row.targetApplicationId) || asText(row.scheduleId) || asText(row.applicationId);
@@ -3161,6 +3988,7 @@
     }
 
     function getParticipantRole(row = {}) {
+      if (asText(row.registrationSource).toLowerCase() === "admin") return "admin";
       const source = [
         row.source,
         row.sheet,
@@ -3176,7 +4004,10 @@
     }
 
     function getParticipantRoleLabel(row = {}) {
-      return getParticipantRole(row) === "creator" ? "생성자" : "참여자";
+      const role = getParticipantRole(row);
+      if (role === "creator") return "생성자";
+      if (role === "admin") return "관리자등록";
+      return "참여자";
     }
 
     function getTitle(row = {}) {
@@ -3470,7 +4301,7 @@
       );
       if (requestType) return requestType;
       const packType = schedule.packType || getPackType(row, schedule.product || findProduct(row));
-      return packType === "air" ? "대행요청" : "";
+      return packType === "golf" ? "대행요청" : "";
     }
 
     function getParticipantSingleRoomSurcharge(row = {}) {
@@ -3598,6 +4429,11 @@
       return asText(rule.section || "available_schedule") === "available_schedule" && isDisplayRuleVisible(rule);
     }
 
+    function isManageableRecommendationRule(rule = {}) {
+      const status = asText(rule.status).toLowerCase();
+      return asText(rule.section || "available_schedule") === "available_schedule" && status !== "deleted";
+    }
+
     function getRecommendationRuleCapacity(rule = {}) {
       const value = Number(rule.capacity || rule.maxPeople || rule.recruitmentCapacity || 0);
       return Number.isFinite(value) && value > 0 ? Math.round(value) : 4;
@@ -3619,8 +4455,8 @@
         applicationId: getRecommendationDisplayRuleId(rule),
         scheduleId: getRecommendationScheduleKey(rule),
         source: "recommended_schedule",
-        applicationStatus: "open",
-        displayStatus: rule.isVisible === false ? "hidden" : "visible",
+        applicationStatus: rule.status || "open",
+        displayStatus: isActiveRecommendationRule(rule) ? "visible" : "hidden",
         approvalStatus: "approved",
         productName: rule.overrideTitle || product.title || "",
         title: rule.overrideTitle || product.title || "",
@@ -3630,6 +4466,7 @@
         eventSeq: rule.erpEventSeq || product.eventSeq || "",
         country: getRecommendationRuleCountry(rule, product),
         region: getRecommendationRuleRegion(rule, product),
+        airline: rule.airline || product.airline || product.airlineName || product.air2Nm || product.air2CdNm || "",
         departureAirport: rule.departureAirport || product.departureAirport || product.airport || "",
         arrivalAirport: rule.arrivalAirport || product.arrivalAirport || product.region || "",
         departureDate: rule.displayStartAt || product.departureDate || "",
@@ -3637,8 +4474,8 @@
         tripSummary: period,
         dayNightCnt: period,
         duration: period,
-        productPrice: product.price || "",
-        price: product.price || "",
+        productPrice: firstText(rule.productPrice, rule.price, product.price),
+        price: firstText(rule.productPrice, rule.price, product.price),
         packType: rule.packType || product.packType || "",
         packTypeName: rule.packTypeName || product.packTypeName || "",
         maxPeople: getRecommendationRuleCapacity(rule),
@@ -3653,28 +4490,43 @@
     }
 
     function findMatchingScheduleKeyForJoinRow(map, row = {}) {
-      const targetKey = getScheduleKey(row, { preferTarget: true });
-      if (targetKey && map.has(targetKey)) return targetKey;
-      const productId = firstText(
-        getNestedValue(row, "product.erpProductId"),
-        getNestedValue(row, "product.goodSeq"),
-        row.erpProductId,
-        row.goodSeq,
-        row.productId
-      );
+      const targetIds = [row.targetJoinId, row.targetScheduleId, row.targetApplicationId]
+        .map(asText)
+        .filter(Boolean);
+      for (const [key, schedule] of map.entries()) {
+        const scheduleIds = [
+          key,
+          schedule.row?.scheduleId,
+          schedule.row?.applicationId,
+          schedule.row?.sourceApplicationId
+        ].map(asText).filter(Boolean);
+        if (targetIds.some((targetId) => scheduleIds.includes(targetId))) return key;
+      }
+      if (targetIds.length) return "";
+      const targetProductKeyParts = asText(row.targetProductKey).split(":");
       const eventSeq = firstText(
         getNestedValue(row, "product.erpEventSeq"),
         getNestedValue(row, "product.eventSeq"),
         row.erpEventSeq,
-        row.eventSeq
+        row.eventSeq,
+        targetProductKeyParts[2]
       );
+      const productId = normalizeErpProductId(firstText(
+        getNestedValue(row, "product.erpProductId"),
+        getNestedValue(row, "product.goodSeq"),
+        row.erpProductId,
+        row.goodSeq,
+        row.productId,
+        targetProductKeyParts[1]
+      ), eventSeq);
       if (!productId || !eventSeq) return "";
+      const matches = [];
       for (const [key, schedule] of map.entries()) {
-        const scheduleProductId = firstText(schedule.row?.erpProductId, schedule.row?.goodSeq, schedule.product?.goodSeq, schedule.product?.erpProductId);
         const scheduleEventSeq = firstText(schedule.row?.erpEventSeq, schedule.row?.eventSeq, schedule.product?.eventSeq, schedule.product?.erpEventSeq);
-        if (scheduleProductId === productId && scheduleEventSeq === eventSeq) return key;
+        const scheduleProductId = normalizeErpProductId(firstText(schedule.row?.erpProductId, schedule.row?.goodSeq, schedule.product?.goodSeq, schedule.product?.erpProductId), scheduleEventSeq);
+        if (scheduleProductId === productId && scheduleEventSeq === eventSeq) matches.push(key);
       }
-      return "";
+      return matches.length === 1 ? matches[0] : "";
     }
 
     function buildSchedules(builderRows, joinRows = [], displayRuleRows = []) {
@@ -3693,7 +4545,7 @@
         }
         map.get(key).participants.push(row);
       });
-      displayRuleRows.filter(isActiveRecommendationRule).forEach((rule) => {
+      displayRuleRows.filter(isManageableRecommendationRule).forEach((rule) => {
         const key = getRecommendationScheduleKey(rule);
         if (map.has(key)) return;
         const row = buildRecommendationScheduleRow(rule);
@@ -4182,7 +5034,8 @@
     }
 
     function isDisplayRuleVisible(rule = {}) {
-      return !["false", "0", "hidden", "deleted"].includes(asText(rule.isVisible || "true").toLowerCase());
+      const value = rule.isVisible === undefined || rule.isVisible === "" ? "true" : rule.isVisible;
+      return !["false", "0", "hidden", "deleted"].includes(asText(value).toLowerCase());
     }
 
     function getActiveRecommendationRules() {
@@ -4696,11 +5549,31 @@
       return slots.slice(0, 4);
     }
 
+    function getScheduleGroupGenderCounts(schedule = {}) {
+      return getParticipantDisplayRows(schedule.participants || []).reduce((counts, item) => {
+        getParticipantGenderSlots(item.row, item.companions).forEach((gender) => {
+          if (gender === "male") counts.male += 1;
+          if (gender === "female") counts.female += 1;
+        });
+        return counts;
+      }, { male: 0, female: 0 });
+    }
+
     function renderSchedulePeopleIcons(schedule = {}) {
       const capacity = getScheduleCapacity(schedule);
-      if (capacity > 4) {
+      const isGroupTravel = capacity > 4 || isMonthlyRecommendationRule(schedule.row || {});
+      if (isGroupTravel) {
         const people = getSchedulePaymentCounts(schedule).total;
-        return `<span class="schedule-people-text" aria-label="${escapeHtml(`${people}명`)}" title="${escapeHtml(`${people}명`)}">${escapeHtml(`${people}명`)}</span>`;
+        const genderCounts = getScheduleGroupGenderCounts(schedule);
+        const summaryLabel = `${people}명, 남성 ${genderCounts.male}명, 여성 ${genderCounts.female}명`;
+        return `
+          <span class="schedule-group-people-summary" aria-label="${escapeHtml(summaryLabel)}" title="${escapeHtml(summaryLabel)}">
+            <span class="schedule-people-text">${escapeHtml(`${people}명`)}</span>
+            <span class="schedule-group-gender-count">남성 ${escapeHtml(`${genderCounts.male}명`)}</span>
+            <i class="schedule-group-gender-dot" aria-hidden="true"></i>
+            <span class="schedule-group-gender-count">여성 ${escapeHtml(`${genderCounts.female}명`)}</span>
+          </span>
+        `;
       }
       const total = 4;
       const genderSlots = getSchedulePeopleGenderSlots(schedule);
@@ -5062,7 +5935,7 @@
       return "상태 변경";
     }
 
-    function openConfirmDialog({ title = "작업 확인", message = "", html = "", okText = "확인", cancelText = "취소", dialogClass = "" } = {}) {
+    function openConfirmDialog({ title = "작업 확인", message = "", html = "", okText = "확인", cancelText = "취소", dialogClass = "", showCancel = true } = {}) {
       const backdrop = $("#confirmBackdrop");
       if (!backdrop) return Promise.resolve(window.confirm(message || title));
       const dialog = backdrop.querySelector(".confirm-dialog");
@@ -5072,6 +5945,7 @@
       else $("#confirmMessage").textContent = message;
       $("#confirmOkButton").textContent = okText;
       $("#confirmCancelButton").textContent = cancelText;
+      $("#confirmCancelButton").hidden = !showCancel;
       backdrop.classList.add("open");
       backdrop.setAttribute("aria-hidden", "false");
       return new Promise((resolve) => {
@@ -5079,6 +5953,7 @@
           backdrop.classList.remove("open");
           backdrop.setAttribute("aria-hidden", "true");
           if (dialog) dialog.className = "confirm-dialog";
+          $("#confirmCancelButton").hidden = false;
           $("#confirmOkButton").removeEventListener("click", onOk);
           $("#confirmCancelButton").removeEventListener("click", onCancel);
           backdrop.removeEventListener("click", onBackdrop);
@@ -5132,10 +6007,12 @@
       if (!fieldName) return;
       const fieldValue = button.dataset.statusValue || "";
       const actionLabel = getStatusActionLabel(fieldName, fieldValue);
+      const isRefundAction = fieldName === "refundStatus";
       const confirmed = await openConfirmDialog({
         title: actionLabel,
         message: `${getParticipantName(participant) || "참여자"}님의 상태를 '${actionLabel}' 처리할까요?`,
-        okText: actionLabel
+        okText: isRefundAction ? "예" : actionLabel,
+        cancelText: isRefundAction ? "아니오" : "취소"
       });
       if (!confirmed) return;
       const fields = {
@@ -5167,7 +6044,7 @@
             keyField: "applicationId",
             keyValue: applicationId,
             fields,
-            skipSummaryRefresh: true
+            skipSummaryRefresh: !Object.prototype.hasOwnProperty.call(fields, "refundStatus")
           })
         });
         if (!response.ok) throw new Error(`저장 실패: ${response.status}`);
@@ -5191,7 +6068,7 @@
     }
 
     function renderQuoteGenerateButton(row = {}) {
-      const quoteUrl = asText(row.quotePageUrl || row.quoteUrl);
+      const quoteUrl = normalizeQuoteAccessUrl(row.quotePageUrl || row.quoteUrl);
       const generated = Boolean(quoteUrl);
       if (!generated) {
         return '<button class="quote-generate-button" type="button" data-action="quote-editor">견적생성</button>';
@@ -5205,7 +6082,7 @@
     }
 
     function renderQuoteActionGroup(row = {}) {
-      const hasQuote = Boolean(asText(row.quotePageUrl || row.quoteUrl));
+      const hasQuote = Boolean(normalizeQuoteAccessUrl(row.quotePageUrl || row.quoteUrl));
       return `
         <div class="quote-action-group">
           ${renderQuoteGenerateButton(row)}
@@ -5224,8 +6101,241 @@
       return Number.isFinite(amount) && amount > 0 ? `${Math.round(amount).toLocaleString("ko-KR")}원` : fallback;
     }
 
+    function formatQuoteEditorAmountField(field) {
+      if (!field) return 0;
+      const cursor = Number.isInteger(field.selectionStart) ? field.selectionStart : String(field.value || "").length;
+      const digitsBeforeCursor = String(field.value || "").slice(0, cursor).replace(/\D/g, "").length;
+      const digits = String(field.value || "").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+      const amount = digits ? Number(digits) : 0;
+      const formatted = digits && Number.isFinite(amount) ? Math.round(amount).toLocaleString("ko-KR") : "";
+      field.value = formatted;
+      if (document.activeElement === field && typeof field.setSelectionRange === "function") {
+        let nextCursor = 0;
+        let digitCount = 0;
+        while (nextCursor < formatted.length && digitCount < digitsBeforeCursor) {
+          if (/\d/.test(formatted[nextCursor])) digitCount += 1;
+          nextCursor += 1;
+        }
+        field.setSelectionRange(nextCursor, nextCursor);
+      }
+      return Number.isFinite(amount) ? Math.round(amount) : 0;
+    }
+
+    function normalizeQuoteEditorAdditionalAmounts(value = [], options = {}) {
+      let source = value;
+      if (typeof source === "string") {
+        try {
+          source = JSON.parse(source);
+        } catch (error) {
+          source = [];
+        }
+      }
+      if (!Array.isArray(source)) return [];
+      const normalized = source.slice(0, 12).map((item) => ({
+        label: asText(item?.label || item?.title || item?.name),
+        amount: parseQuoteEditorAmount(item?.amount || item?.value)
+      }));
+      return options.preserveBlank ? normalized : normalized.filter((item) => item.label || item.amount);
+    }
+
+    function isQuoteEditorAirfareItem(item = {}) {
+      return asText(item?.label).replace(/\s+/g, "") === "항공료";
+    }
+
+    const QUOTE_EDITOR_FLIGHT_DETAIL_KEYS = [
+      "outboundFlightName",
+      "outboundDepartureTime",
+      "outboundArrivalTime",
+      "inboundFlightName",
+      "inboundDepartureTime",
+      "inboundArrivalTime"
+    ];
+
+    function normalizeQuoteEditorFlightDetails(value = {}) {
+      let source = value;
+      if (typeof source === "string") {
+        try {
+          source = JSON.parse(source);
+        } catch (error) {
+          source = {};
+        }
+      }
+      if (!source || typeof source !== "object" || Array.isArray(source)) source = {};
+      return QUOTE_EDITOR_FLIGHT_DETAIL_KEYS.reduce((details, key) => {
+        details[key] = asText(source[key]);
+        return details;
+      }, {});
+    }
+
+    function inferQuoteEditorFlightDetails(value = []) {
+      let source = value;
+      if (typeof source === "string") {
+        try {
+          const parsed = JSON.parse(source);
+          source = Array.isArray(parsed) ? parsed : source;
+        } catch (error) {
+          source = source.split(/\r?\n/);
+        }
+      }
+      const lines = (Array.isArray(source) ? source : []).map((item) => {
+        if (item && typeof item === "object") {
+          return [item.label, item.airline, item.departureTime, item.arrivalTime, item.flightName].map(asText).filter(Boolean).join(" ");
+        }
+        return asText(item);
+      }).filter(Boolean).slice(0, 2);
+      const parseLine = (line = "") => {
+        const times = line.match(/(?:[01]?\d|2[0-3]):[0-5]\d/g) || [];
+        const codes = line.toUpperCase().match(/\b[A-Z0-9]{2,3}\s?\d{3,4}\b/g) || [];
+        return {
+          flightName: asText(codes.at(-1)).replace(/\s+/g, ""),
+          departureTime: asText(times[0]),
+          arrivalTime: asText(times[1])
+        };
+      };
+      const outbound = parseLine(lines[0]);
+      const inbound = parseLine(lines[1]);
+      return {
+        outboundFlightName: outbound.flightName,
+        outboundDepartureTime: outbound.departureTime,
+        outboundArrivalTime: outbound.arrivalTime,
+        inboundFlightName: inbound.flightName,
+        inboundDepartureTime: inbound.departureTime,
+        inboundArrivalTime: inbound.arrivalTime
+      };
+    }
+
+    function hasQuoteEditorActualAirline(value = "") {
+      const normalized = asText(value).replace(/\s+/g, "");
+      return Boolean(normalized) && ![
+        "-", "담당자확인", "개별항공", "항공불포함", "불포함", "대행요청", "직접예약"
+      ].includes(normalized);
+    }
+
+    function getQuoteEditorStructuredFlightRows(draft = {}) {
+      const details = normalizeQuoteEditorFlightDetails(draft);
+      return [
+        {
+          label: "가는편",
+          dateText: formatQuoteEditorFlightDate(draft.departureDate),
+          airline: asText(draft.airline),
+          flightName: details.outboundFlightName,
+          departureTime: details.outboundDepartureTime,
+          arrivalTime: details.outboundArrivalTime,
+          origin: asText(draft.departureAirport) || "출발공항",
+          destination: asText(draft.arrivalAirport) || "도착공항"
+        },
+        {
+          label: "오는편",
+          dateText: formatQuoteEditorFlightDate(draft.returnDate),
+          airline: asText(draft.airline),
+          flightName: details.inboundFlightName,
+          departureTime: details.inboundDepartureTime,
+          arrivalTime: details.inboundArrivalTime,
+          origin: asText(draft.arrivalAirport) || "출발공항",
+          destination: asText(draft.departureAirport) || "도착공항"
+        }
+      ];
+    }
+
+    function formatQuoteEditorFlightDate(value = "") {
+      const normalized = normalizeQuoteEditorDate(value);
+      if (!normalized) return "날짜 확인 필요";
+      const [year, month, day] = normalized.split("-").map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
+      const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+      return `${month}월 ${day}일(${weekdays[date.getUTCDay()]})`;
+    }
+
+    function renderQuoteEditorAirlineIcon() {
+      return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.8 19 9 15.5V19l-2 1v-5.5L2 12v-2l5-2.5V4l2 1v3.5L17.8 5c.7-.3 1.5.2 1.5 1v12c0 .8-.8 1.3-1.5 1Z"/></svg>';
+    }
+
+    function shouldShowQuoteEditorFlightDetails(draft = {}) {
+      const flightMeta = getQuoteEditorFlightMeta(draft);
+      if (!flightMeta.isFlightExcluded) return true;
+      return flightMeta.requestType === "대행요청" && hasQuoteEditorActualAirline(draft.airline);
+    }
+
+    function updateQuoteEditorFlightDetailState() {
+      const container = document.getElementById("quoteFlightDetailFields");
+      if (!container || !quoteEditorDraft) return;
+      container.hidden = !shouldShowQuoteEditorFlightDetails(quoteEditorDraft);
+    }
+
+    function updateQuoteEditorAirfareButtonState() {
+      const button = document.getElementById("quoteAirfareAddButton");
+      if (!button || !quoteEditorDraft) return;
+      const flightMeta = getQuoteEditorFlightMeta(quoteEditorDraft);
+      const canAddAirfare = flightMeta.isFlightExcluded && flightMeta.requestType === "대행요청";
+      const hasAirfareRow = normalizeQuoteEditorAdditionalAmounts(quoteEditorDraft.additionalAmounts).some(isQuoteEditorAirfareItem);
+      button.hidden = !canAddAirfare;
+      button.disabled = hasAirfareRow;
+    }
+
+    function renderQuoteEditorAdditionalAmounts() {
+      const editor = document.getElementById("quoteAdditionalAmountEditor");
+      if (!editor || !quoteEditorDraft) return;
+      const items = normalizeQuoteEditorAdditionalAmounts(quoteEditorDraft.additionalAmounts, { preserveBlank: true });
+      editor.innerHTML = items.map((item, index) => {
+        const isAirfare = isQuoteEditorAirfareItem(item);
+        return `
+        <div class="quote-editor-additional-row${isAirfare ? " is-airfare" : ""}" data-additional-amount-index="${index}">
+          <label class="quote-editor-additional-field"><span>항목명</span><input type="text" data-additional-amount-field="label" value="${escapeHtml(item.label)}" placeholder="예: 주말 라운드 추가금"${isAirfare ? " readonly" : ""}></label>
+          <label class="quote-editor-additional-field"><span>금액</span><input type="text" data-additional-amount-field="amount" value="${item.amount ? item.amount.toLocaleString("ko-KR") : ""}" inputmode="numeric" autocomplete="off" placeholder="0"></label>
+          <button class="quote-editor-additional-remove" type="button" data-additional-amount-action="remove" aria-label="추가금액 항목 삭제" title="삭제"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+        </div>
+      `;
+      }).join("");
+      updateQuoteEditorAirfareButtonState();
+    }
+
+    function readQuoteEditorAdditionalAmounts() {
+      const editor = document.getElementById("quoteAdditionalAmountEditor");
+      if (!editor) return normalizeQuoteEditorAdditionalAmounts(quoteEditorDraft?.additionalAmounts);
+      return [...editor.querySelectorAll("[data-additional-amount-index]")].slice(0, 12).map((row) => {
+        const amountField = row.querySelector('[data-additional-amount-field="amount"]');
+        return {
+          label: asText(row.querySelector('[data-additional-amount-field="label"]')?.value),
+          amount: formatQuoteEditorAmountField(amountField)
+        };
+      }).filter((item) => item.label || item.amount);
+    }
+
+    function syncQuoteEditorAdditionalAmountsFromForm() {
+      if (!quoteEditorDraft) return;
+      quoteEditorDraft.additionalAmounts = readQuoteEditorAdditionalAmounts();
+    }
+
+    function handleQuoteEditorAdditionalAmountAction(event) {
+      const button = event.target.closest("[data-additional-amount-action]");
+      if (!button || !quoteEditorDraft) return false;
+      event.preventDefault();
+      syncQuoteEditorAdditionalAmountsFromForm();
+      const items = normalizeQuoteEditorAdditionalAmounts(quoteEditorDraft.additionalAmounts);
+      if (button.dataset.additionalAmountAction === "add" && items.length < 12) {
+        items.push({ label: "", amount: 0 });
+      } else if (button.dataset.additionalAmountAction === "add-airfare") {
+        const existingAirfareIndex = items.findIndex(isQuoteEditorAirfareItem);
+        if (existingAirfareIndex < 0 && items.length < 12) items.push({ label: "항공료", amount: 0 });
+      } else if (button.dataset.additionalAmountAction === "remove") {
+        const index = Number(button.closest("[data-additional-amount-index]")?.dataset.additionalAmountIndex);
+        if (Number.isInteger(index)) items.splice(index, 1);
+      }
+      quoteEditorDraft.additionalAmounts = items;
+      renderQuoteEditorAdditionalAmounts();
+      scheduleQuoteEditorPreview();
+      if (button.dataset.additionalAmountAction === "add") {
+        document.querySelector("#quoteAdditionalAmountEditor .quote-editor-additional-row:last-child [data-additional-amount-field=\"label\"]")?.focus();
+      } else if (button.dataset.additionalAmountAction === "add-airfare") {
+        document.querySelector("#quoteAdditionalAmountEditor .quote-editor-additional-row.is-airfare [data-additional-amount-field=\"amount\"]")?.focus();
+      }
+      return true;
+    }
+
     function normalizeQuoteEditorDate(value) {
-      return asText(value).match(/\d{4}-\d{2}-\d{2}/)?.[0] || "";
+      const match = asText(value).match(/(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
+      if (!match) return "";
+      return `${match[1]}-${String(Number(match[2])).padStart(2, "0")}-${String(Number(match[3])).padStart(2, "0")}`;
     }
 
     function getQuoteEditorContext(button) {
@@ -5243,66 +6353,522 @@
       const row = schedule.row || {};
       const product = schedule.product || {};
       const people = Math.max(1, Math.min(4, Number(participant.applicantPeople || participant.creatorPeople || participant.people || 1) || 1));
+      const packType = schedule.packType || getPackType(row, product);
+      const savedFlightDetails = normalizeQuoteEditorFlightDetails(participant.quoteFlightDetailsJson || row.quoteFlightDetailsJson);
+      const inferredFlightDetails = inferQuoteEditorFlightDetails(
+        participant.flightScheduleItems || row.flightScheduleItems || product.flightScheduleItems
+      );
+      const flightDetails = QUOTE_EDITOR_FLIGHT_DETAIL_KEYS.reduce((details, key) => {
+        details[key] = savedFlightDetails[key] || inferredFlightDetails[key];
+        return details;
+      }, {});
       return {
         applicantName: getParticipantName(participant) || participant.applicantName || participant.creatorName || "",
         applicantPhone: participant.applicantMobile || participant.memberMobile || participant.creatorPhone || participant.phone || "",
         applicationType: getParticipantSheetName(participant) === "new_schedule_applications" ? "새모임 생성" : "참여신청",
         productName: participant.productName || row.productName || product.productName || product.title || schedule.title || "",
-        productImageUrl: participant.imageUrl || participant.image || row.imageUrl || row.image || product.imageUrl || product.image || product.thumbnailUrl || product.thumbnail || "",
+        productImageUrl: QUOTE_HERO_IMAGE_URL,
         country: participant.country || row.country || product.country || "",
         region: participant.region || row.region || product.region || schedule.region || "",
         departureDate: normalizeQuoteEditorDate(participant.departureDate || participant.departureDateFrom || row.departureDate || row.departureDateFrom || product.departureDate),
-        returnDate: normalizeQuoteEditorDate(participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate),
+          returnDate: normalizeQuoteEditorDate(participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate),
+          tripSummary: extractTripSummaryPeriod(row, product) || formatTripNightsDays(
+            participant.departureDate || participant.departureDateFrom || row.departureDate || row.departureDateFrom || product.departureDate,
+            participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate
+          ),
         airline: participant.airline || row.airline || product.airline || product.airlineName || product.air2Nm || "담당자 확인",
+        packType,
+        flightRequestType: firstText(
+          getNestedValue(participant, "applicant.flightRequestType"),
+          participant.flightRequestType,
+          row.flightRequestType,
+          packType === "golf" ? "대행요청" : ""
+        ),
+        departureAirport: participant.departureAirport || row.departureAirport || product.departureAirport || product.depAirport || "",
+        arrivalAirport: participant.arrivalAirport || row.arrivalAirport || product.arrivalAirport || product.arrAirport || "",
         roomType: participant.applicantRoomType || participant.roomType || row.applicantRoomType || "2인1실",
         people,
         unitPrice: parseQuoteEditorAmount(participant.productPrice || participant.price || row.productPrice || row.price || product.productPrice || product.price),
         singleRoomSurcharge: parseQuoteEditorAmount(participant.singleRoomSurcharge || row.singleRoomSurcharge),
+        additionalAmounts: normalizeQuoteEditorAdditionalAmounts(participant.quoteAdditionalAmountsJson || row.quoteAdditionalAmountsJson),
+        ...flightDetails,
         depositPerPerson: 200000,
-        accountText: "담당자 확인 후 안내",
-        includedItems: "그린피 및 골프 일정\n일정표 기준 숙박\n일정표 기준 차량 및 미팅·샌딩",
-        excludedItems: "개인 경비 및 매너팁\n견적서에 별도 표기되지 않은 비용",
+          flightScheduleItems: "",
+          itineraryItems: "",
+          itinerarySchedule: [],
+          itinerarySourceText: "",
+        includedItems: "",
+        excludedItems: "",
+        productNotes: "",
         specialNotes: "본 견적서는 현재 신청 정보와 조회 가능한 상품 조건을 기준으로 작성되었습니다. 항공 좌석, 객실 가능 여부, 환율 및 현지 상황에 따라 담당자 확인 후 최종 금액이 변경될 수 있습니다."
       };
+    }
+
+    function formatQuoteEditorList(items = []) {
+      return [...new Set(parseList(items).map(asText).filter(Boolean))].join("\n");
+    }
+
+    function formatQuoteEditorItinerary(schedule = []) {
+      if (!Array.isArray(schedule)) return "";
+      return schedule.map((item, index) => {
+        const heading = [item?.day || `${index + 1}일차`, item?.dateText].map(asText).filter(Boolean).join(" ");
+        const points = Array.isArray(item?.points)
+          ? item.points.map((point) => {
+            if (point && typeof point === "object") {
+              return [point.title || point.main || point.name || point.text || point.content, point.description || point.subText || point.subtitle || point.detail]
+                .map(asText).filter(Boolean).join(" - ");
+            }
+            return asText(point);
+          }).filter(Boolean)
+          : parseList(item?.points);
+        const content = points.length ? points.join(" / ") : asText(item?.content || item?.rawText);
+        const extras = [
+          item?.hotel ? `숙소 ${asText(item.hotel)}` : "",
+          Array.isArray(item?.meals) && item.meals.length
+            ? `식사 ${item.meals.map((meal) => [meal?.label, meal?.menu].map(asText).filter(Boolean).join(" ")).filter(Boolean).join(" / ")}`
+            : ""
+        ].filter(Boolean);
+        return [heading, content, ...extras].filter(Boolean).join(" · ");
+      }).filter(Boolean).join("\n");
+    }
+
+    function normalizeQuoteEditorItinerarySchedule(schedule = []) {
+      if (!Array.isArray(schedule)) return [];
+      return schedule.slice(0, 15).map((item, index) => {
+        if (!item || typeof item !== "object") return null;
+        const pointSource = Array.isArray(item.points) ? item.points : parseList(item.content || item.rawText);
+        return {
+          day: asText(item.day) || `${index + 1}일차`,
+          dateText: asText(item.dateText),
+          points: pointSource.map((point) => {
+            if (point && typeof point === "object") {
+              return {
+                title: asText(point.title || point.main || point.name || point.text || point.content),
+                description: asText(point.description || point.subText || point.subtitle || point.detail)
+              };
+            }
+            return { title: asText(point), description: "" };
+          }).filter((point) => point.title).slice(0, 20),
+          content: asText(item.content || item.rawText),
+          hotel: asText(item.hotel),
+          meals: Array.isArray(item.meals)
+            ? item.meals.slice(0, 6).map((meal) => ({ label: asText(meal?.label), menu: asText(meal?.menu) })).filter((meal) => meal.label || meal.menu)
+            : []
+        };
+      }).filter(Boolean);
+    }
+
+    function formatQuoteEditorMeals(meals = []) {
+      if (!Array.isArray(meals)) return "";
+      return meals.map((meal) => [meal?.label, meal?.menu].map(asText).filter(Boolean).join(" ")).filter(Boolean).join(" · ");
+    }
+
+    function parseQuoteEditorMeals(value = "") {
+      return asText(value).split(/\s*[·/]\s*/).map(asText).filter(Boolean).slice(0, 6).map((meal) => {
+        const match = meal.match(/^(조식|중식|석식)\s*[:：-]?\s*(.*)$/);
+        return match ? { label: match[1], menu: asText(match[2]) } : { label: "", menu: meal };
+      });
+    }
+
+    function getQuoteEditorDateByOffset(value = "", offset = 0) {
+      const normalized = normalizeQuoteEditorDate(value);
+      if (!normalized) return "";
+      const date = new Date(`${normalized}T00:00:00Z`);
+      if (Number.isNaN(date.getTime())) return "";
+      date.setUTCDate(date.getUTCDate() + Math.max(0, Number(offset) || 0));
+      return date.toISOString().slice(0, 10);
+    }
+
+    function applyQuoteEditorSequentialDates(schedule = [], firstDate = "") {
+      const baseDate = normalizeQuoteEditorDate(firstDate || schedule[0]?.dateText);
+      return schedule.map((item, index) => ({
+        ...item,
+        day: `${index + 1}일차`,
+        dateText: baseDate ? getQuoteEditorDateByOffset(baseDate, index) : normalizeQuoteEditorDate(item.dateText)
+      }));
+    }
+
+    function syncQuoteEditorItineraryDateInputsFromFirstDay() {
+      const editor = document.getElementById("quoteItineraryEditor");
+      const firstDateField = editor?.querySelector('[data-itinerary-day-index="0"] [data-itinerary-field="dateText"]');
+      const firstDate = normalizeQuoteEditorDate(firstDateField?.value);
+      if (!editor || !firstDate) return;
+      editor.querySelectorAll("[data-itinerary-day-index]").forEach((dayElement, index) => {
+        const dateField = dayElement.querySelector('[data-itinerary-field="dateText"]');
+        if (dateField) dateField.value = getQuoteEditorDateByOffset(firstDate, index);
+      });
+    }
+
+    function getQuoteEditorItineraryForEditing() {
+      const schedule = normalizeQuoteEditorItinerarySchedule(quoteEditorDraft?.itinerarySchedule);
+      if (schedule.length) {
+        const firstDate = normalizeQuoteEditorDate(schedule[0]?.dateText) || normalizeQuoteEditorDate(quoteEditorDraft?.departureDate);
+        return firstDate ? applyQuoteEditorSequentialDates(schedule, firstDate) : schedule;
+      }
+      const points = String(quoteEditorDraft?.itineraryItems || "").split(/\r?\n/).map(asText).filter(Boolean).slice(0, 20).map((title) => ({ title, description: "" }));
+      return [{
+        day: "1일차",
+        dateText: normalizeQuoteEditorDate(quoteEditorDraft?.departureDate),
+        points: points.length ? points : [{ title: "", description: "" }],
+        content: "",
+        hotel: "",
+        meals: []
+      }];
+    }
+
+    function renderQuoteEditorItineraryForm() {
+      const editor = document.getElementById("quoteItineraryEditor");
+      if (!editor || !quoteEditorDraft) return;
+      const schedule = getQuoteEditorItineraryForEditing();
+      editor.innerHTML = schedule.map((item, dayIndex) => {
+        const points = item.points.length ? item.points : [{ title: item.content || "", description: "" }];
+        return `
+          <article class="quote-editor-itinerary-day" data-itinerary-day-index="${dayIndex}">
+            <div class="quote-editor-itinerary-day-head">
+              <input type="text" data-itinerary-field="day" value="${escapeHtml(item.day || `${dayIndex + 1}일차`)}" aria-label="일차" placeholder="${dayIndex + 1}일차">
+              <input type="date" data-itinerary-field="dateText" value="${escapeHtml(normalizeQuoteEditorDate(item.dateText))}" aria-label="날짜">
+              <button class="quote-editor-itinerary-action icon danger" type="button" data-itinerary-action="remove-day" aria-label="일차 삭제" title="일차 삭제"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+            </div>
+            <div class="quote-editor-itinerary-extra">
+              <label class="quote-editor-itinerary-extra-row"><span>숙소</span><input type="text" data-itinerary-field="hotel" value="${escapeHtml(item.hotel)}" placeholder="숙소 또는 등급 예정"></label>
+              <label class="quote-editor-itinerary-extra-row"><span>식사</span><input type="text" data-itinerary-field="meals" value="${escapeHtml(formatQuoteEditorMeals(item.meals))}" placeholder="예: 조식 호텔식 · 중식 불포함 · 석식 현지식"></label>
+            </div>
+            <div class="quote-editor-itinerary-points">
+              ${points.map((point, pointIndex) => `
+                <div class="quote-editor-itinerary-point" data-itinerary-point-index="${pointIndex}">
+                  <button class="quote-editor-itinerary-drag" type="button" draggable="true" data-itinerary-drag-handle aria-label="세부 일정 순서 이동" title="드래그하여 순서 이동"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg></button>
+                  <i class="quote-editor-itinerary-dot" aria-hidden="true"></i>
+                  <div class="quote-editor-itinerary-copy">
+                    <input type="text" data-itinerary-field="pointTitle" value="${escapeHtml(point.title)}" aria-label="세부 일정" placeholder="세부 일정">
+                    <textarea data-itinerary-field="pointDescription" aria-label="일정 서브 카피" placeholder="일정 서브 카피를 입력해 주세요."${point.description ? "" : " hidden"}>${escapeHtml(point.description)}</textarea>
+                  </div>
+                  <div class="quote-editor-itinerary-point-actions">
+                    <button class="quote-editor-itinerary-action icon" type="button" data-itinerary-action="add-description" aria-label="일정에 서브 카피 추가" title="일정에 서브 카피 추가"${point.description ? " hidden" : ""}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 13h6"/><path d="m16.5 6.5-3.914-3.914A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l1.79-1.79"/><path d="M19 10v6"/><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"/></svg></button>
+                    <button class="quote-editor-itinerary-action icon danger" type="button" data-itinerary-action="remove-point" aria-label="세부 일정 삭제" title="세부 일정 삭제"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                  </div>
+                </div>
+              `).join("")}
+              <div class="quote-editor-itinerary-points-footer">
+                <button class="quote-editor-itinerary-action" type="button" data-itinerary-action="add-point">세부 일정 추가</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function readQuoteEditorItineraryForm() {
+      const editor = document.getElementById("quoteItineraryEditor");
+      if (!editor) return normalizeQuoteEditorItinerarySchedule(quoteEditorDraft?.itinerarySchedule);
+      return [...editor.querySelectorAll("[data-itinerary-day-index]")].slice(0, 15).map((dayElement, dayIndex) => {
+        const getValue = (name) => asText(dayElement.querySelector(`[data-itinerary-field="${name}"]`)?.value);
+        const points = [...dayElement.querySelectorAll("[data-itinerary-point-index]")].slice(0, 20).map((pointElement) => ({
+          title: asText(pointElement.querySelector('[data-itinerary-field="pointTitle"]')?.value),
+          description: asText(pointElement.querySelector('[data-itinerary-field="pointDescription"]')?.value)
+        })).filter((point) => point.title);
+        return {
+          day: getValue("day") || `${dayIndex + 1}일차`,
+          dateText: getValue("dateText"),
+          points,
+          content: "",
+          hotel: getValue("hotel"),
+          meals: parseQuoteEditorMeals(getValue("meals"))
+        };
+      });
+    }
+
+    function syncQuoteEditorItineraryFromForm() {
+      if (!quoteEditorDraft) return;
+      const schedule = readQuoteEditorItineraryForm();
+      const itineraryItems = formatQuoteEditorItinerary(schedule);
+      quoteEditorDraft.itinerarySchedule = schedule;
+      quoteEditorDraft.itineraryItems = itineraryItems;
+      quoteEditorDraft.itinerarySourceText = itineraryItems;
+      const sourceField = document.getElementById("quoteItineraryItems");
+      if (sourceField) sourceField.value = itineraryItems;
+    }
+
+    function handleQuoteEditorItineraryAction(event) {
+      if (handleQuoteEditorAdditionalAmountAction(event)) return;
+      const button = event.target.closest("[data-itinerary-action]");
+      if (!button || !quoteEditorDraft) return;
+      event.preventDefault();
+      const action = button.dataset.itineraryAction;
+      if (action === "add-description") {
+        const pointElement = button.closest("[data-itinerary-point-index]");
+        const descriptionField = pointElement?.querySelector('[data-itinerary-field="pointDescription"]');
+        if (descriptionField) {
+          descriptionField.hidden = false;
+          button.hidden = true;
+          descriptionField.focus();
+        }
+        return;
+      }
+      if (action === "add-point") {
+        syncQuoteEditorItineraryFromForm();
+        const dayElement = button.closest("[data-itinerary-day-index]");
+        const pointsContainer = button.closest(".quote-editor-itinerary-points");
+        const pointElements = dayElement ? [...dayElement.querySelectorAll("[data-itinerary-point-index]")] : [];
+        const templatePoint = pointElements[pointElements.length - 1];
+        const footer = pointsContainer?.querySelector(".quote-editor-itinerary-points-footer");
+        if (!templatePoint || !footer || pointElements.length >= 20) return;
+        const newPoint = templatePoint.cloneNode(true);
+        newPoint.dataset.itineraryPointIndex = String(pointElements.length);
+        newPoint.classList.remove("dragging");
+        const titleField = newPoint.querySelector('[data-itinerary-field="pointTitle"]');
+        const descriptionField = newPoint.querySelector('[data-itinerary-field="pointDescription"]');
+        const descriptionButton = newPoint.querySelector('[data-itinerary-action="add-description"]');
+        if (titleField) titleField.value = "";
+        if (descriptionField) {
+          descriptionField.value = "";
+          descriptionField.hidden = true;
+        }
+        if (descriptionButton) descriptionButton.hidden = false;
+        footer.before(newPoint);
+        titleField?.focus();
+        return;
+      }
+      if (action === "remove-point") {
+        button.closest("[data-itinerary-point-index]")?.remove();
+        syncQuoteEditorItineraryFromForm();
+        renderQuoteEditorItineraryForm();
+        scheduleQuoteEditorPreview();
+        return;
+      }
+      syncQuoteEditorItineraryFromForm();
+      const schedule = normalizeQuoteEditorItinerarySchedule(quoteEditorDraft.itinerarySchedule);
+      const dayIndex = Number(button.closest("[data-itinerary-day-index]")?.dataset.itineraryDayIndex);
+      if (action === "add-day" && schedule.length < 15) {
+        const firstDate = normalizeQuoteEditorDate(schedule[0]?.dateText) || normalizeQuoteEditorDate(quoteEditorDraft.departureDate);
+        schedule.push({ day: `${schedule.length + 1}일차`, dateText: getQuoteEditorDateByOffset(firstDate, schedule.length), points: [], content: "", hotel: "", meals: [] });
+      } else if (action === "remove-day" && Number.isInteger(dayIndex)) {
+        schedule.splice(dayIndex, 1);
+        if (!schedule.length) schedule.push({ day: "1일차", dateText: "", points: [], content: "", hotel: "", meals: [] });
+      }
+      quoteEditorDraft.itinerarySchedule = applyQuoteEditorSequentialDates(schedule, schedule[0]?.dateText || quoteEditorDraft.departureDate);
+      quoteEditorDraft.itineraryItems = formatQuoteEditorItinerary(schedule);
+      quoteEditorDraft.itinerarySourceText = quoteEditorDraft.itineraryItems;
+      renderQuoteEditorItineraryForm();
+      const sourceField = document.getElementById("quoteItineraryItems");
+      if (sourceField) sourceField.value = quoteEditorDraft.itineraryItems;
+      scheduleQuoteEditorPreview();
+    }
+
+    function handleQuoteEditorItineraryDragStart(event) {
+      const handle = event.target.closest("[data-itinerary-drag-handle]");
+      const pointElement = handle?.closest("[data-itinerary-point-index]");
+      if (!pointElement) return;
+      quoteEditorDraggedPoint = pointElement;
+      pointElement.classList.add("dragging");
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", "quote-itinerary-point");
+      }
+    }
+
+    function handleQuoteEditorItineraryDragOver(event) {
+      const targetPoint = event.target.closest("[data-itinerary-point-index]");
+      if (!quoteEditorDraggedPoint || !targetPoint || targetPoint === quoteEditorDraggedPoint) return;
+      const sourceDay = quoteEditorDraggedPoint.closest("[data-itinerary-day-index]");
+      const targetDay = targetPoint.closest("[data-itinerary-day-index]");
+      if (!sourceDay || sourceDay !== targetDay) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+      const targetRect = targetPoint.getBoundingClientRect();
+      if (event.clientY < targetRect.top + targetRect.height / 2) targetPoint.before(quoteEditorDraggedPoint);
+      else targetPoint.after(quoteEditorDraggedPoint);
+    }
+
+    function handleQuoteEditorItineraryDragEnd() {
+      if (!quoteEditorDraggedPoint) return;
+      quoteEditorDraggedPoint.classList.remove("dragging");
+      quoteEditorDraggedPoint = null;
+      syncQuoteEditorItineraryFromForm();
+      renderQuoteEditorItineraryForm();
+      scheduleQuoteEditorPreview();
+    }
+
+    function setQuoteProductSourceState(message, status = "") {
+      const target = document.getElementById("quoteProductSourceState");
+      if (!target) return;
+      target.textContent = message;
+      target.className = `quote-editor-source-state${status ? ` ${status}` : ""}`;
+    }
+
+    function applyQuoteProductDetailToDraft(detail = {}) {
+      if (!quoteEditorDraft) return;
+      const includedItems = formatQuoteEditorList(detail.includes);
+      const excludedItems = formatQuoteEditorList(detail.excludes);
+      const productNotes = formatQuoteEditorList(detail.notes);
+      const flightScheduleItems = formatQuoteEditorList(detail.flightScheduleItems);
+      const inferredFlightDetails = inferQuoteEditorFlightDetails(detail.flightScheduleItems);
+      const itineraryItems = formatQuoteEditorItinerary(detail.schedule);
+      const itinerarySchedule = normalizeQuoteEditorItinerarySchedule(detail.schedule);
+      if (includedItems) quoteEditorDraft.includedItems = includedItems;
+      if (excludedItems) quoteEditorDraft.excludedItems = excludedItems;
+      if (productNotes) quoteEditorDraft.productNotes = productNotes;
+      if (flightScheduleItems) quoteEditorDraft.flightScheduleItems = flightScheduleItems;
+      QUOTE_EDITOR_FLIGHT_DETAIL_KEYS.forEach((key) => {
+        if (!asText(quoteEditorDraft[key]) && asText(inferredFlightDetails[key])) quoteEditorDraft[key] = inferredFlightDetails[key];
+      });
+      if (itineraryItems) {
+        quoteEditorDraft.itineraryItems = itineraryItems;
+        quoteEditorDraft.itinerarySourceText = itineraryItems;
+      }
+      if (itinerarySchedule.length) quoteEditorDraft.itinerarySchedule = itinerarySchedule;
+      if (asText(detail.airline)) quoteEditorDraft.airline = asText(detail.airline);
+      if (asText(detail.departureAirport)) quoteEditorDraft.departureAirport = asText(detail.departureAirport);
+      if (asText(detail.arrivalAirport)) quoteEditorDraft.arrivalAirport = asText(detail.arrivalAirport);
+    }
+
+    function getQuoteEditorNightCount(draft = {}) {
+      const textCandidates = [draft.tripSummary, draft.productName];
+      for (const value of textCandidates) {
+        const match = asText(value).match(/(\d{1,2})\s*박/);
+        if (match) return Math.max(1, Math.min(30, Number(match[1]) || 1));
+      }
+      const departureDate = normalizeQuoteEditorDate(draft.departureDate);
+      const returnDate = normalizeQuoteEditorDate(draft.returnDate);
+      if (departureDate && returnDate) {
+        const nights = Math.round((Date.parse(`${returnDate}T00:00:00Z`) - Date.parse(`${departureDate}T00:00:00Z`)) / 86400000);
+        if (nights > 0 && nights <= 30) return nights;
+      }
+      return 1;
     }
 
     function getQuoteEditorComputed(draft = {}) {
       const people = Math.max(1, Number(draft.people) || 1);
       const unitPrice = parseQuoteEditorAmount(draft.unitPrice);
-      const singleRoomSurcharge = parseQuoteEditorAmount(draft.singleRoomSurcharge);
+      const nightCount = getQuoteEditorNightCount(draft);
+      const singleRoomSurchargePerNight = parseQuoteEditorAmount(draft.singleRoomSurcharge);
+      const singleRoomSurcharge = singleRoomSurchargePerNight * nightCount;
+      const additionalAmounts = normalizeQuoteEditorAdditionalAmounts(draft.additionalAmounts);
+      const additionalAmountTotal = additionalAmounts.reduce((sum, item) => sum + item.amount, 0);
+      const airfare = additionalAmounts.find(isQuoteEditorAirfareItem)?.amount || 0;
       const depositPerPerson = parseQuoteEditorAmount(draft.depositPerPerson);
       const productSubtotal = unitPrice * people;
-      const estimatedTotal = productSubtotal + singleRoomSurcharge;
+      const estimatedTotal = productSubtotal + additionalAmountTotal + singleRoomSurcharge;
       const deposit = depositPerPerson * people;
       const balance = estimatedTotal ? Math.max(0, estimatedTotal - deposit) : 0;
-      return { people, unitPrice, singleRoomSurcharge, depositPerPerson, productSubtotal, estimatedTotal, deposit, balance };
+      return { people, nightCount, unitPrice, singleRoomSurchargePerNight, singleRoomSurcharge, additionalAmounts, additionalAmountTotal, airfare, airfareIncluded: Boolean(airfare), depositPerPerson, productSubtotal, estimatedTotal, deposit, balance };
     }
 
-    function renderQuoteEditorPreviewList(value, fallback) {
-      const items = String(value || "").split(/\n|,/).map(asText).filter(Boolean);
+    function renderQuoteEditorPreviewList(value, fallback, options = {}) {
+      const separator = options.lineBreakOnly ? /\r?\n/ : /\n|,/;
+      const items = String(value || "").split(separator).map(asText).filter(Boolean);
       return (items.length ? items : [fallback]).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    }
+
+    function getQuoteEditorFlightMeta(draft = {}) {
+      const isFlightExcluded = normalizePackTypeValue(draft.packType) === "golf" || isIndividualAirlineName(draft.airline);
+      const requestType = asText(draft.flightRequestType) === "직접예약" ? "직접예약" : "대행요청";
+      const guideLines = requestType === "직접예약"
+        ? [
+          "모임 인원 모집이 완료되면 알림톡이 발송됩니다.",
+          "담당자가 항공 예약 관련하여 별도 안내드립니다.",
+          "내용 확인 후 항공 예약을 진행해주세요."
+        ]
+        : [
+          "모임 인원모집 완료 후 항공 예약이 진행되며,",
+          "담당자가 항공 예약 관련하여 별도 안내드립니다."
+        ];
+      return { isFlightExcluded, requestType, guideLines };
+    }
+
+    function renderQuoteEditorFlightInfo(draft = {}) {
+      const flightMeta = getQuoteEditorFlightMeta(draft);
+      if (shouldShowQuoteEditorFlightDetails(draft)) {
+        const rows = getQuoteEditorStructuredFlightRows(draft).map((row) => `
+          <article class="flight-journey-card">
+            <header class="flight-journey-head">
+              <span><b>${escapeHtml(row.label)}</b> ${escapeHtml(row.dateText)}</span>
+              <span class="flight-airline"><i>${renderQuoteEditorAirlineIcon()}</i>${escapeHtml(row.airline || "-")}</span>
+            </header>
+            <div class="flight-route">
+              <div class="flight-route-stop"><strong>${escapeHtml(row.departureTime || "-")}</strong><span>${escapeHtml(row.origin)}</span></div>
+              <div class="flight-route-center"><i></i><span>${escapeHtml(row.flightName || "-")}</span></div>
+              <div class="flight-route-stop"><strong>${escapeHtml(row.arrivalTime || "-")}</strong><span>${escapeHtml(row.destination)}</span></div>
+            </div>
+          </article>
+        `).join("");
+        return `<div class="flight-schedule-details">${rows}</div>`;
+      }
+      if (!flightMeta.isFlightExcluded) {
+        return `<strong>${escapeHtml(draft.airline || "-")}</strong><ul>${renderQuoteEditorPreviewList(draft.flightScheduleItems, "상품 상세 확인 필요")}</ul>`;
+      }
+      const { requestType, guideLines } = flightMeta;
+      return `<strong>${requestType}</strong><div class="flight-request-guide"><p>${guideLines.map(escapeHtml).join(" ")}</p></div>`;
+    }
+
+    function formatQuoteEditorTripPeriod(value = "", departureDate = "", returnDate = "") {
+      const text = asText(value);
+      if (text) return text.replace(/(\d{4}-\d{2}-\d{2})\s*-\s*(\d{4}-\d{2}-\d{2})/, "$1 ~ $2");
+      return `${asText(departureDate) || "-"} ~ ${asText(returnDate) || "-"}`;
+    }
+
+    function renderQuoteEditorSchedule(schedule = [], fallback = "") {
+      const items = normalizeQuoteEditorItinerarySchedule(schedule);
+      if (!items.length) return `<ul>${renderQuoteEditorPreviewList(fallback, "상품 상세 확인 필요")}</ul>`;
+      return `<div class="schedule">${items.map((item) => {
+        const points = item.points.length ? item.points : (item.content ? [{ title: item.content, description: "" }] : [{ title: "상품 상세 확인 필요", description: "" }]);
+        return `<article class="schedule-item"><div class="schedule-head"><strong>${escapeHtml(item.day)}</strong>${item.dateText ? `<span>${escapeHtml(item.dateText)}</span>` : ""}</div>${item.hotel || item.meals.length ? `<div class="schedule-extra">${item.hotel ? `<div><b>숙소</b><span>${escapeHtml(item.hotel)}</span></div>` : ""}${item.meals.length ? `<div><b>식사</b><span>${item.meals.map((meal) => escapeHtml([meal.label, meal.menu].filter(Boolean).join(" "))).join(" · ")}</span></div>` : ""}</div>` : ""}<div class="schedule-points">${points.map((point) => `<div class="schedule-point${point.description ? " has-description" : ""}"><i></i><div class="schedule-copy"><strong>${escapeHtml(point.title)}</strong>${point.description ? `<p>${escapeHtml(point.description)}</p>` : ""}</div></div>`).join("")}</div></article>`;
+      }).join("")}</div>`;
     }
 
     function buildQuoteEditorPreviewHtml(draft = {}) {
       const amounts = getQuoteEditorComputed(draft);
+      const additionalAmountRows = amounts.additionalAmounts.map((item) => `<div class="price-row"><div class="price-copy"><strong>${escapeHtml(item.label || "추가금액")}</strong></div><div class="price-amount">${formatQuoteEditorAmount(item.amount)}</div></div>`).join("");
       const regionText = [draft.country, draft.region].map(asText).filter(Boolean).join(" · ") || "해외 골프 조인";
-      const productImage = asText(draft.productImageUrl);
-      return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
-        *{box-sizing:border-box}body{margin:0;color:#373a3c;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#edf2f7} .page{width:min(900px,100%);margin:0 auto;background:#fff}
-        .hero{position:relative;min-height:270px;padding:34px;display:flex;align-items:flex-end;overflow:hidden;background:#245b9d;color:#fff}.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:after{content:"";position:absolute;inset:0;background:rgba(7,24,47,.58)}.hero-copy{position:relative;z-index:1}.kicker{margin:0 0 10px;color:#dcecff;font-size:12px;font-weight:700}.hero h1{max-width:720px;margin:0;font-size:30px;line-height:1.34;word-break:keep-all}.hero-meta{margin-top:14px;display:flex;gap:18px;font-size:14px;font-weight:600}
-        .body{padding:34px}.head{display:flex;justify-content:space-between;gap:20px;padding-bottom:25px;border-bottom:1px solid #dde3ec}.head h2{margin:0 0 8px;color:#172033;font-size:24px}.head p{margin:0;color:#697386;font-size:12px;line-height:1.6}.status{height:max-content;padding:8px 11px;border-radius:5px;background:#eaf3ff;color:#1769d2;font-size:12px;font-weight:700}
-        .summary{display:grid;grid-template-columns:1.3fr .7fr;margin:26px 0 32px;background:#3489f8;color:#fff}.summary>div{padding:21px}.summary>div+div{border-left:1px solid rgba(255,255,255,.24);text-align:right}.label{display:block;margin-bottom:7px;color:#dcecff;font-size:11px}.summary strong{display:block;font-size:20px}.summary small{display:block;margin-top:6px;color:#eef6ff}.summary .total{font-size:25px}
-        section{margin-top:32px}h3{margin:0 0 14px;color:#172033;font-size:18px}.number{margin-right:10px;color:#3489f8;font-size:11px}.info{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #dde3ec;border-bottom:1px solid #dde3ec}.info div{min-height:70px;padding:15px;border-right:1px solid #dde3ec}.info div:nth-child(3n){border-right:0}.info span{display:block;margin-bottom:7px;color:#697386;font-size:11px}.info strong{font-size:14px;line-height:1.4}
-        table{width:100%;border-collapse:collapse;border-top:2px solid #172033}th,td{height:48px;padding:0 13px;border-bottom:1px solid #dde3ec;text-align:left;font-size:13px}td:last-child{text-align:right;font-weight:700}.total-row{background:#eaf3ff;color:#1769d2}.total-row th,.total-row td:last-child{font-size:16px}
-        .lists{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #dde3ec;border-bottom:1px solid #dde3ec}.lists>div{padding:19px}.lists>div+div{border-left:1px solid #dde3ec}.lists h4{margin:0 0 11px;color:#172033;font-size:14px}.lists ul{margin:0;padding-left:18px}.lists li{margin:6px 0;font-size:12px;line-height:1.55}.notice{margin-top:24px;padding:18px;border-left:4px solid #3489f8;background:#f4f7fa;color:#697386;font-size:12px;line-height:1.7;white-space:pre-line}
-        @media(max-width:620px){.body{padding:24px 18px}.hero{min-height:240px;padding:24px 18px}.hero h1{font-size:24px}.summary{grid-template-columns:1fr}.summary>div+div{border-left:0;border-top:1px solid rgba(255,255,255,.24);text-align:left}.info{grid-template-columns:1fr 1fr}.info div:nth-child(3n){border-right:1px solid #dde3ec}.info div:nth-child(2n){border-right:0}.lists{grid-template-columns:1fr}.lists>div+div{border-left:0;border-top:1px solid #dde3ec}}
-      </style></head><body><main class="page"><section class="hero">${productImage ? `<img src="${escapeHtml(productImage)}" alt="">` : ""}<div class="hero-copy"><p class="kicker">SECRET TOUR · OVERSEAS GOLF JOIN</p><h1>${escapeHtml(draft.productName || "해외 골프 조인 견적")}</h1><div class="hero-meta"><span>${escapeHtml(regionText)}</span><span>${escapeHtml(draft.departureDate || "-")} - ${escapeHtml(draft.returnDate || "-")}</span></div></div></section><div class="body">
-        <header class="head"><div><h2>예약요청 견적서</h2><p>내용 확인용 미리보기<br>확정 시 견적번호가 발급됩니다.</p></div><span class="status">담당자 확인 견적</span></header>
-        <div class="summary"><div><span class="label">신청 일정</span><strong>${escapeHtml(regionText)}</strong><small>${escapeHtml(draft.departureDate || "-")} - ${escapeHtml(draft.returnDate || "-")}</small></div><div><span class="label">예상 총액</span><strong class="total">${formatQuoteEditorAmount(amounts.estimatedTotal)}</strong></div></div>
-        <section><h3><span class="number">01</span>신청 정보</h3><div class="info"><div><span>신청자</span><strong>${escapeHtml(draft.applicantName || "-")}</strong></div><div><span>연락처</span><strong>${escapeHtml(draft.applicantPhone || "-")}</strong></div><div><span>신청 유형</span><strong>${escapeHtml(draft.applicationType || "-")}</strong></div><div><span>신청 인원</span><strong>${amounts.people}명</strong></div><div><span>숙소 타입</span><strong>${escapeHtml(draft.roomType || "-")}</strong></div><div><span>항공</span><strong>${escapeHtml(draft.airline || "-")}</strong></div></div></section>
-        <section><h3><span class="number">02</span>견적 금액</h3><table><tbody><tr><th>상품가</th><td>1인 기준 × ${amounts.people}명</td><td>${formatQuoteEditorAmount(amounts.productSubtotal)}</td></tr><tr><th>1인 1실 추가요금</th><td>${amounts.singleRoomSurcharge ? "신청 기준" : "해당 없음"}</td><td>${formatQuoteEditorAmount(amounts.singleRoomSurcharge, "-")}</td></tr><tr class="total-row"><th>예상 총액</th><td>담당자 산출</td><td>${formatQuoteEditorAmount(amounts.estimatedTotal)}</td></tr><tr><th>예약금</th><td>1인 ${formatQuoteEditorAmount(amounts.depositPerPerson)}</td><td>${formatQuoteEditorAmount(amounts.deposit)}</td></tr><tr><th>잔금</th><td>예약금 제외</td><td>${formatQuoteEditorAmount(amounts.balance, "0원")}</td></tr></tbody></table></section>
-        <section><h3><span class="number">03</span>포함 및 불포함 사항</h3><div class="lists"><div><h4>포함 사항</h4><ul>${renderQuoteEditorPreviewList(draft.includedItems, "담당자 확인 후 안내")}</ul></div><div><h4>불포함 사항</h4><ul>${renderQuoteEditorPreviewList(draft.excludedItems, "담당자 확인 후 안내")}</ul></div></div><div class="notice">${escapeHtml(draft.specialNotes || "-")}</div></section>
+      const tripPeriodText = formatQuoteEditorTripPeriod(draft.tripSummary, draft.departureDate, draft.returnDate);
+      const flightMeta = getQuoteEditorFlightMeta(draft);
+      const isGolfPack = flightMeta.isFlightExcluded;
+      const isFlightAgencyRequest = isGolfPack && flightMeta.requestType === "대행요청";
+      const airfareIncluded = !isGolfPack || amounts.airfareIncluded;
+      const airfareStatusText = airfareIncluded ? "항공료 포함" : "항공료 미포함";
+      const airfarePending = isGolfPack && !airfareIncluded;
+      const balanceFlightGuide = isFlightAgencyRequest && airfarePending
+        ? `<div class="price-flight-guide"><p>${flightMeta.guideLines.map(escapeHtml).join(" ")}</p></div>`
+        : "";
+      const previewHtml = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css"><style>
+        *{box-sizing:border-box}body{margin:0;color:#171927;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f4f8}.page{width:min(940px,calc(100% - 24px));margin:16px auto 32px;background:transparent}
+        .hero{position:relative;min-height:330px;padding:42px;display:grid;grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);align-items:stretch;gap:38px;overflow:hidden;border:0;border-radius:25px;background:#fff;box-shadow:0 18px 48px rgba(34,38,63,.08)}.hero:after{content:"";position:absolute;right:18px;top:14px;width:100px;height:60px;opacity:.4;background-image:radial-gradient(#5b55c6 1.2px,transparent 1.2px);background-size:12px 12px}.hero-copy{position:relative;z-index:1;align-self:center;padding:6px}.hero-logo{width:116px;height:auto;display:block;margin:0 0 32px;object-fit:contain}.hero h1{max-width:560px;margin:0;color:#171927;font-size:36px;line-height:1.2;word-break:keep-all}.hero-product{margin:18px 0 0;color:#171927;font-size:20px;font-weight:600;line-height:1.4}.hero-meta{margin-top:20px;display:flex;flex-wrap:wrap;gap:7px;color:#171927;font-size:16px;font-weight:600}.hero-meta span{padding:8px 14px;border-radius:999px;background:#eeecff}.hero-meta span+span{background:#f4f4f6}.hero-document-meta{flex:0 0 100%;margin:17px 0 0;color:#667085;font-size:13px;font-weight:400;line-height:1.7}.hero-image{position:relative;z-index:1;min-height:240px;overflow:visible;background:transparent}.hero-image img{width:100%;height:100%;display:block;object-fit:contain}.hero-placeholder{width:100%;height:100%;display:grid;place-items:center;color:#5b55c6;font-size:12px;font-weight:700}
+        .hero-document-meta{margin-top:12px}
+        .hero h1{line-height:1.3}
+        .hero-image::before{content:none;position:absolute;z-index:2;left:0;top:0;width:116px;height:42px;background:url("https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/logo2.png") left top/contain no-repeat;pointer-events:none}
+        .body{padding:0}
+        .amount-callout{margin:26px 0 32px;padding:21px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:#eeecff;color:#5b55c6}.amount-callout span{color:#5b55c6;font-size:12px}.amount-callout strong{font-size:25px}
+        section{margin-top:16px;padding:36px;border:0;border-radius:23px;background:#fff;box-shadow:0 15px 40px rgba(34,38,63,.06)}h3{display:flex;align-items:center;gap:11px;margin:0 0 22px;color:#171927;font-size:21px;letter-spacing:-.02em}.number{width:34px;height:25px;display:inline-grid;place-items:center;margin-right:0;border-radius:7px;background:#eeecff;color:#5b55c6;font-size:16px}.info{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.info div,.info div:nth-child(2),.info div:nth-child(3){min-height:98px;padding:19px;border:0;border-radius:16px;background:#f4f4f6;color:#171927}.info span,.info div:nth-child(2) span{display:block;margin-bottom:16px;color:#171927;font-size:11px}.info strong{color:#171927;font-size:15px;line-height:1.4}
+        table{width:100%;border-collapse:separate;border-spacing:0 7px;border-top:0}th,td{height:50px;padding:0 13px;border:0;background:#f4f4f6;color:#171927;text-align:left;font-size:13px}th:first-child{border-radius:10px 0 0 10px}td:last-child{border-radius:0 10px 10px 0;text-align:right;font-weight:700}.total-row th,.total-row td{background:#eeecff;color:#5b55c6}.total-row th,.total-row td:last-child{font-size:16px}
+        .price-groups{display:grid;gap:12px}.price-card{overflow:hidden;border:1px solid #e6e7ee;border-radius:16px;background:#fff}.price-row{position:relative;padding:18px 20px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:18px}.price-row+ .price-row::before{content:"";position:absolute;left:20px;right:20px;top:0;height:1px;background:#eceef2}.price-row.total{background:transparent}.price-row.total::before{height:2px;background:#8e95a7}.price-copy strong{display:block;color:#171927;font-size:17px;font-weight:600;line-height:1.45}.price-copy span,.price-amount span{display:block;margin-top:5px;color:#667085;font-size:15px;font-weight:400;line-height:1.5}.price-amount{color:#171927;font-size:17px;font-weight:700;text-align:right;white-space:nowrap}.price-amount strong{display:block;color:inherit;font:inherit}.price-row.total .price-copy strong,.price-row.total .price-amount{color:#5b55c6}.price-flight-guide{margin:0 20px 18px;padding:14px 15px;border:1px solid #e6e7ee;border-radius:11px;background:#fff;color:#171927;font-size:16px;line-height:1.5;word-break:keep-all}.price-flight-guide p{margin:0}
+        .lists{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:11px;border:0}.lists>div{padding:20px;border-radius:16px;background:#f4f4f6}.lists>div+div{border-left:0}.inclusion-lists>div:first-child{background:#eeecff}.inclusion-lists>div:last-child{background:#f4f4f6}.lists h4,.product-info h4,.notes h4,.policy h4{margin:0 0 11px;color:#171927;font-size:14px}.lists ul,.product-info ul,.notes ul{margin:0;padding-left:18px}.lists li,.product-info li,.notes li{margin:6px 0;color:#171927;font-size:12px;line-height:1.55}.notice{padding:18px 19px;border:0;border-radius:13px;background:#eeecff;color:#171927;font-size:12px;line-height:1.7;white-space:pre-line}.policy{margin-top:12px;padding:20px;border:0;border-radius:14px;background:#f4f4f6;color:#171927}.policy h5{margin:14px 0 7px;color:#171927;font-size:12px}.policy h5:first-of-type{margin-top:0}.policy .lead{color:#5b55c6;font-size:12px;font-weight:700;text-align:center}.policy p{font-size:12px;line-height:1.6}.policy ul{margin:10px 0 0;padding-left:18px}.policy li{margin:6px 0;font-size:11px;line-height:1.55}.account{margin-top:12px;padding:21px;display:grid;grid-template-columns:145px 1fr;align-items:center;gap:22px;border:1px solid #e6e7ee;border-radius:14px;background:#fff}.account-brand h4{margin:0;color:#171927;font-size:20px;font-weight:600}.account-details{display:grid;gap:10px}.account-row{display:grid;grid-template-columns:66px 1fr;align-items:center;gap:10px}.account-row span{color:#667085;font-size:15px;font-weight:500}.account-row strong{color:#171927;font-size:18px;text-align:left}.account-bank-logo{width:84px;height:auto;display:block;object-fit:contain}.company{margin-top:0;padding:28px 30px;border:1px solid #e6e7ee;border-radius:22px;background:#fff;color:#171927;font-size:16px;line-height:1.7}.company strong{display:block;margin-bottom:7px;color:#171927;font-size:13px}.company-info{display:flex;flex-wrap:wrap;gap:1px 12px}.company-copy{margin-top:8px;color:#171927}.product-info{overflow:visible;border:0}.flight,.schedule-wrap{padding:21px;border-radius:16px}.flight{border:0;background:#f4f4f6}.schedule-wrap{margin-top:11px;background:#f4f4f6}.schedule-item{display:grid;grid-template-columns:82px minmax(0,1fr);gap:16px;padding:16px 0}.schedule-item+ .schedule-item{border-top:1px solid #e6e7ee}.schedule-date strong{display:block;color:#5b55c6;font-size:13px}.schedule-date span{display:block;margin-top:5px;color:#171927;font-size:11px}.schedule-point{position:relative;display:grid;grid-template-columns:13px 1fr;gap:8px;min-height:30px}.schedule-point:not(:last-child):before{content:"";position:absolute;left:4px;top:11px;bottom:-2px;width:2px;background:#e6e7ee}.schedule-point i{position:relative;z-index:1;width:10px;height:10px;margin-top:3px;border:3px solid #5b55c6;border-radius:50%;background:#fff}.schedule-point p{margin:0;padding-bottom:9px;color:#171927;font-size:12px;line-height:1.55}.schedule-extra{margin-top:5px;padding:11px 13px;display:grid;gap:7px;border-radius:10px;background:#f4f4f6}.schedule-extra>div{display:grid;grid-template-columns:36px 1fr;gap:8px;font-size:11px;line-height:1.5}.schedule-extra b{color:#5b55c6}.notes{margin-top:11px;border:0;border-radius:16px;background:#f4f4f6}.note-group{padding:20px}.note-group+ .note-group{border-top:1px solid #e6e7ee}
+        .body .info span,.body .info div:nth-child(2) span,.body .product-info h4,.body .lists h4,.body .notes h4,.body .policy h4,.body .account h4{font-size:16px}.body .info strong,.body .product-info strong,.body .lists strong,.body .account strong,.body .company strong{font-size:18px}
+        .body .lists li,.body .product-info li,.body .notes li,.body .notice,.body .policy h5,.body .policy p,.body .policy li{font-size:16px}
+        .body .policy h5{font-size:18px}.body .account h4{font-size:20px}
+        .body .info>div{min-height:0}
+        .body .info span,.body .info div:nth-child(2) span,.body .product-info>.flight h4,.body .product-basics h4,.body .inclusion-lists h4,.body .notes h4{display:block;margin-bottom:10px;color:#9092a2;font-size:16px;font-weight:500}
+        .body .inclusion-lists>div:first-child h4{color:#5b55c6;font-size:17px;font-weight:600}.body .inclusion-lists>div:last-child h4{color:#667085;font-size:17px;font-weight:600}.body .inclusion-lists ul,.body .notes ul{margin:0;padding:0;list-style:none;display:grid;gap:0}.body .inclusion-lists li,.body .notes li{position:relative;margin:0;padding-left:18px;color:#171927;font-size:17px;line-height:1.65}.body .inclusion-lists li::before,.body .notes li::before{content:"";position:absolute;left:1px;top:.7em;width:6px;height:6px;border-radius:50%;background:#5b55c6}.body .inclusion-lists>div:last-child li::before{background:#98a2b3}.body .notes h4{font-size:17px}
+        .company{font-size:16px;line-height:1.7}
+        .community-actions{margin:16px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.community-link{padding:9px;display:flex;flex-direction:column;align-items:stretch;gap:8px;border:1px solid #e6e7ee;border-radius:14px;background:#fff;color:#171927;text-align:center;text-decoration:none}.community-link img{width:100%;height:auto;aspect-ratio:16/9;display:block;border-radius:10px;background:#f4f4f6;object-fit:cover}.community-link span{font-size:16px;font-weight:600;line-height:1.4}
+        .body .product-info>.flight>strong{line-height:1.4}.product-flight{margin-top:11px}.product-flight.is-structured{padding:0;background:transparent}.body .product-flight h4{font-size:18px}.body .policy h4,.body .account h4{margin:0 0 14px}
+        .flight-request-guide{margin:12px 0 0;padding:14px 15px;border:1px solid #e6e7ee;border-radius:11px;background:#fff;color:#171927;font-size:16px;line-height:1.5;word-break:keep-all}.flight-request-guide p{margin:0}.flight-schedule-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:18px;border:1px solid #e4e7ec;border-radius:12px;background:#fff;box-shadow:0 5px 14px rgba(15,23,42,.10)}.flight-journey-card{min-width:0}.flight-journey-card+ .flight-journey-card{margin-left:16px;padding-left:16px;border-left:1px solid #e4e7ec}.flight-journey-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;color:#667085;font-size:14px;line-height:1.4}.flight-journey-head b{color:#667085;font-weight:500}.flight-journey-head b+*{color:#171927}.flight-journey-head>span:first-child{color:#171927;font-weight:700;white-space:nowrap}.flight-airline{display:flex;align-items:center;gap:5px;color:#475467;font-weight:500;white-space:nowrap}.flight-airline i{width:16px;height:16px;display:inline-grid;place-items:center;border-radius:50%;background:#ff6b00}.flight-airline svg{width:10px;height:10px;fill:#fff;stroke:none}.flight-route{min-height:68px;padding:10px 13px;display:grid;grid-template-columns:minmax(62px,1fr) minmax(72px,1.15fr) minmax(62px,1fr);align-items:center;gap:8px;border-radius:10px;background:#f7f7f8}.flight-route-stop{text-align:center}.flight-route-stop strong{display:block;color:#171927;font-size:18px;line-height:1.2}.flight-route-stop span{display:block;margin-top:4px;color:#344054;font-size:12px;line-height:1.35;word-break:keep-all}.flight-route-center{min-width:0;text-align:center}.flight-route-center i{position:relative;display:block;height:1px;margin:0 3px 7px;background:#c7cdd5}.flight-route-center i::after{content:"";position:absolute;right:0;top:-3px;width:6px;height:6px;border-top:1px solid #c7cdd5;border-right:1px solid #c7cdd5;transform:rotate(45deg)}.flight-route-center span{display:block;color:#8a94a6;font-size:13px;font-weight:500;white-space:nowrap}
+        .schedule-wrap{margin-top:11px;padding:0;border:1px solid #e6e7ee;border-radius:16px;background:#fff;overflow:hidden}.schedule-wrap>h4{margin:0;padding:20px 21px;border-bottom:1px solid #e6e7ee}.schedule-item{display:block;padding:0}.schedule-item+ .schedule-item{border-top:1px solid #e6e7ee}.schedule-head{min-height:58px;padding:17px 21px;display:flex;align-items:center;gap:10px;background:#fff}.schedule-head strong{color:#171927;font-size:18px}.schedule-head span{color:#171927;font-size:16px;font-weight:600}.schedule-extra{margin:0;padding:15px 21px;display:grid;gap:7px;border-radius:0;background:#f4f4f6}.schedule-extra>div{display:grid;grid-template-columns:40px 1fr;gap:9px;color:#171927;font-size:16px;line-height:1.55}.schedule-extra b{color:#171927}.schedule-points{padding:5px 21px 10px;display:grid;gap:0;background:#fff}.schedule-point{position:relative;display:grid;grid-template-columns:16px 1fr;gap:13px;min-height:0;padding:16px 0}.schedule-point:not(:last-child):before{content:none}.schedule-point.has-description:before{content:"";position:absolute;left:3px;top:32px;bottom:8px;width:1px;background:#dfe3ea}.schedule-point i{position:relative;z-index:1;width:8px;height:8px;margin:8px 0 0;border:0;border-radius:50%;background:#171927}.schedule-copy strong{display:block;color:#171927;font-size:18px;line-height:1.45}.schedule-copy p{margin:7px 0 0;padding:0;color:#171927;font-size:16px;line-height:1.65;white-space:pre-line}
+        .schedule-head strong{font-size:18px}.schedule-head span{font-size:17px}.schedule-extra>div{grid-template-columns:30px 1fr;gap:6px;font-size:16px;line-height:1.55}.schedule-point{grid-template-columns:12px 1fr;gap:7px;min-height:0;padding:7px 0}.schedule-point.has-description:before{left:3px;top:30px;bottom:12px}.schedule-point i{position:relative;z-index:1;width:8px;height:8px;margin:7px 0 0;border:0;border-radius:50%;background:#171927;top:2px}.schedule-copy strong{font-size:17px;font-weight:600}.schedule-copy p{margin:7px 0 0;padding:0;color:#717381;font-size:17px;line-height:1.4;white-space:pre-line}
+        .schedule-title{margin:24px 0 11px;font-size:21px;line-height:1.4}.schedule-title+ .schedule-wrap{margin-top:0}
+        @media(max-width:620px){.page{width:calc(100% - 16px);margin:8px auto 20px}.hero{min-height:auto;padding:20px;grid-template-columns:1fr;gap:20px;border-radius:19px}.hero:after{display:none}.hero-copy{padding:2px}.hero-logo{display:none}.hero h1{font-size:29px}.hero-product{font-size:18px}.hero-meta{font-size:14px}.hero-document-meta{font-size:12px}.hero-image{min-height:200px;order:-1}.hero-image img{width:75%;margin-left:auto;object-position:right center}.body section{margin-top:10px;padding:27px 19px}.amount-callout{align-items:flex-start;flex-direction:column}.info{grid-template-columns:1fr}.info div{min-height:88px}.lists{grid-template-columns:1fr}.lists>div+div{border-left:0;border-top:0}table{display:block;border-spacing:0}tbody{display:grid;gap:7px}tr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;padding:14px;border-radius:11px;background:#f4f4f6}th,td{width:auto!important;height:auto;padding:0;border-radius:0!important;background:transparent;text-align:left}th{grid-column:1}td:nth-child(2){grid-column:1;margin-top:5px}td:last-child{grid-column:2;grid-row:1/span 2;align-self:center;margin-left:10px;white-space:nowrap}.total-row{background:#eeecff}.total-row th,.total-row td{background:transparent;color:#5b55c6}.account{grid-template-columns:1fr;gap:18px}.account strong{display:block;margin-top:0;text-align:left}.account-row{grid-template-columns:62px 1fr}.company{padding:25px 21px}}
+        @media(max-width:620px){.schedule-wrap>h4,.schedule-head,.schedule-extra{padding-left:16px;padding-right:16px}.schedule-points{padding-left:16px;padding-right:16px}.schedule-head{gap:8px}.schedule-head strong{font-size:18px}.schedule-head span{font-size:17px}.schedule-extra>div{font-size:16px}.schedule-copy strong{font-size:16px}}
+        @media(max-width:620px){.schedule-head span{font-size:17px}.schedule-extra>div{font-size:16px}.schedule-copy strong{font-size:16px;font-weight:600}}
+        @media(max-width:620px){.hero-image::before{content:"";width:96px;height:34px}}
+        @media(max-width:620px){.price-row{padding:16px 14px;gap:10px}.price-row+ .price-row::before{left:14px;right:14px}.price-copy strong,.price-amount{font-size:17px}.price-copy span,.price-amount span{font-size:15px}.price-flight-guide{margin:0 14px 14px;padding:14px}.product-flight.is-structured{min-width:0}.flight-schedule-details{width:100%;max-width:100%;min-width:0;grid-template-columns:minmax(0,1fr);padding:16px}.flight-journey-card{min-width:0;overflow:hidden}.flight-journey-card+ .flight-journey-card{margin:20px 0 0;padding:20px 0 0;border-left:0;border-top:1px solid #e4e7ec}.flight-journey-head{font-size:13px}.flight-airline{font-size:12px}.flight-route{min-width:0;padding:10px 6px;grid-template-columns:minmax(54px,1fr) minmax(56px,.9fr) minmax(54px,1fr);gap:3px}.flight-route-stop strong{font-size:18px}.flight-route-center span{font-size:13px}}
+      </style></head><body><main class="page"><section class="hero"><div class="hero-copy"><img class="hero-logo" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/logo2.png" alt="SECRET TOUR"><h1>${escapeHtml(draft.applicantName || "고객")}님,<br>견적서가 도착했어요.</h1><p class="hero-product">${escapeHtml(draft.productName || "해외 골프 조인 견적")}</p><div class="hero-meta"><span>${escapeHtml(regionText)}</span><span>${escapeHtml(draft.departureDate || "-")} ~ ${escapeHtml(draft.returnDate || "-")}</span><p class="hero-document-meta">견적번호 견적 생성 후 발급<br>생성일 견적 생성 시 기록</p></div></div><div class="hero-image"><img src="${escapeHtml(QUOTE_HERO_IMAGE_URL)}" alt="골프조인 견적서 안내 이미지"></div></section><div class="body">
+        <section><h3><span class="number">01</span>고객정보</h3><div class="info"><div><span>고객명</span><strong>${escapeHtml(draft.applicantName || "-")}</strong></div><div><span>연락처</span><strong>${escapeHtml(formatPhone(draft.applicantPhone || ""))}</strong></div><div><span>인원</span><strong>${amounts.people}명</strong></div></div></section>
+        <section><h3><span class="number">02</span>상품정보</h3><div class="product-info"><div class="flight"><h4>상품명</h4><strong>${escapeHtml(draft.productName || "-")}</strong></div><div class="lists product-basics"><div><h4>방문지역</h4><strong>${escapeHtml(regionText)}</strong></div><div><h4>여행기간</h4><strong>${escapeHtml(tripPeriodText)}</strong></div></div><div class="flight product-flight${shouldShowQuoteEditorFlightDetails(draft) ? " is-structured" : ""}"><h4>항공</h4>${renderQuoteEditorFlightInfo(draft)}</div><div class="lists inclusion-lists"><div><h4>포함사항</h4><ul>${renderQuoteEditorPreviewList(draft.includedItems, "실제 상품 정보 확인 필요")}</ul></div><div><h4>불포함사항</h4><ul>${renderQuoteEditorPreviewList(draft.excludedItems, "실제 상품 정보 확인 필요")}</ul></div></div><div class="notes"><div class="note-group"><h4>참고사항</h4><ul>${renderQuoteEditorPreviewList(draft.productNotes, "등록된 상품 참고사항 없음", { lineBreakOnly: true })}</ul></div></div><h3 class="schedule-title">일정표</h3><div class="schedule-wrap">${renderQuoteEditorSchedule(draft.itinerarySchedule, draft.itineraryItems)}</div></div></section>
+        <section><h3><span class="number">03</span>요금안내</h3><div class="price-groups"><div class="price-card"><div class="price-row"><div class="price-copy"><strong>기본가</strong><span>1인 기준 × ${amounts.people}명</span></div><div class="price-amount">${formatQuoteEditorAmount(amounts.productSubtotal)}</div></div>${additionalAmountRows}<div class="price-row"><div class="price-copy"><strong>객실 1인1실 사용요금</strong><span>${amounts.singleRoomSurcharge ? `1인 1실 · 1박 ${formatQuoteEditorAmount(amounts.singleRoomSurchargePerNight)} × ${amounts.nightCount}박` : "해당 없음"}</span></div><div class="price-amount">${formatQuoteEditorAmount(amounts.singleRoomSurcharge, "-")}</div></div><div class="price-row total"><div class="price-copy"><strong>예상 총액</strong><span>${airfareStatusText}</span></div><div class="price-amount"><strong>${formatQuoteEditorAmount(amounts.estimatedTotal)}</strong>${airfarePending ? "<span>+ 항공료</span>" : ""}</div></div></div><div class="price-card"><div class="price-row"><div class="price-copy"><strong>예약금</strong><span>1인 ${formatQuoteEditorAmount(amounts.depositPerPerson)}</span></div><div class="price-amount">${formatQuoteEditorAmount(amounts.deposit)}</div></div><div class="price-row"><div class="price-copy"><strong>잔금</strong><span>예약금 제외 · ${airfareStatusText}</span></div><div class="price-amount"><strong>${formatQuoteEditorAmount(amounts.balance, "0원")}</strong>${isFlightAgencyRequest && airfarePending ? "<span>+ 항공료</span>" : ""}</div></div>${balanceFlightGuide}</div></div><div class="account"><div class="account-brand"><h4>입금계좌</h4></div><div class="account-details"><div class="account-row"><span>은행</span><img class="account-bank-logo" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/logo_shinhanbank.jpg" alt="신한은행"></div><div class="account-row"><span>계좌번호</span><strong>140-013-991111</strong></div><div class="account-row"><span>예금주</span><strong>(주)시크릿투어</strong></div></div></div></section>
+        <section><h3><span class="number">04</span>유의사항</h3><div class="notice">${escapeHtml(draft.specialNotes || "-")}</div><div class="policy"><h4>유의사항</h4><h5>예약 전 꼭 확인해주세요</h5><ul><li>본 상품은 4인 1팀으로 운영되는 골프조인 상품입니다.</li><li>예약 신청 후 참가 인원, 항공 좌석, 숙소 및 골프장 예약이 모두 확정되면 최종 출발이 확정됩니다.</li><li>조인 인원이 충족되지 않아 출발이 취소되는 경우 예약금은 전액 환불됩니다.</li></ul><h5>이용 안내</h5><ul><li>1인 예약 시 룸조인 또는 싱글룸 추가요금이 발생할 수 있습니다.</li><li>참가자 취소로 조인 인원 변동이 발생할 경우 여행사는 대체 참가자 모집을 위해 최선을 다합니다.</li><li>영문명, 여권정보, 생년월일 등 예약정보 오류로 발생하는 비용은 고객 부담입니다.</li><li>천재지변, 항공기 결항 등 불가항력적 상황은 항공사 및 현지 업체 규정에 따라 처리됩니다.</li><li>취소 및 변경 접수는 평일 영업시간(09:00~18:00) 기준으로 적용됩니다.</li></ul></div><div class="policy"><h4>취소 수수료 관련 규정</h4><p><strong>제5조(여행출발 전 계약해제)</strong> 이 상품은 특별약관을 기준으로 진행됩니다.</p><ul><li>여행확정일~여행출발일 20일 전 취소 요청 시 - 항공위약금 + 여행요금의 20% 배상</li><li>여행출발일 19~10일 전까지 취소 요청 시 - 항공위약금 + 여행요금의 30% 배상</li><li>여행출발일 9~8일 전까지 취소 요청 시 - 항공위약금 + 여행요금의 50% 배상</li><li>여행출발일 7~4일 전까지 취소 요청 시 - 항공위약금 + 여행요금의 70% 배상</li><li>여행출발일 3일 전~출발 당일까지 취소 요청 시 - 여행요금의 100% 배상</li></ul></div></section><footer class="company"><strong>(주)시크릿투어</strong><div class="company-info"><span>대표이사 권태호</span><span>서울시 마포구 동교로 255-1 501호</span><span>사업자등록번호 105-88-00661</span><span>관광사업등록 제2022-000036호</span><span>통신판매업 제2022-서울마포-2119호</span><span>대표전화 02-3446-1119</span><span>팩스 02-555-1319</span></div></footer>
       </div></main></body></html>`;
+      return previewHtml.replace(
+        '<footer class="company">',
+        '<div class="community-actions" aria-label="추가 상담 채널"><a class="community-link" href="https://pf.kakao.com/_lRbYxj/chat" target="_blank" rel="noopener noreferrer"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_kakao.webp" alt=""><span>채팅으로 문의</span></a><a class="community-link" href="https://band.us/@secrettour" target="_blank" rel="noopener noreferrer"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_band.webp" alt=""><span>밴드 가입하기</span></a></div><footer class="company">'
+      );
     }
 
     function renderQuoteEditorPreview() {
@@ -5316,23 +6882,50 @@
       quoteEditorPreviewTimer = setTimeout(renderQuoteEditorPreview, 80);
     }
 
+    function setQuoteEditorPreviewDevice(device = "pc") {
+      const normalized = device === "mobile" ? "mobile" : "pc";
+      const stage = document.getElementById("quoteEditorPreviewStage");
+      stage?.classList.toggle("mobile", normalized === "mobile");
+      document.querySelectorAll("[data-quote-preview-device]").forEach((button) => {
+        const active = button.dataset.quotePreviewDevice === normalized;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    }
+
     function populateQuoteEditorForm() {
       document.querySelectorAll("[data-quote-field]").forEach((field) => {
         const key = field.dataset.quoteField;
-        field.value = quoteEditorDraft?.[key] == null ? "" : quoteEditorDraft[key];
+        const value = quoteEditorDraft?.[key] == null ? "" : quoteEditorDraft[key];
+        field.value = field.hasAttribute("data-quote-amount") && parseQuoteEditorAmount(value)
+          ? parseQuoteEditorAmount(value).toLocaleString("ko-KR")
+          : value;
       });
+      renderQuoteEditorAdditionalAmounts();
+      renderQuoteEditorItineraryForm();
+      updateQuoteEditorFlightDetailState();
     }
 
-    function syncQuoteEditorDraftFromForm() {
+    function syncQuoteEditorDraftFromForm(event) {
       if (!quoteEditorDraft) return;
+      const changedDateField = event?.target?.closest?.('[data-itinerary-field="dateText"]');
+      if (changedDateField?.closest("[data-itinerary-day-index]")?.dataset.itineraryDayIndex === "0") {
+        syncQuoteEditorItineraryDateInputsFromFirstDay();
+      }
       document.querySelectorAll("[data-quote-field]").forEach((field) => {
         const key = field.dataset.quoteField;
-        quoteEditorDraft[key] = field.type === "number" ? parseQuoteEditorAmount(field.value) : field.value;
+        quoteEditorDraft[key] = field.hasAttribute("data-quote-amount")
+          ? formatQuoteEditorAmountField(field)
+          : field.type === "number" ? parseQuoteEditorAmount(field.value) : field.value;
       });
+      syncQuoteEditorAdditionalAmountsFromForm();
+      syncQuoteEditorItineraryFromForm();
+      updateQuoteEditorAirfareButtonState();
+      updateQuoteEditorFlightDetailState();
       scheduleQuoteEditorPreview();
     }
 
-    function openQuoteEditor(button) {
+    async function openQuoteEditor(button) {
       const context = getQuoteEditorContext(button);
       if (!context) {
         alert("견적서를 연결할 신청 정보를 찾을 수 없습니다.");
@@ -5340,12 +6933,35 @@
       }
       quoteEditorContext = context;
       quoteEditorDraft = buildQuoteEditorDraft(context);
+      setQuoteEditorPreviewDevice("pc");
       populateQuoteEditorForm();
       renderQuoteEditorPreview();
       const backdrop = document.getElementById("quoteEditorBackdrop");
       backdrop?.classList.add("open");
       backdrop?.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
+      setQuoteProductSourceState("실제 상품 상세 정보를 불러오는 중입니다.");
+      const activeContext = context;
+      try {
+        const detail = await getProductDetailContent(context.schedule.row || {}, context.schedule.product || {});
+        if (quoteEditorContext !== activeContext || !quoteEditorDraft) return;
+        applyQuoteProductDetailToDraft(detail);
+        populateQuoteEditorForm();
+        renderQuoteEditorPreview();
+        const hasRequiredProductDetail = Boolean(parseList(detail.includes).length && parseList(detail.excludes).length);
+        if (hasRequiredProductDetail && !detail.loadError) {
+          setQuoteProductSourceState("시크릿투어 실제 상품 상세의 포함·불포함·일정 정보를 불러왔습니다.", "success");
+        } else if (hasRequiredProductDetail) {
+          setQuoteProductSourceState("저장된 상품 정보에서 포함·불포함 사항을 불러왔습니다. 내용을 확인해 주세요.", "warning");
+        } else {
+          setQuoteProductSourceState("실제 상품의 포함·불포함 사항을 찾지 못했습니다. 상품 상세를 확인해 직접 입력해 주세요.", "warning");
+        }
+      } catch (error) {
+        console.warn("Failed to load quote product detail.", error);
+        if (quoteEditorContext === activeContext) {
+          setQuoteProductSourceState("실제 상품 정보를 불러오지 못했습니다. 상품 상세를 확인해 직접 입력해 주세요.", "warning");
+        }
+      }
     }
 
     function closeQuoteEditor() {
@@ -5363,6 +6979,20 @@
       if (!asText(draft.productName)) return "상품명을 입력해 주세요.";
       if (!normalizeQuoteEditorDate(draft.departureDate) || !normalizeQuoteEditorDate(draft.returnDate)) return "출발일과 도착일을 입력해 주세요.";
       if (!parseQuoteEditorAmount(draft.unitPrice)) return "1인 상품가를 입력해 주세요.";
+      const isFlightExcluded = normalizePackTypeValue(draft.packType) === "golf" || isIndividualAirlineName(draft.airline);
+      if (!isFlightExcluded && !shouldShowQuoteEditorFlightDetails(draft) && !parseList(draft.flightScheduleItems).length) return "실제 상품의 항공 일정을 입력해 주세요.";
+      if (shouldShowQuoteEditorFlightDetails(draft)) {
+        if (!hasQuoteEditorActualAirline(draft.airline)) return "항공사명을 입력해 주세요.";
+        const details = normalizeQuoteEditorFlightDetails(draft);
+        if (!details.outboundFlightName) return "출발편명을 입력해 주세요.";
+        if (!details.outboundDepartureTime || !details.outboundArrivalTime) return "출발편의 출발시간과 도착시간을 입력해 주세요.";
+        if (!details.inboundFlightName) return "도착편명을 입력해 주세요.";
+        if (!details.inboundDepartureTime || !details.inboundArrivalTime) return "귀국편의 출발시간과 도착시간을 입력해 주세요.";
+      }
+      const hasItinerary = normalizeQuoteEditorItinerarySchedule(draft.itinerarySchedule).some((item) => item.points.length || asText(item.content));
+      if (!hasItinerary) return "실제 상품의 일정표를 입력해 주세요.";
+      if (!parseList(draft.includedItems).length) return "실제 상품의 포함 사항을 입력해 주세요.";
+      if (!parseList(draft.excludedItems).length) return "실제 상품의 불포함 사항을 입력해 주세요.";
       return "";
     }
 
@@ -5382,10 +7012,10 @@
       }
       const confirmButton = document.getElementById("quoteEditorConfirm");
       const auth = getAdminAuth();
-      const url = new URL(SHEET_API_ENDPOINT);
+      const url = new URL(QUOTE_API_ENDPOINT);
       url.searchParams.set("action", "quote_generate");
       if (confirmButton) confirmButton.disabled = true;
-      showDashboardLoading("고객용 견적 페이지와 PDF를 생성하는 중입니다.");
+      showDashboardLoading("고객용 웹 견적 페이지를 확정하는 중입니다.");
       try {
         const response = await fetch(url.toString(), {
           method: "POST",
@@ -5405,18 +7035,23 @@
           })
         });
         const result = await response.json().catch(() => ({}));
-        if (!response.ok || !result.ok) throw new Error(result.error || `견적서 생성 실패: ${response.status}`);
+        if (!response.ok || !result.ok) throw new Error(result.error || `견적서 확정 실패: ${response.status}`);
         Object.assign(participant, result.fields || {}, {
           quoteId: result.quoteId || result.fields?.quoteId || participant.quoteId,
           quoteNo: result.quoteNo || result.fields?.quoteNo || participant.quoteNo,
           quoteUrl: result.quoteUrl || result.fields?.quoteUrl || participant.quoteUrl,
           quotePageUrl: result.quotePageUrl || result.fields?.quotePageUrl || participant.quotePageUrl,
           quotePdfUrl: result.quotePdfUrl || result.fields?.quotePdfUrl || participant.quotePdfUrl,
-          quoteFileName: result.quoteFileName || result.fields?.quoteFileName || participant.quoteFileName,
+          quoteFileName: result.quoteFileName ?? result.fields?.quoteFileName ?? participant.quoteFileName,
+          quotePageFileName: result.fields?.quotePageFileName ?? participant.quotePageFileName,
+          quoteDataFileName: result.fields?.quoteDataFileName ?? participant.quoteDataFileName,
           quoteGeneratedAt: result.quoteGeneratedAt || result.fields?.quoteGeneratedAt || participant.quoteGeneratedAt,
+          quoteStatus: result.quoteStatus || result.fields?.quoteStatus || "created",
+          quoteAdditionalAmountsJson: result.fields?.quoteAdditionalAmountsJson || JSON.stringify(quoteEditorDraft.additionalAmounts || []),
+          quoteFlightDetailsJson: result.fields?.quoteFlightDetailsJson || JSON.stringify(normalizeQuoteEditorFlightDetails(quoteEditorDraft)),
           updatedAt: nowKstISOString()
         });
-        const pageUrl = result.quotePageUrl || result.quoteUrl || result.fields?.quotePageUrl || result.fields?.quoteUrl || "";
+        const pageUrl = normalizeQuoteAccessUrl(result.quotePageUrl || result.quoteUrl || result.fields?.quotePageUrl || result.fields?.quoteUrl || "");
         closeQuoteEditor();
         renderMetrics();
         renderTable();
@@ -5424,8 +7059,8 @@
       } catch (error) {
         const message = String(error?.message || "");
         alert(/abort|timed out|timeout/i.test(message)
-          ? `견적서 생성 시간이 초과되었습니다.\n${message}\n잠시 후 다시 시도해 주세요.`
-          : message || "견적서 생성에 실패했습니다.");
+          ? `견적서 확정 시간이 초과되었습니다.\n${message}\n잠시 후 다시 시도해 주세요.`
+          : message || "견적서 확정에 실패했습니다.");
       } finally {
         hideDashboardLoading();
         if (confirmButton) confirmButton.disabled = false;
@@ -5526,9 +7161,335 @@
       $("#drawerBackdrop").classList.remove("open");
     }
 
+    function createRosterEditorId(prefix = "roster") {
+      if (window.crypto?.randomUUID) return `${prefix}-${window.crypto.randomUUID()}`;
+      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    function getRosterEditorBirthDate(row = {}) {
+      const digits = firstText(row.applicantBirthDate, row.birthDate).replace(/\D/g, "");
+      if (digits.length === 8) return digits.slice(2);
+      return digits.slice(0, 6);
+    }
+
+    function createRosterEditorItem(row = {}) {
+      const isExisting = Boolean(asText(row.adminRosterItemId));
+      const gender = getParticipantGender(row);
+      const roomType = getParticipantRoomType(row).replace(/\s/g, "");
+      const identityStatus = asText(row.identityMatchStatus).toLowerCase();
+      const isMember = ["member_profile", "web_member"].includes(identityStatus);
+      return {
+        rosterItemId: asText(row.adminRosterItemId) || createRosterEditorId("participant"),
+        name: isExisting ? getParticipantName(row) : "",
+        phone: isExisting ? normalizePhone(getParticipantPhone(row)) : "",
+        birthDate: isExisting ? getRosterEditorBirthDate(row) : "",
+        gender: gender.startsWith("여") ? "여성" : "남성",
+        roomType: roomType === "1인1실" ? "1인1실" : "2인1실",
+        flightRequestType: isExisting ? (getParticipantFlightRequestType(row) || "대행요청") : "대행요청",
+        level: isExisting ? getParticipantHandicap(row) : "",
+        lookupState: isExisting ? (isMember ? "member" : "guest") : "idle",
+        lookupLabel: isExisting ? (isMember ? "회원 정보 연동" : "임시회원 정보 연동") : "이름과 연락처 입력 후 자동 조회"
+      };
+    }
+
+    function getRosterItem(itemId = "") {
+      return rosterEditorItems.find((item) => item.rosterItemId === itemId);
+    }
+
+    function renderRosterRadio(item, field, value, label) {
+      const inputId = `${field}-${item.rosterItemId}-${value}`.replace(/[^a-z0-9가-힣_-]+/gi, "-");
+      return `<label for="${escapeHtml(inputId)}"><input id="${escapeHtml(inputId)}" type="radio" name="${escapeHtml(`${field}-${item.rosterItemId}`)}" value="${escapeHtml(value)}" data-roster-item-id="${escapeHtml(item.rosterItemId)}" data-roster-field="${escapeHtml(field)}"${item[field] === value ? " checked" : ""}><span>${escapeHtml(label)}</span></label>`;
+    }
+
+    function getRosterIdentityClass(item = {}) {
+      if (item.lookupState === "member") return "member";
+      if (item.lookupState === "guest") return "guest";
+      if (item.lookupState === "error") return "error";
+      return "";
+    }
+
+    function renderRosterEditorItems() {
+      const levelOptions = [
+        "입문·초보입니다",
+        "보기 플레이어",
+        "90대 정도입니다",
+        "80대 정도입니다",
+        "싱글 수준입니다",
+        "골프 프로입니다"
+      ];
+      $("#rosterList").innerHTML = rosterEditorItems.map((item, index) => `
+        <article class="roster-item" data-roster-item="${escapeHtml(item.rosterItemId)}">
+          <div class="roster-item-head">
+            <div class="roster-item-head-main">
+              <strong class="roster-item-number">참여자 ${index + 1}</strong>
+              <span class="roster-identity-badge ${getRosterIdentityClass(item)}" data-roster-identity="${escapeHtml(item.rosterItemId)}">${escapeHtml(item.lookupLabel)}</span>
+              <button class="roster-lookup-button" type="button" data-roster-action="lookup" data-roster-item-id="${escapeHtml(item.rosterItemId)}">회원 조회</button>
+            </div>
+            <button class="roster-item-remove" type="button" data-roster-action="remove" data-roster-item-id="${escapeHtml(item.rosterItemId)}" aria-label="참여자 삭제"${rosterEditorMode === "edit" ? " hidden" : ""}${rosterEditorItems.length === 1 ? " disabled" : ""}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+          </div>
+          <div class="roster-grid">
+            <div class="roster-field"><label>이름</label><input value="${escapeHtml(item.name)}" maxlength="50" autocomplete="off" data-roster-item-id="${escapeHtml(item.rosterItemId)}" data-roster-field="name" placeholder="이름 입력"></div>
+            <div class="roster-field"><label>연락처</label><input value="${escapeHtml(item.phone)}" maxlength="13" inputmode="tel" autocomplete="off" data-roster-item-id="${escapeHtml(item.rosterItemId)}" data-roster-field="phone" placeholder="010-0000-0000"></div>
+            <div class="roster-field"><label>생년월일</label><input value="${escapeHtml(item.birthDate)}" maxlength="6" inputmode="numeric" autocomplete="off" data-roster-item-id="${escapeHtml(item.rosterItemId)}" data-roster-field="birthDate" placeholder="yymmdd"></div>
+            <div class="roster-field"><span class="roster-field-label">성별</span><div class="roster-radio-group">${renderRosterRadio(item, "gender", "남성", "남")}${renderRosterRadio(item, "gender", "여성", "여")}</div></div>
+            <div class="roster-field"><span class="roster-field-label">객실</span><div class="roster-radio-group">${renderRosterRadio(item, "roomType", "2인1실", "2인 1실")}${renderRosterRadio(item, "roomType", "1인1실", "1인 1실")}</div></div>
+            <div class="roster-field"><span class="roster-field-label">항공</span><div class="roster-radio-group">${renderRosterRadio(item, "flightRequestType", "대행요청", "대행요청")}${renderRosterRadio(item, "flightRequestType", "직접예약", "직접예약")}</div></div>
+            <div class="roster-field"><label>핸디 <span class="muted">(선택)</span></label><select data-roster-item-id="${escapeHtml(item.rosterItemId)}" data-roster-field="level"><option value="">선택 안 함</option>${levelOptions.map((value) => `<option value="${escapeHtml(value)}"${item.level === value ? " selected" : ""}>${escapeHtml(value)}</option>`).join("")}</select></div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function updateRosterIdentityBadge(item) {
+      const badge = document.querySelector(`[data-roster-identity="${CSS.escape(item.rosterItemId)}"]`);
+      if (!badge) return;
+      badge.className = `roster-identity-badge ${getRosterIdentityClass(item)}`.trim();
+      badge.textContent = item.lookupLabel;
+      const button = document.querySelector(`[data-roster-action="lookup"][data-roster-item-id="${CSS.escape(item.rosterItemId)}"]`);
+      if (button) button.disabled = item.lookupState === "loading";
+    }
+
+    async function lookupRosterMember(itemId, options = {}) {
+      const item = getRosterItem(itemId);
+      if (!item) return;
+      const phone = normalizePhone(item.phone);
+      if (!asText(item.name) || phone.length < 10) {
+        item.lookupState = "idle";
+        item.lookupLabel = "이름과 연락처를 모두 입력해 주세요";
+        updateRosterIdentityBadge(item);
+        return;
+      }
+      item.lookupState = "loading";
+      item.lookupLabel = "ERP 및 회원정보 조회 중";
+      updateRosterIdentityBadge(item);
+      try {
+        const data = await postAdminAction("admin_erp_member_lookup", { memberName: item.name, memberMobile: phone });
+        item.lookupData = data;
+        if (data.profile?.hasAdditionalInfo) {
+          item.lookupState = "member";
+          item.lookupLabel = "회원 · 추가정보 입력 완료";
+        } else if (data.matchStatus === "web_member") {
+          item.lookupState = "member";
+          item.lookupLabel = "회원 · 추가정보 미입력";
+        } else if (data.matchStatus === "erp_customer") {
+          item.lookupState = "guest";
+          item.lookupLabel = "비회원 · ERP 고객정보 있음";
+        } else if (data.matchStatus === "multiple_matches") {
+          item.lookupState = "error";
+          item.lookupLabel = "ERP 동일 정보가 여러 건입니다";
+        } else if (data.profile) {
+          item.lookupState = data.profile.profileStatus === "temporary" ? "guest" : "member";
+          item.lookupLabel = data.profile.profileStatus === "temporary" ? "임시회원 · 추가정보 미입력" : "회원";
+        } else {
+          item.lookupState = "guest";
+          item.lookupLabel = "비회원 · 임시회원으로 등록 예정";
+        }
+      } catch (error) {
+        item.lookupState = "error";
+        item.lookupLabel = error.message || "회원 조회 실패";
+        if (!options.silent) console.warn("Roster member lookup failed", error);
+      }
+      updateRosterIdentityBadge(item);
+    }
+
+    function scheduleRosterMemberLookup(itemId) {
+      const previous = rosterLookupTimers.get(itemId);
+      if (previous) window.clearTimeout(previous);
+      const timer = window.setTimeout(() => {
+        rosterLookupTimers.delete(itemId);
+        lookupRosterMember(itemId, { silent: true });
+      }, 650);
+      rosterLookupTimers.set(itemId, timer);
+    }
+
+    function getAdminRosterSchedulePayload(schedule = rosterEditorSchedule) {
+      const row = schedule?.row || {};
+      const product = schedule?.product || {};
+      return {
+        targetType: schedule?.isRecommendationSchedule ? "recommended_schedule" : "new_schedule",
+        targetScheduleId: asText(row.scheduleId || schedule?.key),
+        targetApplicationId: asText(row.applicationId || row.sourceApplicationId),
+        pageUrl: location.href,
+        product: {
+          airline: normalizeSecretTourAirlineName(
+            row.airline,
+            product.airline,
+            product.airlineName,
+            product.airlineNm,
+            product.air2Nm,
+            product.air2CdNm
+          ),
+          departureAirport: normalizeSecretTourAirportName(
+            row.departureAirport,
+            product.departureAirport,
+            product.depAirport,
+            product.airport,
+            product.airportName
+          ),
+          arrivalAirport: firstText(
+            row.arrivalAirport,
+            product.arrivalAirport,
+            product.arrAirport,
+            product.toCity,
+            product.arrivalCity
+          )
+        }
+      };
+    }
+
+    async function refreshScheduleParticipants(schedule) {
+      if (!schedule) return;
+      const data = await postAdminAction("admin_participant_lookup", getAdminRosterSchedulePayload(schedule));
+      const creatorRows = (schedule.participants || []).filter((row) => getParticipantRole(row) === "creator");
+      schedule.participants = creatorRows.concat(Array.isArray(data.rows) ? data.rows : []);
+    }
+
+    async function openRosterEditor(schedule, participant = null) {
+      if (!schedule) return;
+      const editing = Boolean(participant && getParticipantRole(participant) === "admin" && asText(participant.adminRosterItemId));
+      rosterEditorSchedule = schedule;
+      rosterEditorMode = editing ? "edit" : "create";
+      rosterEditorBatchId = editing ? asText(participant.rosterBatchId) : "";
+      rosterEditorItems = [createRosterEditorItem(editing ? participant : {})];
+      $("#rosterTitle").textContent = editing ? "참여자 정보 수정" : "참여자 명단 추가";
+      $("#rosterSubtitle").textContent = `${getTitle(schedule.row || {})} · 정원 ${getScheduleCapacity(schedule)}명`;
+      $("#rosterAddRow").hidden = editing;
+      $("#rosterSave").textContent = editing ? "수정 완료" : "명단 등록";
+      $("#rosterErpState").className = "roster-erp-state";
+      $("#rosterErpState").textContent = "ERP 연결을 확인하는 중입니다.";
+      renderRosterEditorItems();
+      $("#rosterBackdrop").classList.add("open");
+      $("#rosterBackdrop").setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      try {
+        await postAdminAction("admin_erp_login_check", {});
+        $("#rosterErpState").className = "roster-erp-state ok";
+        $("#rosterErpState").textContent = "ERP 회원조회 연결됨";
+      } catch (error) {
+        $("#rosterErpState").className = "roster-erp-state error";
+        $("#rosterErpState").textContent = `ERP 연결 실패: ${error.message || "환경설정을 확인해 주세요."}`;
+      }
+    }
+
+    function closeRosterEditor() {
+      rosterLookupTimers.forEach((timer) => window.clearTimeout(timer));
+      rosterLookupTimers.clear();
+      rosterEditorSchedule = null;
+      rosterEditorItems = [];
+      rosterEditorMode = "create";
+      rosterEditorBatchId = "";
+      $("#rosterBackdrop").classList.remove("open");
+      $("#rosterBackdrop").setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
+    async function submitRosterEditor() {
+      if (!rosterEditorSchedule || !rosterEditorItems.length) return;
+      for (const item of rosterEditorItems) {
+        item.name = asText(item.name);
+        item.phone = normalizePhone(item.phone);
+        item.birthDate = asText(item.birthDate).replace(/\D/g, "");
+        if (!item.name || item.phone.length < 10 || !/^\d{6}$/.test(item.birthDate)) {
+          alert("모든 참여자의 이름, 연락처, 생년월일(yymmdd)을 확인해 주세요.");
+          return;
+        }
+      }
+      const saveButton = $("#rosterSave");
+      saveButton.disabled = true;
+      const isEditing = rosterEditorMode === "edit";
+      showDashboardLoading(isEditing ? "참여자 정보를 수정하는 중입니다." : "ERP 회원 확인 및 참여자 명단을 등록하는 중입니다.");
+      let savedCount = null;
+      try {
+        const data = await postAdminAction("admin_participant_batch_upsert", {
+          ...getAdminRosterSchedulePayload(rosterEditorSchedule),
+          rosterBatchId: rosterEditorBatchId || createRosterEditorId("batch"),
+          participants: rosterEditorItems.map((item) => ({
+            rosterItemId: item.rosterItemId,
+            name: item.name,
+            phone: item.phone,
+            birthDate: item.birthDate,
+            gender: item.gender,
+            roomType: item.roomType,
+            flightRequestType: item.flightRequestType,
+            level: item.level
+          }))
+        });
+        const schedule = rosterEditorSchedule;
+        closeRosterEditor();
+        await refreshScheduleParticipants(schedule);
+        state.expandedParticipantKey = schedule.key;
+        renderMetrics();
+        renderTable();
+        savedCount = Number(data.savedCount || 0);
+      } catch (error) {
+        alert(error.message || (isEditing ? "참여자 정보 수정에 실패했습니다." : "참여자 명단 등록에 실패했습니다."));
+      } finally {
+        hideDashboardLoading();
+        saveButton.disabled = false;
+      }
+      if (savedCount !== null) {
+        await openConfirmDialog({
+          title: isEditing ? "참여자 수정 완료" : "참여자 등록 완료",
+          message: isEditing ? "참여자 정보를 수정했습니다." : `${savedCount}명의 참여자를 등록했습니다.`,
+          okText: "확인",
+          showCancel: false,
+          dialogClass: "roster-success-dialog"
+        });
+      }
+    }
+
+    function getParticipantActionContext(button) {
+      const rowElement = button?.closest("tr[data-schedule-key][data-participant-index]");
+      if (!rowElement) return null;
+      const schedule = findSchedule(rowElement.dataset.scheduleKey || "");
+      const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
+      return schedule && participant ? { rowElement, schedule, participant } : null;
+    }
+
+    async function deleteAdminRosterParticipant(button) {
+      const context = getParticipantActionContext(button);
+      if (!context || !canManageAdminRosterParticipant(context.participant)) return;
+      const participantName = getParticipantName(context.participant) || "참여자";
+      const confirmed = await openConfirmDialog({
+        title: "참여자 삭제",
+        message: `${participantName}님의 참여자 정보를 삭제할까요? 구글시트의 해당 참여신청 정보도 함께 삭제됩니다.`,
+        okText: "삭제"
+      });
+      if (!confirmed) return;
+      button.disabled = true;
+      showDashboardLoading("참여자 정보를 삭제하는 중입니다.");
+      let deleted = false;
+      try {
+        await postAdminAction("admin_participant_delete", {
+          ...getAdminRosterSchedulePayload(context.schedule),
+          applicationId: getParticipantApplicationId(context.participant),
+          adminRosterItemId: asText(context.participant.adminRosterItemId)
+        });
+        await refreshScheduleParticipants(context.schedule);
+        state.expandedParticipantKey = context.schedule.key;
+        renderMetrics();
+        renderTable();
+        deleted = true;
+      } catch (error) {
+        alert(error.message || "참여자 정보 삭제에 실패했습니다.");
+      } finally {
+        hideDashboardLoading();
+        button.disabled = false;
+      }
+      if (deleted) {
+        await openConfirmDialog({
+          title: "참여자 삭제 완료",
+          message: `${participantName}님의 참여자 정보를 삭제했습니다.`,
+          okText: "확인",
+          showCancel: false,
+          dialogClass: "roster-success-dialog"
+        });
+      }
+    }
+
     function renderParticipantTable(schedule) {
       const participants = getParticipantDisplayRows(schedule.participants || []);
-      return `
+      const table = participants.length ? `
         <div class="participant-table-wrap">
           <table class="participant-table">
             <thead>
@@ -5547,12 +7508,19 @@
                 <th>예약금</th>
                 <th>잔금</th>
                 <th>취소/환불</th>
+                <th>관리</th>
               </tr>
             </thead>
             <tbody>
               ${participants.map((item) => renderParticipantRow(item.row, schedule, item.index, item.companions)).join("")}
             </tbody>
           </table>
+        </div>
+      ` : '<div class="empty">아직 이 모임에 참여자가 없어요.</div>';
+      return `
+        ${table}
+        <div class="participant-roster-actions">
+          <button class="participant-roster-add-button" type="button" data-action="participant-roster-add" data-key="${escapeHtml(schedule.key)}">참여자 추가</button>
         </div>
       `;
     }
@@ -5585,6 +7553,24 @@
       return rows;
     }
 
+    function canManageAdminRosterParticipant(row = {}) {
+      return Boolean(getParticipantRole(row) === "admin" && asText(row.adminRosterItemId) && getParticipantApplicationId(row));
+    }
+
+    function renderAdminRosterParticipantActions(row = {}) {
+      if (!canManageAdminRosterParticipant(row)) return "";
+      return `
+        <div class="participant-admin-row-actions">
+          <button class="participant-admin-row-action" type="button" data-action="participant-roster-edit" aria-label="참여자 정보 수정" title="수정">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg>
+          </button>
+          <button class="participant-admin-row-action delete" type="button" data-action="participant-roster-delete" aria-label="참여자 삭제" title="삭제">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      `;
+    }
+
     function renderParticipantRow(row, schedule, index, companionRows = []) {
       const scheduleKey = schedule?.key || "";
       const birthYear = getParticipantBirthYear(row);
@@ -5611,6 +7597,7 @@
           <td>${renderParticipantPaidBadge("depositStatus", row.depositStatus)}</td>
           <td>${renderParticipantPaidBadge("balanceStatus", row.balanceStatus)}</td>
           <td>${renderParticipantRefundBadges(row.refundStatus)}</td>
+          <td>${renderAdminRosterParticipantActions(row)}</td>
         </tr>
       `;
     }
@@ -5625,7 +7612,14 @@
     function normalizeQuoteStatus(value) {
       const text = asText(value).toLowerCase();
       if (/sent|done|complete|전송|발송|완료/.test(text)) return "sent";
+      if (/created|generated|생성/.test(text)) return "created";
       return "";
+    }
+
+    function getQuoteStatusLabel(status = "") {
+      if (status === "sent") return "견적완료";
+      if (status === "created") return "견적완료";
+      return "미견적";
     }
 
     function renderParticipantStatusButton(field, value, label, options = {}) {
@@ -5638,7 +7632,7 @@
 
     function renderParticipantQuoteBadge(row = {}) {
       const current = normalizeQuoteStatus(row.quoteStatus);
-      return renderParticipantStatusButton("quoteStatus", "sent", current === "sent" ? "견적완료" : "미견적", {
+      return renderParticipantStatusButton("quoteStatus", "sent", getQuoteStatusLabel(current), {
         currentValue: current,
         activeClass: "is-complete"
       });
@@ -5667,10 +7661,14 @@
 
     function renderParticipantQuoteBadge(row = {}) {
       const current = normalizeQuoteStatus(row.quoteStatus);
+      const hasQuote = Boolean(asText(row.quotePageUrl || row.quoteUrl));
+      const quoteAction = renderQuoteGenerateButton(row);
+      const statusClass = current === "sent" ? " is-complete" : current === "created" || hasQuote ? " is-created" : "";
+      const statusBadge = `<span class="participant-status-badge${statusClass}">${getQuoteStatusLabel(current || (hasQuote ? "created" : ""))}</span>`;
+      const actions = hasQuote ? [statusBadge, quoteAction] : [quoteAction, statusBadge];
       return `
         <div class="quote-action-group">
-          ${renderQuoteGenerateButton(row)}
-          ${renderParticipantStatusCell("quoteStatus", current === "sent", current === "sent" ? "견적완료" : "미견적", "견적완료", "sent")}
+          ${actions.join("")}
         </div>
       `;
     }
@@ -6086,7 +8084,7 @@
         departureAirport,
         arrivalAirport,
         airline,
-        productPrice: product.price || "",
+        productPrice: firstText(existingRule?.productPrice, existingRule?.price, product.price),
         displayStartAt: product.departureDate || "",
         displayEndAt: product.returnDate || product.departureDate || "",
         tripSummary,
@@ -6167,9 +8165,6 @@
       showDashboardLoading("추천일정을 등록하는 중입니다.");
       try {
         await saveRecommendationScheduleByKey(productKey, recommendationOptions);
-        activateScheduleManagementView();
-        sessionStorage.setItem(RECOMMENDATION_REGISTER_RELOAD_KEY, "1");
-        window.location.reload();
       } finally {
         hideDashboardLoading();
       }
@@ -6219,7 +8214,7 @@
           keyField: "applicationId",
           keyValue: applicationId,
           fields,
-          skipSummaryRefresh: true
+          skipSummaryRefresh: !Object.prototype.hasOwnProperty.call(fields, "refundStatus")
         })
       });
       if (!response.ok) throw new Error(`저장 실패: ${response.status}`);
@@ -6243,10 +8238,12 @@
       if (!fieldName) return;
       const fieldValue = button.dataset.statusValue || "";
       const actionLabel = getStatusActionLabel(fieldName, fieldValue);
+      const isRefundAction = fieldName === "refundStatus";
       const confirmed = await openConfirmDialog({
         title: actionLabel,
         message: `${getParticipantName(participant) || "참여자"}님의 상태를 '${actionLabel}' 처리할까요?`,
-        okText: actionLabel
+        okText: isRefundAction ? "예" : actionLabel,
+        cancelText: isRefundAction ? "아니오" : "취소"
       });
       if (!confirmed) return;
       const fields = {
@@ -6272,7 +8269,7 @@
     }
 
     async function generateQuote(button) {
-      const quoteUrl = button.dataset.quoteUrl || "";
+      const quoteUrl = normalizeQuoteAccessUrl(button.dataset.quoteUrl || "");
       const forceRegenerate = button.dataset.forceRegenerate === "true";
       if (quoteUrl && !forceRegenerate) {
         window.open(quoteUrl, "_blank", "noopener");
@@ -6295,10 +8292,10 @@
       });
       if (!confirmed) return;
       const auth = getAdminAuth();
-      const url = new URL(SHEET_API_ENDPOINT);
+      const url = new URL(QUOTE_API_ENDPOINT);
       url.searchParams.set("action", "quote_generate");
       button.disabled = true;
-      showDashboardLoading("견적서 PDF를 생성하는 중입니다.");
+      showDashboardLoading("고객용 웹 견적 페이지를 확정하는 중입니다.");
       try {
         const response = await fetch(url.toString(), {
           method: "POST",
@@ -6317,24 +8314,29 @@
           })
         });
         const result = await response.json().catch(() => ({}));
-        if (!response.ok || !result.ok) throw new Error(result.error || `견적서 생성 실패: ${response.status}`);
+        if (!response.ok || !result.ok) throw new Error(result.error || `견적서 확정 실패: ${response.status}`);
         Object.assign(participant, result.fields || {}, {
           quoteId: result.quoteId || result.fields?.quoteId || participant.quoteId,
           quoteUrl: result.quoteUrl || result.fields?.quoteUrl || participant.quoteUrl,
-          quoteFileName: result.quoteFileName || result.fields?.quoteFileName || participant.quoteFileName,
+          quoteFileName: result.quoteFileName ?? result.fields?.quoteFileName ?? participant.quoteFileName,
+          quotePageFileName: result.fields?.quotePageFileName ?? participant.quotePageFileName,
+          quoteDataFileName: result.fields?.quoteDataFileName ?? participant.quoteDataFileName,
           quoteGeneratedAt: result.quoteGeneratedAt || result.fields?.quoteGeneratedAt || participant.quoteGeneratedAt,
+          quoteStatus: result.quoteStatus || result.fields?.quoteStatus || "created",
+          quoteAdditionalAmountsJson: result.fields?.quoteAdditionalAmountsJson || participant.quoteAdditionalAmountsJson,
+          quoteFlightDetailsJson: result.fields?.quoteFlightDetailsJson || participant.quoteFlightDetailsJson,
           updatedAt: nowKstISOString()
         });
         renderMetrics();
         renderTable();
-        const nextUrl = result.quoteUrl || result.fields?.quoteUrl || "";
+        const nextUrl = normalizeQuoteAccessUrl(result.quoteUrl || result.fields?.quoteUrl || "");
         if (nextUrl) window.open(nextUrl, "_blank", "noopener");
       } catch (error) {
         const message = String(error?.message || "");
         if (/abort|timed out|timeout/i.test(message)) {
-          alert(`견적서 생성 시간이 초과되었습니다.\n${message}\n잠시 후 다시 시도해 주세요.`);
+          alert(`견적서 확정 시간이 초과되었습니다.\n${message}\n잠시 후 다시 시도해 주세요.`);
         } else {
-          alert(message || "견적서 생성에 실패했습니다.");
+          alert(message || "견적서 확정에 실패했습니다.");
         }
       } finally {
         hideDashboardLoading();
@@ -6466,14 +8468,71 @@
 
     document.getElementById("quoteEditorForm")?.addEventListener("input", syncQuoteEditorDraftFromForm);
     document.getElementById("quoteEditorForm")?.addEventListener("change", syncQuoteEditorDraftFromForm);
+    document.getElementById("quoteEditorForm")?.addEventListener("click", handleQuoteEditorItineraryAction);
+    document.getElementById("quoteEditorForm")?.addEventListener("dragstart", handleQuoteEditorItineraryDragStart);
+    document.getElementById("quoteEditorForm")?.addEventListener("dragover", handleQuoteEditorItineraryDragOver);
+    document.getElementById("quoteEditorForm")?.addEventListener("dragend", handleQuoteEditorItineraryDragEnd);
     document.getElementById("quoteEditorClose")?.addEventListener("click", closeQuoteEditor);
     document.getElementById("quoteEditorCancel")?.addEventListener("click", closeQuoteEditor);
     document.getElementById("quoteEditorConfirm")?.addEventListener("click", submitQuoteEditor);
+    document.querySelectorAll("[data-quote-preview-device]").forEach((button) => {
+      button.addEventListener("click", () => setQuoteEditorPreviewDevice(button.dataset.quotePreviewDevice));
+    });
     document.getElementById("quoteEditorBackdrop")?.addEventListener("click", (event) => {
       if (event.target === event.currentTarget) closeQuoteEditor();
     });
+    document.getElementById("rosterClose")?.addEventListener("click", closeRosterEditor);
+    document.getElementById("rosterCancel")?.addEventListener("click", closeRosterEditor);
+    document.getElementById("rosterSave")?.addEventListener("click", submitRosterEditor);
+    document.getElementById("rosterAddRow")?.addEventListener("click", () => {
+      rosterEditorItems.push(createRosterEditorItem());
+      renderRosterEditorItems();
+      document.querySelector("#rosterList .roster-item:last-child input")?.focus();
+    });
+    document.getElementById("rosterList")?.addEventListener("input", (event) => {
+      const field = event.target.closest("[data-roster-field]");
+      if (!field) return;
+      const item = getRosterItem(field.dataset.rosterItemId || "");
+      if (!item) return;
+      let value = field.value;
+      if (field.dataset.rosterField === "phone") {
+        value = normalizePhone(value).slice(0, 11);
+        field.value = formatPhone(value);
+      }
+      if (field.dataset.rosterField === "birthDate") {
+        value = asText(value).replace(/\D/g, "").slice(0, 6);
+        field.value = value;
+      }
+      item[field.dataset.rosterField] = value;
+      if (["name", "phone"].includes(field.dataset.rosterField)) {
+        item.lookupState = "idle";
+        item.lookupLabel = "회원정보 확인 대기";
+        updateRosterIdentityBadge(item);
+        scheduleRosterMemberLookup(item.rosterItemId);
+      }
+    });
+    document.getElementById("rosterList")?.addEventListener("change", (event) => {
+      const field = event.target.closest("[data-roster-field]");
+      if (!field) return;
+      const item = getRosterItem(field.dataset.rosterItemId || "");
+      if (item) item[field.dataset.rosterField] = field.value;
+    });
+    document.getElementById("rosterList")?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-roster-action]");
+      if (!button) return;
+      const itemId = button.dataset.rosterItemId || "";
+      if (button.dataset.rosterAction === "remove" && rosterEditorItems.length > 1) {
+        const timer = rosterLookupTimers.get(itemId);
+        if (timer) window.clearTimeout(timer);
+        rosterLookupTimers.delete(itemId);
+        rosterEditorItems = rosterEditorItems.filter((item) => item.rosterItemId !== itemId);
+        renderRosterEditorItems();
+      }
+      if (button.dataset.rosterAction === "lookup") lookupRosterMember(itemId);
+    });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && document.getElementById("quoteEditorBackdrop")?.classList.contains("open")) closeQuoteEditor();
+      if (event.key === "Escape" && document.getElementById("rosterBackdrop")?.classList.contains("open")) closeRosterEditor();
     });
 
     $("#tableWrap").addEventListener("click", (event) => {
@@ -6543,7 +8602,7 @@
       }
       const quoteViewButton = event.target.closest('[data-action="quote-view"]');
       if (quoteViewButton) {
-        const quoteUrl = quoteViewButton.dataset.quoteUrl || "";
+        const quoteUrl = normalizeQuoteAccessUrl(quoteViewButton.dataset.quoteUrl || "");
         if (quoteUrl) window.open(quoteUrl, "_blank", "noopener");
         return;
       }
@@ -6555,6 +8614,25 @@
       const quoteSendButton = event.target.closest('[data-action="quote-send-placeholder"]');
       if (quoteSendButton) {
         alert("견적서 알림톡 템플릿 등록 후 전송 기능이 활성화됩니다.");
+        return;
+      }
+      const rosterAddButton = event.target.closest('[data-action="participant-roster-add"]');
+      if (rosterAddButton) {
+        const schedule = findSchedule(rosterAddButton.dataset.key || "");
+        if (schedule) openRosterEditor(schedule);
+        return;
+      }
+      const rosterEditButton = event.target.closest('[data-action="participant-roster-edit"]');
+      if (rosterEditButton) {
+        const context = getParticipantActionContext(rosterEditButton);
+        if (context && canManageAdminRosterParticipant(context.participant)) {
+          openRosterEditor(context.schedule, context.participant);
+        }
+        return;
+      }
+      const rosterDeleteButton = event.target.closest('[data-action="participant-roster-delete"]');
+      if (rosterDeleteButton) {
+        deleteAdminRosterParticipant(rosterDeleteButton);
         return;
       }
       const participantStatusButton = event.target.closest('[data-action="participant-status-update"]');
@@ -6578,15 +8656,19 @@
         if (!rowElement || event.target.closest(".row-actions")) return;
         const schedule = findSchedule(rowElement.dataset.scheduleKey);
         if (!schedule) return;
-        state.expandedParticipantKey = state.expandedParticipantKey === schedule.key ? "" : schedule.key;
+        const opening = state.expandedParticipantKey !== schedule.key;
+        state.expandedParticipantKey = opening ? schedule.key : "";
         renderTable();
+        if (opening) refreshScheduleParticipants(schedule).then(renderTable).catch((error) => console.warn("Participant refresh failed", error));
         return;
       }
       const schedule = findSchedule(button.dataset.key);
       if (!schedule) return;
       if (button.dataset.action === "participants") {
-        state.expandedParticipantKey = state.expandedParticipantKey === schedule.key ? "" : schedule.key;
+        const opening = state.expandedParticipantKey !== schedule.key;
+        state.expandedParticipantKey = opening ? schedule.key : "";
         renderTable();
+        if (opening) refreshScheduleParticipants(schedule).then(renderTable).catch((error) => console.warn("Participant refresh failed", error));
       }
       if (button.dataset.action === "product") openProductDrawer(schedule);
     });
@@ -6642,10 +8724,6 @@
 
     if (getAdminAuth().token) {
       showApp();
-      if (sessionStorage.getItem(RECOMMENDATION_REGISTER_RELOAD_KEY) === "1") {
-        sessionStorage.removeItem(RECOMMENDATION_REGISTER_RELOAD_KEY);
-        activateScheduleManagementView();
-      }
       loadDashboard();
     } else {
       showLogin("");

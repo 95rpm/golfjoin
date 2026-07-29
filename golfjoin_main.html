@@ -663,6 +663,13 @@
       min-height: inherit;
       overflow: hidden;
     }
+    .hero-slide.is-clickable {
+      cursor: pointer;
+    }
+    .hero-slide.is-clickable:focus-visible {
+      outline: 3px solid #6c63ff;
+      outline-offset: -4px;
+    }
     .hero-visual img {
       width: 100%;
       height: 100%;
@@ -752,6 +759,11 @@
     }
     .hero-search-stack .mobile-search-input > div {
       font-size: 16px;
+    }
+    @media (min-width: 641px) {
+      .hero-search-stack .mobile-search-input > div {
+        font-size: 18px;
+      }
     }
     .mobile-search-icon {
       width: 20px;
@@ -1397,18 +1409,84 @@
     }
     .join-mdpick-price-unit {
       font-style: normal;
-      font-size: 14px;
-      font-weight: 800;
+      font-size: 15px;
+      font-weight: 600;
       line-height: 1;
+      position: relative;
+      left: 1px;
     }
     .join-mdpick-empty {
-      padding: 16px;
-      border: 1px dashed var(--border);
+      min-height: 1px;
+    }
+    .join-soft-shimmer {
+      border: 1px solid rgba(224, 228, 234, .62);
+      background: linear-gradient(108deg,
+        rgba(241, 243, 246, .54) 8%,
+        rgba(231, 234, 239, .34) 34%,
+        rgba(250, 251, 252, .82) 50%,
+        rgba(230, 233, 238, .34) 66%,
+        rgba(242, 244, 247, .56) 92%);
+      background-size: 260% 100%;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+      animation: joinSoftShimmerFlow 3.4s ease-in-out infinite;
+    }
+    .join-mdpick-loading-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      width: 100%;
+    }
+    .join-mdpick-loading-country {
+      width: min(360px, 54%);
+      height: 42px;
+      border-radius: 13px;
+    }
+    .join-mdpick-loading-pack {
+      width: min(210px, 36%);
+      height: 38px;
+      border-radius: 999px;
+    }
+    .join-mdpick-loading-list {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+    .join-mdpick-loading-card {
+      width: 100%;
+      min-height: 302px;
+      border-radius: 18px;
+    }
+    .join-mdpick-theme-loading-shell {
+      display: grid;
+      grid-template-columns: minmax(250px, 32%) minmax(0, 1fr);
+      gap: 24px;
+      min-height: 292px;
+    }
+    .join-mdpick-theme-loading-feature {
+      min-height: 292px;
+      border-radius: 15px;
+    }
+    .join-mdpick-theme-loading-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+    }
+    .join-mdpick-theme-loading-card {
+      min-width: 0;
+      min-height: 292px;
       border-radius: 12px;
-      color: var(--text-soft);
-      font-size: 14px;
-      font-weight: 700;
-      text-align: center;
+    }
+    @keyframes joinSoftShimmerFlow {
+      0% { background-position: 110% 50%; }
+      50% { background-position: 48% 50%; }
+      100% { background-position: -110% 50%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .join-soft-shimmer {
+        animation: none;
+        background-position: 50% 50%;
+      }
     }
     .join-mdpick-theme-section {
       display: grid;
@@ -1630,9 +1708,11 @@
     }
     .join-mdpick-theme-price-unit {
       font-style: normal;
-      font-size: 14px;
-      font-weight: 800;
+      font-size: 15px;
+      font-weight: 600;
       line-height: 1;
+      position: relative;
+      left: 1px;
     }
     @media (min-width: 1170px) {
       .join-mdpick-theme-group {
@@ -2467,8 +2547,9 @@
       overscroll-behavior-x: contain;
       scroll-behavior: smooth;
       scroll-snap-type: x mandatory;
+      scroll-padding-inline: 1px;
       scrollbar-width: none;
-      padding: 0;
+      padding: 1px;
     }
     .join-product-section.layout-overseas .join-grid::-webkit-scrollbar {
       display: none;
@@ -2483,10 +2564,13 @@
       height: 138px;
     }
     .join-product-section.layout-overseas .join-body {
-      padding: 14px;
+      padding: 14px 18px 18px;
     }
     .join-product-section.layout-overseas .join-title {
       font-size: 19px;
+    }
+    #secret-golf-join .join-product-section.layout-overseas .join-category-chip.overseas {
+      display: none !important;
     }
     .join-product-section.layout-domestic .join-grid {
       display: flex;
@@ -2840,21 +2924,14 @@
       pointer-events: auto;
       transition: border-color .18s ease, background .18s ease, color .18s ease;
     }
-    .join-section-control::before {
-      content: "";
-      width: 16px;
-      height: 16px;
-      background-color: currentColor;
-      -webkit-mask: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 3.5L10.5 8L6 12.5' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
-      mask: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 3.5L10.5 8L6 12.5' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+    .join-section-control svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+      flex: 0 0 24px;
     }
-    .join-section-control.prev::before {
+    .join-section-control.prev svg {
       transform: scaleX(-1);
-      margin-left: 0;
-    }
-    .join-section-control.next::before {
-      transform: none;
-      margin-right: 0;
     }
     .join-section-control:hover {
       border-color: var(--blue);
@@ -3631,10 +3708,12 @@
       width: 100%;
     }
     .monthly-card-participant-head {
+      width: 98%;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      margin: 0 auto;
     }
     .monthly-card-participant-left {
       display: inline-flex;
@@ -4820,9 +4899,32 @@
 
     .cta-panel { text-align: center; padding: 36px 24px; }
     .sgj-create-section .cta-panel {
+      position: relative;
+      min-height: 330px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 44px clamp(120px, 20vw, 230px);
       border: 0;
     }
+    .sgj-create-section .cta-character-image {
+      position: absolute;
+      z-index: 0;
+      bottom: 0;
+      width: clamp(120px, 15vw, 190px);
+      height: auto;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+    }
+    .sgj-create-section .cta-character-image.man { left: clamp(18px, 6vw, 86px); }
+    .sgj-create-section .cta-character-image.woman { right: clamp(18px, 6vw, 86px); }
+    .sgj-create-section .cta-copy-stage { display: contents; }
     .sgj-create-section .cta-copy {
+      position: relative;
+      z-index: 1;
       text-align: center;
     }
     .sgj-create-section .cta-title {
@@ -4837,22 +4939,31 @@
       text-align: center;
     }
     .sgj-create-section .cta-panel .cta-copy + .button,
+    .sgj-create-section .cta-panel .cta-copy-stage + .button,
     .sgj-create-section .cta-panel .cta-subcopy-text + .button,
     .sgj-create-section .cta-panel > .cta-title + .button {
       margin-top: 30px;
     }
     .sgj-create-section .cta-create-button {
-      background: #eef0f2;
-      border-color: #eef0f2;
+      position: relative;
+      z-index: 1;
+      background: #373a3c;
+      border-color: #373a3c;
     }
     .sgj-page .sgj-create-section .button.primary.cta-create-button {
-      background: #eef0f2;
-      border-color: #eef0f2;
-      color: var(--text);
+      background: #373a3c;
+      border-color: #373a3c;
+      color: #ffffff;
+      gap: 8px;
     }
     .sgj-create-section .cta-create-button-text {
       font-size: 20px;
       line-height: 1.2;
+    }
+    .sgj-create-section .cta-create-button svg {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 22px;
     }
     .sgj-create-section .cta-pc-space {
       display: none;
@@ -4862,7 +4973,7 @@
     }
     @media (min-width: 641px) {
       .sgj-page .sgj-create-section .button.primary.cta-create-button {
-        padding: 15px 190px;
+        padding: 15px clamp(80px, 15vw, 190px);
       }
       .sgj-create-section .cta-pc-space {
         display: inline;
@@ -4879,19 +4990,70 @@
     }
     @media (max-width: 640px) {
       .sgj-create-section .cta-panel {
+        min-height: 0;
+        padding-top: 36px;
+        padding-bottom: 36px;
         padding-left: 0;
         padding-right: 0;
       }
+      .sgj-create-section .cta-copy-stage {
+        width: 100%;
+        display: grid;
+        grid-template-columns: clamp(64px, 22vw, 86px) minmax(0, 1fr) clamp(64px, 22vw, 86px);
+        align-items: center;
+        column-gap: 6px;
+        row-gap: 12px;
+      }
+      .sgj-create-section .cta-copy {
+        display: contents;
+      }
+      .sgj-create-section .cta-title {
+        grid-column: 2;
+        grid-row: 1;
+        align-self: center;
+      }
+      .sgj-create-section .cta-subcopy {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+      .sgj-create-section .cta-character-image {
+        position: static;
+        width: 100%;
+        max-width: 86px;
+        align-self: center;
+      }
+      .sgj-create-section .cta-character-image.man {
+        grid-column: 1;
+        grid-row: 1;
+      }
+      .sgj-create-section .cta-character-image.woman {
+        grid-column: 3;
+        grid-row: 1;
+      }
+      .sgj-create-section .cta-character-image.man { left: auto; }
+      .sgj-create-section .cta-character-image.woman { right: auto; }
       .sgj-page .sgj-create-section .button.primary.cta-create-button {
         width: 100%;
-        height: 45px;
-        min-height: 45px;
+        height: 52px;
+        min-height: 52px;
+        padding: 0 20px;
+        border-radius: 14px;
+        gap: 9px;
+        font-size: 17px;
+        font-weight: 600;
+        line-height: 1.25;
       }
       .sgj-page .sgj-create-section .cta-subcopy-text {
+        margin-top: 0;
         font-size: 17px;
       }
       .sgj-create-section .cta-create-button-text {
-        font-size: 18px;
+        font-size: 17px;
+      }
+      .sgj-create-section .cta-create-button svg {
+        width: 22px;
+        height: 22px;
+        flex-basis: 22px;
       }
     }
     .support-grid {
@@ -5257,6 +5419,12 @@
     }
     .builder-calendar-legend[hidden] {
       display: none !important;
+    }
+    @media (min-width: 641px) {
+      .builder-calendar-legend {
+        color: #de7519;
+        font-size: 14px;
+      }
     }
     .builder-calendar-legend-dot {
       width: 12px;
@@ -10382,7 +10550,16 @@
       opacity: .48;
     }
     #detailModal.my-reservation-view-mode .detail-modal-actions {
-      display: none;
+      display: flex;
+    }
+    #detailModal.my-reservation-view-mode .detail-modal-actions .detail-contact-button,
+    #detailModal.my-reservation-view-mode .detail-modal-actions .detail-date-change-button {
+      display: none !important;
+    }
+    #detailModal.my-reservation-view-mode #detailPrimaryButton {
+      display: inline-flex;
+      width: 100%;
+      flex: 1 1 100%;
     }
     #detailModal.mdpick-recruit-mode #detailPrimaryButton {
       display: inline-flex;
@@ -16802,7 +16979,7 @@
       z-index: 5;
     }
     .sgj-page .hero-search-stack {
-      width: min(100%, 350px);
+      width: min(100%, 380px);
       display: grid;
       gap: 10px;
       margin-top: 35px;
@@ -16826,12 +17003,34 @@
       font-weight: 500;
       line-height: 1.35;
     }
-    .sgj-page .hero-create-button {
+    .sgj-page .hero-search-stack .button.hero-create-button {
       width: 100%;
-      min-height: 43px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 800;
+      height: 52px;
+      min-height: 52px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 14px;
+      background: #108bff;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+    .sgj-page .hero-search-stack .button.hero-create-button:hover {
+      background: #108bff;
+      color: #ffffff;
+    }
+    .sgj-page .hero-search-stack .button.hero-create-button svg {
+      width: 19px;
+      height: 19px;
+      flex: 0 0 19px;
+    }
+    .sgj-page .hero-search-stack .button.hero-create-button > div {
+      font-size: 18px;
     }
     .sgj-page .hero-calendar-button {
       position: relative;
@@ -16914,6 +17113,12 @@
       font-weight: 700;
       line-height: 1;
       white-space: nowrap;
+    }
+    @media (min-width: 641px) {
+      .sgj-page .hero-calendar-profile-count,
+      .sgj-page .hero-calendar-active-count {
+        font-size: 15px;
+      }
     }
     .builder-day-holiday-label {
       position: absolute;
@@ -17032,6 +17237,11 @@
       font-weight: 700;
       line-height: 1.25;
     }
+    @media (min-width: 641px) {
+      .sgj-page .hero-calendar-button-text {
+        font-size: 20px;
+      }
+    }
     .sgj-page .hero-calendar-button-desc {
       color: #5d6b82;
       font-size: 15px;
@@ -17045,14 +17255,18 @@
       position: absolute;
       right: auto;
       top: 86.58%;
-      width: 24px;
-      height: 24px;
+      width: auto;
+      height: auto;
       margin: 0;
       flex: 0 0 auto;
       padding: 0;
       border-radius: 0;
       background: transparent;
-      color: #fff;
+      color: #495056;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.25;
+      white-space: nowrap;
       z-index: 3;
       box-shadow: none;
       transform: translateY(-50%);
@@ -17178,6 +17392,15 @@
       background: #0c91f8;
       border-color: #0c91f8;
       color: #fff;
+    }
+    @media (min-width: 641px) {
+      .sgj-page .join-section-nav .chip.active,
+      .sgj-page .join-section-nav .chip[aria-current="true"] {
+        background: linear-gradient(135deg, #4b5156 0%, #373a3c 48%, #24282b 100%);
+        border-color: #373a3c;
+        color: #ffffff;
+        box-shadow: 0 10px 22px rgba(36, 40, 43, 0.2);
+      }
     }
     .sgj-page .detail-content-tab.active {
       background: #0c91f8;
@@ -17862,6 +18085,14 @@
         min-height: 48px;
         border-radius: 14px;
       }
+      .sgj-page .hero-search-stack .button.hero-create-button > div {
+        font-size: 17px;
+      }
+      .sgj-page .hero-search-stack .button.hero-create-button svg {
+        width: 19px;
+        height: 19px;
+        flex-basis: 19px;
+      }
       .sgj-page .hero-destination-search-text {
         color: #495056;
         font-size: 15px;
@@ -17932,8 +18163,8 @@
         padding: 24px 132px 24px 20px;
       }
       .sgj-page .hero-calendar-button .button-chevron {
-        width: 24px;
-        height: 24px;
+        width: auto;
+        height: auto;
         flex-basis: auto;
         padding: 0;
         border-radius: 0;
@@ -20208,10 +20439,9 @@
     }
     #regionSearchModal .region-product-meta {
       min-width: 0;
-      display: grid;
-      grid-template-columns: 16px minmax(0, 1fr) auto;
+      display: flex;
       align-items: center;
-      column-gap: 2px;
+      column-gap: 0;
       color: #475569;
       font-size: 14px;
       font-weight: 700;
@@ -20222,10 +20452,11 @@
       width: 16px;
       height: 16px;
       flex: 0 0 16px;
+      margin-right: 2px;
     }
     #regionSearchModal .region-product-location {
       min-width: 0;
-      grid-column: 2;
+      flex: 0 1 auto;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -20432,8 +20663,7 @@
       flex: 0 0 auto;
     }
     #regionSearchModal .region-product-admin-badges {
-      grid-column: 3;
-      justify-self: end;
+      margin-left: 6px;
     }
     #regionSearchModal .region-product-admin-badge,
     .calendar-accordion-list .region-product-admin-badge {
@@ -20826,7 +21056,7 @@
       min-width: 0;
       overflow: hidden;
       color: var(--text);
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 800;
       line-height: 1.3;
       text-overflow: ellipsis;
@@ -20835,12 +21065,12 @@
     #regionSearchModal .region-empty-recommend-meta {
       margin-top: 4px;
       color: #475569;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 700;
       line-height: 1.3;
     }
     #regionSearchModal .region-empty-recommend-bottom {
-      margin-top: 5px;
+      margin-top: 2px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -20848,13 +21078,13 @@
     }
     #regionSearchModal .region-empty-recommend-price {
       color: var(--text);
-      font-size: 14px;
-      font-weight: 900;
+      font-size: 16px;
+      font-weight: 800;
       white-space: nowrap;
     }
     #regionSearchModal .region-empty-recommend-slot {
       color: #3a71d5;
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
       white-space: nowrap;
     }
@@ -20907,6 +21137,10 @@
       }
     }
     @media (min-width: 641px) {
+      #regionSearchModal .region-empty-recommend-info {
+        min-width: 0;
+        transform: translateY(2px);
+      }
       #regionSearchModal .region-search-modal .region-search-header,
       #regionSearchModal .region-search-modal .region-search-row,
       #regionSearchModal .region-search-modal .region-search-field {
@@ -21029,7 +21263,7 @@
         font-weight: 700;
       }
       #regionSearchModal .region-desktop-columns {
-        grid-template-columns: minmax(126px, 0.8fr) minmax(180px, 1.25fr) minmax(150px, 1fr);
+        grid-template-columns: minmax(126px, 0.7fr) minmax(230px, 1.65fr) minmax(150px, 0.85fr);
         min-height: 0;
         height: 100%;
         max-height: none;
@@ -21077,6 +21311,9 @@
       #regionSearchModal .region-desktop-country-list .region-desktop-button {
         border-bottom: 0;
         border-radius: 4px;
+      }
+      #regionSearchModal .region-desktop-country-list .region-desktop-label {
+        white-space: nowrap;
       }
       #regionSearchModal .region-desktop-city-list {
         grid-template-columns: 1fr;
@@ -21886,6 +22123,26 @@
       .join-mdpick-list {
         grid-template-columns: 1fr;
       }
+      .join-mdpick-loading-controls {
+        gap: 10px;
+      }
+      .join-mdpick-loading-country {
+        width: 58%;
+        height: 36px;
+        border-radius: 11px;
+      }
+      .join-mdpick-loading-pack {
+        width: 38%;
+        height: 34px;
+      }
+      .join-mdpick-loading-list {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .join-mdpick-loading-card {
+        min-height: 84px;
+        border-radius: 12px;
+      }
       .join-mdpick-card {
         display: grid;
         grid-template-columns: 75px minmax(0, 1fr);
@@ -21924,6 +22181,23 @@
       .join-mdpick-theme-copy {
         margin-top: -17px;
         font-size: var(--font-product-section-desc);
+      }
+      .join-mdpick-theme-loading-shell {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        min-height: 0;
+      }
+      .join-mdpick-theme-loading-feature {
+        min-height: 170px;
+        border-radius: 15px;
+      }
+      .join-mdpick-theme-loading-cards {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .join-mdpick-theme-loading-card {
+        min-height: 84px;
+        border-radius: 12px;
       }
       .join-mdpick-theme-groups {
         --mdpick-theme-gap: 16px;
@@ -22333,13 +22607,12 @@
 
     @media (min-width: 641px) {
       .join-mobile-bottom-nav {
-        width: min(516px, calc(100vw - 40px));
-        height: 88px;
+        width: min(500px, calc(100vw - 40px));
+        height: 84px;
       }
-
       .join-mobile-bottom-nav-shell {
-        height: 88px;
-        border-radius: 36px;
+        height: 84px;
+        border-radius: 26px;
       }
 
       .join-mobile-bottom-nav-inactive-layer,
@@ -22348,22 +22621,39 @@
         right: auto;
         bottom: auto;
         left: 50%;
-        width: min(490px, calc(100vw - 40px));
-        height: 76px;
-        gap: 20px;
+        width: calc(100% - 16px);
+        height: 68px;
+        padding: 0;
+        gap: 12px;
         transform: translate(-50%, -50%);
       }
 
       .join-mobile-bottom-nav-indicator {
         top: 50%;
         bottom: auto;
-        height: 76px;
+        height: 68px;
+        border-radius: 20px;
         transform: translate3d(var(--join-mobile-nav-active-x), -50%, 0);
+      }
+
+      .join-mobile-bottom-nav-indicator-visual {
+        border-radius: 20px;
+      }
+
+      .join-mobile-bottom-nav-active-overlay {
+        clip-path: inset(
+          var(--join-mobile-nav-clip-top)
+          var(--join-mobile-nav-clip-right)
+          var(--join-mobile-nav-clip-bottom)
+          var(--join-mobile-nav-clip-left)
+          round 20px
+        );
       }
 
       .join-mobile-bottom-nav-button,
       .join-mobile-bottom-nav-overlay-item {
         gap: 8px;
+        border-radius: 20px;
       }
 
       .join-mobile-bottom-nav svg {
@@ -24644,6 +24934,7 @@
       color: var(--text);
       font-size: 23px;
       font-weight: 700;
+      line-height: 1.3;
     }
 
     #joinMyMenuModal .region-empty-recommend-tabs {
@@ -24776,6 +25067,10 @@
       cursor: pointer;
     }
 
+    #joinMyMenuModal .region-empty-recommend-mobile-list {
+      display: none;
+    }
+
     #joinMyMenuModal .region-empty-recommend-thumb {
       width: 70px;
       aspect-ratio: 1 / 1;
@@ -24834,6 +25129,21 @@
     @media (max-width: 640px) {
       #joinMyMenuModal .region-empty-recommend-grid {
         grid-template-columns: minmax(0, 1fr);
+      }
+
+      #joinMyMenuModal .region-empty-recommend-card {
+        display: none;
+      }
+
+      #joinMyMenuModal .region-empty-recommend-mobile-list.calendar-accordion-list {
+        display: grid;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        gap: 10px;
+        overflow: visible;
       }
     }
 
@@ -25512,6 +25822,11 @@
 
       .join-my-reservation-title {
         font-size: 20px;
+      }
+
+      #joinMyMenuModal .region-empty-recommend-title {
+        font-size: 20px;
+        font-weight: 700;
       }
 
       .join-my-card {
@@ -27606,6 +27921,114 @@
       }
     }
 
+    .join-member-login-complete-close {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 8px;
+      z-index: 3;
+      width: 42px;
+      height: 42px;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: #111827;
+      cursor: pointer;
+    }
+
+    .join-member-login-complete-close svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .join-member-login-modal.is-signup-complete .join-member-login-header {
+      justify-content: flex-start;
+    }
+
+    .join-member-login-modal.is-signup-complete .join-member-login-title {
+      width: 100%;
+      padding-right: 52px;
+      text-align: left;
+    }
+
+    .join-member-login-modal.is-signup-complete .join-member-login-back {
+      display: none !important;
+    }
+
+    .join-member-login-modal.is-signup-complete .join-member-login-complete-close {
+      display: inline-flex;
+    }
+
+    .join-member-signup-form[data-step="7"] {
+      gap: 0;
+      margin-top: 0;
+    }
+
+    .join-member-signup-form[data-step="7"] .join-member-signup-progress,
+    .join-member-signup-form[data-step="7"] .join-member-signup-step-copy {
+      display: none !important;
+    }
+
+    .join-member-signup-form[data-step="7"] .join-member-signup-complete {
+      display: grid;
+      grid-template-rows: auto auto minmax(80px, 1fr) auto;
+      min-height: calc(100vh - 134px);
+      min-height: calc(100dvh - 134px);
+      padding: 42px 0 4px;
+      gap: 8px;
+      align-content: stretch;
+      justify-items: stretch;
+      overflow: hidden;
+      text-align: left;
+      box-sizing: border-box;
+    }
+
+    .join-member-signup-form[data-step="7"] .join-member-signup-complete-title {
+      color: #111827;
+      font-size: 27px;
+      font-weight: 800;
+      line-height: 1.3;
+      letter-spacing: -.02em;
+    }
+
+    .join-member-signup-form[data-step="7"] .join-member-signup-complete-copy {
+      max-width: none;
+      color: #5f6b7a;
+      font-size: 18px;
+      font-weight: 500;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .join-member-signup-form[data-step="7"] .join-member-signup-complete-action {
+      grid-row: 4;
+      min-height: 50px;
+      margin: 0;
+      border-color: #54abff;
+      border-radius: 12px;
+      background: #54abff;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 640px) {
+      .join-member-login-modal.is-signup-complete .join-member-login-header {
+        padding-left: 28px !important;
+        padding-right: 28px !important;
+      }
+
+      .join-member-login-modal.is-signup-complete .join-member-login-complete-close {
+        right: 18px;
+      }
+
+      .join-member-signup-form[data-step="7"] .join-member-signup-complete-title {
+        font-size: 26px;
+      }
+    }
+
     @media (max-width: 768px), (hover: none) and (pointer: coarse) {
       #participantModal.participant-floating,
       body > #participantModal.participant-floating,
@@ -27989,11 +28412,11 @@
     <div class="page-container hero-grid">
       <div>
         <div class="hero-title">취향이 통하는<br>특별한 만남</div>
-        <p class="hero-subtitle">혼자라서 미뤄둔 골프여행<br>조인으로 떠나보세요</p>
+        <p class="hero-subtitle">해외골프, 조인으로 떠나보세요!</p>
         <div class="hero-search-stack">
           <div class="mobile-search-panel">
             <button type="button" class="mobile-search-input" onclick="openMainMobileRegionSearch(this)">
-              <div class="hero-destination-search-text">떠나고 싶은 여행지가 있나요?</div>
+              <div class="hero-destination-search-text">어디로 떠나고 싶으세요?</div>
               <svg class="mobile-search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
                 <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
@@ -28026,9 +28449,13 @@
                 </div>
               </div>
             </div>
-            <svg class="button-chevron lucide lucide-arrow-right-icon lucide-arrow-right" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <span class="button-chevron">모임찾기</span>
+          </button>
+          <button type="button" class="button primary hero-create-button" onclick="openBuilderModalFromMain(this)">
+            <div>새로운 모임 만들기</div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right" aria-hidden="true">
               <path d="M5 12h14"></path>
-              <path d="m14 7 5 5-5 5"></path>
+              <path d="m12 5 7 7-7 7"></path>
             </svg>
           </button>
         </div>
@@ -28036,8 +28463,8 @@
       <div class="hero-visual">
         <div class="hero-slider-viewport">
           <div class="hero-slider-track" id="heroSliderTrack">
-            <div class="hero-slide">
-              <img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner.jpg" alt="골프 조인 배너" style="width: 100%; height: 100%;">
+            <div class="hero-slide is-clickable" role="button" tabindex="0" aria-label="10월 월례회 상품 자세히 보기" onclick="openHeroOctoberMonthlyDetail()" onkeydown="handleHeroOctoberMonthlyKeydown(event)">
+              <img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner.webp" alt="10월 월례회 골프 조인 배너" style="width: 100%; height: 100%;">
             </div>
           </div>
         </div>
@@ -28341,13 +28768,20 @@
 
       <section class="sgj-section sgj-create-section" id="create">
         <div class="cta-panel">
-          <div class="cta-copy">
-            <div class="section-title cta-title">원하는 일정으로<div class="cta-title-pc-space"> </div><br class="cta-title-linebreak">골프친구 찾기</div>
-            <div class="cta-subcopy">
-              <div class="section-desc cta-subcopy-text">원하는 날짜와 지역의 상품으로<div class="cta-pc-space"> </div><br class="cta-subcopy-linebreak">직접 멤버를 모집해보세요.</div>
+          <div class="cta-copy-stage">
+            <img class="cta-character-image man" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/bg_sub_man1.webp" alt="" loading="lazy" decoding="async" aria-hidden="true">
+            <div class="cta-copy">
+              <div class="section-title cta-title">원하는 일정으로<div class="cta-title-pc-space"> </div><br class="cta-title-linebreak">골프친구 찾기</div>
+              <div class="cta-subcopy">
+                <div class="section-desc cta-subcopy-text">원하는 날짜와 지역의 상품으로<div class="cta-pc-space"> </div><br class="cta-subcopy-linebreak">직접 멤버를 모집해보세요.</div>
+              </div>
             </div>
+            <img class="cta-character-image woman" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/bg_sub_woman1.webp" alt="" loading="lazy" decoding="async" aria-hidden="true">
           </div>
-          <button class="button primary large cta-create-button" onclick="openBuilderModalFromMain(this)"><div class="cta-create-button-text">새로운 모임 만들기</div></button>
+          <button class="button primary large cta-create-button" onclick="openBuilderModalFromMain(this)">
+            <div class="cta-create-button-text">새로운 모임 만들기</div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </button>
         </div>
       </section>
 
@@ -28572,6 +29006,12 @@
           </svg>
         </button>
         <div class="join-member-login-title" id="joinMemberLoginTitle">로그인</div>
+        <button type="button" class="join-member-login-complete-close" onclick="continueJoinMemberSignupComplete()" aria-label="완료 화면 닫기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
       </div>
       <div class="join-member-login-body">
         <div class="join-member-login-main">
@@ -28828,7 +29268,7 @@
                 <div class="join-member-email-label">아이디*</div>
                 <div class="join-member-signup-password-desc">영문, 숫자를 조합하여 6자리 이상 입력해주세요.</div>
                 <div class="join-member-email-input-wrap">
-                  <input type="text" id="joinMemberSignupEmail" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" oninput="normalizeJoinMemberSignupIdInput(this); setJoinMemberFieldInvalid('joinMemberSignupEmailField', 'joinMemberSignupEmailHelper', ''); clearJoinMemberSignupDuplicateLock('id'); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState(); scheduleJoinMemberSignupDuplicateCheck('id')" onblur="normalizeJoinMemberSignupIdInput(this); validateJoinMemberSignupEmailField(false); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState(); checkJoinMemberSignupFieldDuplicate('id')">
+                  <input type="text" id="joinMemberSignupEmail" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" onpointerdown="handleJoinMemberSignupIdPointerDown(event)" onfocus="handleJoinMemberSignupIdFocus(event)" onkeydown="handleJoinMemberSignupIdKeydown(event)" onbeforeinput="handleJoinMemberSignupIdBeforeInput(event)" oncompositionstart="handleJoinMemberSignupIdCompositionStart()" oncompositionend="handleJoinMemberSignupIdCompositionEnd(event)" oninput="handleJoinMemberSignupIdInput(event); setJoinMemberFieldInvalid('joinMemberSignupEmailField', 'joinMemberSignupEmailHelper', ''); clearJoinMemberSignupDuplicateLock('id'); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState(); scheduleJoinMemberSignupDuplicateCheck('id')" onblur="normalizeJoinMemberSignupIdInput(this); validateJoinMemberSignupEmailField(false); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState(); checkJoinMemberSignupFieldDuplicate('id')">
                 </div>
                 <div class="join-member-email-helper" id="joinMemberSignupEmailHelper" aria-live="polite"></div>
               </label>
@@ -28985,12 +29425,8 @@
               </div>
               <div class="join-member-signup-complete" data-signup-step="7">
                 <div class="join-member-confetti" aria-hidden="true" id="joinMemberSignupConfetti"></div>
-                <div class="join-member-signup-complete-icon">
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4 4 10-10" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                </div>
-                <div class="join-member-signup-complete-title">가입이 완료됐어요</div>
-                <div class="join-member-signup-complete-copy">시크릿투어 회원 혜택과 함께 나에게 맞는 조인여행을 시작해보세요.</div>
-                <div class="join-member-signup-complete-note">방금 보던 화면으로 돌아가 바로 여행 참여를 이어갈 수 있어요.</div>
+                <div class="join-member-signup-complete-title">가입이 완료되었어요</div>
+                <div class="join-member-signup-complete-copy">이제 나에게 맞는 조인여행을 시작해볼까요?</div>
                 <button type="button" class="join-member-login-button signup join-member-signup-complete-action" onclick="continueJoinMemberSignupComplete()">여행 참여하기</button>
               </div>
               <div class="join-member-signup-nav" data-signup-nav="">
@@ -30365,7 +30801,7 @@
       mainPath.setAttribute("d", mainD);
       ctaPath.setAttribute("d", roundedRectPath(ctaLeft, ctaTop, ctaWidth, ctaHeight, ctaRadius));
       if (chevron) {
-        chevron.style.left = `${ctaLeft + (ctaWidth / 2) - 12}px`;
+        chevron.style.left = `${ctaLeft + (ctaWidth / 2) - (chevron.offsetWidth / 2)}px`;
         chevron.style.top = `${ctaTop + (ctaHeight / 2)}px`;
         chevron.style.right = "auto";
       }
@@ -30477,7 +30913,6 @@
     const REVIEW_IMAGE_THUMB_MAX_SIDE = 480;
     const REVIEW_IMAGE_QUALITY = 0.76;
     let joinMyReviewSelectedPhotoItems = [];
-    const PROFILE_IMAGE_MAX_ORIGINAL_BYTES = 5 * 1024 * 1024;
     const PROFILE_IMAGE_MAX_SIDE = 180;
     const PROFILE_IMAGE_QUALITY = 0.68;
     const BUILDER_APPLICATION_JOIN_PREFIX = "sheet-builder-application-";
@@ -30490,6 +30925,7 @@
     const BUILDER_APPLICATION_MAX_CAPACITY = 4;
     const BUILDER_APPLICATION_MAX_PARTICIPANT_ICONS = BUILDER_APPLICATION_MAX_CAPACITY;
     const JOIN_MAX_CAPACITY = 4;
+    const MAX_DETAIL_PARTICIPANT_PREVIEWS = 40;
     const SHOW_DOMESTIC_JOIN_PRODUCTS = false;
     const joinApplicationPayloadMemory = new Map();
     const joinReviewPayloadMemory = new Map();
@@ -31093,11 +31529,15 @@
       resetPasswordToken: null,
       signupDuplicateLocks: {},
       signupDuplicateTimers: {},
-      signupDuplicateCheckedValues: {}
+      signupDuplicateCheckedValues: {},
+      lastSignupDuplicateField: ""
     };
     const JOIN_TEMP_ADMIN_LOGIN_KEY = "joinTempAdminLogin";
     const JOIN_SESSION_MEMBER_KEY = "joinSessionMember";
     const JOIN_LOGOUT_MARKER_KEY = "joinMemberLoggedOutCookieData";
+    const JOIN_AUTH_DOCUMENT_ID = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const JOIN_MEMBER_PROFILE_COMPLETION_KEY = "joinMemberProfileCompletion";
+    const JOIN_MEMBER_PROFILE_COMPLETION_TTL_MS = 10 * 60 * 1000;
     const JOIN_KAKAO_JS_KEY = "3925751273a92614723fe138c525f646";
 
     function getRenderedCookieDataString() {
@@ -31188,6 +31628,8 @@
         memberChannel: member.memberChannel || "HOME",
         memberMobile: member.memberMobile || "",
         memberEmail: member.memberEmail || "",
+        kakaoId: member.kakaoId || "",
+        kakaoNickname: member.kakaoNickname || "",
         gender: member.gender || "",
         birthday: member.birthday || "",
         birthYear: member.birthYear || "",
@@ -31200,7 +31642,12 @@
         profileImageMimeType: member.profileImageMimeType || "",
         profileImageSize: member.profileImageSize || "",
         profileImageUpdatedAt: member.profileImageUpdatedAt || "",
-        isSessionMember: true
+        erpSessionDocumentId: JOIN_AUTH_DOCUMENT_ID,
+        erpSessionVerifiedAt: Date.now(),
+        isSessionMember: true,
+        ...(typeof member.profileComplete === "boolean"
+          ? { profileComplete: member.profileComplete, profileCompleteCheckedAt: Date.now() }
+          : (isJoinMemberProfileComplete(member) ? { profileComplete: true, profileCompleteCheckedAt: Date.now() } : {}))
       };
       try {
         sessionStorage.setItem(JOIN_SESSION_MEMBER_KEY, JSON.stringify(sessionMember));
@@ -31216,11 +31663,13 @@
       if (isJoinLoggedOutFromRenderedCookie(raw)) {
         return { isLogin: false, member: {} };
       }
+      const sessionMember = getJoinSessionMember();
+      if (sessionMember?.erpSessionDocumentId === JOIN_AUTH_DOCUMENT_ID) {
+        return { isLogin: true, member: sessionMember };
+      }
       const member = parseJoinCookieData(raw);
       const isLogin = Boolean(raw && (member.memberSeq || member.memberId));
       if (!isLogin) {
-        const sessionMember = getJoinSessionMember();
-        if (sessionMember) return { isLogin: true, member: sessionMember };
         const tempAdmin = getJoinTempAdminMember();
         if (tempAdmin) return { isLogin: true, member: tempAdmin };
       }
@@ -31229,7 +31678,10 @@
 
     function setJoinLogoutMarker() {
       try {
-        sessionStorage.setItem(JOIN_LOGOUT_MARKER_KEY, getRenderedCookieDataString() || "logged-out");
+        sessionStorage.setItem(JOIN_LOGOUT_MARKER_KEY, JSON.stringify({
+          renderedCookieData: getRenderedCookieDataString() || "logged-out",
+          documentId: JOIN_AUTH_DOCUMENT_ID
+        }));
       } catch (error) {
         console.warn("Failed to store join logout marker.", error);
       }
@@ -31245,8 +31697,11 @@
 
     function isJoinLoggedOutFromRenderedCookie(raw = getRenderedCookieDataString()) {
       try {
-        const marker = sessionStorage.getItem(JOIN_LOGOUT_MARKER_KEY) || "";
-        return Boolean(marker && marker === (raw || "logged-out"));
+        const marker = JSON.parse(sessionStorage.getItem(JOIN_LOGOUT_MARKER_KEY) || "null");
+        return Boolean(
+          marker?.documentId === JOIN_AUTH_DOCUMENT_ID
+          && marker?.renderedCookieData === (raw || "logged-out")
+        );
       } catch (error) {
         return false;
       }
@@ -31344,16 +31799,13 @@
     }
 
     function finishJoinMemberSignupAndContinue(member = {}, profile = {}) {
+      const completedMember = mergeJoinMemberWithProfile(member, profile);
       const sessionMember = setJoinSessionMember({
-        ...member,
-        gender: profile.gender || member.gender || "",
-        birthYear: profile.birthYear || member.birthYear || "",
-        birthday: profile.birthYear || member.birthday || "",
-        profession: profile.profession || member.profession || "",
-        level: profile.level || member.level || "",
-        travelStyles: profile.travelStyles || member.travelStyles || member.styles || ""
+        ...completedMember,
+        profileComplete: true
       });
       rememberJoinMemberProfileLocally(sessionMember, profile);
+      rememberJoinMemberProfileCompletion(sessionMember, isJoinMemberProfileComplete(sessionMember));
       setJoinMemberLoginStatus("");
       continueAfterJoinMemberLogin(joinMyMenuState.pendingAfterLogin || "my-menu");
     }
@@ -31440,9 +31892,12 @@
       };
     }
 
-    function postJoinMemberLoginForm(url, data) {
+    function postJoinMemberLoginForm(url, data, options = {}) {
       const body = new URLSearchParams();
       Object.entries(data).forEach(([key, value]) => body.set(key, value == null ? "" : String(value)));
+      const controller = new AbortController();
+      const timeoutMs = Math.max(3000, Number(options.timeoutMs || 15000));
+      const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
       return fetch(url, {
         method: "POST",
         credentials: "include",
@@ -31450,7 +31905,8 @@
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
           "X-Requested-With": "XMLHttpRequest"
         },
-        body: body.toString()
+        body: body.toString(),
+        signal: controller.signal
       }).then(async (response) => {
         const text = await response.text();
         if (!response.ok) {
@@ -31469,6 +31925,16 @@
             responseText: text.slice(0, 300)
           });
         }
+      }).catch((error) => {
+        if (error?.name === "AbortError") {
+          throw createJoinMemberApiError("회원정보 확인 시간이 초과되었습니다.", {
+            endpoint: url,
+            code: "member_api_timeout"
+          });
+        }
+        throw error;
+      }).finally(() => {
+        window.clearTimeout(timeout);
       });
     }
 
@@ -31579,6 +32045,9 @@
       joinMyMenuState.loginRedirecting = true;
       setJoinMemberLoginStatus("");
       try {
+        if (canUseSecretTourMemberApi()) {
+          await prepareJoinMemberSaveSession("010");
+        }
         const KakaoSdk = await ensureJoinKakaoSdk();
         if (!KakaoSdk) throw new Error("Kakao SDK unavailable");
         if (!KakaoSdk.isInitialized?.()) {
@@ -31619,14 +32088,13 @@
                     }).finally(finish);
                     return;
                   }
-                  postJoinMemberLoginForm("/member/getMemberExternalLoginCheck.json", {
+                  postJoinMemberLoginForm("/member/getMemberExternalLoginCheck.json", buildJoinExternalMemberLoginPayload({
                     externalId: res?.id || "",
                     externalNickname: res?.properties?.nickname || res?.kakao_account?.profile?.nickname || "",
                     externalName: res?.kakao_account?.name || "",
                     externalEmail: res?.kakao_account?.email || "",
-                    extnChnlLinkCd: "KAKAO",
                     extnChnlLinkToken: authObj?.access_token || ""
-                  }).then((aspData) => {
+                  })).then((aspData) => {
                     joinMyMenuState.loginRedirecting = false;
                     if ((aspData?.message || "") === "SUCCESS") {
                       const erpMember = buildJoinErpMemberFromLoginResponse(aspData, res);
@@ -31642,15 +32110,8 @@
                       location.href = getJoinLoginRedirectTarget();
                       return;
                     }
-                    return continueWithExistingKakaoProfileIfReady(res, {
-                      member: buildJoinErpMemberFromLoginResponse(aspData, res)
-                    }).then((continued) => {
-                      if (continued) return;
-                      openKakaoProfileForm(res, authObj);
-                    }).catch((profileError) => {
-                      console.warn("Existing Kakao profile lookup failed.", profileError);
-                      openKakaoProfileForm(res, authObj);
-                    });
+                    openKakaoProfileForm(res, authObj);
+                    return undefined;
                   }).catch((error) => {
                     joinMyMenuState.loginRedirecting = false;
                     console.warn("Kakao external login failed.", error);
@@ -31886,7 +32347,7 @@
 
     function closeJoinMemberSignupForm() {
       const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
-      modal?.classList.remove("is-signup-mode", "is-profile-required");
+      modal?.classList.remove("is-signup-mode", "is-profile-required", "is-signup-complete");
       const form = document.getElementById("joinMemberSignupForm");
       if (form) {
         form.classList.remove("is-open", "is-profile-only", "is-profile-required", "is-kakao-signup");
@@ -32003,7 +32464,17 @@
 
     function formatJoinMemberSignupMobile(input) {
       if (!input) return;
-      input.value = normalizeJoinMemberPhone(input.value).slice(0, 11);
+      const digits = normalizeJoinMemberPhone(input.value).slice(0, 11);
+      if (digits.length <= 3) {
+        input.value = digits;
+        return;
+      }
+      if (digits.length <= 7) {
+        input.value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+        return;
+      }
+      const middleLength = digits.length === 10 ? 3 : 4;
+      input.value = `${digits.slice(0, 3)}-${digits.slice(3, 3 + middleLength)}-${digits.slice(3 + middleLength)}`;
     }
 
     function normalizeJoinMemberSignupIdInput(input) {
@@ -32011,6 +32482,94 @@
       const normalized = String(input.value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
       if (input.value !== normalized) input.value = normalized;
       return normalized;
+    }
+
+    function hasJoinMemberSignupHangul(value = "") {
+      return /[\u1100-\u11ff\u3130-\u318f\ua960-\ua97f\uac00-\ud7af\ud7b0-\ud7ff]/i.test(String(value || ""));
+    }
+
+    function joinMemberSignupEventReportsHangul(event) {
+      if (typeof event?.getModifierState !== "function") return false;
+      try {
+        return event.getModifierState("HangulMode") === true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function setJoinMemberSignupIdPrompt(message = JOIN_MEMBER_SIGNUP_ID_DEFAULT_PROMPT) {
+      const form = document.getElementById("joinMemberSignupForm");
+      const desc = document.getElementById("joinMemberSignupStepDesc");
+      if (!form || !desc || Number(form.dataset.step || 1) !== 2) return;
+      desc.textContent = message;
+      desc.hidden = !message;
+    }
+
+    function syncJoinMemberSignupIdPrompt() {
+      const input = document.getElementById("joinMemberSignupEmail");
+      if (String(input?.value || "").trim()) {
+        setJoinMemberSignupIdPrompt("");
+        return;
+      }
+      setJoinMemberSignupIdPrompt(
+        joinMemberSignupIdImeMode === "hangul"
+          ? JOIN_MEMBER_SIGNUP_ID_HANGUL_PROMPT
+          : JOIN_MEMBER_SIGNUP_ID_DEFAULT_PROMPT
+      );
+    }
+
+    function handleJoinMemberSignupIdPointerDown(event) {
+      if (joinMemberSignupEventReportsHangul(event)) joinMemberSignupIdImeMode = "hangul";
+      syncJoinMemberSignupIdPrompt();
+    }
+
+    function handleJoinMemberSignupIdFocus(event) {
+      if (joinMemberSignupEventReportsHangul(event)) joinMemberSignupIdImeMode = "hangul";
+      syncJoinMemberSignupIdPrompt();
+    }
+
+    function handleJoinMemberSignupIdKeydown(event) {
+      const isHangulToggleKey = event?.key === "HangulMode"
+        || event?.code === "Lang1"
+        || Number(event?.keyCode || 0) === 21;
+      if (isHangulToggleKey) {
+        if (joinMemberSignupIdImeMode === "hangul") joinMemberSignupIdImeMode = "english";
+        else if (joinMemberSignupIdImeMode === "english") joinMemberSignupIdImeMode = "hangul";
+        else joinMemberSignupIdImeMode = joinMemberSignupEventReportsHangul(event) ? "hangul" : "english";
+        syncJoinMemberSignupIdPrompt();
+        return;
+      }
+      if (joinMemberSignupEventReportsHangul(event)) joinMemberSignupIdImeMode = "hangul";
+      else if (/^[a-z0-9]$/i.test(String(event?.key || ""))) joinMemberSignupIdImeMode = "english";
+    }
+
+    function handleJoinMemberSignupIdBeforeInput(event) {
+      if (event?.isComposing || hasJoinMemberSignupHangul(event?.data)) {
+        joinMemberSignupIdImeMode = "hangul";
+        syncJoinMemberSignupIdPrompt();
+      }
+    }
+
+    function handleJoinMemberSignupIdCompositionStart() {
+      joinMemberSignupIdImeMode = "hangul";
+      syncJoinMemberSignupIdPrompt();
+    }
+
+    function handleJoinMemberSignupIdCompositionEnd(event) {
+      if (hasJoinMemberSignupHangul(event?.data) || hasJoinMemberSignupHangul(event?.target?.value)) {
+        joinMemberSignupIdImeMode = "hangul";
+      }
+      syncJoinMemberSignupIdPrompt();
+    }
+
+    function handleJoinMemberSignupIdInput(event) {
+      const input = event?.currentTarget || event?.target;
+      const rawValue = String(input?.value || "");
+      const containsHangul = hasJoinMemberSignupHangul(event?.data) || hasJoinMemberSignupHangul(rawValue);
+      const normalized = normalizeJoinMemberSignupIdInput(input);
+      if (containsHangul || event?.isComposing) joinMemberSignupIdImeMode = "hangul";
+      if (normalized) joinMemberSignupIdImeMode = "english";
+      syncJoinMemberSignupIdPrompt();
     }
 
     function normalizeJoinMemberLoginIdInput(input) {
@@ -32196,9 +32755,13 @@
       input.focus();
     }
 
+    const JOIN_MEMBER_SIGNUP_ID_DEFAULT_PROMPT = "아이디를 입력해주세요.";
+    const JOIN_MEMBER_SIGNUP_ID_HANGUL_PROMPT = "한/영 키를 눌러 영문으로 변경 후 입력해주세요";
+    let joinMemberSignupIdImeMode = "unknown";
+
     const JOIN_MEMBER_SIGNUP_STEP_COPY = {
       1: ["약관 내용을 확인하고", "동의해주세요."],
-      2: ["1분이면 충분해요", "로그인에 사용할 아이디를 입력해주세요."],
+      2: ["1분이면 충분해요", JOIN_MEMBER_SIGNUP_ID_DEFAULT_PROMPT],
       3: ["회원정보를 입력해주세요.", "여행 예약을 위한 필수 정보입니다."],
       4: ["핸디를 선택해주세요.", "맞춤 조인 매칭에 필요한 정보입니다."],
       5: ["전문분야", "비슷한 관심사의 멤버를 만나보세요.\n최대 3개까지 선택할 수 있어요."],
@@ -32226,9 +32789,15 @@
       const minStep = 1;
       const nextStep = Math.max(minStep, Math.min(7, Number(step) || minStep));
       form.dataset.step = String(nextStep);
+      const loginModal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
+      loginModal?.classList.toggle("is-signup-complete", nextStep === 7);
+      if (nextStep === 7) {
+        const loginTitle = document.getElementById("joinMemberLoginTitle");
+        if (loginTitle) loginTitle.textContent = "추가정보 입력";
+      }
       const stepCopy = {
         1: ["약관 내용을 확인하고", "동의해주세요."],
-        2: ["1분이면 충분해요", "로그인에 사용할 아이디를 입력해주세요."],
+        2: ["1분이면 충분해요", JOIN_MEMBER_SIGNUP_ID_DEFAULT_PROMPT],
         3: ["회원정보를 입력해주세요.", "여행 예약을 위한 필수 정보입니다."],
         4: ["핸디를 선택해주세요.", "맞춤 조인 매칭에 필요한 정보입니다."],
         5: ["전문분야", "비슷한 관심사의 멤버를 만나보세요.\n최대 3개까지 선택할 수 있어요."],
@@ -32244,6 +32813,7 @@
         descEl.hidden = !desc;
         descEl.classList.toggle("is-title-style", nextStep === 1);
       }
+      if (nextStep === 2) syncJoinMemberSignupIdPrompt();
       form.querySelectorAll("[data-progress-step]").forEach((bar) => {
         const barStep = Number(bar.dataset.progressStep || 0);
         const isActive = profileOnly
@@ -32738,6 +33308,17 @@
       }
     }
 
+    function getJoinPendingKakaoAccessToken(pending = getJoinPendingKakaoProfile()) {
+      const pendingToken = String(pending?.accessToken || "").trim();
+      if (pendingToken) return pendingToken;
+      try {
+        return String(window.Kakao?.Auth?.getAccessToken?.() || "").trim();
+      } catch (error) {
+        console.warn("Failed to restore Kakao access token.", error);
+        return "";
+      }
+    }
+
     function clearJoinPendingKakaoProfile() {
       joinMyMenuState.pendingKakaoSignup = null;
       try {
@@ -32756,6 +33337,74 @@
         || member.kakaoId
         || ""
       ).trim();
+    }
+
+    function readJoinMemberProfileCompletionStore() {
+      try {
+        const stored = JSON.parse(sessionStorage.getItem(JOIN_MEMBER_PROFILE_COMPLETION_KEY) || "{}");
+        return stored && typeof stored === "object" ? stored : {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function getRememberedJoinMemberProfileCompletion(member = {}) {
+      if (
+        typeof member.profileComplete === "boolean"
+        && Date.now() - Number(member.profileCompleteCheckedAt || 0) <= JOIN_MEMBER_PROFILE_COMPLETION_TTL_MS
+      ) {
+        return member.profileComplete;
+      }
+      const key = getJoinMemberProfileCacheKey(member);
+      if (!key) return null;
+      const entry = readJoinMemberProfileCompletionStore()[key];
+      if (!entry || typeof entry.complete !== "boolean") return null;
+      if (Date.now() - Number(entry.checkedAt || 0) > JOIN_MEMBER_PROFILE_COMPLETION_TTL_MS) return null;
+      return entry.complete;
+    }
+
+    function rememberJoinMemberProfileCompletion(member = {}, complete = false) {
+      const key = getJoinMemberProfileCacheKey(member);
+      if (!key) return;
+      const normalizedComplete = Boolean(complete);
+      try {
+        const store = readJoinMemberProfileCompletionStore();
+        store[key] = { complete: normalizedComplete, checkedAt: Date.now() };
+        sessionStorage.setItem(JOIN_MEMBER_PROFILE_COMPLETION_KEY, JSON.stringify(store));
+        [JOIN_TEMP_ADMIN_LOGIN_KEY, JOIN_SESSION_MEMBER_KEY].forEach((storageKey) => {
+          const storedMember = JSON.parse(sessionStorage.getItem(storageKey) || "null");
+          if (!storedMember || getJoinMemberProfileCacheKey(storedMember) !== key) return;
+          sessionStorage.setItem(storageKey, JSON.stringify({
+            ...storedMember,
+            profileComplete: normalizedComplete,
+            profileCompleteCheckedAt: Date.now()
+          }));
+        });
+      } catch (error) {
+        console.warn("Failed to cache join member profile completion.", error);
+      }
+    }
+
+    function clearJoinMemberProfileCompletion(member = null) {
+      try {
+        if (!member) {
+          sessionStorage.removeItem(JOIN_MEMBER_PROFILE_COMPLETION_KEY);
+          return;
+        }
+        const key = getJoinMemberProfileCacheKey(member);
+        if (!key) return;
+        const store = readJoinMemberProfileCompletionStore();
+        delete store[key];
+        sessionStorage.setItem(JOIN_MEMBER_PROFILE_COMPLETION_KEY, JSON.stringify(store));
+        [JOIN_TEMP_ADMIN_LOGIN_KEY, JOIN_SESSION_MEMBER_KEY].forEach((storageKey) => {
+          const storedMember = JSON.parse(sessionStorage.getItem(storageKey) || "null");
+          if (!storedMember || getJoinMemberProfileCacheKey(storedMember) !== key) return;
+          const { profileComplete, profileCompleteCheckedAt, ...memberWithoutCompletion } = storedMember;
+          sessionStorage.setItem(storageKey, JSON.stringify(memberWithoutCompletion));
+        });
+      } catch (error) {
+        console.warn("Failed to clear join member profile completion.", error);
+      }
     }
 
     function rememberJoinMemberProfileLocally(member = {}, profile = {}) {
@@ -32783,7 +33432,9 @@
           memberSeq: member.memberSeq || profile.memberSeq || "",
           memberId: member.memberId || profile.memberId || "",
           memberName: profile.memberName || profile.name || member.memberName || "",
-          memberMobile: memberMobile || profileMobile || "",
+          memberMobile: profileMobile || memberMobile || "",
+          mobile: profileMobile || memberMobile || "",
+          phone: profileMobile || memberMobile || "",
           memberEmail: member.memberEmail || profile.memberEmail || profile.email || "",
           memberChannel: member.memberChannel || profile.memberChannel || "",
           kakaoId: member.kakaoId || profile.kakaoId || "",
@@ -32988,7 +33639,7 @@
       return {
         ...member,
         memberName: profile.memberName || profile.name || member.memberName || "",
-        memberMobile: memberMobile || profileMobile || "",
+        memberMobile: profileMobile || memberMobile || "",
         memberEmail: member.memberEmail || profile.memberEmail || profile.email || "",
         kakaoId: member.kakaoId || profile.kakaoId || "",
         kakaoNickname: member.kakaoNickname || profile.kakaoNickname || "",
@@ -33044,27 +33695,33 @@
       const cached = getRememberedJoinMemberProfile(member);
       const isTempAdmin = isJoinTempAdminMember(member);
       if (!isTempAdmin && !options.refresh && isJoinMemberProfileComplete(cached)) {
-        return mergeJoinMemberWithProfile(member, cached);
+        const cachedMember = mergeJoinMemberWithProfile(member, cached);
+        rememberJoinMemberProfileCompletion(cachedMember, true);
+        return cachedMember;
       }
       const sheetProfile = await fetchJoinMemberProfileFromGoogleSheet(member, options);
       if (sheetProfile.__lookupFailed) {
+        clearJoinMemberProfileCompletion(member);
         return {
           ...mergeJoinMemberWithProfile(member, cached),
           __profileLookupFailed: true
         };
       }
+      let hydratedMember;
       if (isTempAdmin && !isJoinMemberProfileComplete(sheetProfile)) {
         clearRememberedJoinMemberProfile(member);
-        return mergeJoinMemberWithProfile(stripJoinMemberProfileFields(member), sheetProfile);
-      }
-      if (options.refresh && !isJoinMemberProfileComplete(sheetProfile)) {
+        hydratedMember = mergeJoinMemberWithProfile(stripJoinMemberProfileFields(member), sheetProfile);
+      } else if (options.refresh && !isJoinMemberProfileComplete(sheetProfile)) {
         clearRememberedJoinMemberProfile(member);
-        return mergeJoinMemberWithProfile(stripJoinMemberProfileFields(member), sheetProfile);
+        hydratedMember = mergeJoinMemberWithProfile(stripJoinMemberProfileFields(member), sheetProfile);
+      } else {
+        hydratedMember = mergeJoinMemberWithProfile(member, {
+          ...cached,
+          ...sheetProfile
+        });
       }
-      return mergeJoinMemberWithProfile(member, {
-        ...cached,
-        ...sheetProfile
-      });
+      rememberJoinMemberProfileCompletion(hydratedMember, isJoinMemberProfileComplete(hydratedMember));
+      return hydratedMember;
     }
 
     function getJoinSignupProfileSnapshot(member = {}) {
@@ -33098,6 +33755,7 @@
       resetJoinMemberEmailValidation();
       resetJoinMemberSignupValidation();
       form.dataset.profileOnly = "true";
+      form.dataset.profileRequired = "false";
       form.classList.add("is-open", "is-profile-only", "is-kakao-signup");
       form.classList.remove("is-email-valid");
       document.getElementById("joinMemberSignupIntro")?.classList.remove("is-open");
@@ -33108,7 +33766,10 @@
       const emailInput = document.getElementById("joinMemberSignupContactEmail");
       if (nicknameInput) nicknameInput.value = pending.nickname || "";
       if (nameInput && !nameInput.value.trim()) nameInput.value = member.memberName || pending.name || "";
-      if (mobileInput && !mobileInput.value.trim()) mobileInput.value = normalizeJoinMemberPhone(member.memberMobile || pending.phone || "");
+      if (mobileInput && !mobileInput.value.trim()) {
+        mobileInput.value = normalizeJoinMemberPhone(member.memberMobile || pending.phone || "");
+        formatJoinMemberSignupMobile(mobileInput);
+      }
       if (emailInput && !emailInput.value.trim()) emailInput.value = member.memberEmail || pending.email || "";
       syncAllJoinMemberFloatingFields();
       setJoinMemberSignupStep(1);
@@ -33263,7 +33924,7 @@
       }
       if (afterLogin === "my-drawer") {
         setJoinMobileNavActive("my");
-        openJoinMyDrawer();
+        showJoinMyDrawer(member);
         return;
       }
       if (afterLogin === "detail-wish") {
@@ -33279,9 +33940,8 @@
         return;
       }
       if (afterLogin === "my-menu") {
-        setJoinMobileNavActive("");
-        setJoinMobileBottomNavLayerActive("");
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        setJoinMobileNavActive("my");
+        openJoinMyMenu({ skipProfileCheck: true, member });
         return;
       }
       setJoinMobileNavActive("my");
@@ -33290,6 +33950,7 @@
 
     function resetJoinMemberSignupValidation() {
       document.getElementById("joinMemberSignupForm")?.classList.remove("is-email-valid");
+      joinMemberSignupIdImeMode = "unknown";
       Object.values(joinMyMenuState.signupDuplicateTimers || {}).forEach((timer) => window.clearTimeout(timer));
       joinMyMenuState.signupDuplicateLocks = {};
       joinMyMenuState.signupDuplicateTimers = {};
@@ -33335,11 +33996,6 @@
         "smsYn",
         "emailYn",
         "extnChnlLinkCd",
-        "extnChnlLinkToken",
-        "externalId",
-        "externalNickname",
-        "externalName",
-        "externalEmail",
         "validTermCd",
         "custId",
         "custNm",
@@ -33350,6 +34006,50 @@
         if (data[key] != null && data[key] !== "") payload[key] = data[key];
         return payload;
       }, {});
+    }
+
+    function buildJoinExternalMemberSavePayload(data = {}) {
+      const allowedKeys = [
+        "mobile1",
+        "mobile2",
+        "mobile3",
+        "smsYn",
+        "emailYn",
+        "custId",
+        "extnChnlLinkCd",
+        "extnChnlLinkToken",
+        "validTermCd",
+        "email",
+        "custNm",
+        "mobile"
+      ];
+      return allowedKeys.reduce((payload, key) => {
+        if (data[key] != null && data[key] !== "") payload[key] = data[key];
+        return payload;
+      }, {});
+    }
+
+    function buildJoinExternalMemberLoginPayload(data = {}) {
+      return {
+        externalId: data.externalId || data.custId || "",
+        externalNickname: data.externalNickname || "",
+        externalName: data.externalName || data.custNm || "",
+        externalEmail: data.externalEmail || data.email || "",
+        extnChnlLinkToken: data.extnChnlLinkToken || "",
+        extnChnlLinkCd: "KAKAO"
+      };
+    }
+
+    async function prepareJoinMemberSaveSession(validTermCd = "010") {
+      const joinPayFg = String(validTermCd || "010").trim() || "010";
+      const result = await postJoinMemberForm("/member/setJoinPayFg.json", { joinPayFg });
+      if (Number(result?.count) !== 1) {
+        throw createJoinMemberApiError(
+          summarizeJoinMemberApiResponse(result) || "회원등급 정보를 설정하지 못했습니다.",
+          { endpoint: "/member/setJoinPayFg.json", responseData: result }
+        );
+      }
+      return result;
     }
 
     function splitJoinMemberMobile(value = "") {
@@ -33546,29 +34246,51 @@
     }
 
     async function checkJoinMemberSignupDuplicates(data) {
+      joinMyMenuState.lastSignupDuplicateField = "";
       const idCheck = await postJoinMemberForm("/member/getMemberIdCheck.json", { custId: data.custId });
-      if (Number(idCheck?.count) !== 0) return "이미 사용중이거나 탈퇴한 아이디입니다.";
+      if (Number(idCheck?.count) !== 0) {
+        joinMyMenuState.lastSignupDuplicateField = "id";
+        return getJoinMemberSignupDuplicateMessage("id");
+      }
       const mobileCheck = await postJoinMemberForm("/member/getMemberMobileCheck.json", {
         mobile1: data.mobile1,
         mobile2: data.mobile2,
         mobile3: data.mobile3
       });
-      if (Number(mobileCheck?.count) !== 0) return "이미 사용중이거나 탈퇴한 휴대폰 번호입니다.";
+      if (Number(mobileCheck?.count) !== 0) {
+        joinMyMenuState.lastSignupDuplicateField = "mobile";
+        return getJoinMemberSignupDuplicateMessage("mobile");
+      }
       const emailCheck = await postJoinMemberForm("/member/getMemberEmailCheck.json", { email: data.email });
-      if (Number(emailCheck?.count) !== 0) return "이미 사용중이거나 탈퇴한 이메일입니다.";
+      if (Number(emailCheck?.count) !== 0) {
+        joinMyMenuState.lastSignupDuplicateField = "email";
+        return getJoinMemberSignupDuplicateMessage("email");
+      }
       return "";
     }
 
     async function checkJoinMemberKakaoSignupDuplicates(data) {
+      joinMyMenuState.lastSignupDuplicateField = "";
+      const idCheck = await postJoinMemberForm("/member/getMemberIdCheck.json", { custId: data.custId });
+      if (Number(idCheck?.count) !== 0) {
+        joinMyMenuState.lastSignupDuplicateField = "id";
+        return getJoinMemberSignupDuplicateMessage("id");
+      }
       const mobileCheck = await postJoinMemberForm("/member/getMemberMobileCheck.json", {
         mobile1: data.mobile1,
         mobile2: data.mobile2,
         mobile3: data.mobile3
       });
-      if (Number(mobileCheck?.count) !== 0) return "이미 사용중이거나 탈퇴한 휴대폰 번호입니다.";
+      if (Number(mobileCheck?.count) !== 0) {
+        joinMyMenuState.lastSignupDuplicateField = "mobile";
+        return getJoinMemberSignupDuplicateMessage("mobile");
+      }
       if (data.email) {
         const emailCheck = await postJoinMemberForm("/member/getMemberEmailCheck.json", { email: data.email });
-        if (Number(emailCheck?.count) !== 0) return "이미 사용중이거나 탈퇴한 이메일입니다.";
+        if (Number(emailCheck?.count) !== 0) {
+          joinMyMenuState.lastSignupDuplicateField = "email";
+          return getJoinMemberSignupDuplicateMessage("email");
+        }
       }
       return "";
     }
@@ -33592,13 +34314,13 @@
         smsYn: marketingChecked ? "Y" : "N",
         emailYn: marketingChecked ? "Y" : "N",
         extnChnlLinkCd: "KAKAO",
-        extnChnlLinkToken: pending.accessToken || "",
+        extnChnlLinkToken: getJoinPendingKakaoAccessToken(pending),
         externalId,
         externalNickname: pending.nickname || "",
         externalName: name,
         externalEmail: email,
         validTermCd: "010",
-        custId: email || (externalId ? `KAKAO_${externalId}` : ""),
+        custId: externalId,
         custNm: name,
         mobile,
         email,
@@ -33617,8 +34339,53 @@
         memberName: data.custNm || data.externalName || "",
         memberChannel: "KAKAO",
         memberMobile: data.mobile || "",
-        memberEmail: data.email || data.externalEmail || ""
+        memberEmail: data.email || data.externalEmail || "",
+        kakaoId: data.externalId || "",
+        kakaoNickname: data.externalNickname || ""
       };
+    }
+
+    function buildJoinMemberKakaoResponseSnapshot(data = {}) {
+      return {
+        id: data.externalId || "",
+        properties: { nickname: data.externalNickname || "" },
+        kakao_account: {
+          name: data.externalName || data.custNm || "",
+          email: data.externalEmail || data.email || "",
+          profile: { nickname: data.externalNickname || "" }
+        }
+      };
+    }
+
+    function mergeJoinMemberIdentity(baseMember = {}, nextMember = {}) {
+      const merged = { ...baseMember };
+      Object.entries(nextMember || {}).forEach(([key, value]) => {
+        if (value != null && String(value).trim()) merged[key] = value;
+      });
+      return merged;
+    }
+
+    async function saveJoinMemberKakaoProfileAndContinue(data = {}, erpMember = {}) {
+      const memberForSheet = mergeJoinMemberIdentity(getJoinMemberFromKakaoSignupData(data), erpMember);
+      const existingProfile = await fetchJoinMemberProfileFromGoogleSheet(memberForSheet, { refresh: true });
+      if (existingProfile?.profileId) {
+        rememberJoinMemberProfileLocally(memberForSheet, existingProfile);
+      }
+      const profileSnapshot = getJoinSignupProfileSnapshot(memberForSheet);
+      const profilePayload = buildJoinMemberProfilePayload(memberForSheet);
+      if (existingProfile?.profileId) {
+        profilePayload.profileId = existingProfile.profileId;
+        profilePayload.keyValue = existingProfile.profileId;
+      }
+      setJoinMemberLoginStatus("추가정보를 저장하고 있어요.");
+      const saveResult = await saveJoinMemberProfileWithConfirmation(profilePayload, memberForSheet);
+      const savedProfile = {
+        ...profileSnapshot,
+        profileId: saveResult?.profileId || profilePayload.profileId
+      };
+      rememberJoinMemberProfileLocally(memberForSheet, savedProfile);
+      clearJoinPendingKakaoProfile();
+      finishJoinMemberSignupAndContinue(memberForSheet, savedProfile);
     }
 
     function buildJoinMemberProfilePayload(member = {}) {
@@ -33716,9 +34483,10 @@
         document.getElementById("joinMemberSignupAgreeAll")?.focus();
         return;
       }
-      if (pendingKakao.kakaoId && pendingKakao.accessToken) {
+      if (pendingKakao.kakaoId) {
         const data = buildJoinMemberKakaoSignupData();
         if (!data.externalId || !data.extnChnlLinkToken) {
+          joinMyMenuState.loginRedirecting = false;
           setJoinMemberLoginStatus("카카오 인증 정보가 만료되었습니다. 다시 카카오로 가입해 주세요.");
           return;
         }
@@ -33732,50 +34500,59 @@
           setJoinMemberLoginStatus("카카오 회원가입을 진행하고 있어요.");
           if (!canUseSecretTourMemberApi()) {
             console.warn("Kakao ERP signup skipped outside secret-tour.com.", location.origin);
-            const memberForSheet = getJoinMemberFromKakaoSignupData(data);
-            const profileSnapshot = getJoinSignupProfileSnapshot(memberForSheet);
-            rememberJoinMemberProfileLocally(memberForSheet, profileSnapshot);
-            await saveJoinMemberProfileToGoogleSheet(buildJoinMemberProfilePayload(memberForSheet));
-            clearJoinPendingKakaoProfile();
-            finishJoinMemberSignupAndContinue(memberForSheet, profileSnapshot);
+            await saveJoinMemberKakaoProfileAndContinue(data);
             return;
           }
           const duplicateMessage = await checkJoinMemberKakaoSignupDuplicates(data);
           if (duplicateMessage) {
             joinMyMenuState.loginRedirecting = false;
             setJoinMemberLoginStatus(duplicateMessage);
+            showJoinMemberSignupAlert(
+              duplicateMessage,
+              getJoinMemberSignupDuplicateFocusId(joinMyMenuState.lastSignupDuplicateField)
+            );
             return;
           }
-          const result = await postJoinMemberForm("/member/saveMember.json", buildJoinMemberSavePayload(data));
+          const result = await postJoinMemberForm(
+            "/member/saveExternalMember.json",
+            buildJoinExternalMemberSavePayload(data)
+          );
           if ((result?.message || "") !== "SUCCESS") {
             throw createJoinMemberApiError(summarizeJoinMemberApiResponse(result) || "카카오 회원가입 저장에 실패했습니다.", {
-              endpoint: "/member/saveMember.json",
+              endpoint: "/member/saveExternalMember.json",
               responseData: result
             });
           }
-          const loginResult = await postJoinMemberForm("/member/getMemberExternalLoginCheck.json", {
-            externalId: data.externalId,
-            externalNickname: data.externalNickname,
-            externalName: data.externalName,
-            externalEmail: data.externalEmail,
-            extnChnlLinkCd: "KAKAO",
-            extnChnlLinkToken: data.extnChnlLinkToken
-          });
-          const memberForSheet = getJoinMemberFromKakaoSignupData(data);
-          const profileSnapshot = getJoinSignupProfileSnapshot(memberForSheet);
-          rememberJoinMemberProfileLocally(memberForSheet, profileSnapshot);
-          await saveJoinMemberProfileToGoogleSheet(buildJoinMemberProfilePayload(memberForSheet));
-          clearJoinPendingKakaoProfile();
-          if ((loginResult?.message || "") === "SUCCESS") {
-            finishJoinMemberSignupAndContinue(memberForSheet, profileSnapshot);
-          } else {
-            showJoinMemberSignupComplete("login");
-          }
+          const savedErpMember = buildJoinErpMemberFromLoginResponse(
+            result,
+            buildJoinMemberKakaoResponseSnapshot(data)
+          );
+          await saveJoinMemberKakaoProfileAndContinue(data, savedErpMember);
           return;
         } catch (error) {
           joinMyMenuState.loginRedirecting = false;
           console.warn("Kakao signup failed.", error);
-          setJoinMemberLoginStatus("카카오 회원가입 처리 중 오류가 발생했습니다.");
+          if (error?.endpoint === "/member/saveExternalMember.json" && Number(error?.status) === 400) {
+            try {
+              const duplicateMessage = await checkJoinMemberKakaoSignupDuplicates(data);
+              if (duplicateMessage) {
+                setJoinMemberLoginStatus(duplicateMessage);
+                showJoinMemberSignupAlert(
+                  duplicateMessage,
+                  getJoinMemberSignupDuplicateFocusId(joinMyMenuState.lastSignupDuplicateField)
+                );
+                return;
+              }
+            } catch (duplicateCheckError) {
+              console.warn("Kakao signup duplicate recheck failed.", duplicateCheckError);
+            }
+          }
+          const detail = error?.serverMessage || error?.message || "";
+          const userMessage = /member profile|추가정보|sheet/i.test(detail)
+            ? "추가정보 저장이 지연되고 있습니다. 잠시 후 입력 완료를 다시 눌러 주세요."
+            : "카카오 회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
+          setJoinMemberLoginStatus(userMessage);
+          showJoinMemberSignupAlert(userMessage);
           return;
         }
       }
@@ -33789,11 +34566,11 @@
           return;
         }
         const payload = buildJoinMemberProfilePayload(member);
-        await saveJoinMemberProfileToGoogleSheet(payload);
+        const saveResult = await saveJoinMemberProfileToGoogleSheet(payload);
         const savedProfile = normalizeJoinMemberProfileRow({
           ...payload.member,
           ...payload.profile,
-          profileId: payload.profileId,
+          profileId: saveResult?.profileId || payload.profileId,
           submittedAt: payload.submittedAt,
           name: payload.member?.memberName || member.memberName || "",
           mobile: payload.member?.memberMobile || member.memberMobile || "",
@@ -33804,6 +34581,7 @@
         clearJoinPendingKakaoProfile();
         joinMyMenuState.loginRedirecting = false;
         const updatedMember = mergeJoinMemberWithProfile(member, savedProfile);
+        rememberJoinMemberProfileCompletion(updatedMember, isJoinMemberProfileComplete(updatedMember));
         joinMyMenuState.memberPromise = Promise.resolve(updatedMember);
         if (profileRequired) {
           continueAfterJoinMemberProfileSave(updatedMember);
@@ -33902,13 +34680,12 @@
         if (duplicateMessage) {
           joinMyMenuState.loginRedirecting = false;
           setJoinMemberLoginStatus("");
-          const focusTargetId = duplicateMessage.includes("휴대폰")
-            ? "joinMemberSignupMobile"
-            : (duplicateMessage.includes("이메일") ? "joinMemberSignupContactEmail" : "joinMemberSignupEmail");
+          const focusTargetId = getJoinMemberSignupDuplicateFocusId(joinMyMenuState.lastSignupDuplicateField);
           showJoinMemberSignupAlert(duplicateMessage, focusTargetId);
           return;
         }
         setJoinMemberLoginStatus("회원가입을 진행하고 있어요.");
+        await prepareJoinMemberSaveSession(data.validTermCd);
         const result = await postJoinMemberForm("/member/saveMember.json", buildJoinMemberSavePayload(data));
         if ((result?.message || "") !== "SUCCESS") {
           throw createJoinMemberApiError(summarizeJoinMemberApiResponse(result) || "회원가입 저장에 실패했습니다.", {
@@ -33923,9 +34700,19 @@
           memberEmail: email,
           memberChannel: "HOME"
         };
+        const existingSheetProfile = await fetchJoinMemberProfileFromGoogleSheet(signupMember, { refresh: true });
+        if (existingSheetProfile?.profileId) {
+          rememberJoinMemberProfileLocally(signupMember, existingSheetProfile);
+        }
         const signupProfile = getJoinSignupProfileSnapshot(signupMember);
         rememberJoinMemberProfileLocally(signupMember, signupProfile);
-        await saveJoinMemberProfileToGoogleSheet(buildJoinMemberProfilePayload(signupMember));
+        const profilePayload = buildJoinMemberProfilePayload(signupMember);
+        const saveResult = await saveJoinMemberProfileToGoogleSheet(profilePayload);
+        const savedSignupProfile = {
+          ...signupProfile,
+          profileId: saveResult?.profileId || profilePayload.profileId
+        };
+        rememberJoinMemberProfileLocally(signupMember, savedSignupProfile);
         setJoinMemberLoginStatus("가입이 완료되었어요. 로그인하고 있어요.");
         joinMyMenuState.loginRedirecting = false;
         try {
@@ -33936,7 +34723,7 @@
           if ((loginResult?.message || "") !== "SUCCESS") {
             throw new Error(loginResult?.message || "login failed after signup");
           }
-          finishJoinMemberSignupAndContinue(signupMember, signupProfile);
+          finishJoinMemberSignupAndContinue(signupMember, savedSignupProfile);
           return;
         } catch (loginError) {
           console.warn("Auto login after signup failed.", loginError);
@@ -33949,12 +34736,29 @@
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
         console.warn("Email signup failed.", error);
+        if (error?.endpoint === "/member/saveMember.json" && Number(error?.status) === 400) {
+          try {
+            const duplicateMessage = await checkJoinMemberSignupDuplicates(data);
+            if (duplicateMessage) {
+              setJoinMemberLoginStatus("");
+              showJoinMemberSignupAlert(
+                duplicateMessage,
+                getJoinMemberSignupDuplicateFocusId(joinMyMenuState.lastSignupDuplicateField)
+              );
+              return;
+            }
+          } catch (duplicateCheckError) {
+            console.warn("Email signup duplicate recheck failed.", duplicateCheckError);
+          }
+        }
         const detail = [
           String(error?.message || "").trim(),
           error?.endpoint ? `위치: ${error.endpoint}` : "",
           error?.responseText ? `응답: ${error.responseText}` : ""
         ].filter(Boolean).join(" / ");
-        setJoinMemberLoginStatus(detail ? `회원가입 처리 중 오류가 발생했습니다. ${detail}` : "회원가입 처리 중 오류가 발생했습니다.");
+        const userMessage = detail ? `회원가입 처리 중 오류가 발생했습니다. ${detail}` : "회원가입 처리 중 오류가 발생했습니다.";
+        setJoinMemberLoginStatus(userMessage);
+        showJoinMemberSignupAlert(userMessage);
       }
     }
 
@@ -34021,6 +34825,21 @@
       if (/^82(1[016789]\d{8})$/.test(digits)) return `0${digits.slice(2)}`;
       if (/^1[016789]\d{8}$/.test(digits)) return `0${digits}`;
       return digits;
+    }
+
+    function normalizeJoinErpProductId(value = "", eventSeq = "") {
+      const text = String(value || "").trim();
+      if (!text) return "";
+      const normalizedEventSeq = String(eventSeq || "").trim();
+      if (text.startsWith("secret-tour-")) {
+        const withoutPrefix = text.slice("secret-tour-".length);
+        if (normalizedEventSeq && withoutPrefix.endsWith(`-${normalizedEventSeq}`)) {
+          return withoutPrefix.slice(0, -(normalizedEventSeq.length + 1));
+        }
+        const numericMatch = withoutPrefix.match(/^(\d+)(?:-\d+)?$/);
+        if (numericMatch) return numericMatch[1];
+      }
+      return text;
     }
 
     function normalizeJoinMemberGender(value) {
@@ -34129,7 +34948,29 @@
       if (response.url && /\/member\/login/i.test(response.url)) {
         return { sessionExpired: true };
       }
-      return parseJoinMemberDetailPage(await response.text());
+      const html = await response.text();
+      const isLoginPage = /\/member\/getMemberLoginCheck\.json/i.test(html)
+        || /<form[^>]+(?:id|name)=["'][^"']*login/i.test(html);
+      if (isLoginPage && !/CookieData\([^)]*(?:userSeq|userId)\s*=\s*[^,)]/i.test(html)) {
+        return { sessionExpired: true };
+      }
+      const renderedCookieMatch = html.match(/CookieData\(([^)]*(?:userSeq|userId)[^)]*)\)/);
+      const renderedMember = parseJoinCookieData(
+        renderedCookieMatch ? `CookieData(${renderedCookieMatch[1]})` : ""
+      );
+      const detail = parseJoinMemberDetailPage(html);
+      const hasRenderedMember = Boolean(renderedMember.memberSeq || renderedMember.memberId);
+      return {
+        ...renderedMember,
+        ...detail,
+        memberName: detail.memberName || renderedMember.memberName || "",
+        sessionAuthenticated: Boolean(
+          hasRenderedMember
+          || detail.memberName
+          || detail.memberMobile
+          || detail.memberEmail
+        )
+      };
     }
 
     async function fetchJoinMemberDetail() {
@@ -34140,6 +34981,9 @@
         return {
           ...detail,
           ...fallbackDetail,
+          memberSeq: fallbackDetail.memberSeq || detail.memberSeq || "",
+          memberId: fallbackDetail.memberId || detail.memberId || "",
+          memberChannel: fallbackDetail.memberChannel || detail.memberChannel || "",
           memberName: fallbackDetail.memberName || detail.memberName || "",
           memberMobile: fallbackDetail.memberMobile || detail.memberMobile || "",
           memberEmail: fallbackDetail.memberEmail || detail.memberEmail || "",
@@ -34176,6 +35020,67 @@
       return member;
     }
 
+    let joinErpSessionSyncPromise = null;
+    let joinErpSessionLastCheckedAt = Date.now();
+
+    function clearJoinClientSessionAfterErpLogout() {
+      setJoinLogoutMarker();
+      try {
+        sessionStorage.removeItem(JOIN_SESSION_MEMBER_KEY);
+      } catch (error) {
+        console.warn("Failed to clear join ERP session member.", error);
+      }
+      clearJoinMemberProfileCompletion();
+      joinMyMenuState.memberPromise = null;
+      closeJoinMemberLoginModal();
+      closeJoinMyMenu();
+      closeJoinMyDrawer();
+      setJoinMobileNavActive("");
+    }
+
+    async function synchronizeJoinErpSession(options = {}) {
+      if (!canUseSecretTourMemberApi()) return getJoinLoginState();
+      const before = getJoinLoginState();
+      if (before.member?.isTempAdmin) return before;
+      const loginModalOpen = document.getElementById("joinMemberLoginModal")?.classList.contains("open");
+      if (joinMyMenuState.loginRedirecting || joinMyMenuState.pendingKakaoSignup || loginModalOpen) {
+        return before;
+      }
+      const now = Date.now();
+      if (!options.force && now - joinErpSessionLastCheckedAt < 15000) return before;
+      if (joinErpSessionSyncPromise) return joinErpSessionSyncPromise;
+      joinErpSessionLastCheckedAt = now;
+      joinErpSessionSyncPromise = (async () => {
+        const detail = await fetchJoinMemberDetail();
+        if (detail.sessionExpired) {
+          if (before.isLogin) clearJoinClientSessionAfterErpLogout();
+          return { isLogin: false, member: {} };
+        }
+        if (!detail.sessionAuthenticated) return before;
+        clearJoinLogoutMarker();
+        const member = setJoinSessionMember({
+          ...(before.member || {}),
+          ...detail,
+          memberName: detail.memberName || before.member?.memberName || "",
+          memberMobile: detail.memberMobile || before.member?.memberMobile || "",
+          memberEmail: detail.memberEmail || before.member?.memberEmail || ""
+        });
+        updateOpenJoinMemberRequiredProfileFormMember(member);
+        if (!before.isLogin) {
+          closeJoinMemberLoginModal();
+          updateJoinMyDrawerProfile(member);
+          renderJoins();
+        }
+        return { isLogin: true, member };
+      })().catch((error) => {
+        console.warn("Failed to synchronize Secret Tour member session.", error);
+        return before;
+      }).finally(() => {
+        joinErpSessionSyncPromise = null;
+      });
+      return joinErpSessionSyncPromise;
+    }
+
     async function getJoinCurrentMember(options = {}) {
       const loginState = getJoinLoginState();
       if (!loginState.isLogin) return null;
@@ -34183,23 +35088,69 @@
       if (loginState.member?.isSessionMember) return hydrateJoinMemberProfile(loginState.member, options);
       if (!options.refresh && joinMyMenuState.memberPromise) return joinMyMenuState.memberPromise;
       joinMyMenuState.memberPromise = (async () => {
-        const detail = await fetchJoinMemberDetail();
+        const [detail, profileMember] = await Promise.all([
+          fetchJoinMemberDetail(),
+          hydrateJoinMemberProfile(loginState.member, options)
+        ]);
         if (detail.sessionExpired) return null;
-        const member = {
+        const memberWithDetail = {
           ...loginState.member,
           ...detail,
           memberName: detail.memberName || loginState.member.memberName || "",
           memberMobile: detail.memberMobile || loginState.member.memberMobile || "",
           memberEmail: detail.memberEmail || loginState.member.memberEmail || ""
         };
+        const member = mergeJoinMemberWithProfile(memberWithDetail, profileMember);
+        if (profileMember?.__profileLookupFailed) member.__profileLookupFailed = true;
         updateOpenJoinMemberRequiredProfileFormMember(member);
-        return hydrateJoinMemberProfile(member, options);
+        return member;
       })();
       return joinMyMenuState.memberPromise;
     }
 
     async function ensureJoinMemberProfileReady(afterLogin = "my-menu", extraParams = {}, options = {}) {
       const baseMember = options.member || getJoinLoginState().member || null;
+      const cachedMember = options.member
+        ? getJoinMemberWithCachedProfile(options.member)
+        : getJoinCachedCurrentMember();
+      const cachedCompletion = getRememberedJoinMemberProfileCompletion(cachedMember || baseMember || {});
+      if (
+        (options.skipProfileCheck && (cachedMember || baseMember))
+        || (cachedCompletion === true && isJoinMemberProfileComplete(cachedMember || {}))
+      ) {
+        return cachedMember || baseMember;
+      }
+      if (cachedCompletion === false && cachedMember && !isJoinTempAdminMember(cachedMember)) {
+        openJoinMemberRequiredProfileForm(cachedMember, afterLogin, extraParams);
+        const refreshPromise = getJoinCurrentMember({ refresh: true })
+          .then((refreshedMember) => {
+            if (!refreshedMember) {
+              closeJoinMemberLoginModal();
+              redirectToJoinLogin(afterLogin, extraParams);
+              return null;
+            }
+            if (refreshedMember.__profileLookupFailed) return refreshedMember;
+            const form = document.getElementById("joinMemberSignupForm");
+            const isSameRequiredForm = Boolean(
+              form?.classList.contains("is-open")
+              && form.dataset.profileRequired === "true"
+              && joinMyMenuState.pendingProfileAfterLogin === (afterLogin || "my-menu")
+            );
+            if (!isSameRequiredForm) return refreshedMember;
+            if (isJoinMemberProfileComplete(refreshedMember)) {
+              continueAfterJoinMemberProfileSave(refreshedMember);
+              return refreshedMember;
+            }
+            updateOpenJoinMemberRequiredProfileFormMember(refreshedMember);
+            return refreshedMember;
+          })
+          .catch((error) => {
+            console.warn("Failed to refresh cached incomplete join member profile.", error);
+            return null;
+          });
+        joinMyMenuState.pendingProfileDetailPromise = refreshPromise;
+        return null;
+      }
       const requiresSheetProfileCheck = isJoinTempAdminMember(baseMember);
       const member = requiresSheetProfileCheck
         ? await getJoinCurrentMember({ refresh: true })
@@ -35253,7 +36204,7 @@
     async function handleJoinMyLogout() {
       closeJoinMyDrawer();
       try {
-        await fetch(getJoinLogoutUrl(), {
+        const response = await fetch(getJoinLogoutUrl(), {
           method: "GET",
           credentials: "include",
           cache: "no-cache",
@@ -35262,13 +36213,17 @@
             "X-Requested-With": "XMLHttpRequest"
           }
         });
+        if (!response.ok) throw new Error(`logout failed: ${response.status}`);
       } catch (error) {
         console.warn("Secret Tour logout request failed.", error);
+        alert("로그아웃 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
       }
       try {
         setJoinLogoutMarker();
         sessionStorage.removeItem(JOIN_TEMP_ADMIN_LOGIN_KEY);
         sessionStorage.removeItem(JOIN_SESSION_MEMBER_KEY);
+        clearJoinMemberProfileCompletion();
         joinMyMenuState.memberPromise = null;
       } catch (error) {
         console.warn("Failed to clear join login state.", error);
@@ -35472,6 +36427,7 @@
     }
 
     function isJoinMyJoinApplicationForMember(application = {}, member = {}) {
+      if (application.memberLookupMatched === true) return true;
       const memberIdentity = getJoinMyMemberIdentity(member);
       const applicationIdentity = getJoinMyJoinApplicationIdentity(application);
       const hasMemberIdentity = Boolean(memberIdentity.memberKey || memberIdentity.seq || memberIdentity.id || memberIdentity.phone || memberIdentity.email || memberIdentity.kakaoId);
@@ -35524,6 +36480,24 @@
       );
     }
 
+    function isCancelledJoinMyCreatedSchedule(join = {}) {
+      const application = join.sheetApplication || {};
+      const refundStatus = String(
+        application.refundStatus
+        || getNestedValue(application, "payment.refundStatus")
+        || join.refundStatus
+        || ""
+      ).trim().toLowerCase();
+      return Boolean(
+        isCancelledJoinApplyPayload({
+          applicationStatus: application.applicationStatus || application.status || join.applicationStatus || join.status || "",
+          participantStatus: application.participantStatus || getNestedValue(application, "participant.status") || join.participantStatus || ""
+        })
+        || ["requested", "paid", "refunded"].includes(refundStatus)
+        || /cancel|취소|환불/.test(refundStatus)
+      );
+    }
+
     function buildJoinMyCreatedReservationItem(join = {}) {
       const seed = getJoinMyReservationProductSeed(join.id);
       const productReference = getSecretTourProductReference(seed.join?.id ? seed.join : join);
@@ -35570,9 +36544,16 @@
 
     function buildJoinMyJoinedReservationItem(application = {}) {
       const linkedJoin = findJoinForJoinApplicationPayload(application);
+      const target = getJoinApplicationTargetRow(application);
       const applicationJoin = getNestedValue(application, "join") || {};
       const applicationProduct = getNestedValue(application, "product") || {};
-      const joinId = linkedJoin?.id || getNestedValue(application, "join.id") || application.joinId || "";
+      const joinId = linkedJoin?.id
+        || target.targetJoinId
+        || target.targetScheduleId
+        || getAdminRecommendedJoinIdFromApplicationId(target.targetApplicationId)
+        || getNestedValue(application, "join.id")
+        || application.joinId
+        || "";
       const seed = getJoinMyReservationProductSeed(joinId);
       const join = linkedJoin || seed.join || {};
       const productReference = getSecretTourProductReference(join.id ? join : applicationProduct || applicationJoin || {});
@@ -35901,7 +36882,18 @@
     }
 
     function getJoinMyReservationGroups(member = {}) {
-      const createdJoins = joins.filter((join) => isJoinMyCreatedScheduleForMember(join, member));
+      const ownedCreatedJoins = joins.filter((join) => isJoinMyCreatedScheduleForMember(join, member));
+      const cancelledCreatedKeys = new Set(
+        ownedCreatedJoins
+          .filter(isCancelledJoinMyCreatedSchedule)
+          .map(getJoinMyCreatedScheduleKey)
+          .filter(Boolean)
+      );
+      const createdJoins = ownedCreatedJoins.filter((join) => {
+        if (isCancelledJoinMyCreatedSchedule(join)) return false;
+        const key = getJoinMyCreatedScheduleKey(join);
+        return !key || !cancelledCreatedKeys.has(key);
+      });
       const sheetCreatedJoins = createdJoins.filter((join) => join.builderApplicationSource === "sheet");
       const shouldUseSheetCreatedJoins = googleSheetBuilderApplicationsLoading || (googleSheetBuilderApplicationsReadCompleted && !googleSheetBuilderApplicationsReadFailed);
       const visibleCreatedJoins = shouldUseSheetCreatedJoins
@@ -35920,6 +36912,7 @@
       const joinedSourceApplications = Array.from(joinApplicationPayloadMemory.values());
       const joinedItems = joinedSourceApplications
         .map(normalizeJoinApplyPayload)
+        .filter((application) => !isCancelledJoinApplyPayload(application))
         .filter((application) => isJoinMyJoinApplicationForMember(application, member))
         .filter((application) => {
           const target = getJoinApplicationTargetRow(application);
@@ -35950,12 +36943,14 @@
     }
 
     let activeJoinMySchedulesCache = {
+      ready: false,
       key: "",
       items: []
     };
 
     function clearActiveJoinMySchedulesCache() {
       activeJoinMySchedulesCache = {
+        ready: false,
         key: "",
         items: []
       };
@@ -36098,10 +37093,10 @@
     }
 
     function getActiveJoinMySchedules(options = {}) {
-      const cacheKey = getActiveJoinMySchedulesCacheKey();
-      if (!options.force && activeJoinMySchedulesCache.key === cacheKey) {
+      if (!options.force && activeJoinMySchedulesCache.ready) {
         return activeJoinMySchedulesCache.items;
       }
+      const cacheKey = getActiveJoinMySchedulesCacheKey();
       const items = getActiveJoinMySchedulesUncached().map((item) => {
         const linkedJoin = getJoinMyLinkedJoin(item) || {};
         return {
@@ -36112,7 +37107,7 @@
           erpEventSeq: item.erpEventSeq || linkedJoin.erpEventSeq || getJoinScheduleEventSeq(linkedJoin)
         };
       });
-      activeJoinMySchedulesCache = { key: cacheKey, items };
+      activeJoinMySchedulesCache = { ready: true, key: cacheKey, items };
       return items;
     }
 
@@ -36144,6 +37139,19 @@
         if (isSameActiveJoinSchedule(join, active)) return false;
         return doJoinScheduleRangesOverlap(joinRange, active.range);
       }) || null;
+    }
+
+    function isJoinExcludedByActiveScheduleOverlap(join = {}) {
+      return Boolean(findOverlappingActiveJoinSchedule(join));
+    }
+
+    function isJoinExcludedFromMyReservationRecommendations(join = {}) {
+      return Boolean(
+        findOwnActiveJoinSchedule(join)
+        || isCurrentMemberCreatedJoinSchedule(join)
+        || isCurrentMemberJoinedJoinSchedule(join)
+        || findOverlappingActiveJoinSchedule(join)
+      );
     }
 
     function isCurrentMemberCreatedJoinSchedule(join = {}) {
@@ -36255,27 +37263,30 @@
         })
         : null;
       if (idMatch) return idMatch;
-      const productId = String(item.erpProductId || item.goodSeq || "").trim();
+      if (keys.length) return null;
       const eventSeq = String(item.erpEventSeq || item.eventSeq || "").trim();
+      const productId = normalizeJoinErpProductId(item.erpProductId || item.goodSeq || "", eventSeq);
       if (!productId && !eventSeq) return null;
-      return joins.find((join) => {
+      const matches = joins.filter((join) => {
         const reference = getSecretTourProductReference(join);
+        const joinEventIds = [
+          join.erpEventSeq,
+          join.eventSeq,
+          reference.eventSeq
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        const joinEventSeq = joinEventIds[0] || "";
         const joinProductIds = [
           join.erpProductId,
           join.goodSeq,
           join.productId,
           reference.id,
           reference.goodSeq
-        ].map((value) => String(value || "").trim()).filter(Boolean);
-        const joinEventIds = [
-          join.erpEventSeq,
-          join.eventSeq,
-          reference.eventSeq
-        ].map((value) => String(value || "").trim()).filter(Boolean);
+        ].map((value) => normalizeJoinErpProductId(value, joinEventSeq)).filter(Boolean);
         const productMatched = productId && joinProductIds.includes(productId);
         const eventMatched = !eventSeq || joinEventIds.includes(eventSeq);
         return productMatched && eventMatched;
-      }) || null;
+      });
+      return matches.length === 1 ? matches[0] : null;
     }
 
     function getJoinMyParticipantCapacity(item = {}) {
@@ -36492,6 +37503,47 @@
       const join = getJoinMyLinkedJoin(item);
       const participants = join ? getUniqueCardParticipants(getConfirmedParticipants(join), join.id) : [];
       const summary = getJoinMyParticipantSummary(participants, item);
+      const groupCapacity = getJoinRecruitmentCapacity(
+        join || item,
+        Number(item.targetCount || summary.targetCount || JOIN_MAX_CAPACITY) || JOIN_MAX_CAPACITY
+      );
+      const isGroupSchedule = isMonthlyRecommendationJoin(join || item) || groupCapacity > JOIN_MAX_CAPACITY;
+      const groupCount = Math.min(
+        groupCapacity,
+        Math.max(
+          summary.count,
+          join ? getMonthlyCardParticipantCount(join) : 0,
+          Number(item.currentCount || 0)
+        )
+      );
+      const groupProgress = groupCapacity > 0
+        ? Math.max(0, Math.min(100, (groupCount / groupCapacity) * 100))
+        : 0;
+      const participantMain = isGroupSchedule
+        ? `<div class="detail-monthly-gauge join-my-participant-group-gauge">
+            <div class="detail-monthly-gauge-head">
+              <div>모집인원</div>
+              <div class="detail-monthly-gauge-count">${groupCount}/${groupCapacity}명</div>
+            </div>
+            <div class="detail-participant-gauge-track" aria-hidden="true">
+              <div class="detail-participant-gauge-fill" style="--gauge-width:${groupProgress}%;"></div>
+            </div>
+          </div>`
+        : `<div class="join-my-participant-main">
+            <div class="join-my-participant-icons-box">
+              <div class="join-my-card-participants">${renderJoinMyParticipantSlots(participants, item)}</div>
+            </div>
+            <div class="join-my-participant-counts">
+              <div class="join-my-participant-count">
+                <div class="join-my-participant-count-label">현재인원</div>
+                <div class="join-my-participant-count-value">${escapeHtml(String(summary.targetCount ? `${summary.count}/${summary.targetCount}명` : `${summary.count}명`))}</div>
+              </div>
+              <div class="join-my-participant-count">
+                <div class="join-my-participant-count-label">남은자리</div>
+                <div class="join-my-participant-count-value">${escapeHtml(String(summary.remaining))}자리</div>
+              </div>
+            </div>
+          </div>`;
       return `
         <div class="join-my-participant-status">
           <div class="join-my-participant-panel">
@@ -36501,21 +37553,7 @@
               </div>
               <div class="join-my-participant-panel-title">참여현황</div>
             </div>
-            <div class="join-my-participant-main">
-              <div class="join-my-participant-icons-box">
-                <div class="join-my-card-participants">${renderJoinMyParticipantSlots(participants, item)}</div>
-              </div>
-              <div class="join-my-participant-counts">
-                <div class="join-my-participant-count">
-                  <div class="join-my-participant-count-label">현재인원</div>
-                  <div class="join-my-participant-count-value">${escapeHtml(String(summary.targetCount ? `${summary.count}/${summary.targetCount}명` : `${summary.count}명`))}</div>
-                </div>
-                <div class="join-my-participant-count">
-                  <div class="join-my-participant-count-label">남은자리</div>
-                  <div class="join-my-participant-count-value">${escapeHtml(String(summary.remaining))}자리</div>
-                </div>
-              </div>
-            </div>
+            ${participantMain}
             <div class="join-my-participant-summary">
               <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">인원구성</div><div class="join-my-participant-pill-value">${escapeHtml(summary.genderRatio)}</div></div>
               <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">평균타수</div><div class="join-my-participant-pill-value">${escapeHtml(summary.averageScore)}</div></div>
@@ -36605,7 +37643,8 @@
       return renderEmptyRegionRecommendations("", {
         title: getJoinMyEmptyRecommendTitle(tabKey),
         setTypeHandler: "setJoinMyEmptyRecommendType",
-        moreHandler: "openJoinMyEmptyRecommendRegion"
+        moreHandler: "openJoinMyEmptyRecommendRegion",
+        excludeActiveScheduleOverlaps: true
       });
     }
 
@@ -36734,6 +37773,9 @@
       try {
         const target = new URL(String(url || "").trim(), window.location.href);
         if (target.protocol !== "https:" && target.protocol !== "http:") return;
+        if (target.hostname.toLowerCase().endsWith(".cloudfunctions.net") && (!target.pathname || target.pathname === "/")) {
+          target.pathname = new URL(GOLFJOIN_SHEET_API_ENDPOINT).pathname;
+        }
         window.open(target.toString(), "_blank", "noopener");
       } catch (error) {
         console.warn("Invalid quote page URL.", error);
@@ -36862,13 +37904,40 @@
 
     function handleJoinMyReservationProduct(joinId, title = "", hideParticipants = false) {
       const key = String(joinId || "").trim();
-      const join = joins.find((item) => item.id === key) || joins.find((item) => String(title || "").includes(item.title) || item.title.includes(String(title || "")));
+      const keyCandidates = new Set([
+        key,
+        getAdminRecommendedJoinIdFromApplicationId(key)
+      ].filter(Boolean));
+      const join = joins.find((item) => {
+        const itemKeys = [
+          item.id,
+          item.scheduleId,
+          item.sourceApplicationId,
+          getNestedValue(item.displayRule || {}, "recommendedScheduleId"),
+          getNestedValue(item.displayRule || {}, "displayRuleId")
+        ].map((value) => String(value || "").trim()).filter(Boolean);
+        return itemKeys.some((itemKey) => keyCandidates.has(itemKey));
+      }) || joins.find((item) => {
+        const targetTitle = String(title || "").trim();
+        const itemTitle = String(item.title || "").trim();
+        return targetTitle && itemTitle && (targetTitle.includes(itemTitle) || itemTitle.includes(targetTitle));
+      });
       if (!join) {
         alert("연결된 상품을 찾을 수 없습니다.");
         return;
       }
-      openDetail(join.id, { disableEmptySlots: true, hideParticipants: Boolean(hideParticipants) });
+      openDetail(join.id, {
+        disableEmptySlots: true,
+        hideParticipants: Boolean(hideParticipants),
+        allowUnavailable: true
+      });
       document.getElementById("detailModal")?.classList.add("my-reservation-view-mode");
+      const primary = document.getElementById("detailPrimaryButton");
+      if (primary) {
+        primary.textContent = "멤버 추가하기";
+        primary.setAttribute("onclick", "handleDetailShare()");
+        primary.setAttribute("aria-label", "멤버 추가하기");
+      }
     }
 
     function ensureJoinMyReviewModal() {
@@ -38264,12 +39333,6 @@
         setJoinProfileManageStatus("이미지 파일만 선택할 수 있습니다.");
         return;
       }
-      if (file.size > PROFILE_IMAGE_MAX_ORIGINAL_BYTES) {
-        event.target.value = "";
-        joinProfileManageSelectedFile = null;
-        setJoinProfileManageStatus("프로필 사진은 원본 5MB 이하만 선택할 수 있습니다.");
-        return;
-      }
       joinProfileManageSelectedFile = file;
       const preview = document.getElementById("joinProfileManagePreview");
       if (preview) {
@@ -38690,6 +39753,7 @@
         const updatedMember = mergeJoinMemberWithProfile(member, mergedProfile);
         rememberJoinMemberProfileLocally(member, updatedMember);
         setJoinSessionMember(updatedMember);
+        rememberJoinMemberProfileCompletion(updatedMember, isJoinMemberProfileComplete(updatedMember));
         updateJoinMyDrawerProfile(updatedMember);
         closeJoinProfileManageModal();
       } catch (error) {
@@ -39370,7 +40434,9 @@
       if (!overlay || !overlayRect?.width || !overlayRect?.height || !width) return;
       const overlayCenterX = centerX + getJoinMobileNavIndicatorBaseLeft(shell) - overlayRect.left;
       const visualWidth = width * scaleX;
-      const visualHeight = Math.max(0, overlayRect.height - 16) * scaleY;
+      const overlayStyle = getComputedStyle(overlay);
+      const verticalPadding = (parseFloat(overlayStyle.paddingTop) || 0) + (parseFloat(overlayStyle.paddingBottom) || 0);
+      const visualHeight = Math.max(0, overlayRect.height - verticalPadding) * scaleY;
       const clipLeft = clampJoinMobileNavValue(overlayCenterX - visualWidth / 2, 0, overlayRect.width);
       const clipRight = clampJoinMobileNavValue(overlayRect.width - (overlayCenterX + visualWidth / 2), 0, overlayRect.width);
       const clipY = clampJoinMobileNavValue((overlayRect.height - visualHeight) / 2, 0, overlayRect.height / 2);
@@ -40132,6 +41198,51 @@
       if (continued) return true;
       openJoinMemberKakaoProfileForm(member || {});
       return true;
+    }
+
+    const HERO_OCTOBER_MONTHLY_SCHEDULE_ID = "rs-30001278-30284707";
+
+    function findHeroOctoberMonthlyJoin() {
+      const exact = joins.find((join) => {
+        const rule = join.displayRule || {};
+        return [
+          join.sourceApplicationId,
+          join.recommendedScheduleId,
+          rule.recommendedScheduleId,
+          rule.displayRuleId
+        ].some((value) => String(value || "").trim() === HERO_OCTOBER_MONTHLY_SCHEDULE_ID);
+      });
+      if (exact) return exact;
+      return joins.find((join) => {
+        const title = String(join.title || join.displayRule?.overrideTitle || "");
+        const departureDate = String(join.departureDate || join.displayRule?.displayStartAt || "");
+        return join.isAdminRecommendedSchedule
+          && isMonthlyRecommendationJoin(join)
+          && (title.includes("10월") || /^\d{4}-10-/.test(departureDate));
+      }) || null;
+    }
+
+    async function openHeroOctoberMonthlyDetail() {
+      try {
+        await runJoinActionLoading(async () => {
+          let target = findHeroOctoberMonthlyJoin();
+          if (!target) {
+            await hydrateAdminRecommendedSchedulesFromGoogleSheet();
+            target = findHeroOctoberMonthlyJoin();
+          }
+          if (!target) throw new Error("10월 월례회 상품을 찾을 수 없습니다.");
+          openDetail(target.id);
+        }, { message: "10월 월례회 상품을 불러오고 있어요", button: null, minVisibleMs: 300 });
+      } catch (error) {
+        console.warn("Failed to open the October monthly recommendation from the hero banner.", error);
+        alert(error?.message || "10월 월례회 상품을 불러오지 못했습니다.");
+      }
+    }
+
+    function handleHeroOctoberMonthlyKeydown(event) {
+      if (!event || !["Enter", " "].includes(event.key)) return;
+      event.preventDefault();
+      openHeroOctoberMonthlyDetail();
     }
 
     function startHeroSlider() {
@@ -41713,6 +42824,7 @@
         count,
         remaining,
         averageAgeDecade,
+        averageHandicap: formatDetailAverageHandicapV2(confirmedParticipants),
         male: genderCounts.male,
         female: genderCounts.female
       };
@@ -41770,7 +42882,7 @@
               <div class="detail-monthly-member-side">
                 <div class="detail-monthly-member-copy">
                   <div class="detail-monthly-member-title">월례회</div>
-                  <div class="detail-monthly-member-sub">${count > 0 ? `${count}명이 함께 신청했어요` : "누구나 참여 가능한 단체여행입니다"}</div>
+                  <div class="detail-monthly-member-sub">${count > 0 ? `${count}명이 신청했어요` : "누구나 참여 가능한 단체여행입니다"}</div>
                 </div>
               </div>
               <div class="detail-monthly-gauge">
@@ -41820,7 +42932,7 @@
                 <div class="detail-monthly-member-side">
                   <div class="detail-monthly-member-copy">
                     <div class="detail-monthly-member-title">월례회</div>
-                    <div class="detail-monthly-member-sub">${count > 0 ? `${count}명이 함께 신청했어요` : "누구나 참여 가능한 단체여행입니다"}</div>
+                    <div class="detail-monthly-member-sub">${count > 0 ? `${count}명이 신청했어요` : "누구나 참여 가능한 단체여행입니다"}</div>
                   </div>
                 </div>
                 <div class="detail-monthly-gauge">
@@ -43020,9 +44132,11 @@
 
     function isJoinFullyBooked(join = {}) {
       const capacity = getJoinRecruitmentCapacity(join, JOIN_MAX_CAPACITY);
-      const confirmedCount = getConfirmedParticipants(join).length;
+      const summaryCount = Number(join.participantSummary?.confirmedCount ?? join.lightSummary?.confirmedCount);
+      const confirmedCount = Number.isFinite(summaryCount) ? Math.max(0, summaryCount) : getConfirmedParticipants(join).length;
       if (isMonthlyRecommendationJoin(join) || capacity > JOIN_MAX_CAPACITY) {
-        return confirmedCount >= capacity;
+        const emptySlots = Number(join.emptySlots);
+        return confirmedCount >= capacity || (Number.isFinite(emptySlots) && emptySlots <= 0);
       }
       const emptySlots = Number(join.emptySlots);
       if (Number.isFinite(emptySlots) && emptySlots <= 0) return true;
@@ -45091,7 +46205,7 @@
       const monthlyCapacity = isMonthlyApply
         ? getJoinRecruitmentCapacity(join, Number(join?.maxCapacity || join?.capacity || JOIN_MAX_CAPACITY) || JOIN_MAX_CAPACITY)
         : JOIN_MAX_CAPACITY;
-      const monthlyCurrentCount = isMonthlyApply ? getConfirmedParticipants(join).length : 0;
+      const monthlyCurrentCount = isMonthlyApply ? getMonthlyCardParticipantCount(join) : 0;
       const monthlyAfterCount = Math.min(Math.max(monthlyCapacity, monthlyCurrentCount), monthlyCurrentCount + totalPeople);
       const monthlyProgressBase = Math.max(monthlyCapacity, monthlyCurrentCount || 0, 1);
       const monthlyProgress = isMonthlyApply ? Math.max(0, Math.min(100, Math.round((monthlyAfterCount / monthlyProgressBase) * 100))) : 0;
@@ -45419,7 +46533,7 @@
       const member = getJoinCachedCurrentMember() || getJoinLoginState().member || {};
       const cached = getRememberedJoinMemberProfile(member || {});
       const cachedBirthYear = getBirthYearFromJoinMember(member || {}, cached);
-      const cachedPhone = normalizeJoinMemberPhone(cached.mobile || cached.phone || cached.memberMobile || member.memberMobile || "");
+      const cachedPhone = normalizeJoinMemberPhone(cached.memberMobile || cached.mobile || cached.phone || member.memberMobile || "");
       return {
         applicant: {
           name: document.getElementById("builderApplyName")?.value.trim()
@@ -45606,13 +46720,14 @@
       };
     }
 
-    function validateBuilderApplyPayload(payload) {
+    function validateBuilderApplyPayload(payload, options = {}) {
       clearBuilderApplyErrors();
-      if (!payload.memberKey && !getNestedValue(payload, "member.memberKey")) {
+      const requireCanonicalKeys = options.requireCanonicalKeys !== false;
+      if (requireCanonicalKeys && !payload.memberKey && !getNestedValue(payload, "member.memberKey")) {
         openBuilderAlert("회원 정보를 정확히 확인하지 못했습니다. 다시 로그인 후 시도해 주세요.");
         return false;
       }
-      if (!payload.applicationId || !payload.scheduleId) {
+      if (requireCanonicalKeys && (!payload.applicationId || !payload.scheduleId)) {
         openBuilderAlert("새 모임 일정 정보를 정확히 생성하지 못했습니다. 다시 시도해 주세요.");
         return false;
       }
@@ -45803,21 +46918,81 @@
       return postGolfJoinSheetPayload(payload, "Member profile");
     }
 
+    function cachePendingJoinMemberProfileSave(payload, error = null) {
+      try {
+        const pending = JSON.parse(localStorage.getItem("joinMemberProfilePendingSaves") || "[]");
+        const profileId = String(payload?.profileId || "").trim();
+        const next = pending.filter((entry) => String(entry?.payload?.profileId || "").trim() !== profileId);
+        next.unshift({
+          payload,
+          failedAt: nowKstISOString(),
+          message: error?.message || ""
+        });
+        localStorage.setItem("joinMemberProfilePendingSaves", JSON.stringify(next.slice(0, 5)));
+      } catch (storageError) {
+        console.warn("Failed to cache pending member profile save.", storageError);
+      }
+    }
+
+    function clearPendingJoinMemberProfileSave(profileId = "") {
+      const targetId = String(profileId || "").trim();
+      if (!targetId) return;
+      try {
+        const pending = JSON.parse(localStorage.getItem("joinMemberProfilePendingSaves") || "[]");
+        const next = pending.filter((entry) => String(entry?.payload?.profileId || "").trim() !== targetId);
+        if (next.length) localStorage.setItem("joinMemberProfilePendingSaves", JSON.stringify(next));
+        else localStorage.removeItem("joinMemberProfilePendingSaves");
+      } catch (storageError) {
+        console.warn("Failed to clear pending member profile save.", storageError);
+      }
+    }
+
+    function doesJoinMemberProfileMatchPayload(profile = {}, payload = {}) {
+      const expectedProfile = payload.profile || {};
+      const expectedStyles = splitJoinMemberProfileStyles(expectedProfile.travelStyles).sort().join("|");
+      const savedStyles = splitJoinMemberProfileStyles(profile.travelStyles || profile.styles).sort().join("|");
+      return Boolean(
+        profile?.profileId
+        && isJoinMemberProfileComplete(profile)
+        && normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || "")
+          === normalizeJoinMemberPhone(payload?.member?.memberMobile || "")
+        && String(profile.birthYear || "") === String(expectedProfile.birthYear || "")
+        && normalizeJoinMemberGender(profile.gender || "") === normalizeJoinMemberGender(expectedProfile.gender || "")
+        && String(profile.profession || "").trim() === String(expectedProfile.profession || "").trim()
+        && String(profile.level || "").trim() === String(expectedProfile.level || "").trim()
+        && savedStyles === expectedStyles
+      );
+    }
+
+    async function saveJoinMemberProfileWithConfirmation(payload = {}, member = {}) {
+      let saveError = null;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const result = await saveJoinMemberProfileToGoogleSheet(payload);
+          clearPendingJoinMemberProfileSave(result?.profileId || payload.profileId);
+          return result;
+        } catch (error) {
+          saveError = error;
+          const savedProfile = await fetchJoinMemberProfileFromGoogleSheet(member, { refresh: true });
+          if (doesJoinMemberProfileMatchPayload(savedProfile, payload)) {
+            clearPendingJoinMemberProfileSave(savedProfile.profileId);
+            return { ok: true, confirmedAfterError: true, profileId: savedProfile.profileId };
+          }
+          const status = Number(error?.status || 0);
+          const retryable = !status || status >= 500 || error?.name === "AbortError";
+          if (!retryable || attempt >= 1) break;
+          await new Promise((resolve) => window.setTimeout(resolve, 450));
+        }
+      }
+      cachePendingJoinMemberProfileSave(payload, saveError);
+      throw saveError || new Error("Member profile save failed");
+    }
+
     function saveJoinMemberProfileToGoogleSheetInBackground(payload) {
       const promise = saveJoinMemberProfileToGoogleSheet(payload);
       promise.catch((error) => {
         console.warn("Member profile background save failed.", error);
-        try {
-          const pending = JSON.parse(localStorage.getItem("joinMemberProfilePendingSaves") || "[]");
-          pending.unshift({
-            payload,
-            failedAt: nowKstISOString(),
-            message: error?.message || ""
-          });
-          localStorage.setItem("joinMemberProfilePendingSaves", JSON.stringify(pending.slice(0, 5)));
-        } catch (storageError) {
-          console.warn("Failed to cache pending member profile save.", storageError);
-        }
+        cachePendingJoinMemberProfileSave(payload, error);
       });
       return promise;
     }
@@ -45827,8 +47002,11 @@
       const productReference = getSecretTourProductReference(join || {});
       const scheduleId = join?.scheduleId || sheetApplication.scheduleId || (join?.isAdminRecommendedSchedule ? join.id : "") || "";
       const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || join?.displayRule?.recommendedScheduleId || join?.displayRule?.displayRuleId || "";
-      const erpProductId = String(join?.erpProductId || join?.goodSeq || productReference.id || productReference.goodSeq || "").trim();
       const erpEventSeq = String(join?.erpEventSeq || join?.eventSeq || productReference.eventSeq || "").trim();
+      const erpProductId = normalizeJoinErpProductId(
+        join?.displayRule?.erpProductId || join?.goodSeq || productReference.goodSeq || join?.erpProductId || productReference.id || "",
+        erpEventSeq
+      );
       const targetType = join?.isAdminRecommendedSchedule ? "recommended_schedule" : (scheduleId ? "new_schedule" : "erp_product");
       const targetJoinId = String(join?.id || scheduleId || applicationId || "").trim();
       const targetProductKey = erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : "";
@@ -45921,7 +47099,6 @@
           productName: join.title || "",
           departureDate: join.departureDate || "",
           returnDate: join.returnDate || "",
-          category: join.category || "",
           country,
           countryRegion: join.countryRegion || join.location || "",
           region: join.region || "",
@@ -45935,7 +47112,6 @@
           country,
           countryRegion: join.countryRegion || join.location || "",
           region: join.region || "",
-          category: join.category || "",
           departureDate: join.departureDate || "",
           returnDate: join.returnDate || ""
         },
@@ -45970,11 +47146,9 @@
       const targetJoinId = String(row.targetJoinId || row.joinId || "").trim();
       const targetScheduleId = String(row.targetScheduleId || row.scheduleId || "").trim();
       const targetApplicationId = String(row.targetApplicationId || row.sourceApplicationId || "").trim();
-      const erpProductId = String(row.erpProductId || row.goodSeq || row.productId || "").trim();
       const erpEventSeq = String(row.erpEventSeq || row.eventSeq || "").trim();
-      const targetProductKey = String(row.targetProductKey || (erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : "")).trim();
-      return joins.find((join) => {
-        if (!targetJoinId) return false;
+      const targetIds = [targetJoinId, targetScheduleId, targetApplicationId].filter(Boolean);
+      const exactMatch = joins.find((join) => {
         const joinKeys = [
           join.id,
           join.scheduleId,
@@ -45985,18 +47159,24 @@
           getNestedValue(join.displayRule || {}, "recommendedScheduleId"),
           getNestedValue(join.displayRule || {}, "displayRuleId")
         ].map((value) => String(value || "").trim()).filter(Boolean);
-        return joinKeys.includes(targetJoinId);
-      })
-        || joins.find((join) => targetScheduleId && String(join.scheduleId || join.id || "") === targetScheduleId)
-        || joins.find((join) => targetApplicationId && String(join.sourceApplicationId || join.applicationId || getNestedValue(join.displayRule || {}, "recommendedScheduleId") || "") === targetApplicationId)
-        || joins.find((join) => {
-          if (!targetProductKey || !erpProductId || !erpEventSeq) return false;
-          const reference = getSecretTourProductReference(join);
-          const joinProductId = String(join.erpProductId || join.goodSeq || reference.id || reference.goodSeq || "").trim();
-          const joinEventSeq = String(join.erpEventSeq || join.eventSeq || reference.eventSeq || "").trim();
-          return targetProductKey === `erp:${joinProductId}:${joinEventSeq}`;
-        })
-        || null;
+        return targetIds.some((targetId) => joinKeys.includes(targetId));
+      });
+      if (exactMatch) return exactMatch;
+      if (targetIds.length) return null;
+      const targetProductKeyParts = String(row.targetProductKey || "").trim().split(":");
+      const targetEventSeq = erpEventSeq || (targetProductKeyParts[0] === "erp" ? targetProductKeyParts[targetProductKeyParts.length - 1] : "");
+      const targetProductIdFromKey = targetProductKeyParts[0] === "erp" && targetProductKeyParts.length >= 3
+        ? targetProductKeyParts.slice(1, -1).join(":")
+        : "";
+      const erpProductId = normalizeJoinErpProductId(row.erpProductId || row.goodSeq || row.productId || targetProductIdFromKey, targetEventSeq);
+      if (!erpProductId || !targetEventSeq) return null;
+      const matches = joins.filter((join) => {
+        const reference = getSecretTourProductReference(join);
+        const joinEventSeq = String(join.erpEventSeq || join.eventSeq || reference.eventSeq || "").trim();
+        const joinProductId = normalizeJoinErpProductId(join.erpProductId || join.goodSeq || reference.goodSeq || reference.id || "", joinEventSeq);
+        return joinProductId === erpProductId && joinEventSeq === targetEventSeq;
+      });
+      return matches.length === 1 ? matches[0] : null;
     }
 
     function getAdminRecommendedJoinIdFromApplicationId(value = "") {
@@ -46163,6 +47343,7 @@
         || "";
       return {
         joinApplyId: item.joinApplyId || item.applicationId || "",
+        memberLookupMatched: item.memberLookupMatched === true,
         source: item.source || "join_apply",
         submittedAt: item.submittedAt || item.createdAt || "",
         quoteId: item.quoteId || "",
@@ -46172,6 +47353,8 @@
         quotePageUrl: item.quotePageUrl || item.quoteUrl || "",
         quotePdfUrl: item.quotePdfUrl || "",
         quoteGeneratedAt: item.quoteGeneratedAt || "",
+        applicationStatus: item.applicationStatus || item.status || "",
+        participantStatus: item.participantStatus || "",
         pageUrl: item.pageUrl || "",
         targetType: item.targetType || "",
         targetJoinId: item.targetJoinId || targetJoinId,
@@ -46197,7 +47380,6 @@
           id: item.targetJoinId || targetJoinId,
           title: item.joinTitle || item.productName || "",
           region: item.joinRegion || item.region || "",
-          category: item.joinCategory || item.category || "",
           departureDate: item.departureDate || "",
           returnDate: item.returnDate || ""
         },
@@ -46226,6 +47408,15 @@
           marketing: item.marketingAgreed || ""
         }
       };
+    }
+
+    function isCancelledJoinApplyPayload(payload = {}) {
+      const status = String(payload.applicationStatus || payload.status || getNestedValue(payload, "application.status") || "").trim().toLowerCase();
+      const participantStatus = String(payload.participantStatus || getNestedValue(payload, "participant.status") || "").trim().toLowerCase();
+      const cancelledValues = new Set(["cancelled", "canceled", "cancel", "취소", "참여취소", "환불완료"]);
+      return [status, participantStatus].some((value) => (
+        cancelledValues.has(value) || /cancel|취소|환불/.test(value)
+      ));
     }
 
     function saveJoinApplicationPayloadLocally(payload) {
@@ -46331,6 +47522,7 @@
 
     function applyJoinApplicationPayload(payload, options = {}) {
       const normalized = options.remember === false ? normalizeJoinApplyPayload(payload) : rememberJoinApplicationPayload(payload);
+      if (isCancelledJoinApplyPayload(payload) || isCancelledJoinApplyPayload(normalized)) return null;
       const joinId = getNestedValue(normalized, "join.id");
       const join = joins.find((item) => item.id === joinId);
       if (!join) return null;
@@ -46508,16 +47700,20 @@
       const member = getJoinCachedCurrentMember();
       const memberKey = getJoinWishMemberKey(member);
       const memberLookupParams = getJoinSheetMemberLookupParams(member);
+      const hasMemberLookup = Object.values(memberLookupParams).some((value) => String(value || "").trim());
+      if (!hasMemberLookup) return [];
       googleSheetJoinApplicationsLoading = true;
       googleSheetJoinApplicationsReadFailed = false;
       renderJoins();
       try {
-        const rows = await fetchGolfJoinSheetRows({
+        const rows = (await fetchGolfJoinSheetRows({
           sheet: "join_applications",
-          source: "join_apply",
           ...memberLookupParams,
           limit: "50"
-        }, "Join applications");
+        }, "Join applications")).map((row) => ({
+          ...row,
+          memberLookupMatched: true
+        }));
         writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows, { memberKey });
         resetJoinApplicationsFromAuthoritativeRows(rows);
         googleSheetJoinApplicationsReadCompleted = true;
@@ -46678,6 +47874,9 @@
         source: item.source || "new_schedule_builder",
         memberKey: item.memberKey || "",
         status: item.applicationStatus || item.status || item.scheduleStatus || item.departureStatus || item.managerStatus || item.confirmStatus || "",
+        applicationStatus: item.applicationStatus || item.status || "",
+        participantStatus: item.participantStatus || "",
+        refundStatus: item.refundStatus || "",
         scheduleStatus: item.scheduleStatus || item.applicationStatus || item.status || "",
         departureStatus: item.departureStatus || item.confirmStatus || "",
         managerStatus: item.managerStatus || "",
@@ -46915,11 +48114,7 @@
         emptySlots: Math.max(0, BUILDER_APPLICATION_MAX_CAPACITY - participants.length),
         includes: product?.includes?.length ? product.includes : (fallback.includes || []),
         excludes: product?.excludes?.length ? product.excludes : (fallback.excludes || []),
-        notes: [
-          createSecretTourDebugNote(`${participantName}님이 새 일정 만들기로 등록한 조인 요청입니다.`, "new_schedule_applications"),
-          createSecretTourDebugNote(getNestedValue(normalized, "trip.startSummary") ? `출발 희망일: ${escapeBuilderApplicationText(getNestedValue(normalized, "trip.startSummary"))}` : "", "new_schedule_applications"),
-          createSecretTourDebugNote(getNestedValue(normalized, "trip.endSummary") ? `도착 희망일: ${escapeBuilderApplicationText(getNestedValue(normalized, "trip.endSummary"))}` : "", "new_schedule_applications")
-        ].filter(Boolean).concat(product?.notes || fallback.notes || []),
+        notes: product?.notes?.length ? product.notes : (fallback.notes || []),
         schedule: product?.schedule?.length ? product.schedule : (fallback.schedule || []),
         sheetApplication: normalized,
         isBuilderApplicationJoin: true,
@@ -47161,8 +48356,9 @@
     function applyLightParticipantsToJoin(join, previews = [], summary = {}) {
       if (!join) return null;
       const capacity = getJoinRecruitmentCapacity(join, BUILDER_APPLICATION_MAX_CAPACITY);
+      const previewLimit = Math.min(MAX_DETAIL_PARTICIPANT_PREVIEWS, capacity);
       const previewParticipants = (Array.isArray(previews) ? previews : [])
-        .slice(0, BUILDER_APPLICATION_MAX_CAPACITY)
+        .slice(0, previewLimit)
         .map((preview, index) => buildLightPreviewParticipant(preview, join.id || join.scheduleId || "", index));
       if (previewParticipants.length) {
         join.participants = mergeJoinParticipantsByIdentity(join.participants || [], previewParticipants, capacity);
@@ -47293,21 +48489,30 @@
     }
 
     function findJoinForParticipantSummary(summary = {}) {
-      return joins.find((join) => summary.targetScheduleId && String(join.scheduleId || "") === String(summary.targetScheduleId))
-        || joins.find((join) => summary.targetApplicationId && String(join.sourceApplicationId || "") === String(summary.targetApplicationId))
-        || joins.find((join) => summary.erpProductId && summary.erpEventSeq && String(join.erpProductId || join.goodSeq || "") === String(summary.erpProductId) && String(join.erpEventSeq || join.eventSeq || "") === String(summary.erpEventSeq))
-        || joins.find((join) => summary.erpProductId && String(join.erpProductId || join.goodSeq || "") === String(summary.erpProductId))
-        || null;
+      const exactMatch = joins.find((join) => summary.targetScheduleId && String(join.scheduleId || "") === String(summary.targetScheduleId))
+        || joins.find((join) => summary.targetApplicationId && String(join.sourceApplicationId || "") === String(summary.targetApplicationId));
+      if (exactMatch) return exactMatch;
+      if (summary.targetScheduleId || summary.targetApplicationId) return null;
+      const summaryEventSeq = String(summary.erpEventSeq || "").trim();
+      const summaryProductId = normalizeJoinErpProductId(summary.erpProductId, summaryEventSeq);
+      const matches = joins.filter((join) => {
+        const joinEventSeq = String(join.erpEventSeq || join.eventSeq || "").trim();
+        const joinProductId = normalizeJoinErpProductId(join.erpProductId || join.goodSeq || "", joinEventSeq);
+        return summaryProductId && summaryEventSeq && joinProductId === summaryProductId && joinEventSeq === summaryEventSeq;
+      });
+      return matches.length === 1 ? matches[0] : null;
     }
 
     function applyLightParticipantSummary(summary = {}) {
       const join = findJoinForParticipantSummary(summary);
       if (!join) return null;
+      join.participantSummary = { ...(join.participantSummary || {}), ...summary };
       if (join.isBuilderApplicationJoin || join.scheduleId || join.sourceApplicationId) {
-        const capacity = getJoinRecruitmentCapacity(join, BUILDER_APPLICATION_MAX_CAPACITY);
+        const capacity = getJoinRecruitmentCapacity({ ...join, capacity: summary.capacity || join.capacity }, BUILDER_APPLICATION_MAX_CAPACITY);
+        const previewLimit = Math.min(MAX_DETAIL_PARTICIPANT_PREVIEWS, capacity);
         const existingParticipants = getConfirmedParticipants(join);
         const previewParticipants = (Array.isArray(summary.participantsPreview) ? summary.participantsPreview : [])
-          .slice(0, BUILDER_APPLICATION_MAX_CAPACITY)
+          .slice(0, previewLimit)
           .map((preview, index) => buildLightPreviewParticipant(preview, join.id || join.scheduleId || "", index));
         join.participants = mergeJoinParticipantsByIdentity(existingParticipants, previewParticipants, capacity);
         const confirmedCount = Math.max(0, Math.min(capacity, Number(summary.confirmedCount) || getConfirmedParticipants(join).length));
@@ -47455,7 +48660,11 @@
       const ruleRegion = String(rule.region || "").trim();
       const ruleDepartureAirport = String(rule.departureAirport || "").trim();
       const ruleArrivalAirport = String(rule.arrivalAirport || "").trim();
-      const rulePrice = Number(String(rule.productPrice || rule.price || "").replace(/[^\d.-]/g, ""));
+      const rulePriceText = [rule.productPrice, rule.price]
+        .map((value) => String(value ?? "").trim())
+        .find(Boolean) || "";
+      const rulePrice = Number(rulePriceText.replace(/[^\d.-]/g, ""));
+      const hasRulePrice = rulePriceText !== "" && Number.isFinite(rulePrice);
       const category = product?.category || (ruleCountry && ruleCountry !== "한국" ? "해외" : "") || fallback.category || (product?.departureAirport || product?.airport ? "해외" : "국내");
       return {
         ...fallback,
@@ -47473,7 +48682,7 @@
         departureAirport: normalizeSecretTourAirportName(ruleDepartureAirport, product?.departureAirport, product?.airport, product?.air2CdNm, fallback.departureAirport, fallback.airport),
         arrivalAirport: ruleArrivalAirport || product?.arrivalAirport || fallback.arrivalAirport || "",
         airline: rule.airline || product?.airline || normalizeSecretTourAirlineName(product?.air2Nm, product?.air2CdNm),
-        price: Number(product?.price) || (Number.isFinite(rulePrice) ? rulePrice : 0) || Number(fallback.price) || 0,
+        price: hasRulePrice ? rulePrice : (Number(product?.price) || Number(fallback.price) || 0),
         image: rule.overrideImageUrl || product?.image || fallback.image || "",
         badge: rule.badgeType === "pinned" || isTruthyDisplayRuleValue(rule.isPinned) ? "추천일정" : (product?.badge || fallback.badge || "추천일정"),
         badge: isMonthlySchedule ? "월례회" : (rule.badgeType === "pinned" || isTruthyDisplayRuleValue(rule.isPinned) ? "추천일정" : (product?.badge || fallback.badge || "추천일정")),
@@ -47483,9 +48692,9 @@
         maxPeople: recruitmentCapacity,
         badgeKind: product?.badgeKind || "special",
         badgeImage: product?.badgeImage || BADGE_IMAGES.special || fallback.badgeImage || "",
-        goodSeq: product?.goodSeq || productReference.goodSeq || rule.erpProductId || "",
+        goodSeq: rule.erpProductId || product?.goodSeq || productReference.goodSeq || "",
         eventSeq: product?.eventSeq || productReference.eventSeq || rule.erpEventSeq || "",
-        erpProductId: product?.erpProductId || productReference.id || rule.erpProductId || "",
+        erpProductId: rule.erpProductId || product?.goodSeq || productReference.goodSeq || product?.erpProductId || productReference.id || "",
         erpEventSeq: product?.erpEventSeq || productReference.eventSeq || rule.erpEventSeq || "",
         packType: rule.packType || product?.packType || fallback.packType || "",
         packTypeName: rule.packTypeName || product?.packTypeName || fallback.packTypeName || "",
@@ -47669,7 +48878,7 @@
       if (!validateBuilderApplyStyleSelection()) return false;
       if (!options.confirmed) {
         const payload = getBuilderApplyValidationPayload();
-        if (!validateBuilderApplyPayload(payload)) return false;
+        if (!validateBuilderApplyPayload(payload, { requireCanonicalKeys: false })) return false;
         openApplySubmitConfirmModal("builder");
         return false;
       }
@@ -48129,7 +49338,7 @@
       const schedule = getBuilderActiveScheduleByKey(scheduleKey);
       if (!schedule?.joinId) return;
       closeBuilderActiveScheduleSheet();
-      openDetail(schedule.joinId, { elevateOverBuilder: true });
+      openDetail(schedule.joinId, { elevateOverBuilder: true, ownActiveSchedule: true });
       const detailModal = document.getElementById("detailModal");
       detailModal?.style.setProperty("z-index", "2147483643", "important");
     }
@@ -48344,6 +49553,7 @@
         if (primary) {
           primary.textContent = "참여하기";
           primary.setAttribute("onclick", "openGlobalApply()");
+          primary.setAttribute("aria-label", "참여하기");
         }
         setDetailDefaultContactActions();
       }
@@ -51318,9 +52528,14 @@
       const title = options.title || "지금 합류 가능한 다른 지역";
       const setTypeHandler = options.setTypeHandler || "setRegionEmptyRecommendType";
       const moreHandler = options.moreHandler || "selectRegionResult";
+      const excludeActiveScheduleOverlaps = options.excludeActiveScheduleOverlaps === true;
       const groups = new Map();
       getVisibleCalendarJoinProducts()
-        .filter((join) => Number(join.emptySlots) > 0 && join.region && !joinMatchesRegionSearch(join, query) && getJoinCategoryClass(join) === activeType)
+        .filter((join) => Number(join.emptySlots) > 0
+          && join.region
+          && !joinMatchesRegionSearch(join, query)
+          && getJoinCategoryClass(join) === activeType
+          && (!excludeActiveScheduleOverlaps || !isJoinExcludedFromMyReservationRecommendations(join)))
         .forEach((join) => {
           if (!groups.has(join.region)) groups.set(join.region, []);
           groups.get(join.region).push(join);
@@ -51346,7 +52561,7 @@
           ${products.map((join) => `
             <button type="button" class="region-empty-recommend-card" onclick="openDetail('${escapeJsString(join.id)}')">
               <div class="region-empty-recommend-thumb"><img src="${escapeHtml(join.image || "")}" alt="${escapeHtml(join.title || "")}"></div>
-              <div>
+              <div class="region-empty-recommend-info">
                 <div class="region-empty-recommend-name">${escapeHtml(join.title || "")}</div>
                 <div class="region-empty-recommend-meta">${escapeHtml(formatCardDateRange(join))}</div>
                 <div class="region-empty-recommend-bottom">
@@ -52026,7 +53241,7 @@
       return match ? match[0] : "";
     }
 
-    async function getJoinApplyMemberProfile(memberSource = null) {
+    async function getJoinApplyMemberProfile(memberSource = null, options = {}) {
       let member = memberSource || null;
       if (!member) {
         try {
@@ -52036,9 +53251,20 @@
           member = getJoinLoginState().member || {};
         }
       }
+      if (options.refresh && member) {
+        try {
+          const sheetProfile = await fetchJoinMemberProfileFromGoogleSheet(member, { refresh: true });
+          if (sheetProfile && !sheetProfile.__lookupFailed) {
+            member = mergeJoinMemberWithProfile(member, sheetProfile);
+            rememberJoinMemberProfileLocally(member, sheetProfile);
+          }
+        } catch (error) {
+          console.warn("Failed to refresh join member profile for apply phone; using current member data.", error);
+        }
+      }
       const cached = getRememberedJoinMemberProfile(member || {});
       const birthYear = getBirthYearFromJoinMember(member || {}, cached);
-      const mobile = normalizeJoinMemberPhone(cached.mobile || cached.phone || cached.memberMobile || member?.memberMobile || "");
+      const mobile = normalizeJoinMemberPhone(cached.memberMobile || cached.mobile || cached.phone || member?.memberMobile || "");
       return {
         member,
         name: cached.name || cached.memberName || member?.memberName || "",
@@ -52134,7 +53360,7 @@
         globalApplyWaitlistApproved = false;
         updateGlobalApplyRemainingSeat();
         setGlobalApplyPeopleMode("solo");
-        const memberProfile = await getJoinApplyMemberProfile(readyMember);
+        const memberProfile = await getJoinApplyMemberProfile(readyMember, { refresh: true });
         const nameInput = document.getElementById("globalApplyName");
         const birthYearInput = document.getElementById("globalApplyBirthYear");
         const phoneInput = document.getElementById("globalApplyPhone");
@@ -52276,6 +53502,7 @@
       if (primary) {
         primary.textContent = "참여하기";
         primary.setAttribute("onclick", "openGlobalApply()");
+        primary.setAttribute("aria-label", "참여하기");
       }
       setWidgetModalOpen(false);
       resumeQuickMobileCarouselIfIdle();
@@ -52547,21 +53774,20 @@
           console.warn("Failed to refresh join member detail before apply submit.", error);
         }
       }
-      const cachedProfile = getRememberedJoinMemberProfile(applyMember);
-      const memberProfile = {
-        member: applyMember,
-        name: cachedProfile.name || cachedProfile.memberName || applyMember.memberName || "",
-        gender: cachedProfile.gender || applyMember.gender || "",
-        birthYear: getBirthYearFromJoinMember(applyMember, cachedProfile),
-        phone: normalizeJoinMemberPhone(cachedProfile.mobile || cachedProfile.phone || cachedProfile.memberMobile || applyMember.memberMobile || ""),
-        profession: cachedProfile.profession || applyMember.profession || "",
-        level: cachedProfile.level || applyMember.level || ""
-      };
+      const memberProfile = options.confirmed
+        ? await getJoinApplyMemberProfile(applyMember, { refresh: true })
+        : await getJoinApplyMemberProfile(applyMember);
+      const cachedProfile = getRememberedJoinMemberProfile(memberProfile.member || applyMember);
+      applyMember = memberProfile.member || applyMember;
+      const phoneInput = document.getElementById("globalApplyPhone");
+      if (options.confirmed && memberProfile.phone && phoneInput) {
+        phoneInput.value = memberProfile.phone;
+      }
       const name = document.getElementById("globalApplyName")?.value.trim() || memberProfile.name || "";
       const birthYear = document.getElementById("globalApplyBirthYear")?.value.trim() || memberProfile.birthYear || "";
       const gender = getApplyChipValue("global-gender") || memberProfile.gender || "";
       const ageDisplay = getApplyAgeDisplayFromBirthYear(birthYear) || "";
-      const phone = normalizeJoinMemberPhone(document.getElementById("globalApplyPhone")?.value.trim() || memberProfile.phone || "");
+      const phone = normalizeJoinMemberPhone(phoneInput?.value.trim() || memberProfile.phone || "");
       const profession = document.getElementById("globalApplyProfession")?.value.trim() || memberProfile.profession || "";
       const people = getCompanionPeople("global");
       const companions = getCompanionPayload("global");
@@ -52626,7 +53852,7 @@
           memberId: memberProfile.member?.memberId || "",
           memberName: memberProfile.member?.memberName || name,
           memberChannel: memberProfile.member?.memberChannel || "",
-          memberMobile: memberProfile.member?.memberMobile || phone,
+          memberMobile: phone || memberProfile.member?.memberMobile || "",
           memberEmail: memberProfile.member?.memberEmail || memberProfile.member?.email || cachedProfile.memberEmail || cachedProfile.email || "",
           kakaoId: memberProfile.member?.kakaoId || cachedProfile.kakaoId || ""
         },
@@ -53244,7 +54470,6 @@
         <div class="monthly-card-participant-summary" aria-label="월례회 참여 현황">
           <div class="monthly-card-participant-head">
             <div class="monthly-card-participant-left">
-              ${renderMonthlyCardThumbStack(join, currentCount)}
               <div class="monthly-card-participant-label">${participantLabel}</div>
             </div>
             <div class="monthly-card-count">${currentCount}/${displayCapacity}명</div>
@@ -53874,6 +55099,12 @@
 
     function startMdPickThemeAutoSlide(options = {}) {
       stopMdPickThemeAutoSlide();
+      const section = document.getElementById("join-section-mdpick-theme");
+      if (!section?.querySelector(".join-mdpick-theme-card") || getVisibleMdPickThemes().length <= 1) return;
+      mdPickThemeAutoTimer = window.setInterval(() => {
+        if (document.hidden || hasOpenModalOrSheet()) return;
+        advanceMdPickThemeAuto();
+      }, MD_PICK_THEME_AUTO_INTERVAL_MS);
     }
 
     function updateMdPickSlideDots() {
@@ -54011,12 +55242,18 @@
       if (nextIndex !== activeIndex) {
         updateSlideDots(key, nextIndex, cardCount, cardCount > 1);
       }
-      const card = grid.querySelector(".join-card");
-      const styles = window.getComputedStyle(grid);
-      const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
-      const step = card ? card.getBoundingClientRect().width + gap : grid.clientWidth;
-      grid.scrollBy({ left: direction * step, behavior: "smooth" });
+      const firstCardOffset = cards[0]?.offsetLeft || 0;
+      const targetCardOffset = cards[nextIndex]?.offsetLeft;
+      const maxScroll = Math.max(0, grid.scrollWidth - grid.clientWidth);
+      const targetLeft = Number.isFinite(targetCardOffset)
+        ? Math.max(0, Math.min(maxScroll, targetCardOffset - firstCardOffset))
+        : grid.scrollLeft;
+      grid.scrollTo({ left: targetLeft, behavior: "smooth" });
       setTimeout(() => updateBestSectionControls(key), 260);
+    }
+
+    function renderJoinSectionControlIcon() {
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>`;
     }
 
     function renderBestJoinControls(section, itemCount) {
@@ -54026,8 +55263,8 @@
       const nextLabel = section.key === "overseas" ? "다음 해외조인 BEST 상품" : "다음 국내조인 BEST 상품";
       return `
         <div class="join-section-controls is-at-start" aria-label="${label}">
-          <button type="button" class="join-section-control prev" onclick="scrollBestJoinSection('${section.key}', -1)" aria-label="${prevLabel}"></button>
-          <button type="button" class="join-section-control next" onclick="scrollBestJoinSection('${section.key}', 1)" aria-label="${nextLabel}"></button>
+          <button type="button" class="join-section-control prev" onclick="scrollBestJoinSection('${section.key}', -1)" aria-label="${prevLabel}">${renderJoinSectionControlIcon()}</button>
+          <button type="button" class="join-section-control next" onclick="scrollBestJoinSection('${section.key}', 1)" aria-label="${nextLabel}">${renderJoinSectionControlIcon()}</button>
         </div>
       `;
     }
@@ -54044,7 +55281,7 @@
     }
 
     function isMdPickProductsLoading() {
-      return Boolean(!homeInitialExternalProductsLoadedOnce && externalGolfJoinProductsLoading && !externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed);
+      return Boolean(!externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed);
     }
 
     function renderJoinCardSkeleton(index = 0) {
@@ -54079,6 +55316,52 @@
           <div class="join-grid">
             ${Array.from({ length: 4 }).map((_, index) => renderJoinCardSkeleton(index)).join("")}
           </div>
+        </section>
+      `;
+    }
+
+    function renderMdPickLoadingListHtml(listKey = "loading") {
+      return `
+        <div class="join-mdpick-list join-mdpick-loading-list" data-mdpick-list-key="${escapeHtml(listKey)}" aria-hidden="true">
+          ${Array.from({ length: 4 }).map(() => '<div class="join-mdpick-loading-card join-soft-shimmer"></div>').join("")}
+        </div>
+      `;
+    }
+
+    function renderMdPickThemeLoadingSection() {
+      return `
+        <div class="join-mdpick-theme-section" id="join-section-mdpick-theme" data-join-section="mdpick-theme" aria-busy="true">
+          <div class="join-mdpick-theme-title">취향맞춤 TOP3</div>
+          <div class="join-mdpick-theme-copy">라운드 스타일 따라 떠나는 여행</div>
+          <div class="join-mdpick-theme-loading-shell" aria-hidden="true">
+            <div class="join-mdpick-theme-loading-feature join-soft-shimmer"></div>
+            <div class="join-mdpick-theme-loading-cards">
+              ${Array.from({ length: 3 }).map(() => '<div class="join-mdpick-theme-loading-card join-soft-shimmer"></div>').join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMdPickLoadingSection() {
+      return `
+        <section class="join-product-section layout-mdpick layout-loading" id="join-section-mdpick" data-join-section="mdpick" aria-label="MD PICK! 추천여행" aria-busy="true">
+          <div class="join-product-section-head">
+            <div class="join-product-section-copy">
+              <div class="join-product-section-title">MD PICK! 추천여행<div class="join-product-section-icon popular" aria-hidden="true"></div></div>
+              <p class="join-product-section-desc">인기 상품으로 멤버를 모집해보세요.</p>
+            </div>
+          </div>
+          <div class="join-mdpick-countries">
+            <div class="join-mdpick-country">
+              <div class="join-mdpick-loading-controls" aria-hidden="true">
+                <div class="join-mdpick-loading-country join-soft-shimmer"></div>
+                <div class="join-mdpick-loading-pack join-soft-shimmer"></div>
+              </div>
+              ${renderMdPickLoadingListHtml()}
+            </div>
+          </div>
+          ${renderMdPickThemeLoadingSection()}
         </section>
       `;
     }
@@ -54170,8 +55453,8 @@
           ` : ""}
           ${entries.length > 1 ? `
             <div class="join-section-controls" aria-label="곧출발 날짜 이동">
-              <button type="button" class="join-section-control prev" onclick="scrollSoonDateRailBy(-1)" aria-label="이전 날짜"></button>
-              <button type="button" class="join-section-control next" onclick="scrollSoonDateRailBy(1)" aria-label="다음 날짜"></button>
+              <button type="button" class="join-section-control prev" onclick="scrollSoonDateRailBy(-1)" aria-label="이전 날짜">${renderJoinSectionControlIcon()}</button>
+              <button type="button" class="join-section-control next" onclick="scrollSoonDateRailBy(1)" aria-label="다음 날짜">${renderJoinSectionControlIcon()}</button>
             </div>
           ` : ""}
           <div class="join-soon-date-rail" aria-label="곧 출발 날짜 선택" onscroll="updateSoonDateControls()">
@@ -54489,8 +55772,8 @@
           ${renderSlideDots("custom")}
           ${themes.some((theme) => theme.items.length > 2) ? `
             <div class="join-section-controls join-custom-section-controls is-at-start" aria-label="맞춤형 조인 상품 이동">
-              <button type="button" class="join-section-control prev" onclick="scrollCustomJoinSection(-1)" aria-label="이전 맞춤형 조인 상품"></button>
-              <button type="button" class="join-section-control next" onclick="scrollCustomJoinSection(1)" aria-label="다음 맞춤형 조인 상품"></button>
+              <button type="button" class="join-section-control prev" onclick="scrollCustomJoinSection(-1)" aria-label="이전 맞춤형 조인 상품">${renderJoinSectionControlIcon()}</button>
+              <button type="button" class="join-section-control next" onclick="scrollCustomJoinSection(1)" aria-label="다음 맞춤형 조인 상품">${renderJoinSectionControlIcon()}</button>
             </div>
           ` : ""}
         </section>
@@ -54594,9 +55877,13 @@
     }
 
     function syncMdPickListCacheWithProductSource() {
-      const signature = getBuilderProductSource()
+      const productSignature = getBuilderProductSource()
         .map((product) => [product.id, product.goodSeq, product.eventSeq, product.departureDate, product.price, product.image].filter(Boolean).join(":"))
         .join("|");
+      const activeScheduleSignature = getActiveJoinMySchedules()
+        .map((item) => [item.key, item.range?.start, item.range?.end].filter(Boolean).join(":"))
+        .join("|");
+      const signature = `${productSignature}::${activeScheduleSignature}`;
       if (signature === mdPickListCacheSourceSignature) return;
       mdPickListCacheSourceSignature = signature;
       mdPickListElementCache.clear();
@@ -54622,6 +55909,7 @@
         if (!product.departureDate || product.departureDate < minDepartureIso) return;
         if (!product.returnDate) return;
         if (!(Number(product.price) > 0)) return;
+        if (isJoinExcludedByActiveScheduleOverlap(product)) return;
         const packType = getMdPickPackType(product);
         const activePack = packTypeOverride || mdPickPackFilters[country.key] || "golf";
         if (activePack && packType !== activePack) return;
@@ -54728,7 +56016,7 @@
     }
 
     function getMdPickThemeProducts(theme, usedKeys = new Set()) {
-      const candidates = getMdPickThemeCandidates();
+      const candidates = getMdPickThemeCandidates().filter((product) => !isJoinExcludedByActiveScheduleOverlap(product));
       const matched = candidates.filter((product) => productMatchesMdPickTheme(product, theme));
       const fallback = candidates.filter((product) => !matched.includes(product));
       const selected = [];
@@ -54784,8 +56072,10 @@
       mdPickActiveThemeKey = themeKey;
       const themeSection = document.getElementById("join-section-mdpick-theme");
       if (themeSection) {
+        let activeGroup = null;
         themeSection.querySelectorAll("[data-mdpick-theme-group]").forEach((group) => {
           const active = group.dataset.mdpickThemeGroup === themeKey;
+          if (active) activeGroup = group;
           group.classList.toggle("active", active);
           group.querySelectorAll(".join-mdpick-theme-tab").forEach((tab) => {
             const target = (tab.getAttribute("onclick") || "").match(/setMdPickTheme\('([^']+)'\)/)?.[1] || "";
@@ -54794,6 +56084,18 @@
             tab.setAttribute("aria-selected", isCurrent ? "true" : "false");
           });
         });
+        if (isMobileSlideDotsViewport() && activeGroup) {
+          const rail = themeSection.querySelector(".join-mdpick-theme-groups");
+          if (rail) {
+            const railRect = rail.getBoundingClientRect();
+            const groupRect = activeGroup.getBoundingClientRect();
+            const targetLeft = rail.scrollLeft
+              + groupRect.left
+              - railRect.left
+              - Math.max(0, (rail.clientWidth - groupRect.width) / 2);
+            rail.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
+          }
+        }
         updateJoinSectionNavFixed();
         requestAnimationFrame(updateMdPickSlideDots);
         startMdPickThemeAutoSlide({ reset: true });
@@ -55224,9 +56526,12 @@
     function renderMdPickListHtml(country, packType = "") {
       const activePack = packType || mdPickPackFilters[country.key] || "golf";
       const items = getMdPickRepresentativeProducts(country, activePack);
-      return items.length
-        ? `<div class="join-mdpick-list" data-mdpick-list-key="${escapeHtml(getMdPickListCacheKey(country, activePack))}" ontouchstart="handleMdPickListTouchStart(event)" ontouchmove="handleMdPickListTouchMove(event)" ontouchend="handleMdPickListTouchEnd(event)">${items.map(renderMdPickCard).join("")}</div>`
-        : `<div class="join-mdpick-empty" data-mdpick-list-key="${escapeHtml(getMdPickListCacheKey(country, activePack))}">추천 가능한 상품을 확인하고 있어요.</div>`;
+      const listKey = getMdPickListCacheKey(country, activePack);
+      if (items.length) {
+        return `<div class="join-mdpick-list" data-mdpick-list-key="${escapeHtml(listKey)}" ontouchstart="handleMdPickListTouchStart(event)" ontouchmove="handleMdPickListTouchMove(event)" ontouchend="handleMdPickListTouchEnd(event)">${items.map(renderMdPickCard).join("")}</div>`;
+      }
+      if (isMdPickProductsLoading()) return renderMdPickLoadingListHtml(listKey);
+      return `<div class="join-mdpick-list join-mdpick-empty" data-mdpick-list-key="${escapeHtml(listKey)}" aria-hidden="true"></div>`;
     }
 
     function getMdPickListElement(country, packType = "") {
@@ -55331,9 +56636,11 @@
 
     function renderMdPickSection() {
       syncMdPickListCacheWithProductSource();
+      const isLoading = isMdPickProductsLoading();
+      if (isLoading) return renderMdPickLoadingSection();
       const themeSectionHtml = renderMdPickThemeSection();
       const hasProducts = MD_PICK_COUNTRIES.some((country) => getMdPickRepresentativeProducts(country).length);
-      if (!hasProducts && !themeSectionHtml && !isMdPickProductsLoading()) return "";
+      if (!hasProducts && !themeSectionHtml) return "";
       return `
         <section class="join-product-section layout-mdpick" id="join-section-mdpick" data-join-section="mdpick" aria-label="MD PICK! 추천여행">
           <div class="join-product-section-head">
@@ -55429,8 +56736,8 @@
             ` : ""}
             ${section.key === "quick" && section.items.length > 1 ? `
               <div class="join-section-controls" aria-label="마감임박 대표 상품 이동">
-                <button type="button" class="join-section-control prev" onclick="changeQuickFeatured(-1)" aria-label="이전 마감임박 상품"></button>
-                <button type="button" class="join-section-control next" onclick="changeQuickFeatured(1)" aria-label="다음 마감임박 상품"></button>
+                <button type="button" class="join-section-control prev" onclick="changeQuickFeatured(-1)" aria-label="이전 마감임박 상품">${renderJoinSectionControlIcon()}</button>
+                <button type="button" class="join-section-control next" onclick="changeQuickFeatured(1)" aria-label="다음 마감임박 상품">${renderJoinSectionControlIcon()}</button>
               </div>
             ` : ""}
             ${renderBestJoinControls(section, displayItems.length)}
@@ -55471,7 +56778,9 @@
 
     function getHomeJoinSections() {
       const departureAsc = sortByDeparture(getVisibleJoinProducts());
-      const homeSectionItems = departureAsc.filter(isSoonCandidate);
+      const homeSectionItems = departureAsc
+        .filter(isSoonCandidate)
+        .filter((join) => !isJoinExcludedByActiveScheduleOverlap(join));
       const customThemes = getCustomJoinThemes(homeSectionItems);
       return [
         {
@@ -55525,12 +56834,12 @@
       const legacyGrid = document.getElementById("joinGrid");
       if (shouldShowHomeInitialLoading()) {
         if (activeSectionHead) activeSectionHead.hidden = true;
-        if (mdPickSection) mdPickSection.innerHTML = "";
+        if (mdPickSection) mdPickSection.innerHTML = renderMdPickLoadingSection();
         if (sectionList) {
-          sectionList.classList.add("is-loading-products");
-          sectionList.innerHTML = renderJoinLoadingSection();
+          sectionList.classList.remove("is-loading-products");
+          sectionList.innerHTML = "";
         }
-        updateJoinSectionNavVisibility([], false);
+        updateJoinSectionNavVisibility([], true);
         updateJoinSectionNavFixed();
         return;
       }
@@ -55545,7 +56854,9 @@
           ? sections.map(renderJoinProductSection).join("")
           : (isLoading ? renderJoinLoadingSection() : "");
       } else if (legacyGrid) {
-        const filtered = sortJoins(getVisibleJoinProducts().filter(matchesPeriod));
+        const filtered = sortJoins(getVisibleJoinProducts()
+          .filter(matchesPeriod)
+          .filter((join) => !isJoinExcludedByActiveScheduleOverlap(join)));
         legacyGrid.classList.toggle("is-loading-products", isLoading);
         legacyGrid.innerHTML = filtered.map(renderJoinCard).join("");
       }
@@ -55570,13 +56881,13 @@
       const sectionList = document.getElementById("joinSectionList");
       const mdPickSection = document.getElementById("joinMdPickSection");
       const activeSectionHead = document.getElementById("joinActiveSectionHead");
-      if (mdPickSection) mdPickSection.innerHTML = "";
+      if (mdPickSection) mdPickSection.innerHTML = renderMdPickLoadingSection();
       if (activeSectionHead) activeSectionHead.hidden = true;
       if (sectionList) {
-        sectionList.classList.add("is-loading-products");
-        sectionList.innerHTML = renderJoinLoadingSection();
+        sectionList.classList.remove("is-loading-products");
+        sectionList.innerHTML = "";
       }
-      updateJoinSectionNavVisibility([], false);
+      updateJoinSectionNavVisibility([], true);
     }
 
     function stopQuickMobileCarousel() {
@@ -55799,9 +57110,10 @@
       joinSectionNavLockedTargetY = targetY;
       clearTimeout(joinSectionNavUnlockTimer);
       joinSectionNavUnlockTimer = setTimeout(() => {
+        if (joinSectionNavLockedKey !== key) return;
         joinSectionNavLockedKey = "";
         joinSectionNavLockedTargetY = null;
-        updateJoinSectionNavActive();
+        setJoinSectionNavActive(key);
       }, 1400);
       window.scrollTo({ top: targetY, behavior: "smooth" });
       setJoinSectionNavActive(key);
@@ -55867,11 +57179,13 @@
             Number.isFinite(Number(joinSectionNavLockedTargetY))
             && Math.abs((window.scrollY || 0) - Number(joinSectionNavLockedTargetY)) <= 6
           ) {
+            const completedKey = joinSectionNavLockedKey;
             clearTimeout(joinSectionNavUnlockTimer);
             joinSectionNavUnlockTimer = setTimeout(() => {
+              if (joinSectionNavLockedKey !== completedKey) return;
               joinSectionNavLockedKey = "";
               joinSectionNavLockedTargetY = null;
-              updateJoinSectionNavActive();
+              setJoinSectionNavActive(completedKey);
             }, 120);
           }
           return;
@@ -55881,15 +57195,20 @@
       const offset = window.innerWidth > 640
         ? getJoinSectionNavScrollOffset(nav)
         : headerOffset + (nav?.offsetHeight || 0) + 24;
+      const activationLine = offset + 8;
       let activeKey = sections[0].dataset.joinSection;
       sections.forEach((section) => {
-        if (section.getBoundingClientRect().top <= offset) {
+        if (section.getBoundingClientRect().top <= activationLine) {
           activeKey = section.dataset.joinSection;
         }
       });
+      const documentHeight = Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0);
+      if ((window.scrollY || 0) + window.innerHeight >= documentHeight - 4) {
+        activeKey = sections[sections.length - 1].dataset.joinSection;
+      }
       const mdPickSection = document.getElementById("join-section-mdpick");
       const firstContentSection = sections.find((section) => !["mdpick", "mdpick-theme"].includes(section.dataset.joinSection));
-      if (activeKey === "mdpick" && mdPickSection && (!firstContentSection || firstContentSection.getBoundingClientRect().top > offset)) {
+      if (activeKey === "mdpick" && mdPickSection && (!firstContentSection || firstContentSection.getBoundingClientRect().top > activationLine)) {
         activeKey = "mdpick";
         resetJoinSectionNavToStart();
       }
@@ -56708,6 +58027,25 @@
       }
     }
 
+    function isDetailOwnActiveSchedule(join = {}, options = {}) {
+      return Boolean(
+        options.ownActiveSchedule
+        || findOwnActiveJoinSchedule(join)
+        || isCurrentMemberCreatedJoinSchedule(join)
+        || isCurrentMemberJoinedJoinSchedule(join)
+      );
+    }
+
+    function setDetailNormalPrimaryAction(join = {}, options = {}) {
+      const primary = document.getElementById("detailPrimaryButton");
+      if (!primary) return;
+      const ownActiveSchedule = isDetailOwnActiveSchedule(join, options);
+      const label = ownActiveSchedule ? "멤버 추가하기" : "참여하기";
+      primary.textContent = label;
+      primary.setAttribute("onclick", ownActiveSchedule ? "handleDetailShare()" : "openGlobalApply()");
+      primary.setAttribute("aria-label", label);
+    }
+
     function setDetailBuilderProductActions() {
       clearDetailScheduleConflictState();
       setDetailPrimaryOnlyAction("모임 만들기", "handleDetailPrimaryAction()");
@@ -56752,7 +58090,7 @@
 
     function openDetail(id, options = {}) {
       const join = joins.find((item) => item.id === id);
-      if (!join || !shouldDisplayJoinProduct(join)) return;
+      if (!join || (!options.allowUnavailable && !shouldDisplayJoinProduct(join))) return;
       currentDetailMode = "normal";
       currentDetailJoinId = id;
       currentDetailJoinData = join;
@@ -56763,12 +58101,8 @@
       closeDetailApply();
       document.getElementById("detailModalTitle").textContent = join.title;
       renderDetailContent(join, options);
-      const primary = document.getElementById("detailPrimaryButton");
       const secondary = document.querySelector("#detailModal .detail-modal-actions .button.secondary");
-      if (primary) {
-        primary.textContent = "참여하기";
-        primary.setAttribute("onclick", "openGlobalApply()");
-      }
+      setDetailNormalPrimaryAction(join, options);
       if (secondary) {
         setDetailDefaultContactActions();
       }
@@ -56968,10 +58302,15 @@
       const floating = portalOverlayToBody("participantModal");
       if (!floating) return;
       const isMobileSheet = isMobileParticipantSheet();
-      const shouldElevateOverDetail = Boolean(trigger?.closest?.("#detailModal"))
-        && document.getElementById("detailModal")?.classList.contains("open");
-      const overlayZIndex = isMobileSheet && !shouldElevateOverDetail ? "2147482990" : "2147483700";
-      const contentZIndex = isMobileSheet && !shouldElevateOverDetail ? "2147482991" : "2147483701";
+      const shouldElevateOverParentModal = [
+        "detailModal",
+        "joinMyMenuModal"
+      ].some((modalId) => (
+        Boolean(trigger?.closest?.(`#${modalId}`))
+        && document.getElementById(modalId)?.classList.contains("open")
+      ));
+      const overlayZIndex = isMobileSheet && !shouldElevateOverParentModal ? "2147482990" : "2147483700";
+      const contentZIndex = isMobileSheet && !shouldElevateOverParentModal ? "2147482991" : "2147483701";
       floating.style.setProperty("z-index", overlayZIndex, "important");
       document.getElementById("participantContent")?.style.setProperty("z-index", contentZIndex, "important");
       if (floating.classList.contains("open") && activeParticipantTrigger === trigger) {
@@ -57368,6 +58707,17 @@
       }
     }, true);
     window.addEventListener("scroll", updateJoinSectionNavActive, { passive: true });
+    window.addEventListener("focus", () => {
+      void synchronizeJoinErpSession();
+    });
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) void synchronizeJoinErpSession();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        void synchronizeJoinErpSession();
+      }
+    });
     window.addEventListener("resize", () => {
       updateJoinSectionNavActive();
       updateQuickSectionControls();
@@ -57526,11 +58876,11 @@
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       scheduleHomeSlideDotsRefresh();
       window.refreshInitialJoinSlideDots?.();
-      closeHomeInitialLoading();
-      scheduleJoinMyMemberPreload();
       const startupParams = new URLSearchParams(location.search);
       const startupAfterLogin = startupParams.get("afterLogin");
       const startupAfterLoginParams = getJoinAfterLoginExtraParams(startupParams);
+      if (!startupAfterLogin) closeHomeInitialLoading();
+      scheduleJoinMyMemberPreload();
       const canFastCloseAfterLoginLoading = ["my-menu", "my-drawer", "profile-manage", "return-url"].includes(startupAfterLogin);
       let earlyAfterLoginResumeHandled = false;
       const earlyAfterLoginResumePromise = canFastCloseAfterLoginLoading
@@ -57631,6 +58981,7 @@
       }).finally(() => {
         homeBootstrapLoading = false;
         renderJoins();
+        if (startupAfterLogin) closeHomeInitialLoading();
       });
       hydrateJoinWishesFromGoogleSheet().then(() => {
         refreshDetailWishButtons();

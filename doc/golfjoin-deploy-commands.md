@@ -1,5 +1,7 @@
 # Golfjoin deploy commands
 
+> The current three-service target (main API, on-demand quote/PDF, and Aligo Direct VPC) is documented in `doc/golfjoin-split-services.md`. Use that guide for the VPC connector removal rollout.
+
 Use this checklist from Google Cloud Shell or another shell where `gcloud` is installed and authenticated.
 
 ## 1. Preflight
@@ -33,7 +35,7 @@ gcloud functions deploy golfjoin-sheet-api \
   --timeout=540s \
   --memory=1GiB \
   --allow-unauthenticated \
-  '--set-env-vars=^|^SHEET_WEB_APP_URL=https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec|GOOGLE_SHEET_ID=REPLACE_WITH_SPREADSHEET_ID|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com|ADMIN_READ_TOKEN=REPLACE_WITH_ADMIN_TOKEN|WRITE_TOKEN=REPLACE_WITH_WRITE_TOKEN|GOLFJOIN_PRODUCTS_BUCKET=golfjoin-bucket|GOLFJOIN_PRODUCTS_PREFIX=web|SECRET_TOUR_GOODS_CATEGORY_ROOTS=1,2,3,5'
+  '--set-env-vars=^|^SHEET_WEB_APP_URL=https://script.google.com/macros/s/REPLACE_WITH_DEPLOYMENT_ID/exec|GOOGLE_SHEET_ID=REPLACE_WITH_SPREADSHEET_ID|ALLOWED_ORIGINS=https://m.secret-tour.com,https://www.secret-tour.com|ADMIN_READ_TOKEN=REPLACE_WITH_ADMIN_TOKEN|WRITE_TOKEN=REPLACE_WITH_WRITE_TOKEN|GOLFJOIN_PRODUCTS_BUCKET=golfjoin-bucket|GOLFJOIN_PRODUCTS_PREFIX=web|GOLFJOIN_QUOTE_VIEW_BASE_URL=https://asia-northeast3-golfjoin-499602.cloudfunctions.net/golfjoin-sheet-api|SECRET_TOUR_GOODS_CATEGORY_ROOTS=1,2,3,5'
 ```
 
 ## 3. Public verification

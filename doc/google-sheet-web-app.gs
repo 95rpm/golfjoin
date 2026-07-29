@@ -99,7 +99,6 @@ const SHEET_HEADERS = {
     "productName",
     "departureDate",
     "returnDate",
-    "category",
     "country",
     "region",
     "airline",
@@ -1156,7 +1155,6 @@ function getJoinApplicationValue_(payload, header) {
     productName: value_(payload, "product.productName") || payload.productName,
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
-    category: value_(payload, "product.category") || payload.category,
     country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.countryRegion") || value_(payload, "join.countryRegion") || value_(payload, "product.region") || payload.region),
     region: normalizeRegionName_(value_(payload, "product.region") || payload.region),
     airline: value_(payload, "product.airline") || value_(payload, "product.airlineName") || value_(payload, "product.airlineNm") || value_(payload, "product.air2Nm") || value_(payload, "product.air2CdNm"),
@@ -1742,14 +1740,12 @@ function readHomeBootstrapPayload_(params) {
 
 function readHomeBootstrapLightPayload_(params) {
   const newScheduleLimit = Math.min(Math.max(parsePositiveInteger_(params.newScheduleLimit) || 100, 1), 100);
-  const joinApplicationLimit = Math.min(Math.max(parsePositiveInteger_(params.joinApplicationLimit) || 100, 1), 200);
   const newSchedules = filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS), {
     source: "new_schedule_builder",
     limit: newScheduleLimit
   });
   const joinApplications = filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.JOIN_APPLICATIONS), {
-    source: "join_apply",
-    limit: joinApplicationLimit
+    source: "join_apply"
   });
   const displayRules = filterRowsForRequest_(readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES), {
     limit: 100
@@ -1762,7 +1758,7 @@ function readHomeBootstrapLightPayload_(params) {
     serverTime: nowKstISOString_(),
     updatedAt: nowKstISOString_(),
     newScheduleSummaries: newSchedules.map(buildNewScheduleSummary_),
-    participantSummaries: buildParticipantSummaries_(joinApplications),
+    participantSummaries: buildParticipantSummaries_(joinApplications, newSchedules, displayRules),
     displayRules: displayRules.map(buildDisplayRuleSummary_),
     wishTargetKeys: [],
     memberBasic: {
@@ -1842,7 +1838,7 @@ function getFirstDateFromRange_(from, to) {
 
 function buildNewScheduleSummary_(row) {
   const people = parsePeople_(row.applicantPeople || row.creatorPeople || "1");
-  const capacity = 4;
+  const capacity = Math.max(1, parsePositiveInteger_(row.capacity || row.maxPeople) || 4);
   const confirmedCount = Math.min(capacity, people);
   const departureDate = getFirstDateFromRange_(row.departureDateFrom, row.departureDateTo);
   const returnDate = getFirstDateFromRange_(row.returnDateFrom, row.returnDateTo) || departureDate;
@@ -1909,27 +1905,55 @@ function getParticipantSummaryKey_(row) {
   ].join("|");
 }
 
-function buildParticipantSummaries_(rows) {
+function isCancelledJoinApplication_(row) {
+  const status = `${row.applicationStatus || row.status || ""} ${row.participantStatus || ""}`.toLowerCase();
+  return /cancel|취소|환불/.test(status);
+}
+
+function getParticipantSummarySchedule_(row, newSchedules, displayRules) {
+  const targetIds = [row.targetJoinId, row.targetScheduleId, row.targetApplicationId].map(String).filter(Boolean);
+  if (getParticipantSummaryTargetType_(row) === "recommended_schedule") {
+    const matches = displayRules.filter(function (rule) {
+      const id = String(rule.recommendedScheduleId || rule.displayRuleId || "");
+      const scheduleId = id ? `admin-recommended-${id.replace(/[^a-z0-9_-]+/gi, "-")}` : "";
+      return targetIds.indexOf(id) >= 0 || targetIds.indexOf(scheduleId) >= 0;
+    });
+    return matches.length === 1 ? { row: matches[0], recommended: true } : null;
+  }
+  const matches = newSchedules.filter(function (schedule) {
+    return targetIds.indexOf(String(schedule.scheduleId || "")) >= 0 || targetIds.indexOf(String(schedule.applicationId || "")) >= 0;
+  });
+  return matches.length === 1 ? { row: matches[0], recommended: false } : null;
+}
+
+function buildParticipantSummaries_(rows, newSchedules, displayRules) {
   const groups = {};
-  rows.forEach(function (row) {
+  rows.filter(function (row) { return !isCancelledJoinApplication_(row); }).forEach(function (row) {
     const key = getParticipantSummaryKey_(row);
+    const target = getParticipantSummarySchedule_(row, newSchedules || [], displayRules || []);
+    if (getParticipantSummaryTargetType_(row) === "recommended_schedule" && !target) return;
+    const capacity = Math.max(1, parsePositiveInteger_(target && (target.row.capacity || target.row.maxPeople)) || 4);
     if (!groups[key]) {
+      const creatorPeople = target && !target.recommended ? Math.max(1, parsePeople_(target.row.applicantPeople || target.row.creatorPeople || "1")) : 0;
+      const creatorPreviews = creatorPeople && target ? buildParticipantPreviewList_(target.row, creatorPeople) : [];
       groups[key] = {
         targetType: getParticipantSummaryTargetType_(row),
         targetScheduleId: row.targetScheduleId || "",
         targetApplicationId: row.targetApplicationId || "",
         erpProductId: row.erpProductId || "",
         erpEventSeq: row.erpEventSeq || "",
-        confirmedCount: 0,
-        remainingSlots: 4,
-        participantsPreview: [],
+        capacity: capacity,
+        confirmedCount: Math.min(capacity, creatorPeople),
+        remainingSlots: Math.max(0, capacity - creatorPeople),
+        participantsPreview: creatorPreviews.slice(0, 4),
         lastAppliedAt: ""
       };
     }
     const count = Math.max(1, parsePeople_(row.applicantPeople || row.people || "1"));
-    groups[key].confirmedCount = Math.min(4, groups[key].confirmedCount + count);
+    groups[key].capacity = Math.max(groups[key].capacity || 4, capacity);
+    groups[key].confirmedCount = Math.min(groups[key].capacity, groups[key].confirmedCount + count);
     groups[key].participantsPreview = groups[key].participantsPreview.concat(buildParticipantPreviewList_(row, count)).slice(0, 4);
-    groups[key].remainingSlots = Math.max(0, 4 - groups[key].confirmedCount);
+    groups[key].remainingSlots = Math.max(0, groups[key].capacity - groups[key].confirmedCount);
     const appliedAt = String(row.updatedAt || row.createdAt || "");
     if (appliedAt > String(groups[key].lastAppliedAt || "")) groups[key].lastAppliedAt = appliedAt;
   });

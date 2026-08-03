@@ -2,7 +2,7 @@
 <html lang="ko" style="--join-mobile-visual-bottom: 0px;"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>골프 조인 게시판</title>
+  <title>골프 조인 게시판 테스트</title>
   <script>
     window.updateMdPickThemeDots = window.updateMdPickThemeDots || function() {};
     window.updateCustomSectionControls = window.updateCustomSectionControls || function() {};
@@ -379,6 +379,11 @@
       box-sizing: border-box;
     }
     .section_special_event {
+      display: none !important;
+    }
+    /* 시크릿투어 외부 페이지 제목/안내 영역은 테스트 화면에서 제외합니다. */
+    .subTitWrap,
+    .index_info {
       display: none !important;
     }
     #secret-golf-join {

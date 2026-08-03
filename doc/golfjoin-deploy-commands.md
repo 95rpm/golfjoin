@@ -75,7 +75,7 @@ Expected signs:
 
 ## 5. Optional product refresh
 
-Run only after admin verification succeeds.
+Run after admin verification succeeds whenever the product-card schema, representative image extraction, or compact date selection changes. This refresh reads current Secret Tour products and writes the public JSON files; deploying `index.js` alone does not regenerate them.
 
 ```bash
 curl -sS -X POST "$FUNCTION_URL?action=refresh_secret_tour_products" \
@@ -88,8 +88,24 @@ curl -sS -X POST "$FUNCTION_URL?action=refresh_secret_tour_products" \
 Expected save targets:
 
 - `gs://golfjoin-bucket/web/golfjoin_home_summary.json`
+- `gs://golfjoin-bucket/web/golfjoin_home_cards.json`
 - `gs://golfjoin-bucket/web/golfjoin_local_data.json`
 - `gs://golfjoin-bucket/web/golfjoin_local_data.js`
+
+`web/generate_home_summary.js` is a local maintenance tool. Do not upload it to the bucket or publish it as JSON. The normal production path is the refresh request above; a manual bucket upload should contain only the generated `golfjoin_home_cards.json` after its contents have been verified.
+
+Verify the compact payload before publishing the HTML:
+
+```bash
+curl -sS "https://storage.googleapis.com/golfjoin-bucket/web/golfjoin_home_cards.json" > /tmp/golfjoin_home_cards.json
+node -e 'const p=require("/tmp/golfjoin_home_cards.json"); const images=p.items.filter(x=>x.image).length; console.log({generatedAt:p.generatedAt,count:p.count,images}); if(!p.count||!images)process.exit(1)'
+```
+
+Expected signs:
+
+- `generatedAt` matches the current refresh.
+- `count` is greater than zero and contains multiple future date variants where available.
+- `images` is greater than zero before the page HTML is published.
 
 ## 6. Rollback
 

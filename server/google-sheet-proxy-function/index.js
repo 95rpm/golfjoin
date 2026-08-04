@@ -28,6 +28,17 @@ const {
   createAlimtalkNotificationId,
   runAlimtalkWithRetry
 } = require("./alimtalk");
+const {
+  HOME_PRODUCT_MINIMUM_ADVANCE_DAYS,
+  buildAvailabilityRevision: buildGolfJoinAvailabilityRevision,
+  buildGolfJoinHomeArtifacts
+} = require("./home-products");
+const {
+  MIGRATION_SHEETS: RECOMMENDED_SCHEDULE_MIGRATION_SHEETS,
+  buildRecommendedScheduleMigrationPlan,
+  summarizeRecommendedScheduleMigrationPlan,
+  rowMatchesSource: rowMatchesRecommendedScheduleMigrationSource
+} = require("./recommended-schedule-migration");
 const MAX_PARTICIPANT_PREVIEW_COUNT = 40;
 
 const SHEET_WEB_APP_URL = process.env.SHEET_WEB_APP_URL || "";
@@ -627,6 +638,8 @@ const HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGH
 const HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS || 30 * 60_000);
 const HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS || 100);
 const HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS || 2_000);
+const HOME_BOOTSTRAP_LIGHT_SNAPSHOT_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_SNAPSHOT_TIMEOUT_MS || 2_500);
+const HOME_BOOTSTRAP_LIGHT_FINAL_WAIT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_FINAL_WAIT_MS || 1_000);
 const MEMBER_PROFILE_LOOKUP_TIMEOUT_MS = Number(process.env.MEMBER_PROFILE_LOOKUP_TIMEOUT_MS || 6000);
 const GA4_PROPERTY_ID = String(process.env.GA4_PROPERTY_ID || "404154820").trim();
 const GA4_LOOKBACK_DAYS = Math.min(Math.max(Number(process.env.GA4_LOOKBACK_DAYS || 30), 1), 365);
@@ -895,6 +908,21 @@ function sanitizePublicRow(row = {}, options = {}) {
   if (rawEventSeq && erpEventSeq) sanitized.erpEventSeq = erpEventSeq;
   if (erpProductId && erpEventSeq && sanitized.targetProductKey) {
     sanitized.targetProductKey = `erp:${erpProductId}:${erpEventSeq}`;
+  }
+  const sanitizedSheetName = resolveReadSheetAlias(options.sheet || options.sheetName || "");
+  if (
+    (sanitizedSheetName === "join_applications" || asText(row.source) === "join_apply")
+    && asText(row.applicationId || row.joinApplyId)
+  ) {
+    const existingPreviewSeed = asText(row.participantPreviewSeed);
+    const existingCompanionGroup = asText(row.participantCompanionGroup);
+    const participantPreview = sanitizePreviewItem(buildParticipantPreview(row, 0));
+    sanitized.participantPreviewSeed = /^preview_[a-f0-9]{20}$/i.test(existingPreviewSeed)
+      ? existingPreviewSeed
+      : participantPreview.iconSeed;
+    sanitized.participantCompanionGroup = /^group_[a-f0-9]{20}$/i.test(existingCompanionGroup)
+      ? existingCompanionGroup
+      : participantPreview.companionGroup;
   }
   return sanitized;
 }
@@ -2814,8 +2842,12 @@ function sanitizePreviewItem(item = {}) {
     level: asText(item.level),
     styles: Array.isArray(item.styles) ? item.styles.map(asText).filter(Boolean) : [],
     memberPreferences: Array.isArray(item.memberPreferences) ? item.memberPreferences.map(asText).filter(Boolean) : [],
-    iconSeed: iconSeed ? `preview_${sha256(iconSeed).slice(0, 20)}` : "",
-    companionGroup: companionGroup ? `group_${sha256(companionGroup).slice(0, 20)}` : ""
+    iconSeed: iconSeed
+      ? (iconSeed.startsWith("preview_") ? iconSeed : `preview_${sha256(iconSeed).slice(0, 20)}`)
+      : "",
+    companionGroup: companionGroup
+      ? (companionGroup.startsWith("group_") ? companionGroup : `group_${sha256(companionGroup).slice(0, 20)}`)
+      : ""
   };
 }
 
@@ -2830,6 +2862,7 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
       targetType: asText(item.targetType || "new_schedule"),
       erpProductId: normalizeCanonicalErpProductId(item.erpProductId, item.erpEventSeq),
       erpEventSeq: normalizeCanonicalErpEventSeq(item.erpEventSeq),
+      productFamilyId: asText(item.productFamilyId),
       title: asText(item.title),
       country: asText(item.country),
       region: asText(item.region),
@@ -3626,6 +3659,7 @@ function buildNewScheduleSummary(row = {}) {
     targetType: "new_schedule",
     erpProductId: normalizeCanonicalErpProductId(row.erpProductId, row.erpEventSeq),
     erpEventSeq: normalizeCanonicalErpEventSeq(row.erpEventSeq),
+    productFamilyId: asText(row.productFamilyId),
     title: asText(row.productName),
     country: normalizeLightCountry(row),
     region: normalizeLightRegion(row),
@@ -3839,6 +3873,21 @@ function isJoinApplicationForSchedule(join = {}, schedule = {}) {
   return Boolean(productId && eventSeq && joinProductId === productId && joinEventSeq === eventSeq);
 }
 
+function buildScheduleParticipantSummaryPeople(row = {}, people = 1) {
+  const count = Math.max(0, parsePeopleCount(people));
+  if (!count) return [];
+  const mainPhone = normalizePhone(row.applicantMobile || row.creatorPhone || row.memberMobile);
+  return buildParticipantPreviewList(row, count).map((preview, index) => ({
+    name: preview.displayName,
+    phone: index === 0 ? mainPhone : "",
+    gender: preview.gender,
+    age: preview.ageDisplay,
+    level: preview.level,
+    styles: preview.styles,
+    memberPreferences: preview.memberPreferences
+  }));
+}
+
 function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
   const relatedJoins = joinRows.filter((join) => isJoinApplicationForSchedule(join, schedule));
   const confirmedJoins = relatedJoins.filter((join) => !isCancelledJoinApplication(join));
@@ -3853,24 +3902,13 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
   const joinedApplicationPeople = confirmedJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0);
   const capacity = getScheduleCapacity(schedule);
   const confirmedPeople = Math.min(capacity, creatorPeople + joinedApplicationPeople);
-  const creatorParticipants = creatorPeople > 0 ? [{
-    name: schedule.applicantName || schedule.creatorName,
-    phone: schedule.applicantMobile || schedule.creatorPhone,
-    gender: schedule.applicantGender || schedule.creatorGender,
-    age: schedule.applicantAgeBand || schedule.creatorAgeDisplay,
-    level: schedule.applicantLevel || schedule.creatorLevel,
-    styles: schedule.applicantStyles || schedule.creatorStyles,
-    memberPreferences: schedule.applicantPreferredMembers || schedule.creatorMemberPreferences || schedule.creatorPreferredMemberComposition
-  }] : [];
-  const participants = creatorParticipants.concat(confirmedJoins.map((join) => ({
-    name: join.applicantName || join.name,
-    phone: join.applicantMobile || join.phone,
-    gender: join.applicantGender || join.gender,
-    age: join.applicantAgeBand || join.ageDisplay,
-    level: join.applicantLevel || join.level,
-    styles: join.applicantStyles || join.styles,
-    memberPreferences: join.applicantPreferredMembers || join.memberPreferences || join.preferredMemberComposition
-  }))).slice(0, capacity);
+  const creatorParticipants = creatorPeople > 0
+    ? buildScheduleParticipantSummaryPeople(schedule, creatorPeople)
+    : [];
+  const joinedParticipants = confirmedJoins.flatMap((join) => (
+    buildScheduleParticipantSummaryPeople(join, join.applicantPeople || join.people || "1")
+  ));
+  const participants = creatorParticipants.concat(joinedParticipants).slice(0, capacity);
   return {
     scheduleId: asText(schedule.scheduleId),
     sourceApplicationId: asText(schedule.applicationId || schedule.sourceApplicationId),
@@ -3895,8 +3933,12 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
     genderSummary: summarizeSheetValues(participants.map((item) => item.gender)),
     ageSummary: summarizeSheetValues(participants.map((item) => item.age)),
     levelSummary: summarizeSheetValues(participants.map((item) => item.level)),
-    styleSummary: summarizeSheetValues(participants.flatMap((item) => asText(item.styles).split(",").map(asText))),
-    memberPreferenceSummary: summarizeSheetValues(participants.flatMap((item) => asText(item.memberPreferences).split(",").map(asText))),
+    styleSummary: summarizeSheetValues(participants.flatMap((item) => (
+      Array.isArray(item.styles) ? item.styles : splitSheetList(item.styles)
+    ))),
+    memberPreferenceSummary: summarizeSheetValues(participants.flatMap((item) => (
+      Array.isArray(item.memberPreferences) ? item.memberPreferences : splitSheetList(item.memberPreferences)
+    ))),
     status: asText(schedule.applicationStatus || schedule.status || "open"),
     approvalStatus: asText(schedule.approvalStatus || "pending"),
     displayStatus: asText(schedule.displayStatus || "visible"),
@@ -4511,6 +4553,47 @@ async function writeGoogleSheetValuesViaApi(range, values = [], options = {}) {
     throw createHttpError(`Google Sheets API write failed: ${response.status} ${text.slice(0, 200)}`, response.status);
   }
   return JSON.parse(text || "{}");
+}
+
+async function batchUpdateGoogleSheetRowsViaApi(updates = [], options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const rows = Array.isArray(updates) ? updates.filter((item) => (
+    asText(item?.sheetName)
+    && Number.isInteger(Number(item?.rowNumber))
+    && Number(item.rowNumber) >= 2
+    && Array.isArray(item.afterValues)
+    && item.afterValues.length > 0
+  )) : [];
+  if (!rows.length) return { totalUpdatedRows: 0, responses: [] };
+  const token = await getGoogleMetadataAccessToken();
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}/values:batchUpdate`);
+  const data = rows.map((item) => {
+    const rowNumber = Number(item.rowNumber);
+    const endColumn = columnNumberToLetters(item.afterValues.length);
+    return {
+      range: `'${escapeGoogleSheetNameForRange(item.sheetName)}'!A${rowNumber}:${endColumn}${rowNumber}`,
+      majorDimension: "ROWS",
+      values: [item.afterValues]
+    };
+  });
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      valueInputOption: options.valueInputOption || "RAW",
+      includeValuesInResponse: false,
+      data
+    })
+  }, options.timeoutMs || 20_000, "Google Sheets recommended schedule migration");
+  const responseText = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets migration batch update failed: ${response.status} ${responseText.slice(0, 200)}`, response.status);
+  }
+  return JSON.parse(responseText || "{}");
 }
 
 async function appendGoogleSheetValuesViaApi(sheetName, values = [], options = {}) {
@@ -5542,12 +5625,38 @@ async function saveJoinApplicationViaSheetsApi(payload = {}) {
       getValue(payload, "product.air2Nm"),
       getValue(payload, "product.air2CdNm")
     );
+  const canonicalTargetScheduleId = asText(targetSchedule.scheduleId);
+  const canonicalTargetApplicationId = asText(targetSchedule.applicationId || targetSchedule.sourceApplicationId);
+  const canonicalErpEventSeq = normalizeCanonicalErpEventSeq(targetSchedule.erpEventSeq || targetSchedule.eventSeq);
+  const canonicalErpProductId = normalizeCanonicalErpProductId(
+    targetSchedule.erpProductId || targetSchedule.goodSeq || targetSchedule.productId,
+    canonicalErpEventSeq
+  );
+  const canonicalProductName = asText(targetSchedule.productName || targetSchedule.title);
+  const canonicalDepartureDate = normalizeSheetDateText(targetSchedule.departureDate || targetSchedule.departureDateFrom);
+  const canonicalReturnDate = normalizeSheetDateText(targetSchedule.returnDate || targetSchedule.returnDateFrom);
   const rowPayload = {
     ...payload,
     applicationId,
+    ...(canonicalTargetScheduleId ? { targetScheduleId: canonicalTargetScheduleId } : {}),
+    ...(canonicalTargetApplicationId ? { targetApplicationId: canonicalTargetApplicationId } : {}),
+    ...(canonicalErpProductId ? { erpProductId: canonicalErpProductId } : {}),
+    ...(canonicalErpEventSeq ? { erpEventSeq: canonicalErpEventSeq } : {}),
+    ...(canonicalProductName ? { productName: canonicalProductName } : {}),
+    ...(canonicalDepartureDate ? { departureDate: canonicalDepartureDate } : {}),
+    ...(canonicalReturnDate ? { returnDate: canonicalReturnDate } : {}),
+    ...(targetSchedule.country ? { country: targetSchedule.country } : {}),
+    ...(targetSchedule.region ? { region: targetSchedule.region } : {}),
     ...(departureAirport ? { departureAirport } : {}),
     product: {
       ...payloadProduct,
+      ...(canonicalErpProductId ? { erpProductId: canonicalErpProductId, productId: canonicalErpProductId } : {}),
+      ...(canonicalErpEventSeq ? { erpEventSeq: canonicalErpEventSeq, eventSeq: canonicalErpEventSeq } : {}),
+      ...(canonicalProductName ? { productName: canonicalProductName } : {}),
+      ...(canonicalDepartureDate ? { departureDate: canonicalDepartureDate } : {}),
+      ...(canonicalReturnDate ? { returnDate: canonicalReturnDate } : {}),
+      ...(targetSchedule.country ? { country: targetSchedule.country } : {}),
+      ...(targetSchedule.region ? { region: targetSchedule.region } : {}),
       ...(packTypeValue ? { packType: packTypeValue } : {}),
       ...(packTypeNameValue ? { packTypeName: packTypeNameValue } : {}),
       ...(airline ? { airline } : {}),
@@ -5952,6 +6061,32 @@ function setHomeBootstrapLightCacheEntry(cacheKey, payload) {
   });
 }
 
+function resolveWithin(promise, timeoutMs) {
+  let timeout = null;
+  const timeoutPromise = new Promise((resolve) => {
+    timeout = setTimeout(() => resolve(null), Math.max(100, Number(timeoutMs) || 0));
+  });
+  return Promise.race([promise, timeoutPromise])
+    .finally(() => clearTimeout(timeout));
+}
+
+async function readHomeBootstrapLightSnapshotFromStorage() {
+  const objectName = getGolfJoinProductObjectName("golfjoin_home_cards.json");
+  const [buffer] = await storage.bucket(GOLFJOIN_PRODUCTS_BUCKET).file(objectName).download();
+  const payload = JSON.parse(buffer.toString("utf8") || "{}");
+  const snapshot = payload?.homeBootstrapLight;
+  if (
+    !snapshot
+    || !Array.isArray(snapshot.newScheduleSummaries)
+    || !Array.isArray(snapshot.participantSummaries)
+    || !Array.isArray(snapshot.displayRules)
+  ) return null;
+  return sanitizeHomeBootstrapLightPayload({
+    ...snapshot,
+    source: snapshot.source || "gcs_snapshot"
+  });
+}
+
 function refreshHomeBootstrapLightCache(cacheKey, params = {}) {
   const existing = homeBootstrapLightCache.get(cacheKey);
   if (existing?.refreshing) return existing.refreshing;
@@ -6059,10 +6194,11 @@ async function proxyHomeBootstrapLight(params, res) {
     return;
   }
   const refresh = refreshHomeBootstrapLightCache(cacheKey, params);
-  const timeout = new Promise((resolve) => {
-    setTimeout(() => resolve(null), HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS);
+  const snapshot = readHomeBootstrapLightSnapshotFromStorage().catch((error) => {
+    console.warn("Home bootstrap light storage snapshot read failed.", error?.message || error);
+    return null;
   });
-  const payload = await Promise.race([refresh, timeout]);
+  const payload = await resolveWithin(refresh, HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS);
   if (payload) {
     res.status(200).json({
       ...cloneHomeBootstrapLightPayload(payload),
@@ -6070,12 +6206,29 @@ async function proxyHomeBootstrapLight(params, res) {
     });
     return;
   }
-  const fallback = await refresh;
-  if (!fallback) throw createHttpError("Home bootstrap light failed", 502);
-  res.status(200).json({
-    ...cloneHomeBootstrapLightPayload(fallback),
-    cache: { status: "miss-slow", ageMs: 0 }
-  });
+  const snapshotPayload = await resolveWithin(snapshot, HOME_BOOTSTRAP_LIGHT_SNAPSHOT_TIMEOUT_MS);
+  if (snapshotPayload) {
+    const snapshotTimestamp = Date.parse(snapshotPayload.updatedAt || snapshotPayload.serverTime || "");
+    const snapshotAgeMs = Number.isFinite(snapshotTimestamp) ? Math.max(0, Date.now() - snapshotTimestamp) : 0;
+    res.status(200).json({
+      ...cloneHomeBootstrapLightPayload(snapshotPayload),
+      warnings: [
+        ...(snapshotPayload.warnings || []),
+        { key: "cache", message: "Returned the stored home bootstrap snapshot while refreshing." }
+      ],
+      cache: { status: "snapshot", ageMs: snapshotAgeMs }
+    });
+    return;
+  }
+  const finalPayload = await resolveWithin(refresh, HOME_BOOTSTRAP_LIGHT_FINAL_WAIT_MS);
+  if (finalPayload) {
+    res.status(200).json({
+      ...cloneHomeBootstrapLightPayload(finalPayload),
+      cache: { status: "miss-slow", ageMs: 0 }
+    });
+    return;
+  }
+  throw createHttpError("Home bootstrap light refresh timed out", 504, { code: "home_bootstrap_timeout" });
 }
 
 async function proxyHomeStats(res) {
@@ -6442,9 +6595,17 @@ function parseSecretTourDetailImageHtml(html = "") {
 }
 
 function parseSecretTourProductMetaHtml(html = "") {
+  const pageText = decodeSecretTourHtmlText(html);
+  const firstDayIndex = pageText.search(/(?:1\s*일차|DAY\s*1)/i);
+  const firstDayText = firstDayIndex >= 0
+    ? pageText.slice(firstDayIndex, pageText.search(/(?:2\s*일차|DAY\s*2)/i) > firstDayIndex
+      ? pageText.search(/(?:2\s*일차|DAY\s*2)/i)
+      : firstDayIndex + 1200)
+    : "";
   return {
     detailTitleCopy: parseSecretTourDetailTitleCopyHtml(html),
-    image: parseSecretTourDetailImageHtml(html)
+    image: parseSecretTourDetailImageHtml(html),
+    departureAirport: inferSecretTourDepartureAirportFromSchedule(firstDayText)
   };
 }
 
@@ -6655,6 +6816,9 @@ function normalizeSecretTourGoodsItem(item = {}, index = 0) {
   const productType = item.productType || item.goodsType || item.goodType || item.goodKind || item.goodDetailCdNm || item.goodDetailName || item.packageType || item.packType || item.tourType || item.airProductYn || item.airYn || item.flightYn || item.includeAirYn || "";
   const title = asText(item.goodNm) || "Golf join product";
   const destination = parseSecretTourTitleDestination(title);
+  const departureAirport = inferSecretTourDepartureAirportFromSchedule(item.schedule)
+    || normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName)
+    || inferSecretTourDepartureAirportFromTitle(title);
   return {
     id: item.goodSeq ? `secret-tour-${item.goodSeq}` : `secret-tour-product-${index}`,
     source: "secret-tour-goods",
@@ -6676,8 +6840,8 @@ function normalizeSecretTourGoodsItem(item = {}, index = 0) {
     country: destination.country,
     region: destination.region || asText(item.tourCity || item.areaCdNm),
     category: asText(item.areaCdNm),
-    airport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName),
-    departureAirport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName),
+    airport: departureAirport,
+    departureAirport,
     arrivalAirport: asText(item.arrivalAirport || item.arrAirport || item.toCity || item.arrivalCity || item.tourCity || item.areaCdNm),
     airline: normalizeSecretTourAirlineName(item.airline, item.airlineName, item.airlineNm, item.air2Nm, item.air2CdNm),
     departureDate,
@@ -6706,6 +6870,18 @@ function normalizeSecretTourGoodsEventItem(product = {}, event = {}, index = 0) 
   const eventSeq = asText(event.eventSeq);
   const title = asText(event.eventNm || product.goodNm) || "Golf join product";
   const destination = parseSecretTourTitleDestination(title, product.goodNm);
+  const departureAirport = inferSecretTourDepartureAirportFromSchedule(event.schedule, product.schedule)
+    || normalizeSecretTourAirportName(
+      event.departureAirport,
+      event.depAirport,
+      event.airport,
+      event.airportName,
+      product.departureAirport,
+      product.depAirport,
+      product.airport,
+      product.airportName
+    )
+    || inferSecretTourDepartureAirportFromTitle(title, product.goodNm);
   return {
     id: eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : `secret-tour-${goodSeq}-event-${index}`,
     source: "secret-tour-goods-event",
@@ -6727,8 +6903,8 @@ function normalizeSecretTourGoodsEventItem(product = {}, event = {}, index = 0) 
     country: destination.country,
     region: destination.region || asText(product.tourCity || product.areaCdNm),
     category: asText(product.areaCdNm),
-    airport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport),
-    departureAirport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport),
+    airport: departureAirport,
+    departureAirport,
     arrivalAirport: asText(event.arrivalAirport || event.arrAirport || event.toCity || event.arrivalCity || product.arrivalAirport || product.arrAirport || product.toCity || product.arrivalCity || product.tourCity || product.areaCdNm),
     airline: normalizeSecretTourAirlineName(event.airline, event.airlineName, event.airlineNm, event.air2Nm, product.airline, product.air2Nm, product.air2CdNm),
     departureDate,
@@ -6843,7 +7019,8 @@ async function loadSecretTourProductMetaByGoodSeq(items = [], previousMetaByGood
         goodSeq: product.goodSeq,
         ok: true,
         detailTitleCopy: meta.detailTitleCopy || "",
-        image: meta.image || ""
+        image: meta.image || "",
+        departureAirport: meta.departureAirport || ""
       };
     } catch (error) {
       console.warn("Secret Tour product metadata load failed", {
@@ -6851,7 +7028,7 @@ async function loadSecretTourProductMetaByGoodSeq(items = [], previousMetaByGood
         eventSeq: product.eventSeq,
         message: error?.message || String(error)
       });
-      return { goodSeq: product.goodSeq, ok: false, detailTitleCopy: "", image: "" };
+      return { goodSeq: product.goodSeq, ok: false, detailTitleCopy: "", image: "", departureAirport: "" };
     }
   });
 
@@ -6863,19 +7040,21 @@ async function loadSecretTourProductMetaByGoodSeq(items = [], previousMetaByGood
     const previous = previousMetaByGoodSeq?.[result.goodSeq];
     if (result.ok) {
       loadedCount += 1;
-      if (result.detailTitleCopy || result.image || previous?.detailTitleCopy || previous?.image) {
+      if (result.detailTitleCopy || result.image || result.departureAirport || previous?.detailTitleCopy || previous?.image || previous?.departureAirport) {
         productMetaByGoodSeq[result.goodSeq] = {
           ...(result.detailTitleCopy || previous?.detailTitleCopy ? { detailTitleCopy: result.detailTitleCopy || asText(previous?.detailTitleCopy) } : {}),
-          ...(result.image || previous?.image ? { image: result.image || secretTourImageUrl(previous?.image) } : {})
+          ...(result.image || previous?.image ? { image: result.image || secretTourImageUrl(previous?.image) } : {}),
+          ...(result.departureAirport || previous?.departureAirport ? { departureAirport: result.departureAirport || asText(previous?.departureAirport) } : {})
         };
       }
       return;
     }
     failedCount += 1;
-    if (previous?.detailTitleCopy || previous?.image) {
+    if (previous?.detailTitleCopy || previous?.image || previous?.departureAirport) {
       productMetaByGoodSeq[result.goodSeq] = {
         ...(previous.detailTitleCopy ? { detailTitleCopy: asText(previous.detailTitleCopy) } : {}),
-        ...(previous.image ? { image: secretTourImageUrl(previous.image) } : {})
+        ...(previous.image ? { image: secretTourImageUrl(previous.image) } : {}),
+        ...(previous.departureAirport ? { departureAirport: asText(previous.departureAirport) } : {})
       };
       preservedCount += 1;
     }
@@ -6904,8 +7083,8 @@ function buildGolfJoinProductsPayload(items = [], options = {}) {
   };
 }
 
-const GOLFJOIN_HOME_SUMMARY_RANGE_DAYS = 240;
-const GOLFJOIN_HOME_SUMMARY_START_OFFSET_DAYS = 7;
+const GOLFJOIN_HOME_SUMMARY_RANGE_DAYS = 247;
+const GOLFJOIN_HOME_SUMMARY_START_OFFSET_DAYS = 0;
 const GOLFJOIN_HOME_SUMMARY_FIELDS = [
   "id",
   "source",
@@ -7043,8 +7222,21 @@ function buildGolfJoinHomeSummaryPayload(payload = {}, options = {}) {
   const items = sourceItems
     .filter((item) => !item.departureDate || (item.departureDate >= startDate && item.departureDate <= endDate))
     .map((item) => {
-      const compactItem = compactGolfJoinHomeSummaryItem(item);
       const goodSeq = asText(item.goodSeq || item.erpProductId);
+      const productMeta = productMetaByGoodSeq?.[goodSeq] || {};
+      const departureAirport = inferSecretTourDepartureAirportFromSchedule(item.schedule)
+        || normalizeSecretTourAirportName(
+          item.departureAirport,
+          item.depAirport,
+          item.airport,
+          item.airportName,
+          productMeta.departureAirport
+        )
+        || inferSecretTourDepartureAirportFromTitle(item.title, item.sourceProductTitle);
+      const compactItem = compactGolfJoinHomeSummaryItem({
+        ...item,
+        ...(departureAirport ? { airport: departureAirport, departureAirport } : {})
+      });
       const savedImage = secretTourImageUrl(productMetaByGoodSeq?.[goodSeq]?.image);
       if (!compactItem.image && savedImage) compactItem.image = savedImage;
       return compactItem;
@@ -7085,73 +7277,111 @@ function collectGolfJoinDisplayRuleProductReferences(value, references = new Set
 }
 
 function buildGolfJoinHomeCardsPayload(summaryPayload = {}) {
-  const productDateLimit = 4;
-  const productDateGapMs = 7 * 24 * 60 * 60 * 1000;
-  const minDepartureDate = String(summaryPayload.range?.startDate || "").trim();
-  const sortedItems = (Array.isArray(summaryPayload.items) ? summaryPayload.items : [])
-    .filter((item) => !item.departureDate || !minDepartureDate || item.departureDate >= minDepartureDate)
-    .sort((a, b) => {
-      const dateCompare = String(a.departureDate || "9999-12-31").localeCompare(String(b.departureDate || "9999-12-31"));
-      if (dateCompare) return dateCompare;
-      return (Number(a.price) || Number.MAX_SAFE_INTEGER) - (Number(b.price) || Number.MAX_SAFE_INTEGER);
-    });
-  const productGroups = new Map();
-  sortedItems.forEach((item, index) => {
-    const key = String(item.goodSeq || item.productId || item.id || `item-${index}`).trim();
-    if (!productGroups.has(key)) productGroups.set(key, []);
-    productGroups.get(key).push(item);
-  });
-  const representatives = [...productGroups.values()].flatMap((groupItems) => {
-    const selected = [];
-    const selectedDates = new Set();
-    let lastSelectedTime = NaN;
-    groupItems.forEach((item) => {
-      if (selected.length >= productDateLimit) return;
-      const departureDate = String(item.departureDate || "").trim();
-      if (!departureDate || selectedDates.has(departureDate)) return;
-      const departureTime = new Date(`${departureDate}T00:00:00Z`).getTime();
-      const hasEnoughGap = !Number.isFinite(lastSelectedTime)
-        || !Number.isFinite(departureTime)
-        || departureTime - lastSelectedTime >= productDateGapMs;
-      if (!hasEnoughGap) return;
-      selected.push(item);
-      selectedDates.add(departureDate);
-      lastSelectedTime = departureTime;
-    });
-    if (!selected.length && groupItems[0]) selected.push(groupItems[0]);
-    return selected;
-  });
   const referencedValues = collectGolfJoinDisplayRuleProductReferences(summaryPayload.homeBootstrapLight?.displayRules || []);
-  const referencedItems = sortedItems.filter((item) => [
-    item.id,
-    item.eventSeq,
-    item.scheduleId
-  ].some((value) => referencedValues.has(String(value || "").trim())));
-  const uniqueItems = new Map();
-  [...representatives, ...referencedItems].forEach((item) => {
-    const key = [item.id, item.goodSeq, item.eventSeq].filter(Boolean).join(":");
-    if (key) uniqueItems.set(key, item);
-  });
-  const items = [...uniqueItems.values()];
-  return {
-    schema: "secret-golf-join-home-cards-v1",
-    generatedAt: summaryPayload.generatedAt || nowKstISOString(),
-    sourceGeneratedAt: summaryPayload.sourceGeneratedAt || summaryPayload.generatedAt || "",
-    range: summaryPayload.range || {},
-    sourceCount: Number(summaryPayload.count || sortedItems.length),
-    count: items.length,
-    items,
-    productMetaByGoodSeq: summaryPayload.productMetaByGoodSeq || {},
-    destinations: summaryPayload.destinations || { countries: [] },
-    ...(summaryPayload.homeBootstrapLight ? {
-      homeBootstrapLight: summaryPayload.homeBootstrapLight,
-      homeBootstrapLightUpdatedAt: summaryPayload.homeBootstrapLightUpdatedAt || summaryPayload.homeBootstrapLight.updatedAt || summaryPayload.homeBootstrapLight.serverTime || nowKstISOString()
-    } : {})
-  };
+  const availabilityRevision = buildGolfJoinAvailabilityRevision(summaryPayload);
+  return buildGolfJoinHomeArtifacts(summaryPayload, {
+    minimumAdvanceDays: HOME_PRODUCT_MINIMUM_ADVANCE_DAYS,
+    availabilityRevision,
+    availabilityObjectPrefix: getGolfJoinProductObjectName(`product-availability/${availabilityRevision}`),
+    referencedValues
+  }).homeCardsPayload;
 }
 
 function getGolfJoinProductObjectName(fileName) {
   return `${GOLFJOIN_PRODUCTS_PREFIX ? `${GOLFJOIN_PRODUCTS_PREFIX}/` : ""}${fileName}`;
+}
+
+function getGolfJoinProductPublicUrl(objectName = "") {
+  const normalizedObjectName = asText(objectName).replace(/^\/+/, "");
+  if (!normalizedObjectName) return "";
+  return `https://storage.googleapis.com/${GOLFJOIN_PRODUCTS_BUCKET}/${normalizedObjectName.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+function buildGolfJoinHomeStorageArtifacts(summaryPayload = {}) {
+  const referencedValues = collectGolfJoinDisplayRuleProductReferences(summaryPayload.homeBootstrapLight?.displayRules || []);
+  const availabilityRevision = buildGolfJoinAvailabilityRevision(summaryPayload);
+  const artifacts = buildGolfJoinHomeArtifacts(summaryPayload, {
+    minimumAdvanceDays: HOME_PRODUCT_MINIMUM_ADVANCE_DAYS,
+    availabilityRevision,
+    availabilityObjectPrefix: getGolfJoinProductObjectName(`product-availability/${availabilityRevision}`),
+    referencedValues
+  });
+  const cardsObjectName = getGolfJoinProductObjectName(`home-cards/${artifacts.publicationRevision}.json`);
+  const manifestObjectName = getGolfJoinProductObjectName("golfjoin_home_manifest.json");
+  return {
+    ...artifacts,
+    cardsObjectName,
+    manifestObjectName,
+    manifestPayload: {
+      schema: "secret-golf-join-home-manifest-v1",
+      generatedAt: summaryPayload.generatedAt || nowKstISOString(),
+      activePublicationRevision: artifacts.publicationRevision,
+      activeCardsObjectName: cardsObjectName,
+      activeCardsUrl: getGolfJoinProductPublicUrl(cardsObjectName),
+      availabilityRevision: artifacts.availabilityRevision,
+      minimumAdvanceDays: artifacts.minimumAdvanceDays,
+      bookableFrom: artifacts.bookableFrom
+    }
+  };
+}
+
+async function saveGolfJoinHomeArtifactsToStorage(bucket, summaryPayload = {}, options = {}) {
+  const artifacts = buildGolfJoinHomeStorageArtifacts(summaryPayload);
+  const availabilityManifestObjectName = getGolfJoinProductObjectName(
+    `product-availability/${artifacts.availabilityRevision}/manifest.json`
+  );
+  const mutableJsonOptions = {
+    resumable: false,
+    metadata: {
+      cacheControl: "public, max-age=60",
+      contentType: "application/json; charset=utf-8"
+    }
+  };
+  const immutableJsonOptions = {
+    resumable: false,
+    metadata: {
+      cacheControl: "public, max-age=31536000, immutable",
+      contentType: "application/json; charset=utf-8"
+    }
+  };
+
+  let shouldWriteAvailability = options.writeAvailability === true;
+  if (!shouldWriteAvailability && options.ensureAvailability === true) {
+    try {
+      const [availabilityExists] = await bucket.file(availabilityManifestObjectName).exists();
+      shouldWriteAvailability = !availabilityExists;
+    } catch (error) {
+      console.warn("Failed to check golfjoin availability publication marker.", error);
+      shouldWriteAvailability = true;
+    }
+  }
+
+  if (shouldWriteAvailability) {
+    await mapWithConcurrency(artifacts.availabilityArtifacts, 8, async (artifact) => {
+      if (!artifact.objectName) return;
+      await bucket.file(artifact.objectName).save(`${JSON.stringify(artifact.payload)}\n`, immutableJsonOptions);
+    });
+    await bucket.file(availabilityManifestObjectName).save(`${JSON.stringify({
+      schema: "secret-golf-join-product-availability-manifest-v1",
+      generatedAt: summaryPayload.generatedAt || nowKstISOString(),
+      availabilityRevision: artifacts.availabilityRevision,
+      minimumAdvanceDays: artifacts.minimumAdvanceDays,
+      productCount: artifacts.availabilityArtifacts.length
+    })}\n`, immutableJsonOptions);
+  }
+
+  await Promise.all([
+    bucket.file(getGolfJoinProductObjectName("golfjoin_home_summary.json"))
+      .save(`${JSON.stringify(summaryPayload)}\n`, mutableJsonOptions),
+    bucket.file(artifacts.cardsObjectName)
+      .save(`${JSON.stringify(artifacts.homeCardsPayload)}\n`, immutableJsonOptions),
+    bucket.file(getGolfJoinProductObjectName("golfjoin_home_cards.json"))
+      .save(`${JSON.stringify(artifacts.homeCardsPayload)}\n`, mutableJsonOptions)
+  ]);
+
+  await bucket.file(artifacts.manifestObjectName)
+    .save(`${JSON.stringify(artifacts.manifestPayload)}\n`, mutableJsonOptions);
+  return artifacts;
 }
 
 async function saveGolfJoinProductsPayload(payload) {
@@ -7165,9 +7395,6 @@ async function saveGolfJoinProductsPayload(payload) {
     console.warn("Failed to include home bootstrap light in product summary.", error);
   }
   const summaryPayload = buildGolfJoinHomeSummaryPayload(payload, { homeBootstrapLight });
-  const homeCardsPayload = buildGolfJoinHomeCardsPayload(summaryPayload);
-  const summaryText = `${JSON.stringify(summaryPayload)}\n`;
-  const homeCardsText = `${JSON.stringify(homeCardsPayload)}\n`;
   const options = {
     resumable: false,
     metadata: {
@@ -7175,8 +7402,7 @@ async function saveGolfJoinProductsPayload(payload) {
       contentType: "application/json; charset=utf-8"
     }
   };
-  await bucket.file(getGolfJoinProductObjectName("golfjoin_home_summary.json")).save(summaryText, options);
-  await bucket.file(getGolfJoinProductObjectName("golfjoin_home_cards.json")).save(homeCardsText, options);
+  await saveGolfJoinHomeArtifactsToStorage(bucket, summaryPayload, { writeAvailability: true });
   await bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.json")).save(jsonText, options);
   await bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.js")).save(jsText, {
     ...options,
@@ -8335,26 +8561,19 @@ async function refreshGolfJoinHomeSummaryFromCurrentData(reason = "manual") {
   ]);
   const summaryPayload = buildGolfJoinHomeSummaryPayload(productsPayload, { homeBootstrapLight });
   summaryPayload.refreshReason = asText(reason) || "manual";
-  const homeCardsPayload = buildGolfJoinHomeCardsPayload(summaryPayload);
   const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
-  await bucket.file(getGolfJoinProductObjectName("golfjoin_home_summary.json")).save(`${JSON.stringify(summaryPayload)}\n`, {
-    resumable: false,
-    metadata: {
-      cacheControl: "public, max-age=60",
-      contentType: "application/json; charset=utf-8"
-    }
-  });
-  await bucket.file(getGolfJoinProductObjectName("golfjoin_home_cards.json")).save(`${JSON.stringify(homeCardsPayload)}\n`, {
-    resumable: false,
-    metadata: {
-      cacheControl: "public, max-age=60",
-      contentType: "application/json; charset=utf-8"
-    }
+  await saveGolfJoinHomeArtifactsToStorage(bucket, summaryPayload, {
+    writeAvailability: false,
+    ensureAvailability: true
   });
   return summaryPayload;
 }
 
 function refreshGolfJoinHomeSummaryInBackground(reason = "write") {
+  // 일정 생성/참여 직후 이전 참여자 요약이 TTL 동안 다시 노출되지 않도록
+  // 공개 홈 캐시를 먼저 비우고 최신 스냅샷을 재생성한다.
+  homeBootstrapCache.clear();
+  homeBootstrapLightCache.clear();
   refreshGolfJoinHomeSummaryFromCurrentData(reason)
     .then((summary) => {
       console.log("golfjoin home summary refreshed", {
@@ -8574,7 +8793,8 @@ async function proxyGet(req, res) {
         sheet: requestedSheet || req.query?.sheet || ""
       });
       res.status(200).json(isAdmin ? payload : sanitizePublicPayload(payload, {
-        preserveQuoteLinks: preserveMemberQuoteLinks
+        preserveQuoteLinks: preserveMemberQuoteLinks,
+        sheet: requestedSheet
       }));
       return;
     } catch (error) {
@@ -8602,7 +8822,8 @@ async function proxyGet(req, res) {
   }
   try {
     res.send(JSON.stringify(sanitizePublicPayload(JSON.parse(text), {
-      preserveQuoteLinks: preserveMemberQuoteLinks
+      preserveQuoteLinks: preserveMemberQuoteLinks,
+      sheet: requestedSheet
     })));
   } catch (error) {
     res.send(text);
@@ -9265,6 +9486,180 @@ async function proxyAdminParticipantDelete(req, res) {
   });
 }
 
+const RECOMMENDED_SCHEDULE_MIGRATION_STATE_SHEETS = Object.freeze([
+  ...RECOMMENDED_SCHEDULE_MIGRATION_SHEETS,
+  "product_family_master",
+  "product_family_members"
+]);
+
+function findStoredGolfJoinProductByReference(productsPayload = {}, goodSeq = "", eventSeq = "") {
+  const expectedGoodSeq = asText(goodSeq);
+  const expectedEventSeq = asText(eventSeq);
+  return (Array.isArray(productsPayload.items) ? productsPayload.items : []).find((item) => (
+    asText(item.goodSeq || item.erpProductId || item.productId) === expectedGoodSeq
+    && asText(item.eventSeq || item.erpEventSeq) === expectedEventSeq
+  )) || null;
+}
+
+async function readRecommendedScheduleMigrationState() {
+  const [sheets, productsPayload, headerEntries] = await Promise.all([
+    readGoogleSheetRangesViaApi(RECOMMENDED_SCHEDULE_MIGRATION_STATE_SHEETS, { timeoutMs: 12_000 }),
+    readGolfJoinProductsPayloadFromStorage(),
+    Promise.all(RECOMMENDED_SCHEDULE_MIGRATION_SHEETS.map(async (sheetName) => (
+      [sheetName, await readGoogleSheetHeaderViaApi(sheetName, { timeoutMs: 8000 })]
+    )))
+  ]);
+  return {
+    sheets,
+    productsPayload,
+    headersBySheet: Object.fromEntries(headerEntries)
+  };
+}
+
+function verifyRecommendedScheduleMigrationState(sheets = {}, plan = {}) {
+  const sourceRemainingBySheet = RECOMMENDED_SCHEDULE_MIGRATION_SHEETS.reduce((result, sheetName) => {
+    const count = (sheets[sheetName] || []).filter((row) => (
+      rowMatchesRecommendedScheduleMigrationSource(sheetName, row, plan.source)
+    )).length;
+    if (count) result[sheetName] = count;
+    return result;
+  }, {});
+  const targetRuleCount = (sheets.recommended_schedules || []).filter((row) => (
+    asText(row.recommendedScheduleId || row.displayRuleId) === plan.target.recommendedScheduleId
+    && asText(row.erpProductId || row.goodSeq) === plan.target.goodSeq
+    && asText(row.erpEventSeq || row.eventSeq) === plan.target.eventSeq
+  )).length;
+  const targetParticipantCount = (sheets.join_applications || []).filter((row) => (
+    asText(row.targetScheduleId) === plan.target.adminScheduleId
+    && asText(row.targetApplicationId) === plan.target.recommendedScheduleId
+    && asText(row.erpProductId || row.goodSeq) === plan.target.goodSeq
+    && asText(row.erpEventSeq || row.eventSeq) === plan.target.eventSeq
+  )).length;
+  const targetSummaryCount = (sheets.schedule_participant_summary || []).filter((row) => (
+    asText(row.scheduleId) === plan.target.adminScheduleId
+    && asText(row.sourceApplicationId) === plan.target.recommendedScheduleId
+  )).length;
+  return {
+    ok: Object.keys(sourceRemainingBySheet).length === 0
+      && targetRuleCount === 1
+      && targetSummaryCount === 1,
+    sourceRemainingBySheet,
+    targetRuleCount,
+    targetParticipantCount,
+    targetSummaryCount
+  };
+}
+
+async function proxyAdminRecommendedScheduleMigrate(req, res) {
+  assertAdminErpRequest(req);
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const payload = readBody(req);
+  const sourceGoodSeq = assertTextLength(payload.sourceGoodSeq, "sourceGoodSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const sourceEventSeq = assertTextLength(payload.sourceEventSeq, "sourceEventSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const targetGoodSeq = assertTextLength(payload.targetGoodSeq, "targetGoodSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const targetEventSeq = assertTextLength(payload.targetEventSeq, "targetEventSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const state = await readRecommendedScheduleMigrationState();
+  const targetProduct = findStoredGolfJoinProductByReference(state.productsPayload, targetGoodSeq, targetEventSeq);
+  if (!targetProduct) {
+    throw createHttpError("Target product was not found in the current product catalog", 404, {
+      code: "recommended_schedule_migration_target_product_not_found",
+      targetGoodSeq,
+      targetEventSeq
+    });
+  }
+  let plan;
+  try {
+    plan = buildRecommendedScheduleMigrationPlan({
+      sourceGoodSeq,
+      sourceEventSeq,
+      targetGoodSeq,
+      targetEventSeq,
+      targetProduct,
+      sheets: state.sheets,
+      headersBySheet: state.headersBySheet,
+      now: nowKstISOString()
+    });
+  } catch (error) {
+    throw createHttpError(error?.message || "Recommended schedule migration plan failed", 409, {
+      code: error?.code || "recommended_schedule_migration_plan_failed",
+      ...(error?.details || {})
+    });
+  }
+  const summary = summarizeRecommendedScheduleMigrationPlan(plan);
+  const expectedParticipantCount = payload.expectedParticipantCount === undefined || payload.expectedParticipantCount === ""
+    ? null
+    : Number(payload.expectedParticipantCount);
+  if (!plan.alreadyMigrated && expectedParticipantCount !== null && (
+    !Number.isInteger(expectedParticipantCount) || expectedParticipantCount !== plan.sourceParticipantCount
+  )) {
+    throw createHttpError("Participant count changed; migration was not applied", 409, {
+      code: "recommended_schedule_migration_participant_count_mismatch",
+      expectedParticipantCount,
+      actualParticipantCount: plan.sourceParticipantCount
+    });
+  }
+  if (payload.apply !== true) {
+    res.status(200).json({ ok: true, dryRun: true, migration: summary });
+    return;
+  }
+  if (asText(payload.confirmationKey) !== plan.migrationKey) {
+    throw createHttpError("Migration confirmation key does not match", 409, {
+      code: "recommended_schedule_migration_confirmation_mismatch",
+      expectedConfirmationKey: plan.migrationKey
+    });
+  }
+  if (plan.updates.length) {
+    await batchUpdateGoogleSheetRowsViaApi(plan.updates, { timeoutMs: 25_000, valueInputOption: "RAW" });
+  }
+  const verificationSheets = await readGoogleSheetRangesViaApi(RECOMMENDED_SCHEDULE_MIGRATION_STATE_SHEETS, { timeoutMs: 12_000 });
+  const verification = verifyRecommendedScheduleMigrationState(verificationSheets, plan);
+  const expectedMigratedParticipants = plan.alreadyMigrated ? expectedParticipantCount : plan.sourceParticipantCount;
+  const participantCountMatches = expectedMigratedParticipants === null
+    || verification.targetParticipantCount === expectedMigratedParticipants;
+  if (!verification.ok || !participantCountMatches) {
+    if (plan.updates.length) {
+      try {
+        await batchUpdateGoogleSheetRowsViaApi(plan.updates.map((item) => ({
+          ...item,
+          afterValues: item.beforeValues
+        })), { timeoutMs: 25_000, valueInputOption: "RAW" });
+      } catch (rollbackError) {
+        console.error("Recommended schedule migration rollback failed", {
+          message: rollbackError?.message || String(rollbackError),
+          fingerprint: plan.fingerprint
+        });
+      }
+    }
+    throw createHttpError("Recommended schedule migration verification failed; changes were rolled back", 500, {
+      code: "recommended_schedule_migration_verification_failed",
+      verification,
+      expectedMigratedParticipants
+    });
+  }
+
+  homeBootstrapCache.clear();
+  homeBootstrapLightCache.clear();
+  let homeSummaryRefresh;
+  try {
+    const refreshed = await refreshGolfJoinHomeSummaryFromCurrentData("admin_recommended_schedule_migrate");
+    homeSummaryRefresh = {
+      ok: true,
+      updatedAt: asText(refreshed.generatedAt || refreshed.updatedAt),
+      participantSummaryCount: refreshed.homeBootstrapLight?.participantSummaries?.length || 0
+    };
+  } catch (error) {
+    homeSummaryRefresh = { ok: false, error: error?.message || String(error) };
+  }
+  res.status(200).json({
+    ok: true,
+    dryRun: false,
+    applied: plan.updates.length > 0,
+    migration: summary,
+    verification,
+    homeSummaryRefresh
+  });
+}
+
 async function proxyPost(req, res) {
   const requestId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   if (req.query?.action === "send_application_notifications") {
@@ -9339,6 +9734,11 @@ async function proxyPost(req, res) {
 
   if (req.query?.action === "admin_participant_delete") {
     await proxyAdminParticipantDelete(req, res);
+    return;
+  }
+
+  if (req.query?.action === "admin_recommended_schedule_migrate") {
+    await withProductFamilyMutationLock(() => proxyAdminRecommendedScheduleMigrate(req, res));
     return;
   }
 

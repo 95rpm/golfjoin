@@ -83,6 +83,35 @@ Admin roster and ERP member lookup:
 - A matching profile is reused. Otherwise a temporary `join_member_profiles` row is created and is claimed when that person later completes the website profile flow.
 - These actions use the direct Google Sheets API and never fall back to Apps Script or send an application Alimtalk.
 
+Product family administration (server foundation):
+
+- The first admin request creates and initializes these private sheets when they do not exist:
+  - `product_family_master`
+  - `product_family_members`
+  - `product_family_audit_log`
+- Admin-token protected actions:
+  - `POST ?action=admin_product_family_bootstrap`
+  - `POST ?action=admin_product_family_assign`
+  - `POST ?action=admin_product_family_representative_update`
+  - `POST ?action=admin_product_family_revoke`
+  - `POST ?action=admin_product_family_republish`
+- Bootstrap returns `catalogRevision`, `analysisRevision`, the numeric-goodSeq catalog, server-generated `candidates`, `familyDiagnostics`, summary counts, and committed family revisions.
+- Mutation requests must send the bootstrap `expectedAnalysisRevision` and the selected family's `expectedConfigRevision` (`0` for a new family).
+- Assignment requires at least two numeric `memberGoodSeqs` with different durations. One active goodSeq cannot belong to two families.
+- Representative mode is `lowest_price` or `manual`; manual mode also requires `preferredGoodSeq`.
+- Send a stable 8-120 character `operationId` when retry safety is required.
+- `refresh_secret_tour_products` reconciles committed families by numeric `goodSeq` after the new product payload is saved. Existing memberships are retained; unavailable or materially changed members move the family to `review_required`, while lowest-price representative changes are updated automatically.
+- Successful assignment, representative change, revoke, republish, and product refresh operations publish an immutable versioned catalog to `web/product-family/catalogs/{publicationRevision}.json`.
+- Only valid `approved` families are included in a version. A duplicate goodSeq or invalid approved family fails publication without replacing the existing individual-product payload.
+- After the version file and sheet publication state both succeed, `web/product-family/manifest.json` is switched with a GCS generation precondition. The manifest records the active and previous publication revisions for rollback.
+- A manifest conflict or write failure leaves the previous manifest active and marks the attempted family publication as failed.
+- Product-family mutations and product refreshes use a bucket-backed distributed lock so two administrators cannot replace the same current state concurrently.
+- After a successful commit/publication attempt, `product_family_master` and `product_family_members` are atomically compacted to current state only. The master keeps one row per family, active families keep only their current member rows, and revoked families keep a master tombstone for retry safety.
+- `product_family_audit_log` remains append-only. If compaction fails, the committed append-only rows remain readable and a later operation can compact them again.
+- The refresh response includes the same server candidate analysis plus reconciliation counts, publication metadata, and diagnostics under `productFamily`.
+- Member rows are appended before the master revision. A partial write without the final master row is ignored when the committed state is read.
+- Public product cards do not consume the manifest until the main-page family integration is deployed.
+
 Alimtalk:
 
 - `new_schedule_builder` and `join_apply` writes send Alimtalk after the Google Sheet write succeeds.
@@ -93,11 +122,14 @@ Alimtalk:
   - `ALIGO_APIKEY`
   - `ALIGO_SENDERKEY`
   - `ALIGO_SENDER=0234461119`
-  - Optional: `ALIGO_TESTMODE=N`, `ALIGO_REQUEST_TIMEOUT_MS=8000`
+  - Optional: `ALIGO_TESTMODE=N`, `ALIGO_REQUEST_TIMEOUT_MS=15000`, `ALIGO_RETRY_DELAYS_MS=5000,20000,60000`
 - Split-service mode:
   - Main API: set `GOLFJOIN_ALIGO_SERVICE_URL`, `GOLFJOIN_ALIGO_TASK_QUEUE`, `GOLFJOIN_ALIGO_TASK_LOCATION`, `GOLFJOIN_TASKS_SERVICE_ACCOUNT`, and `GOLFJOIN_INTERNAL_SERVICE_TOKEN`.
   - Aligo service: set `GOLFJOIN_SERVICE_ROLE=aligo`, the same internal token, and all `ALIGO_*` credentials.
   - Cloud Tasks invokes the private Aligo service with OIDC, so a Direct VPC + Cloud NAT cold start never blocks the customer's application response.
+  - Application writes enqueue through Cloud Tasks only. Missing queue or service configuration is recorded as a delivery failure instead of falling back to an in-process background send or synchronous service call.
+  - A send attempt times out after 15 seconds. Timeout, network, and HTTP 5xx failures retry after 5, 20, and 60 seconds. Explicit provider rejection is not retried.
+  - `alimtalk_delivery_log` is created automatically and keeps one current row per notification id for duplicate prevention and final failure review.
 
 Write security:
 

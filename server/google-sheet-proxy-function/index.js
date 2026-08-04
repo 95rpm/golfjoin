@@ -5,6 +5,40 @@ const { Storage } = require("@google-cloud/storage");
 const { createGolfjoinQuotePdfBuffer: createGolfjoinQuotePdfBufferV2 } = require("./quote-pdf");
 const { createGolfjoinQuoteHtml, QUOTE_HERO_IMAGE_URL } = require("./quote-page");
 const { getErpSessionCookie, postErpFormJson } = require("./erp-client");
+const {
+  FAMILY_STATUS,
+  REPRESENTATIVE_MODE,
+  normalizeGoodSeq: normalizeProductFamilyGoodSeq,
+  normalizeRevision: normalizeProductFamilyRevision,
+  buildProductCatalog,
+  buildProductMaterialSignature: buildProductFamilyMaterialSignature,
+  buildAnalysisRevision,
+  buildCandidateAnalysis,
+  hydrateFamilyState,
+  reconcileFamilyWithCatalog,
+  validateFamilyAssignment,
+  resolveRepresentative,
+  buildPublishedFamilyCatalog,
+  buildProductFamilyManifest,
+  createFamilyId
+} = require("./product-family");
+const {
+  DEFAULT_ALIMTALK_RETRY_DELAYS_MS,
+  parseRetryDelays,
+  createAlimtalkNotificationId,
+  runAlimtalkWithRetry
+} = require("./alimtalk");
+const {
+  HOME_PRODUCT_MINIMUM_ADVANCE_DAYS,
+  buildAvailabilityRevision: buildGolfJoinAvailabilityRevision,
+  buildGolfJoinHomeArtifacts
+} = require("./home-products");
+const {
+  MIGRATION_SHEETS: RECOMMENDED_SCHEDULE_MIGRATION_SHEETS,
+  buildRecommendedScheduleMigrationPlan,
+  summarizeRecommendedScheduleMigrationPlan,
+  rowMatchesSource: rowMatchesRecommendedScheduleMigrationSource
+} = require("./recommended-schedule-migration");
 const MAX_PARTICIPANT_PREVIEW_COUNT = 40;
 
 const SHEET_WEB_APP_URL = process.env.SHEET_WEB_APP_URL || "";
@@ -23,6 +57,10 @@ const ALLOWED_READ_SHEETS = new Set([
   "schedule_participant_summary",
   "recommended_schedules",
   "product_display_rules",
+  "product_family_master",
+  "product_family_members",
+  "product_family_audit_log",
+  "alimtalk_delivery_log",
   "new_schedule",
   "builder",
   "join",
@@ -229,6 +267,7 @@ const GOOGLE_SHEET_HEADERS = {
     "arrivalAirport",
     "erpProductId",
     "erpEventSeq",
+    "productFamilyId",
     "productName",
     "productPrice",
     "packType",
@@ -353,6 +392,69 @@ const GOOGLE_SHEET_HEADERS = {
     "status",
     "adminMemo",
     "updatedAt"
+  ],
+  product_family_master: [
+    "familyId",
+    "status",
+    "representativeMode",
+    "preferredGoodSeq",
+    "resolvedRepresentativeGoodSeq",
+    "candidateKeySnapshot",
+    "configRevision",
+    "analysisRevision",
+    "catalogRevision",
+    "publishStatus",
+    "publishedRevision",
+    "approvedBy",
+    "approvedAt",
+    "updatedAt",
+    "revokedAt",
+    "publishError",
+    "operationId"
+  ],
+  product_family_members: [
+    "familyId",
+    "goodSeq",
+    "memberStatus",
+    "durationNights",
+    "durationDays",
+    "sourceTitleSnapshot",
+    "materialSignature",
+    "sourceActive",
+    "lastSeenCatalogRevision",
+    "configRevision",
+    "approvedAt",
+    "updatedAt",
+    "operationId"
+  ],
+  product_family_audit_log: [
+    "operationId",
+    "familyId",
+    "action",
+    "beforeValue",
+    "afterValue",
+    "adminId",
+    "createdAt",
+    "result"
+  ],
+  alimtalk_delivery_log: [
+    "notificationId",
+    "applicationId",
+    "notificationType",
+    "source",
+    "scheduleId",
+    "receiverMasked",
+    "status",
+    "attemptCount",
+    "retryCount",
+    "lastError",
+    "providerCode",
+    "providerMessage",
+    "requestId",
+    "createdAt",
+    "updatedAt",
+    "sentAt",
+    "failedAt"
   ]
 };
 const ADMIN_READ_TOKEN = String(process.env.ADMIN_READ_TOKEN || "").trim();
@@ -367,7 +469,14 @@ const ALIGO_SENDERKEY = String(process.env.ALIGO_SENDERKEY || "").trim();
 const ALIGO_SENDER = String(process.env.ALIGO_SENDER || process.env.SENDER || "0234461119").trim();
 const ALIGO_TESTMODE = String(process.env.ALIGO_TESTMODE || process.env.TESTMODE || "N").trim();
 const ALIGO_ENABLED = String(process.env.ALIGO_ENABLED || "N").trim().toUpperCase() === "Y";
-const ALIGO_REQUEST_TIMEOUT_MS = Number(process.env.ALIGO_REQUEST_TIMEOUT_MS || 8000);
+const ALIGO_REQUEST_TIMEOUT_MS = Number(process.env.ALIGO_REQUEST_TIMEOUT_MS || 15000);
+const ALIGO_RETRY_DELAYS_MS = parseRetryDelays(
+  process.env.ALIGO_RETRY_DELAYS_MS || DEFAULT_ALIMTALK_RETRY_DELAYS_MS
+);
+const ALIGO_TASK_DISPATCH_DEADLINE_SECONDS = Math.max(
+  180,
+  Number(process.env.ALIGO_TASK_DISPATCH_DEADLINE_SECONDS || 300) || 300
+);
 const GOLFJOIN_ALIGO_SERVICE_URL = String(process.env.GOLFJOIN_ALIGO_SERVICE_URL || "").trim();
 const GOLFJOIN_INTERNAL_SERVICE_TOKEN = String(process.env.GOLFJOIN_INTERNAL_SERVICE_TOKEN || "").trim();
 const GOLFJOIN_SERVICE_ROLE = String(process.env.GOLFJOIN_SERVICE_ROLE || "all").trim().toLowerCase();
@@ -529,6 +638,8 @@ const HOME_BOOTSTRAP_LIGHT_CACHE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGH
 const HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_STALE_TTL_MS || 30 * 60_000);
 const HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS = Number(process.env.HOME_BOOTSTRAP_LIGHT_CACHE_MAX_KEYS || 100);
 const HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS || 2_000);
+const HOME_BOOTSTRAP_LIGHT_SNAPSHOT_TIMEOUT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_SNAPSHOT_TIMEOUT_MS || 2_500);
+const HOME_BOOTSTRAP_LIGHT_FINAL_WAIT_MS = Number(process.env.HOME_BOOTSTRAP_LIGHT_FINAL_WAIT_MS || 1_000);
 const MEMBER_PROFILE_LOOKUP_TIMEOUT_MS = Number(process.env.MEMBER_PROFILE_LOOKUP_TIMEOUT_MS || 6000);
 const GA4_PROPERTY_ID = String(process.env.GA4_PROPERTY_ID || "404154820").trim();
 const GA4_LOOKBACK_DAYS = Math.min(Math.max(Number(process.env.GA4_LOOKBACK_DAYS || 30), 1), 365);
@@ -755,7 +866,7 @@ function sanitizePublicRow(row = {}, options = {}) {
     && typeof options === "object"
     && options.preserveQuoteLinks
   );
-  return Object.entries(row).reduce((object, [key, value]) => {
+  const sanitized = Object.entries(row).reduce((object, [key, value]) => {
     const lowerKey = String(key || "").toLowerCase();
     if (ALWAYS_PRIVATE_QUOTE_FIELD_KEYS.has(lowerKey)) return object;
     if (PRIVATE_IDENTITY_FIELD_KEYS.has(lowerKey)) return object;
@@ -788,6 +899,32 @@ function sanitizePublicRow(row = {}, options = {}) {
     object[key] = value;
     return object;
   }, {});
+  const rawEventSeq = sanitized.erpEventSeq || sanitized.eventSeq;
+  const rawProductId = sanitized.erpProductId || sanitized.goodSeq || sanitized.productId;
+  const parsedReference = parseGolfjoinProductReference(rawProductId, rawEventSeq);
+  const erpEventSeq = normalizeCanonicalErpEventSeq(rawEventSeq || parsedReference.eventSeq);
+  const erpProductId = normalizeCanonicalErpProductId(parsedReference.goodSeq || rawProductId, erpEventSeq);
+  if (rawProductId && erpProductId) sanitized.erpProductId = erpProductId;
+  if (rawEventSeq && erpEventSeq) sanitized.erpEventSeq = erpEventSeq;
+  if (erpProductId && erpEventSeq && sanitized.targetProductKey) {
+    sanitized.targetProductKey = `erp:${erpProductId}:${erpEventSeq}`;
+  }
+  const sanitizedSheetName = resolveReadSheetAlias(options.sheet || options.sheetName || "");
+  if (
+    (sanitizedSheetName === "join_applications" || asText(row.source) === "join_apply")
+    && asText(row.applicationId || row.joinApplyId)
+  ) {
+    const existingPreviewSeed = asText(row.participantPreviewSeed);
+    const existingCompanionGroup = asText(row.participantCompanionGroup);
+    const participantPreview = sanitizePreviewItem(buildParticipantPreview(row, 0));
+    sanitized.participantPreviewSeed = /^preview_[a-f0-9]{20}$/i.test(existingPreviewSeed)
+      ? existingPreviewSeed
+      : participantPreview.iconSeed;
+    sanitized.participantCompanionGroup = /^group_[a-f0-9]{20}$/i.test(existingCompanionGroup)
+      ? existingCompanionGroup
+      : participantPreview.companionGroup;
+  }
+  return sanitized;
 }
 
 function sanitizePublicPayload(payload, options = {}) {
@@ -848,7 +985,24 @@ function setCorsHeaders(req, res) {
 
 function assertRequestAllowed(req) {
   const action = asText(req.query?.action);
-  const sheetsApiOnlyActions = new Set(["member_profile_lookup", "home_bootstrap", "home_bootstrap_light", "join_wishes_lookup", "admin_status_update", "admin_participant_lookup", "admin_participant_batch_upsert", "admin_participant_delete", "quote_generate", "admin_bootstrap", "refresh_secret_tour_products"]);
+  const sheetsApiOnlyActions = new Set([
+    "member_profile_lookup",
+    "home_bootstrap",
+    "home_bootstrap_light",
+    "join_wishes_lookup",
+    "admin_status_update",
+    "admin_participant_lookup",
+    "admin_participant_batch_upsert",
+    "admin_participant_delete",
+    "admin_product_family_bootstrap",
+    "admin_product_family_assign",
+    "admin_product_family_representative_update",
+    "admin_product_family_revoke",
+    "admin_product_family_republish",
+    "quote_generate",
+    "admin_bootstrap",
+    "refresh_secret_tour_products"
+  ]);
   const standaloneActions = new Set(["admin_login", "admin_erp_login_check", "admin_erp_member_lookup", "home_stats", "secret_tour_goods_detail", "secret_tour_flight_schedule", "secret_tour_goods_list", "secret_tour_goods_events"]);
   const canUseSheetsApiOnly = Boolean(GOOGLE_SHEET_ID && sheetsApiOnlyActions.has(action));
   const canUseStandaloneAction = standaloneActions.has(action);
@@ -951,6 +1105,56 @@ function normalizeErpProductId(value = "", eventSeq = "") {
   return text;
 }
 
+function normalizeCanonicalErpProductId(value = "", eventSeq = "") {
+  const normalized = normalizeErpProductId(value, eventSeq);
+  return /^\d+$/.test(normalized) ? normalized : "";
+}
+
+function normalizeCanonicalErpEventSeq(value = "") {
+  const normalized = asText(value);
+  return /^\d+$/.test(normalized) ? normalized : "";
+}
+
+function canonicalizePayloadErpReferences(payload = {}) {
+  const rawEventSeq = payload.erpEventSeq
+    || getValue(payload, "product.erpEventSeq")
+    || getValue(payload, "product.eventSeq")
+    || getValue(payload, "trip.erpEventSeq")
+    || getValue(payload, "trip.eventSeq")
+    || payload.eventSeq;
+  const rawProductId = payload.erpProductId
+    || getValue(payload, "product.erpProductId")
+    || getValue(payload, "product.goodSeq")
+    || getValue(payload, "product.productId")
+    || getValue(payload, "trip.erpProductId")
+    || getValue(payload, "trip.goodSeq")
+    || getValue(payload, "trip.productId")
+    || payload.goodSeq
+    || payload.productId;
+  const parsedReference = parseGolfjoinProductReference(rawProductId, rawEventSeq);
+  const erpEventSeq = normalizeCanonicalErpEventSeq(rawEventSeq || parsedReference.eventSeq);
+  const erpProductId = normalizeCanonicalErpProductId(parsedReference.goodSeq || rawProductId, erpEventSeq);
+  if (!erpProductId && !erpEventSeq) return payload;
+
+  if (erpProductId) payload.erpProductId = erpProductId;
+  if (erpEventSeq) payload.erpEventSeq = erpEventSeq;
+  if (payload.product && typeof payload.product === "object" && !Array.isArray(payload.product)) {
+    if (erpProductId) payload.product.erpProductId = erpProductId;
+    if (erpEventSeq) payload.product.erpEventSeq = erpEventSeq;
+  }
+  if (payload.trip && typeof payload.trip === "object" && !Array.isArray(payload.trip)) {
+    if (erpProductId) payload.trip.erpProductId = erpProductId;
+    if (erpEventSeq) payload.trip.erpEventSeq = erpEventSeq;
+  }
+  if (erpProductId && erpEventSeq && (payload.targetProductKey || getValue(payload, "target.productKey") || asText(payload.source) === "join_apply")) {
+    payload.targetProductKey = `erp:${erpProductId}:${erpEventSeq}`;
+    if (payload.target && typeof payload.target === "object" && !Array.isArray(payload.target)) {
+      payload.target.productKey = payload.targetProductKey;
+    }
+  }
+  return payload;
+}
+
 function isCancelledJoinApplication(row = {}) {
   const applicationStatus = asText(row.applicationStatus || row.status).toLowerCase();
   const participantStatus = asText(row.participantStatus).toLowerCase();
@@ -981,8 +1185,8 @@ function getPayloadMemberKey(payload = {}) {
     memberKey: payload.memberKey || getValue(payload, "member.memberKey"),
     memberSeq: getValue(payload, "member.memberSeq") || payload.memberSeq,
     memberId: getValue(payload, "member.memberId") || payload.memberId,
-    memberMobile: getValue(payload, "member.memberMobile") || payload.memberMobile,
-    memberEmail: getValue(payload, "member.memberEmail") || payload.memberEmail,
+    memberMobile: getValue(payload, "member.memberMobile") || payload.memberMobile || getValue(payload, "applicant.phone"),
+    memberEmail: getValue(payload, "member.memberEmail") || payload.memberEmail || getValue(payload, "applicant.email"),
     kakaoId: getValue(payload, "member.kakaoId") || getValue(payload, "kakao.kakaoId") || payload.kakaoId
   });
 }
@@ -1044,9 +1248,15 @@ function formatAlimtalkRegion(country = "", region = "") {
   return [countryText, regionName || regionText].filter(Boolean).join(" ");
 }
 
-function buildMyPageUrl(baseUrl = "") {
+function buildMyPageUrl(baseUrl = "", reservationTab = "", scheduleId = "") {
   const url = new URL(baseUrl);
-  url.searchParams.set("golfjoinOpen", "my");
+  url.searchParams.set("golfjoinOpen", "my-section");
+  const normalizedTab = asText(reservationTab).toLowerCase();
+  if (["complete", "created", "joined"].includes(normalizedTab)) {
+    url.searchParams.set("golfjoinTab", normalizedTab);
+  }
+  const normalizedScheduleId = asText(scheduleId);
+  if (normalizedScheduleId) url.searchParams.set("scheduleId", normalizedScheduleId);
   return url.toString();
 }
 
@@ -1071,7 +1281,7 @@ function buildAlimtalkDetailUrl(baseUrl = "", info = {}) {
   const reference = parseGolfjoinProductReference(info.productId || info.erpProductId || info.goodSeq, info.eventSeq || info.erpEventSeq);
   const goodSeq = asText(info.goodSeq || reference.goodSeq || info.erpProductId);
   const eventSeq = asText(info.eventSeq || reference.eventSeq || info.erpEventSeq);
-  if (!goodSeq) return buildMyPageUrl(baseUrl);
+  if (!goodSeq) return buildMyPageUrl(baseUrl, info.reservationTab, info.scheduleId);
   url.searchParams.set("golfjoinOpen", "detail");
   url.searchParams.set("goodSeq", goodSeq);
   if (eventSeq) url.searchParams.set("eventSeq", eventSeq);
@@ -1081,10 +1291,10 @@ function buildAlimtalkDetailUrl(baseUrl = "", info = {}) {
 function getAlimtalkButtons(info = {}) {
   const linkPc = info?.linkMode === "detail"
     ? buildAlimtalkDetailUrl(GOLFJOIN_MY_PAGE_PC_URL, info)
-    : buildMyPageUrl(GOLFJOIN_MY_PAGE_PC_URL);
+    : buildMyPageUrl(GOLFJOIN_MY_PAGE_PC_URL, info.reservationTab, info.scheduleId);
   const linkMo = info?.linkMode === "detail"
     ? buildAlimtalkDetailUrl(GOLFJOIN_MY_PAGE_MO_URL, info)
-    : buildMyPageUrl(GOLFJOIN_MY_PAGE_MO_URL);
+    : buildMyPageUrl(GOLFJOIN_MY_PAGE_MO_URL, info.reservationTab, info.scheduleId);
   return JSON.stringify({
     button: [
       {
@@ -1123,6 +1333,14 @@ function getAlimtalkTripInfo(payload = {}, summary = {}) {
     customerName: firstText(getValue(payload, "applicant.name"), getValue(payload, "member.memberName"), summary.creatorName, "고객"),
     phone: normalizePhone(getValue(payload, "applicant.phone") || getValue(payload, "member.memberMobile")),
     linkMode: "my",
+    reservationTab: isBuilder ? "created" : "joined",
+    scheduleId: firstText(
+      payload.scheduleId,
+      payload.targetScheduleId,
+      getValue(payload, "target.scheduleId"),
+      getValue(payload, "join.scheduleId"),
+      summary.scheduleId
+    ),
     productId: firstText(getValue(payload, "trip.productId"), getValue(payload, "product.id"), getValue(payload, "product.productId"), payload.productId),
     goodSeq: firstText(getValue(payload, "trip.goodSeq"), getValue(payload, "product.goodSeq"), getValue(payload, "product.erpProductId"), payload.goodSeq, payload.erpProductId),
     eventSeq: firstText(getValue(payload, "trip.eventSeq"), getValue(payload, "trip.erpEventSeq"), getValue(payload, "product.eventSeq"), getValue(payload, "product.erpEventSeq"), payload.eventSeq, payload.erpEventSeq),
@@ -1158,7 +1376,132 @@ function isAlimtalkConfigured() {
   return Boolean(ALIGO_ENABLED && ALIGO_USERID && ALIGO_APIKEY && ALIGO_SENDERKEY && ALIGO_SENDER);
 }
 
-async function sendGolfjoinAlimtalk(type, info = {}) {
+const alimtalkDeliveryLogCache = new Map();
+let alimtalkDeliveryLogReadyPromise = null;
+const ALIMTALK_PROCESSING_LEASE_MS = 6 * 60 * 1000;
+
+function getAlimtalkApplicationId(context = {}) {
+  const payload = context.payload || {};
+  return firstText(
+    context.applicationId,
+    payload.applicationId,
+    payload.joinApplyId,
+    getValue(payload, "application.applicationId")
+  );
+}
+
+function getAlimtalkProviderDetail(result = {}) {
+  const response = result?.response && typeof result.response === "object" ? result.response : {};
+  return {
+    providerCode: firstText(response.code, response.result_code, response.resultCode),
+    providerMessage: firstText(response.message, response.msg, response.result_message, response.resultMessage),
+    lastError: firstText(result.error, result.reason, response.message, response.msg)
+  };
+}
+
+function getAlimtalkNotificationContext(type, info = {}, context = {}) {
+  const receiver = normalizePhone(info.phone);
+  const applicationId = getAlimtalkApplicationId(context);
+  const scheduleId = firstText(context.notificationScheduleId, context.scheduleId);
+  const requestId = asText(context.requestId);
+  const source = asText(context.source || context.payload?.source);
+  const notificationId = createAlimtalkNotificationId([
+    applicationId || `${source}|${scheduleId}|${requestId}`,
+    type,
+    receiver
+  ]);
+  return {
+    notificationId,
+    applicationId,
+    notificationType: asText(type),
+    source,
+    scheduleId,
+    receiverMasked: maskPhone(receiver),
+    requestId
+  };
+}
+
+async function ensureAlimtalkDeliveryLogReady() {
+  if (!GOOGLE_SHEET_ID) return false;
+  if (!alimtalkDeliveryLogReadyPromise) {
+    alimtalkDeliveryLogReadyPromise = (async () => {
+      await ensureGoogleSheetsExistViaApi(["alimtalk_delivery_log"], { timeoutMs: 8000 });
+      await ensureGoogleSheetHeadersViaApi("alimtalk_delivery_log", { timeoutMs: 8000 });
+      return true;
+    })().catch((error) => {
+      alimtalkDeliveryLogReadyPromise = null;
+      throw error;
+    });
+  }
+  return alimtalkDeliveryLogReadyPromise;
+}
+
+async function loadAlimtalkDeliveryRecord(notificationId = "") {
+  const key = asText(notificationId);
+  if (!key || !GOOGLE_SHEET_ID) return null;
+  const cached = alimtalkDeliveryLogCache.get(key);
+  if (cached) return cached;
+  await ensureAlimtalkDeliveryLogReady();
+  const rows = await readGoogleSheetRowsViaApi("alimtalk_delivery_log", { timeoutMs: 8000 });
+  const index = rows.findIndex((row) => asText(row.notificationId) === key);
+  if (index < 0) return null;
+  const found = { row: rows[index], rowNumber: index + 2 };
+  alimtalkDeliveryLogCache.set(key, found);
+  return found;
+}
+
+async function upsertAlimtalkDeliveryRecord(record = {}) {
+  if (!GOOGLE_SHEET_ID || !asText(record.notificationId)) return { skipped: true, reason: "delivery log is not configured" };
+  await ensureAlimtalkDeliveryLogReady();
+  const headers = await ensureGoogleSheetHeadersViaApi("alimtalk_delivery_log", { timeoutMs: 8000 });
+  const existing = await loadAlimtalkDeliveryRecord(record.notificationId);
+  const now = nowKstISOString();
+  const row = {
+    ...(existing?.row || {}),
+    ...record,
+    createdAt: existing?.row?.createdAt || record.createdAt || now,
+    updatedAt: record.updatedAt || now
+  };
+  const values = headers.map((header) => row[header] == null ? "" : row[header]);
+  if (existing?.rowNumber) {
+    await updateGoogleSheetRowViaApi("alimtalk_delivery_log", existing.rowNumber, values, {
+      timeoutMs: 8000,
+      valueInputOption: "RAW"
+    });
+    alimtalkDeliveryLogCache.set(record.notificationId, { row, rowNumber: existing.rowNumber });
+    return { ok: true, write: "update", row: existing.rowNumber };
+  }
+  const response = await appendGoogleSheetValuesViaApi("alimtalk_delivery_log", values, {
+    timeoutMs: 8000,
+    valueInputOption: "RAW"
+  });
+  const updatedRange = asText(response.updates?.updatedRange);
+  const rowNumber = Number(updatedRange.match(/!(?:[A-Z]+)(\d+)(?::|$)/)?.[1] || 0) || 0;
+  alimtalkDeliveryLogCache.set(record.notificationId, { row, rowNumber });
+  return { ok: true, write: "append", row: rowNumber || updatedRange };
+}
+
+async function safeUpsertAlimtalkDeliveryRecord(record = {}) {
+  try {
+    return await upsertAlimtalkDeliveryRecord(record);
+  } catch (error) {
+    console.warn("Failed to persist Alimtalk delivery status.", {
+      notificationId: asText(record.notificationId),
+      status: asText(record.status),
+      name: error?.name || "",
+      message: error?.message || ""
+    });
+    return { ok: false, error: error?.message || String(error) };
+  }
+}
+
+function isRecentAlimtalkProcessingRecord(row = {}) {
+  if (asText(row.status) !== "processing") return false;
+  const updatedAt = new Date(row.updatedAt || row.createdAt || 0).getTime();
+  return Number.isFinite(updatedAt) && updatedAt > Date.now() - ALIMTALK_PROCESSING_LEASE_MS;
+}
+
+async function sendGolfjoinAlimtalkOnce(type, info = {}) {
   const template = GOLFJOIN_ALIMTALK_TEMPLATES[type];
   const receiver = normalizePhone(info.phone);
   if (!template || !receiver || !isAlimtalkConfigured()) {
@@ -1185,7 +1528,7 @@ async function sendGolfjoinAlimtalk(type, info = {}) {
     headers: { "Content-Type": "application/x-www-form-urlencoded;charset=utf-8" },
     body,
     redirect: "follow"
-  }, ALIGO_REQUEST_TIMEOUT_MS);
+  }, ALIGO_REQUEST_TIMEOUT_MS, "Aligo Alimtalk request");
   const text = await response.text();
   let payload = {};
   try {
@@ -1193,10 +1536,102 @@ async function sendGolfjoinAlimtalk(type, info = {}) {
   } catch (error) {
     payload = { raw: text };
   }
-  if (!response.ok || String(payload.code || "").startsWith("-")) {
-    return { ok: false, status: response.status, response: payload };
+  if (!response.ok) {
+    return {
+      ok: false,
+      retryable: response.status >= 500 && response.status <= 599,
+      status: response.status,
+      response: payload
+    };
+  }
+  if (String(payload.code || "").startsWith("-")) {
+    return { ok: false, retryable: false, status: response.status, response: payload };
   }
   return { ok: true, status: response.status, response: payload };
+}
+
+async function sendGolfjoinAlimtalk(type, info = {}, context = {}) {
+  const delivery = getAlimtalkNotificationContext(type, info, context);
+  const template = GOLFJOIN_ALIMTALK_TEMPLATES[type];
+  const receiver = normalizePhone(info.phone);
+  if (!template || !receiver || !isAlimtalkConfigured()) {
+    const result = { skipped: true, reason: !receiver ? "receiver is empty" : "aligo is not configured" };
+    await safeUpsertAlimtalkDeliveryRecord({
+      ...delivery,
+      status: "skipped",
+      attemptCount: 0,
+      retryCount: 0,
+      lastError: result.reason,
+      failedAt: nowKstISOString()
+    });
+    return { ...result, notificationId: delivery.notificationId };
+  }
+
+  let existing = null;
+  try {
+    existing = await loadAlimtalkDeliveryRecord(delivery.notificationId);
+  } catch (error) {
+    console.warn("Failed to check Alimtalk duplicate status; continuing with send.", {
+      notificationId: delivery.notificationId,
+      message: error?.message || ""
+    });
+  }
+  if (asText(existing?.row?.status) === "sent" || isRecentAlimtalkProcessingRecord(existing?.row)) {
+    return {
+      ok: true,
+      skipped: true,
+      duplicate: true,
+      notificationId: delivery.notificationId,
+      reason: asText(existing?.row?.status) === "sent" ? "notification_already_sent" : "notification_already_processing"
+    };
+  }
+
+  await safeUpsertAlimtalkDeliveryRecord({
+    ...delivery,
+    status: "processing",
+    attemptCount: 0,
+    retryCount: 0,
+    lastError: "",
+    providerCode: "",
+    providerMessage: "",
+    failedAt: ""
+  });
+
+  const result = await runAlimtalkWithRetry(
+    () => sendGolfjoinAlimtalkOnce(type, info),
+    {
+      retryDelaysMs: ALIGO_RETRY_DELAYS_MS,
+      onAttempt: ({ attempt, result: attemptResult, willRetry, delayMs }) => {
+        if (!willRetry) return;
+        console.warn("Retrying Alimtalk delivery.", {
+          notificationId: delivery.notificationId,
+          attempt,
+          nextAttempt: attempt + 1,
+          delayMs,
+          status: Number(attemptResult?.status || 0) || 0,
+          reason: firstText(attemptResult?.error, attemptResult?.reason)
+        });
+      }
+    }
+  );
+  const provider = getAlimtalkProviderDetail(result);
+  const completedAt = nowKstISOString();
+  const status = result.ok ? "sent" : (result.retryable ? "failed" : "rejected");
+  const logResult = await safeUpsertAlimtalkDeliveryRecord({
+    ...delivery,
+    status,
+    attemptCount: Number(result.attempts || 0),
+    retryCount: Number(result.retryCount || 0),
+    ...provider,
+    sentAt: result.ok ? completedAt : "",
+    failedAt: result.ok ? "" : completedAt
+  });
+  return {
+    ...result,
+    notificationId: delivery.notificationId,
+    deliveryStatus: status,
+    deliveryLogSaved: Boolean(logResult?.ok)
+  };
 }
 
 function splitNamesAndPhones(names = "", phones = "") {
@@ -1370,14 +1805,26 @@ function validateApplicationPayload(payload, options = {}) {
     assertTextLength(getValue(payload, "trip.arrivalAirport") || getValue(payload, "product.arrivalAirport"), "trip.arrivalAirport", MAX_STRING_LENGTHS.short);
     assertAllowedValue(getValue(payload, "trip.packType"), "trip.packType", new Set(["air", "golf"]));
     assertTextLength(getValue(payload, "trip.packTypeName"), "trip.packTypeName", MAX_STRING_LENGTHS.short);
+    const productFamilyId = asText(getValue(payload, "trip.productFamilyId") || payload.productFamilyId);
+    if (productFamilyId && !/^pf_[a-f0-9]{24,64}$/i.test(productFamilyId)) {
+      throw createHttpError("trip.productFamilyId is invalid");
+    }
+    const erpEventSeq = normalizeCanonicalErpEventSeq(getValue(payload, "trip.erpEventSeq") || getValue(payload, "trip.eventSeq"));
+    const erpProductId = normalizeCanonicalErpProductId(getValue(payload, "trip.erpProductId") || getValue(payload, "trip.productId"), erpEventSeq);
+    if (!erpProductId) throw createHttpError("trip.erpProductId must identify a numeric ERP goodSeq");
+    if (!erpEventSeq) throw createHttpError("trip.erpEventSeq must be numeric");
   } else {
     assertTextLength(getValue(payload, "product.productName") || payload.productName, "product.productName", MAX_STRING_LENGTHS.medium, { required: true });
     const targetType = asText(payload.targetType || getValue(payload, "target.type") || "erp_product");
     const targetJoinId = asText(payload.targetJoinId || getValue(payload, "target.joinId") || getValue(payload, "join.id"));
     const targetScheduleId = asText(payload.targetScheduleId || getValue(payload, "target.scheduleId") || getValue(payload, "join.scheduleId"));
     const targetApplicationId = asText(payload.targetApplicationId || getValue(payload, "target.applicationId") || getValue(payload, "join.applicationId"));
-    const erpProductId = asText(payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"));
-    const erpEventSeq = asText(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"));
+    const rawErpEventSeq = payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq");
+    const erpEventSeq = normalizeCanonicalErpEventSeq(rawErpEventSeq);
+    const erpProductId = normalizeCanonicalErpProductId(
+      payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
+      erpEventSeq
+    );
     const targetProductKey = asText(payload.targetProductKey || getValue(payload, "target.productKey") || (erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : ""));
     if (targetType === "new_schedule" && (!targetJoinId || !targetScheduleId)) {
       throw createHttpError("join target identity is required");
@@ -1462,15 +1909,19 @@ function validateWishPayload(payload) {
   assertTextLength(payload.wishId, "wishId", MAX_STRING_LENGTHS.short, { required: true });
   assertAllowedValue(payload.status || "active", "status", new Set(["active", "deleted"]), { required: true });
   if (targetType === "product") {
-    assertTextLength(getValue(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq, "product.erpProductId", MAX_STRING_LENGTHS.short, { required: true });
+    const eventSeq = normalizeCanonicalErpEventSeq(getValue(payload, "product.erpEventSeq") || payload.erpEventSeq || payload.eventSeq);
+    const productId = normalizeCanonicalErpProductId(getValue(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq, eventSeq);
+    if (!productId) throw createHttpError("product.erpProductId must identify a numeric ERP goodSeq");
   }
   assertTextLength(getValue(payload, "product.productName") || payload.productName, "product.productName", MAX_STRING_LENGTHS.medium);
   assertTextLength(getValue(payload, "product.imageUrl") || payload.imageUrl, "product.imageUrl", MAX_STRING_LENGTHS.url);
 }
 
 function validateProductDisplayRulePayload(payload) {
-  assertTextLength(payload.erpProductId || getValue(payload, "product.erpProductId") || payload.goodSeq, "erpProductId", MAX_STRING_LENGTHS.short, { required: true });
-  assertTextLength(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || payload.eventSeq, "erpEventSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const erpEventSeq = normalizeCanonicalErpEventSeq(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || payload.eventSeq);
+  const erpProductId = normalizeCanonicalErpProductId(payload.erpProductId || getValue(payload, "product.erpProductId") || payload.goodSeq, erpEventSeq);
+  if (!erpProductId) throw createHttpError("erpProductId must identify a numeric ERP goodSeq");
+  if (!erpEventSeq) throw createHttpError("erpEventSeq must be numeric");
   assertAllowedValue(payload.section || "available_schedule", "section", new Set(["available_schedule"]), { required: true });
   assertTextLength(payload.recommendedScheduleId || payload.displayRuleId, "recommendedScheduleId", MAX_STRING_LENGTHS.short);
   assertTextLength(payload.overrideTitle || getValue(payload, "product.productName"), "overrideTitle", MAX_STRING_LENGTHS.medium);
@@ -1626,8 +2077,8 @@ function filterSheetRowsForRequest(rows = [], params = {}) {
     kakaoId
   });
   const scheduleId = asText(params.scheduleId || params.targetScheduleId);
-  const erpProductId = asText(params.erpProductId || params.productId);
-  const erpEventSeq = asText(params.erpEventSeq || params.eventSeq);
+  const erpEventSeq = normalizeCanonicalErpEventSeq(params.erpEventSeq || params.eventSeq);
+  const erpProductId = normalizeCanonicalErpProductId(params.erpProductId || params.productId, erpEventSeq);
   const productName = asText(params.productName);
   const since = params.since ? new Date(params.since).getTime() : 0;
 
@@ -1664,7 +2115,7 @@ function filterSheetRowsForRequest(rows = [], params = {}) {
     filtered = filtered.filter((row) => asText(row.scheduleId || row.targetScheduleId) === scheduleId);
   }
   if (erpProductId) {
-    filtered = filtered.filter((row) => asText(row.erpProductId || row.productId) === erpProductId);
+    filtered = filtered.filter((row) => normalizeCanonicalErpProductId(row.erpProductId || row.productId, row.erpEventSeq || row.eventSeq) === erpProductId);
   }
   if (erpEventSeq) {
     filtered = filtered.filter((row) => asText(row.erpEventSeq || row.eventSeq) === erpEventSeq);
@@ -1801,20 +2252,21 @@ async function readScheduleSummary(scheduleId = "") {
   return readScheduleSummaryViaAppsScript(key);
 }
 
-async function sendGolfjoinApplicationNotifications(payload = {}, beforeSummary = null, afterSummary = null) {
+async function sendGolfjoinApplicationNotifications(payload = {}, beforeSummary = null, afterSummary = null, context = {}) {
   const source = asText(payload.source);
   const results = [];
+  const deliveryContext = { ...context, payload, source };
   if (source === "new_schedule_builder") {
     const info = await getAlimtalkTripInfoWithLatestPhone(payload, afterSummary || {});
     results.push({
       type: "create",
-      result: await sendGolfjoinAlimtalk("create", info)
+      result: await sendGolfjoinAlimtalk("create", info, deliveryContext)
     });
   } else if (source === "join_apply") {
     const info = await getAlimtalkTripInfoWithLatestPhone(payload, afterSummary || {});
     results.push({
       type: "join",
-      result: await sendGolfjoinAlimtalk("join", info)
+      result: await sendGolfjoinAlimtalk("join", info, deliveryContext)
     });
   }
 
@@ -1826,6 +2278,9 @@ async function sendGolfjoinApplicationNotifications(payload = {}, beforeSummary 
     const country = firstText(afterSummary.country, getValue(payload, "trip.country"), getValue(payload, "product.country"), payload.country);
     const region = firstText(afterSummary.region, getValue(payload, "trip.region"), getValue(payload, "product.region"), getValue(payload, "product.countryRegion"), payload.region);
     const baseInfo = {
+      linkMode: "my",
+      reservationTab: "complete",
+      scheduleId: firstText(afterSummary.scheduleId, context.notificationScheduleId, payload.scheduleId, payload.targetScheduleId),
       productName: firstText(afterSummary.title, getValue(payload, "trip.productName"), getValue(payload, "product.productName"), "골프조인 상품"),
       region: formatAlimtalkRegion(country, region),
       departureDate: formatAlimtalkDate(afterSummary.departureSummary),
@@ -1836,7 +2291,7 @@ async function sendGolfjoinApplicationNotifications(payload = {}, beforeSummary 
       results.push({
         type: "complete",
         phone: maskPhone(recipient.phone),
-        result: await sendGolfjoinAlimtalk("complete", { ...baseInfo, ...recipient })
+        result: await sendGolfjoinAlimtalk("complete", { ...baseInfo, ...recipient }, deliveryContext)
       });
     }
   }
@@ -1865,23 +2320,12 @@ async function processGolfjoinApplicationNotifications(payload = {}, notificatio
       });
     }
   }
-  const notifications = await sendGolfjoinApplicationNotifications(payload, beforeSummary, afterSummary);
+  const notifications = await sendGolfjoinApplicationNotifications(payload, beforeSummary, afterSummary, {
+    notificationScheduleId,
+    requestId
+  });
   console.log("golfjoin alimtalk completed", { requestId, source, notifications });
   return notifications;
-}
-
-function sendGolfjoinApplicationNotificationsInBackground(payload = {}, notificationScheduleId = "", requestId = "") {
-  if (!ALIGO_ENABLED || !(asText(payload.source) === "new_schedule_builder" || asText(payload.source) === "join_apply")) return;
-  setImmediate(() => {
-    processGolfjoinApplicationNotifications(payload, notificationScheduleId, requestId).catch((error) => {
-      console.warn("Failed to send golfjoin alimtalk notification in background.", {
-        requestId,
-        source: asText(payload.source),
-        name: error?.name || "",
-        message: error?.message || ""
-      });
-    });
-  });
 }
 
 async function enqueueGolfjoinApplicationNotifications(payload = {}, notificationScheduleId = "", requestId = "") {
@@ -1911,7 +2355,7 @@ async function enqueueGolfjoinApplicationNotifications(payload = {}, notificatio
     body: JSON.stringify({
       task: {
         name: `${parent}/tasks/${taskId}`,
-        dispatchDeadline: "180s",
+        dispatchDeadline: `${ALIGO_TASK_DISPATCH_DEADLINE_SECONDS}s`,
         httpRequest: {
           httpMethod: "POST",
           url: target.toString(),
@@ -1934,62 +2378,56 @@ async function enqueueGolfjoinApplicationNotifications(payload = {}, notificatio
   return { queued: true, taskName: asText(result.name), reason: "notification_queued" };
 }
 
+async function recordAlimtalkDispatchFailure(payload = {}, notificationScheduleId = "", requestId = "", reason = "") {
+  const source = asText(payload.source);
+  const type = source === "new_schedule_builder" ? "create" : source === "join_apply" ? "join" : "dispatch";
+  const info = getAlimtalkTripInfo(payload, {});
+  const delivery = getAlimtalkNotificationContext(type, info, {
+    payload,
+    source,
+    notificationScheduleId,
+    requestId
+  });
+  return safeUpsertAlimtalkDeliveryRecord({
+    ...delivery,
+    status: "failed",
+    attemptCount: 0,
+    retryCount: 0,
+    lastError: asText(reason || "Alimtalk dispatch failed"),
+    failedAt: nowKstISOString()
+  });
+}
+
 async function dispatchGolfjoinApplicationNotifications(payload = {}, notificationScheduleId = "", requestId = "") {
   const source = asText(payload.source);
   if (!(source === "new_schedule_builder" || source === "join_apply")) {
     return [{ skipped: true, reason: "notification source is not supported" }];
   }
   if (!GOLFJOIN_ALIGO_SERVICE_URL) {
-    sendGolfjoinApplicationNotificationsInBackground(payload, notificationScheduleId, requestId);
-    return ALIGO_ENABLED
-      ? [{ queued: true, reason: "notification_queued_locally" }]
-      : [{ skipped: true, reason: "aligo service is not configured" }];
+    const reason = "aligo Cloud Tasks service URL is not configured";
+    await recordAlimtalkDispatchFailure(payload, notificationScheduleId, requestId, reason);
+    return [{ ok: false, reason }];
   }
   if (!GOLFJOIN_INTERNAL_SERVICE_TOKEN) {
+    await recordAlimtalkDispatchFailure(payload, notificationScheduleId, requestId, "internal service token is not configured");
     return [{ ok: false, reason: "internal service token is not configured" }];
   }
-  if (GOLFJOIN_ALIGO_TASK_QUEUE) {
-    try {
-      return [await enqueueGolfjoinApplicationNotifications(payload, notificationScheduleId, requestId)];
-    } catch (error) {
-      console.warn("Failed to enqueue golfjoin alimtalk notification.", {
-        requestId,
-        source,
-        name: error?.name || "",
-        message: error?.message || ""
-      });
-      return [{ ok: false, reason: error?.message || "aligo task enqueue failed" }];
-    }
+  if (!GOLFJOIN_ALIGO_TASK_QUEUE || !GOLFJOIN_TASKS_SERVICE_ACCOUNT || !GOLFJOIN_PROJECT_ID) {
+    const reason = "Cloud Tasks notification queue is not fully configured";
+    await recordAlimtalkDispatchFailure(payload, notificationScheduleId, requestId, reason);
+    return [{ ok: false, reason }];
   }
   try {
-    const target = new URL(GOLFJOIN_ALIGO_SERVICE_URL);
-    target.searchParams.set("action", "send_application_notifications");
-    const audienceUrl = new URL(GOLFJOIN_ALIGO_SERVICE_URL);
-    audienceUrl.search = "";
-    audienceUrl.hash = "";
-    const identityToken = await getGoogleMetadataIdentityToken(audienceUrl.toString().replace(/\/$/, ""));
-    const response = await fetchWithTimeout(target.toString(), {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${identityToken}`,
-        "Content-Type": "application/json",
-        "X-Golfjoin-Internal-Token": GOLFJOIN_INTERNAL_SERVICE_TOKEN
-      },
-      body: JSON.stringify({ payload, notificationScheduleId, requestId })
-    }, Math.max(12_000, ALIGO_REQUEST_TIMEOUT_MS + 8_000), "Aligo service request");
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || !result.ok) {
-      return [{ ok: false, status: response.status, reason: result.error || "aligo service request failed" }];
-    }
-    return Array.isArray(result.notifications) ? result.notifications : [];
+    return [await enqueueGolfjoinApplicationNotifications(payload, notificationScheduleId, requestId)];
   } catch (error) {
-    console.warn("Failed to dispatch golfjoin alimtalk notification.", {
+    console.warn("Failed to enqueue golfjoin alimtalk notification.", {
       requestId,
       source,
       name: error?.name || "",
       message: error?.message || ""
     });
-    return [{ ok: false, reason: error?.message || "aligo service request failed" }];
+    await recordAlimtalkDispatchFailure(payload, notificationScheduleId, requestId, error?.message || "aligo task enqueue failed");
+    return [{ ok: false, reason: error?.message || "aligo task enqueue failed" }];
   }
 }
 
@@ -2067,6 +2505,8 @@ async function readMemberProfileLookupRowsViaAppsScript(identifiers = {}) {
 }
 
 function sanitizeJoinWishLookupRow(row = {}) {
+  const erpEventSeq = normalizeCanonicalErpEventSeq(row.erpEventSeq || row.eventSeq);
+  const erpProductId = normalizeCanonicalErpProductId(row.erpProductId || row.productId || row.goodSeq, erpEventSeq);
   return {
     wishId: asText(row.wishId),
     createdAt: asText(row.createdAt),
@@ -2080,8 +2520,8 @@ function sanitizeJoinWishLookupRow(row = {}) {
     targetApplicationId: asText(row.targetApplicationId || row.sourceApplicationId),
     scheduleId: asText(row.scheduleId || row.targetScheduleId),
     sourceApplicationId: asText(row.sourceApplicationId || row.targetApplicationId),
-    erpProductId: asText(row.erpProductId || row.productId || row.goodSeq),
-    erpEventSeq: asText(row.erpEventSeq || row.eventSeq),
+    erpProductId,
+    erpEventSeq,
     productName: asText(row.productName || row.title),
     title: asText(row.title || row.productName),
     departureDate: asText(row.departureDate),
@@ -2392,6 +2832,8 @@ async function readHomeBootstrapLightDirect(params = {}) {
 }
 
 function sanitizePreviewItem(item = {}) {
+  const iconSeed = asText(item.iconSeed || item.seed);
+  const companionGroup = asText(item.companionGroup);
   return {
     displayName: maskName(item.displayName || item.name || ""),
     gender: asText(item.gender),
@@ -2400,8 +2842,12 @@ function sanitizePreviewItem(item = {}) {
     level: asText(item.level),
     styles: Array.isArray(item.styles) ? item.styles.map(asText).filter(Boolean) : [],
     memberPreferences: Array.isArray(item.memberPreferences) ? item.memberPreferences.map(asText).filter(Boolean) : [],
-    iconSeed: asText(item.iconSeed || item.seed),
-    companionGroup: asText(item.companionGroup)
+    iconSeed: iconSeed
+      ? (iconSeed.startsWith("preview_") ? iconSeed : `preview_${sha256(iconSeed).slice(0, 20)}`)
+      : "",
+    companionGroup: companionGroup
+      ? (companionGroup.startsWith("group_") ? companionGroup : `group_${sha256(companionGroup).slice(0, 20)}`)
+      : ""
   };
 }
 
@@ -2414,14 +2860,9 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
       scheduleId: asText(item.scheduleId),
       applicationId: asText(item.applicationId),
       targetType: asText(item.targetType || "new_schedule"),
-      memberSeq: asText(item.memberSeq),
-      memberId: asText(item.memberId),
-      memberName: asText(item.memberName),
-      memberChannel: asText(item.memberChannel),
-      memberMobile: normalizePhone(item.memberMobile),
-      memberEmail: asText(item.memberEmail),
-      erpProductId: asText(item.erpProductId),
-      erpEventSeq: asText(item.erpEventSeq),
+      erpProductId: normalizeCanonicalErpProductId(item.erpProductId, item.erpEventSeq),
+      erpEventSeq: normalizeCanonicalErpEventSeq(item.erpEventSeq),
+      productFamilyId: asText(item.productFamilyId),
       title: asText(item.title),
       country: asText(item.country),
       region: asText(item.region),
@@ -2453,11 +2894,13 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
       targetType: asText(item.targetType),
       targetScheduleId: asText(item.targetScheduleId),
       targetApplicationId: asText(item.targetApplicationId),
-      erpProductId: asText(item.erpProductId),
-      erpEventSeq: asText(item.erpEventSeq),
+      erpProductId: normalizeCanonicalErpProductId(item.erpProductId, item.erpEventSeq),
+      erpEventSeq: normalizeCanonicalErpEventSeq(item.erpEventSeq),
       capacity: Math.max(1, Math.round(Number(item.capacity) || 4)),
       confirmedCount: Math.max(0, Math.round(Number(item.confirmedCount) || 0)),
       remainingSlots: Math.max(0, Math.round(Number(item.remainingSlots) || 0)),
+      maleCount: Math.max(0, Math.round(Number(item.maleCount) || 0)),
+      femaleCount: Math.max(0, Math.round(Number(item.femaleCount) || 0)),
       participantsPreview: (Array.isArray(item.participantsPreview) ? item.participantsPreview : [])
         .map(sanitizePreviewItem)
         .slice(0, Math.min(MAX_PARTICIPANT_PREVIEW_COUNT, Math.max(1, Math.round(Number(item.capacity) || 4)))),
@@ -2469,8 +2912,8 @@ function sanitizeHomeBootstrapLightPayload(payload = {}) {
       targetKey: asText(item.targetKey),
       targetScheduleId: asText(item.targetScheduleId),
       targetApplicationId: asText(item.targetApplicationId),
-      erpProductId: asText(item.erpProductId),
-      erpEventSeq: asText(item.erpEventSeq),
+      erpProductId: normalizeCanonicalErpProductId(item.erpProductId, item.erpEventSeq),
+      erpEventSeq: normalizeCanonicalErpEventSeq(item.erpEventSeq),
       status: asText(item.status || "active"),
       updatedAt: asText(item.updatedAt)
     })).filter((item) => item.targetKey),
@@ -3214,14 +3657,9 @@ function buildNewScheduleSummary(row = {}) {
     scheduleId: asText(row.scheduleId),
     applicationId: asText(row.applicationId),
     targetType: "new_schedule",
-    memberSeq: asText(row.memberSeq),
-    memberId: asText(row.memberId),
-    memberName: asText(row.memberName || row.applicantName),
-    memberChannel: asText(row.memberChannel),
-    memberMobile: normalizePhone(row.memberMobile || row.applicantMobile),
-    memberEmail: asText(row.memberEmail),
-    erpProductId: asText(row.erpProductId),
-    erpEventSeq: asText(row.erpEventSeq),
+    erpProductId: normalizeCanonicalErpProductId(row.erpProductId, row.erpEventSeq),
+    erpEventSeq: normalizeCanonicalErpEventSeq(row.erpEventSeq),
+    productFamilyId: asText(row.productFamilyId),
     title: asText(row.productName),
     country: normalizeLightCountry(row),
     region: normalizeLightRegion(row),
@@ -3266,9 +3704,18 @@ function getParticipantSummaryKey(row = {}) {
     targetType,
     row.targetScheduleId || "",
     row.targetApplicationId || "",
-    normalizeErpProductId(row.erpProductId, row.erpEventSeq),
-    row.erpEventSeq || ""
+    normalizeCanonicalErpProductId(row.erpProductId, row.erpEventSeq),
+    normalizeCanonicalErpEventSeq(row.erpEventSeq)
   ].map(asText).join("|");
+}
+
+function countParticipantSummaryGenders(participants = []) {
+  return (Array.isArray(participants) ? participants : []).reduce((counts, participant = {}) => {
+    const gender = asText(participant.gender).toLowerCase();
+    if (gender.includes("여") || gender === "female") counts.female += 1;
+    else if (gender.includes("남") || gender === "male") counts.male += 1;
+    return counts;
+  }, { male: 0, female: 0 });
 }
 
 function buildParticipantSummaries(rows = [], newSchedules = [], recommendedRows = []) {
@@ -3283,34 +3730,38 @@ function buildParticipantSummaries(rows = [], newSchedules = [], recommendedRows
         ? parsePeopleCount(targetSchedule.applicantPeople || targetSchedule.creatorPeople || "1")
         : 0;
       const creatorPreview = creatorPeople > 0
-        ? buildParticipantPreviewList({
-            applicantName: targetSchedule.applicantName || targetSchedule.creatorName,
-            applicantGender: targetSchedule.applicantGender || targetSchedule.creatorGender,
-            applicantAgeBand: targetSchedule.applicantAgeBand || targetSchedule.creatorAgeDisplay
-          }, creatorPeople)
+        ? buildParticipantPreviewList(targetSchedule, creatorPeople)
         : [];
+      const creatorGenderCounts = countParticipantSummaryGenders(creatorPreview);
       groups.set(key, {
         targetType: getParticipantSummaryTargetType(row),
         targetScheduleId: asText(row.targetScheduleId),
         targetApplicationId: asText(row.targetApplicationId),
-        erpProductId: normalizeErpProductId(row.erpProductId, row.erpEventSeq),
-        erpEventSeq: asText(row.erpEventSeq),
+        erpProductId: normalizeCanonicalErpProductId(row.erpProductId, row.erpEventSeq),
+        erpEventSeq: normalizeCanonicalErpEventSeq(row.erpEventSeq),
         capacity,
         requestedCount: creatorPeople,
         confirmedCount: Math.min(capacity, creatorPeople),
         remainingSlots: Math.max(0, capacity - creatorPeople),
         participantsPreview: creatorPreview.slice(0, Math.min(MAX_PARTICIPANT_PREVIEW_COUNT, capacity)),
+        maleCount: creatorGenderCounts.male,
+        femaleCount: creatorGenderCounts.female,
         lastAppliedAt: ""
       });
     }
     const group = groups.get(key);
     group.capacity = Math.max(group.capacity, capacity);
     const count = parsePeopleCount(row.applicantPeople || row.people || "1");
+    const confirmedAddition = Math.max(0, Math.min(count, group.capacity - group.confirmedCount));
+    const participantPreviews = buildParticipantPreviewList(row, confirmedAddition);
+    const participantGenderCounts = countParticipantSummaryGenders(participantPreviews);
     group.requestedCount += count;
     group.confirmedCount = Math.min(group.capacity, group.requestedCount);
     group.participantsPreview = group.participantsPreview
-      .concat(buildParticipantPreviewList(row, count))
+      .concat(participantPreviews)
       .slice(0, Math.min(MAX_PARTICIPANT_PREVIEW_COUNT, group.capacity));
+    group.maleCount += participantGenderCounts.male;
+    group.femaleCount += participantGenderCounts.female;
     group.remainingSlots = Math.max(0, group.capacity - group.confirmedCount);
     const appliedAt = asText(row.updatedAt || row.createdAt);
     if (appliedAt > asText(group.lastAppliedAt)) group.lastAppliedAt = appliedAt;
@@ -3358,6 +3809,8 @@ function isManageableRecommendedScheduleRule(rule = {}) {
 }
 
 function buildRecommendedScheduleSummarySource(rule = {}) {
+  const erpEventSeq = normalizeCanonicalErpEventSeq(rule.erpEventSeq || rule.eventSeq);
+  const erpProductId = normalizeCanonicalErpProductId(rule.erpProductId || rule.goodSeq, erpEventSeq);
   return {
     scheduleId: buildRecommendedScheduleId(rule),
     sourceApplicationId: rule.recommendedScheduleId || rule.displayRuleId || "",
@@ -3384,8 +3837,8 @@ function buildRecommendedScheduleSummarySource(rule = {}) {
     status: asText(rule.status) || "open",
     approvalStatus: "approved",
     displayStatus: isActiveRecommendedScheduleRule(rule) ? "visible" : "hidden",
-    erpProductId: rule.erpProductId || "",
-    erpEventSeq: rule.erpEventSeq || "",
+    erpProductId,
+    erpEventSeq,
     isAdminRecommendedSchedule: true
   };
 }
@@ -3420,6 +3873,21 @@ function isJoinApplicationForSchedule(join = {}, schedule = {}) {
   return Boolean(productId && eventSeq && joinProductId === productId && joinEventSeq === eventSeq);
 }
 
+function buildScheduleParticipantSummaryPeople(row = {}, people = 1) {
+  const count = Math.max(0, parsePeopleCount(people));
+  if (!count) return [];
+  const mainPhone = normalizePhone(row.applicantMobile || row.creatorPhone || row.memberMobile);
+  return buildParticipantPreviewList(row, count).map((preview, index) => ({
+    name: preview.displayName,
+    phone: index === 0 ? mainPhone : "",
+    gender: preview.gender,
+    age: preview.ageDisplay,
+    level: preview.level,
+    styles: preview.styles,
+    memberPreferences: preview.memberPreferences
+  }));
+}
+
 function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
   const relatedJoins = joinRows.filter((join) => isJoinApplicationForSchedule(join, schedule));
   const confirmedJoins = relatedJoins.filter((join) => !isCancelledJoinApplication(join));
@@ -3431,27 +3899,16 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
   const creatorCancelled = !schedule.isAdminRecommendedSchedule && isCancelledJoinApplication(schedule);
   const creatorBasePeople = schedule.isAdminRecommendedSchedule ? 0 : parsePeopleCount(schedule.applicantPeople || schedule.creatorPeople || "1");
   const creatorPeople = creatorCancelled ? 0 : creatorBasePeople;
-  const joinedPeople = confirmedJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0);
+  const joinedApplicationPeople = confirmedJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0);
   const capacity = getScheduleCapacity(schedule);
-  const confirmedPeople = Math.min(capacity, creatorPeople + joinedPeople);
-  const creatorParticipants = creatorPeople > 0 ? [{
-    name: schedule.applicantName || schedule.creatorName,
-    phone: schedule.applicantMobile || schedule.creatorPhone,
-    gender: schedule.applicantGender || schedule.creatorGender,
-    age: schedule.applicantAgeBand || schedule.creatorAgeDisplay,
-    level: schedule.applicantLevel || schedule.creatorLevel,
-    styles: schedule.applicantStyles || schedule.creatorStyles,
-    memberPreferences: schedule.applicantPreferredMembers || schedule.creatorMemberPreferences || schedule.creatorPreferredMemberComposition
-  }] : [];
-  const participants = creatorParticipants.concat(confirmedJoins.map((join) => ({
-    name: join.applicantName || join.name,
-    phone: join.applicantMobile || join.phone,
-    gender: join.applicantGender || join.gender,
-    age: join.applicantAgeBand || join.ageDisplay,
-    level: join.applicantLevel || join.level,
-    styles: join.applicantStyles || join.styles,
-    memberPreferences: join.applicantPreferredMembers || join.memberPreferences || join.preferredMemberComposition
-  }))).slice(0, capacity);
+  const confirmedPeople = Math.min(capacity, creatorPeople + joinedApplicationPeople);
+  const creatorParticipants = creatorPeople > 0
+    ? buildScheduleParticipantSummaryPeople(schedule, creatorPeople)
+    : [];
+  const joinedParticipants = confirmedJoins.flatMap((join) => (
+    buildScheduleParticipantSummaryPeople(join, join.applicantPeople || join.people || "1")
+  ));
+  const participants = creatorParticipants.concat(joinedParticipants).slice(0, capacity);
   return {
     scheduleId: asText(schedule.scheduleId),
     sourceApplicationId: asText(schedule.applicationId || schedule.sourceApplicationId),
@@ -3465,7 +3922,7 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
     creatorPhone: normalizePhone(schedule.applicantMobile || schedule.creatorPhone),
     capacity,
     creatorPeople,
-    joinedPeople,
+    joinedPeople: confirmedPeople,
     confirmedPeople,
     pendingPeople: pendingJoins.reduce((sum, join) => sum + parsePeopleCount(join.applicantPeople || join.people), 0),
     cancelledPeople: (creatorCancelled ? creatorBasePeople : 0)
@@ -3476,8 +3933,12 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
     genderSummary: summarizeSheetValues(participants.map((item) => item.gender)),
     ageSummary: summarizeSheetValues(participants.map((item) => item.age)),
     levelSummary: summarizeSheetValues(participants.map((item) => item.level)),
-    styleSummary: summarizeSheetValues(participants.flatMap((item) => asText(item.styles).split(",").map(asText))),
-    memberPreferenceSummary: summarizeSheetValues(participants.flatMap((item) => asText(item.memberPreferences).split(",").map(asText))),
+    styleSummary: summarizeSheetValues(participants.flatMap((item) => (
+      Array.isArray(item.styles) ? item.styles : splitSheetList(item.styles)
+    ))),
+    memberPreferenceSummary: summarizeSheetValues(participants.flatMap((item) => (
+      Array.isArray(item.memberPreferences) ? item.memberPreferences : splitSheetList(item.memberPreferences)
+    ))),
     status: asText(schedule.applicationStatus || schedule.status || "open"),
     approvalStatus: asText(schedule.approvalStatus || "pending"),
     displayStatus: asText(schedule.displayStatus || "visible"),
@@ -3485,7 +3946,7 @@ function buildScheduleParticipantSummary(schedule = {}, joinRows = []) {
   };
 }
 
-async function syncScheduleParticipantSummarySheetViaApi(sourceSheet = "", updatedRow = {}) {
+async function syncScheduleParticipantSummarySheetViaApi(sourceSheet = "", updatedRow = {}, options = {}) {
   const sheetRows = await readGoogleSheetRangesViaApi([
     "new_schedule_applications",
     "join_applications",
@@ -3500,9 +3961,11 @@ async function syncScheduleParticipantSummarySheetViaApi(sourceSheet = "", updat
   const updatedIds = new Set([
     updatedRow.scheduleId,
     updatedRow.applicationId,
-    updatedRow.sourceApplicationId
+    updatedRow.sourceApplicationId,
+    updatedRow.recommendedScheduleId,
+    updatedRow.displayRuleId
   ].map(asText).filter(Boolean));
-  const targetSchedules = sourceSheet === "new_schedule_applications"
+  const targetSchedules = ["new_schedule_applications", "recommended_schedules"].includes(sourceSheet)
     ? schedules.filter((schedule) => [
       schedule.scheduleId,
       schedule.applicationId,
@@ -3532,7 +3995,7 @@ async function syncScheduleParticipantSummarySheetViaApi(sourceSheet = "", updat
       });
       summaryRows[existingIndex] = summary;
       updated += 1;
-    } else {
+    } else if (options.appendMissing !== false) {
       await appendGoogleSheetValuesViaApi("schedule_participant_summary", values, {
         timeoutMs: 7000,
         valueInputOption: "RAW"
@@ -3542,6 +4005,20 @@ async function syncScheduleParticipantSummarySheetViaApi(sourceSheet = "", updat
     }
   }
   return { ok: true, updated, appended };
+}
+
+async function syncRequiredScheduleParticipantSummarySheetViaApi(sourceSheet = "", updatedRow = {}, attempts = 2) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= Math.max(1, attempts); attempt += 1) {
+    try {
+      const result = await syncScheduleParticipantSummarySheetViaApi(sourceSheet, updatedRow);
+      if (Number(result.updated || 0) + Number(result.appended || 0) > 0) return result;
+      lastError = createHttpError(`Schedule participant summary was not synchronized: ${result.reason || "target_not_found"}`, 502);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || createHttpError("Schedule participant summary synchronization failed", 502);
 }
 
 function buildJoinApplicationSheetObject(payload = {}, applicationId = "", headers = GOOGLE_SHEET_HEADERS.join_applications) {
@@ -3631,6 +4108,7 @@ async function assertJoinApplicationCapacityAvailable(payload = {}, applicationI
       joinRows,
       existingIndex,
       existingRow: existingIndex >= 0 ? joinRows[existingIndex] : {},
+      targetSchedule: null,
       summary: null
     };
   }
@@ -3652,17 +4130,20 @@ async function assertJoinApplicationCapacityAvailable(payload = {}, applicationI
     joinRows,
     existingIndex,
     existingRow: existingIndex >= 0 ? joinRows[existingIndex] : {},
+    targetSchedule,
     summary
   };
 }
 
 function buildDisplayRuleSummary(row = {}) {
+  const erpEventSeq = normalizeCanonicalErpEventSeq(row.erpEventSeq || row.eventSeq);
+  const erpProductId = normalizeCanonicalErpProductId(row.erpProductId || row.goodSeq, erpEventSeq);
   return {
     recommendedScheduleId: asText(row.recommendedScheduleId || row.displayRuleId),
     targetType: "recommended_schedule",
     targetId: asText(row.recommendedScheduleId || row.displayRuleId || row.erpProductId),
-    erpProductId: asText(row.erpProductId),
-    erpEventSeq: asText(row.erpEventSeq),
+    erpProductId,
+    erpEventSeq,
     section: asText(row.section),
     displayStatus: asText(row.displayStatus || (asText(row.isVisible || "true").toLowerCase() === "false" ? "hidden" : "visible")),
     approvalStatus: asText(row.approvalStatus || "approved"),
@@ -3955,6 +4436,57 @@ async function readGoogleSheetHeaderViaApi(sheetName, options = {}) {
   return (payload.values?.[0] || []).map((header) => asText(header)).filter(Boolean);
 }
 
+async function readGoogleSheetMetadataViaApi(options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const token = await getGoogleMetadataAccessToken();
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}`);
+  url.searchParams.set("fields", "sheets.properties(sheetId,title,gridProperties(rowCount,columnCount))");
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`
+    }
+  }, options.timeoutMs || 6000, "Google Sheets metadata read");
+  const responseText = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets API metadata read failed: ${response.status} ${responseText.slice(0, 200)}`, response.status);
+  }
+  return JSON.parse(responseText || "{}");
+}
+
+async function ensureGoogleSheetsExistViaApi(sheetNames = [], options = {}) {
+  const expectedNames = [...new Set((Array.isArray(sheetNames) ? sheetNames : []).map(asText).filter(Boolean))];
+  if (!expectedNames.length) return [];
+  const metadata = await readGoogleSheetMetadataViaApi(options);
+  const existingNames = new Set((metadata.sheets || []).map((item) => asText(item?.properties?.title)).filter(Boolean));
+  const missingNames = expectedNames.filter((sheetName) => !existingNames.has(sheetName));
+  if (!missingNames.length) return expectedNames;
+  const token = await getGoogleMetadataAccessToken();
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}:batchUpdate`;
+  const response = await fetchWithTimeout(url, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      requests: missingNames.map((title) => ({ addSheet: { properties: { title } } }))
+    })
+  }, options.timeoutMs || 8000, "Google Sheets add product family sheets");
+  const responseText = await response.text();
+  if (!response.ok) {
+    const latestMetadata = await readGoogleSheetMetadataViaApi(options).catch(() => ({ sheets: [] }));
+    const latestNames = new Set((latestMetadata.sheets || []).map((item) => asText(item?.properties?.title)).filter(Boolean));
+    const stillMissing = missingNames.filter((sheetName) => !latestNames.has(sheetName));
+    if (stillMissing.length) {
+      throw createHttpError(`Google Sheets API sheet creation failed: ${response.status} ${responseText.slice(0, 200)}`, response.status, { stillMissing });
+    }
+  }
+  return expectedNames;
+}
+
 async function ensureGoogleSheetHeadersViaApi(sheetName, options = {}) {
   const expectedHeaders = GOOGLE_SHEET_HEADERS[sheetName] || [];
   if (!expectedHeaders.length) return [];
@@ -4023,6 +4555,47 @@ async function writeGoogleSheetValuesViaApi(range, values = [], options = {}) {
   return JSON.parse(text || "{}");
 }
 
+async function batchUpdateGoogleSheetRowsViaApi(updates = [], options = {}) {
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const rows = Array.isArray(updates) ? updates.filter((item) => (
+    asText(item?.sheetName)
+    && Number.isInteger(Number(item?.rowNumber))
+    && Number(item.rowNumber) >= 2
+    && Array.isArray(item.afterValues)
+    && item.afterValues.length > 0
+  )) : [];
+  if (!rows.length) return { totalUpdatedRows: 0, responses: [] };
+  const token = await getGoogleMetadataAccessToken();
+  const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}/values:batchUpdate`);
+  const data = rows.map((item) => {
+    const rowNumber = Number(item.rowNumber);
+    const endColumn = columnNumberToLetters(item.afterValues.length);
+    return {
+      range: `'${escapeGoogleSheetNameForRange(item.sheetName)}'!A${rowNumber}:${endColumn}${rowNumber}`,
+      majorDimension: "ROWS",
+      values: [item.afterValues]
+    };
+  });
+  const response = await fetchWithTimeout(url.toString(), {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      valueInputOption: options.valueInputOption || "RAW",
+      includeValuesInResponse: false,
+      data
+    })
+  }, options.timeoutMs || 20_000, "Google Sheets recommended schedule migration");
+  const responseText = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets migration batch update failed: ${response.status} ${responseText.slice(0, 200)}`, response.status);
+  }
+  return JSON.parse(responseText || "{}");
+}
+
 async function appendGoogleSheetValuesViaApi(sheetName, values = [], options = {}) {
   if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
   const token = await getGoogleMetadataAccessToken();
@@ -4049,6 +4622,11 @@ async function appendGoogleSheetValuesViaApi(sheetName, values = [], options = {
 function buildJoinWishSheetValue(payload = {}, header = "") {
   const createdAt = payload.createdAt || payload.savedAt || nowKstISOString();
   const targetType = payload.targetType || getValue(payload, "target.type") || "product";
+  const erpEventSeq = normalizeCanonicalErpEventSeq(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"));
+  const erpProductId = normalizeCanonicalErpProductId(
+    payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId") || payload.goodSeq,
+    erpEventSeq
+  );
   const targetKey = payload.targetKey
     || getValue(payload, "target.targetKey")
     || getValue(payload, "target.key")
@@ -4078,8 +4656,8 @@ function buildJoinWishSheetValue(payload = {}, header = "") {
     targetKey,
     targetScheduleId: payload.targetScheduleId || getValue(payload, "target.scheduleId"),
     targetApplicationId: payload.targetApplicationId || getValue(payload, "target.applicationId"),
-    erpProductId: payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
-    erpEventSeq: payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"),
+    erpProductId,
+    erpEventSeq,
     productName: getValue(payload, "product.productName") || payload.productName,
     departureDate: getValue(payload, "product.departureDate") || payload.departureDate,
     returnDate: getValue(payload, "product.returnDate") || payload.returnDate,
@@ -4357,6 +4935,11 @@ async function saveJoinMemberProfileViaSheetsApi(payload = {}) {
 
 function buildJoinReviewSheetValue(payload = {}, header = "") {
   const createdAt = payload.createdAt || payload.submittedAt || nowKstISOString();
+  const erpEventSeq = normalizeCanonicalErpEventSeq(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"));
+  const erpProductId = normalizeCanonicalErpProductId(
+    payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
+    erpEventSeq
+  );
   const reviewId = payload.reviewId || buildGoogleSheetRecordId(
     "jr",
     createdAt,
@@ -4378,8 +4961,8 @@ function buildJoinReviewSheetValue(payload = {}, header = "") {
     targetType: payload.targetType || getValue(payload, "target.type") || "erp_product",
     targetScheduleId: payload.targetScheduleId || getValue(payload, "target.scheduleId"),
     targetApplicationId: payload.targetApplicationId || getValue(payload, "target.applicationId"),
-    erpProductId: payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
-    erpEventSeq: payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"),
+    erpProductId,
+    erpEventSeq,
     productName: getValue(payload, "product.productName") || payload.productName,
     departureDate: getValue(payload, "product.departureDate") || payload.departureDate,
     returnDate: getValue(payload, "product.returnDate") || payload.returnDate,
@@ -4445,28 +5028,47 @@ function buildNewScheduleApplicationSheetValue(payload = {}, header = "") {
   const scheduleId = payload.scheduleId || buildGoogleSheetRecordId("sch", applicationId);
   const packTypeValue = getValue(payload, "trip.packType") || payload.packType;
   const packTypeNameValue = getValue(payload, "trip.packTypeName") || payload.packTypeName;
-  const rawAirlineValue = getValue(payload, "trip.airline")
-    || getValue(payload, "product.airline")
-    || getValue(payload, "product.airlineName")
-    || getValue(payload, "product.airlineNm")
-    || getValue(payload, "product.air2Nm")
-    || getValue(payload, "product.air2CdNm");
-  const rawDepartureAirportValue = getValue(payload, "trip.departureAirport")
-    || getValue(payload, "product.departureAirport")
-    || getValue(payload, "product.airport");
+  const productNameValue = getValue(payload, "trip.productName")
+    || getValue(payload, "product.productName")
+    || payload.productName
+    || "";
+  const normalizedAirlineValue = normalizeSecretTourAirlineName(
+    getValue(payload, "trip.airline"),
+    getValue(payload, "product.airline"),
+    getValue(payload, "product.airlineName"),
+    getValue(payload, "product.airlineNm"),
+    getValue(payload, "product.air2Nm"),
+    getValue(payload, "product.air2CdNm")
+  );
+  const rawDepartureAirportValue = inferSecretTourDepartureAirportFromSchedule(
+    getValue(payload, "trip.schedule"),
+    getValue(payload, "product.schedule"),
+    payload.schedule
+  ) || normalizeSecretTourAirportName(
+    getValue(payload, "trip.departureAirport"),
+    getValue(payload, "product.departureAirport"),
+    getValue(payload, "product.depAirport"),
+    getValue(payload, "product.airport"),
+    getValue(payload, "product.airportName")
+  ) || inferSecretTourDepartureAirportFromTitle(productNameValue);
   const isGolfPack = asText(packTypeValue).toLowerCase() === "golf" || asText(packTypeNameValue).includes("\uACE8\uD504");
+  const erpEventSeq = normalizeCanonicalErpEventSeq(getValue(payload, "trip.erpEventSeq") || getValue(payload, "trip.eventSeq"));
+  const erpProductId = normalizeCanonicalErpProductId(
+    getValue(payload, "trip.erpProductId") || getValue(payload, "trip.productId"),
+    erpEventSeq
+  );
   const values = {
     applicationId,
     scheduleId,
     createdAt,
     source: payload.source || "new_schedule_builder",
     pageUrl: payload.pageUrl || "",
-    memberSeq: getValue(payload, "member.memberSeq"),
-    memberId: getValue(payload, "member.memberId"),
-    memberName: getValue(payload, "member.memberName"),
+    memberSeq: getValue(payload, "member.memberSeq") || payload.memberSeq,
+    memberId: getValue(payload, "member.memberId") || payload.memberId,
+    memberName: getValue(payload, "member.memberName") || payload.memberName || getValue(payload, "applicant.name"),
     memberChannel: getValue(payload, "member.memberChannel"),
-    memberMobile: normalizePhone(getValue(payload, "member.memberMobile")),
-    memberEmail: getValue(payload, "member.memberEmail"),
+    memberMobile: normalizePhone(getValue(payload, "member.memberMobile") || payload.memberMobile || getValue(payload, "applicant.phone")),
+    memberEmail: getValue(payload, "member.memberEmail") || payload.memberEmail || getValue(payload, "applicant.email"),
     applicantName: getValue(payload, "applicant.name"),
     applicantGender: getValue(payload, "applicant.gender"),
     applicantBirthYear: getValue(payload, "applicant.birthYear"),
@@ -4486,12 +5088,13 @@ function buildNewScheduleApplicationSheetValue(payload = {}, header = "") {
     singleRoomSurchargeStatus: getValue(payload, "applicant.singleRoomSurchargeStatus"),
     country: getValue(payload, "trip.country") || getValue(payload, "product.country") || payload.country || "",
     region: getValue(payload, "trip.region") || getValue(payload, "product.region") || payload.region,
-    airline: isGolfPack ? (rawAirlineValue || "\uAC1C\uBCC4\uD56D\uACF5") : rawAirlineValue,
-    departureAirport: isGolfPack ? "" : rawDepartureAirportValue,
+    airline: isGolfPack ? "\uAC1C\uBCC4\uD56D\uACF5" : normalizedAirlineValue,
+    departureAirport: rawDepartureAirportValue,
     arrivalAirport: getValue(payload, "trip.arrivalAirport") || getValue(payload, "product.arrivalAirport") || getValue(payload, "product.region"),
-    erpProductId: getValue(payload, "trip.erpProductId") || getValue(payload, "trip.productId"),
-    erpEventSeq: getValue(payload, "trip.erpEventSeq") || getValue(payload, "trip.eventSeq"),
-    productName: getValue(payload, "trip.productName"),
+    erpProductId,
+    erpEventSeq,
+    productFamilyId: getValue(payload, "trip.productFamilyId") || payload.productFamilyId || "",
+    productName: productNameValue,
     productPrice: normalizeSheetPriceText(getValue(payload, "trip.productPrice") || payload.productPrice || payload.price),
     packType: packTypeValue,
     packTypeName: packTypeNameValue,
@@ -4550,8 +5153,11 @@ async function appendGoogleSheetRowsViaApi(sheetName, rows = [], options = {}) {
 }
 
 function buildRecommendedScheduleSheetValue(payload = {}, header = "") {
-  const erpProductId = getValue(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq || "";
-  const erpEventSeq = getValue(payload, "product.erpEventSeq") || payload.erpEventSeq || payload.eventSeq || "";
+  const erpEventSeq = normalizeCanonicalErpEventSeq(getValue(payload, "product.erpEventSeq") || payload.erpEventSeq || payload.eventSeq);
+  const erpProductId = normalizeCanonicalErpProductId(
+    getValue(payload, "product.erpProductId") || payload.erpProductId || payload.goodSeq,
+    erpEventSeq
+  );
   const section = payload.section || "available_schedule";
   const recommendedScheduleId = payload.recommendedScheduleId
     || payload.displayRuleId
@@ -4618,36 +5224,54 @@ function buildJoinApplicationSheetValue(payload = {}, header = "") {
     createdAt,
     getPayloadMemberKey(payload) || getValue(payload, "member.memberSeq") || getValue(payload, "member.memberId") || getValue(payload, "member.memberName") || "member"
   );
-  const erpEventSeq = payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq");
-  const erpProductId = normalizeErpProductId(
+  const erpEventSeq = normalizeCanonicalErpEventSeq(payload.erpEventSeq || getValue(payload, "product.erpEventSeq") || getValue(payload, "product.eventSeq"));
+  const erpProductId = normalizeCanonicalErpProductId(
     payload.erpProductId || getValue(payload, "product.erpProductId") || getValue(payload, "product.productId"),
     erpEventSeq
   );
   const targetJoinId = payload.targetJoinId || getValue(payload, "target.joinId") || getValue(payload, "join.id");
-  const targetProductKey = payload.targetProductKey || getValue(payload, "target.productKey") || (erpProductId && erpEventSeq ? `erp:${erpProductId}:${erpEventSeq}` : "");
+  const targetProductKey = erpProductId && erpEventSeq
+    ? `erp:${erpProductId}:${erpEventSeq}`
+    : (payload.targetProductKey || getValue(payload, "target.productKey") || "");
+  const productNameValue = getValue(payload, "product.productName") || payload.productName || "";
+  const departureAirportValue = normalizeSecretTourAirportName(
+    getValue(payload, "product.departureAirport"),
+    payload.departureAirport,
+    getValue(payload, "product.depAirport"),
+    getValue(payload, "product.airport"),
+    getValue(payload, "product.airportName")
+  ) || inferSecretTourDepartureAirportFromTitle(productNameValue);
   const values = {
     applicationId,
     createdAt,
     source: payload.source || "join_apply",
     pageUrl: payload.pageUrl || "",
-    memberSeq: getValue(payload, "member.memberSeq"),
-    memberId: getValue(payload, "member.memberId"),
-    memberName: getValue(payload, "member.memberName"),
+    memberSeq: getValue(payload, "member.memberSeq") || payload.memberSeq,
+    memberId: getValue(payload, "member.memberId") || payload.memberId,
+    memberName: getValue(payload, "member.memberName") || payload.memberName || getValue(payload, "applicant.name"),
     memberChannel: getValue(payload, "member.memberChannel"),
-    memberMobile: normalizePhone(getValue(payload, "member.memberMobile")),
-    memberEmail: getValue(payload, "member.memberEmail"),
+    memberMobile: normalizePhone(getValue(payload, "member.memberMobile") || payload.memberMobile || getValue(payload, "applicant.phone")),
+    memberEmail: getValue(payload, "member.memberEmail") || payload.memberEmail || getValue(payload, "applicant.email"),
     targetType: payload.targetType || getValue(payload, "target.type") || "erp_product",
     targetScheduleId: payload.targetScheduleId || getValue(payload, "target.scheduleId"),
     targetApplicationId: payload.targetApplicationId || getValue(payload, "target.applicationId"),
     erpProductId,
     erpEventSeq,
-    productName: getValue(payload, "product.productName") || payload.productName,
+    productName: productNameValue,
     departureDate: getValue(payload, "product.departureDate") || payload.departureDate,
     returnDate: getValue(payload, "product.returnDate") || payload.returnDate,
     country: getValue(payload, "product.country") || payload.country || "",
     region: getValue(payload, "product.region") || payload.region,
-    airline: getValue(payload, "product.airline") || getValue(payload, "product.airlineName") || getValue(payload, "product.airlineNm") || getValue(payload, "product.air2Nm") || getValue(payload, "product.air2CdNm"),
-    departureAirport: getValue(payload, "product.departureAirport") || payload.departureAirport,
+    airline: getValue(payload, "product.airline") === "\uAC1C\uBCC4\uD56D\uACF5"
+      ? "\uAC1C\uBCC4\uD56D\uACF5"
+      : normalizeSecretTourAirlineName(
+        getValue(payload, "product.airline"),
+        getValue(payload, "product.airlineName"),
+        getValue(payload, "product.airlineNm"),
+        getValue(payload, "product.air2Nm"),
+        getValue(payload, "product.air2CdNm")
+      ),
+    departureAirport: departureAirportValue,
     arrivalAirport: getValue(payload, "product.arrivalAirport") || payload.arrivalAirport || getValue(payload, "product.region"),
     applicantName: getValue(payload, "applicant.name"),
     applicantGender: getValue(payload, "applicant.gender"),
@@ -4709,26 +5333,39 @@ async function saveNewScheduleApplicationViaSheetsApi(payload = {}) {
   const applicationId = asText(payload.applicationId || buildNewScheduleApplicationSheetValue(payload, "applicationId"));
   if (!applicationId) throw createHttpError("applicationId is required", 400);
   const scheduleId = asText(payload.scheduleId || buildNewScheduleApplicationSheetValue({ ...payload, applicationId }, "scheduleId"));
+  const productFamilyId = asText(getValue(payload, "trip.productFamilyId") || payload.productFamilyId);
   const headers = await ensureGoogleSheetHeadersViaApi("new_schedule_applications", { timeoutMs: 6000 });
   const rows = await readGoogleSheetRowsViaApi("new_schedule_applications", { timeoutMs: 5000 });
   const existingIndex = rows.findIndex((row) => asText(row.applicationId) === applicationId);
   const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
   const rowPayload = { ...payload, applicationId, scheduleId };
   const rowValues = buildNewScheduleApplicationSheetRow(rowPayload, existingRow, headers);
+  const savedRow = Object.fromEntries(headers.map((header, index) => [header, rowValues[index]]));
+  let write;
+  let row;
   if (existingIndex >= 0) {
-    const rowNumber = existingIndex + 2;
-    await updateGoogleSheetRowViaApi("new_schedule_applications", rowNumber, rowValues, { timeoutMs: 6000 });
-    return { ok: true, sheet: "new_schedule_applications", write: "update", row: rowNumber, source: "sheets_api", applicationId, scheduleId };
+    row = existingIndex + 2;
+    await updateGoogleSheetRowViaApi("new_schedule_applications", row, rowValues, { timeoutMs: 6000 });
+    write = "update";
+  } else {
+    const response = await appendGoogleSheetValuesViaApi("new_schedule_applications", rowValues, { timeoutMs: 6000 });
+    row = response.updates?.updatedRange || "";
+    write = "append";
   }
-  const response = await appendGoogleSheetValuesViaApi("new_schedule_applications", rowValues, { timeoutMs: 6000 });
+  const participantSummarySync = await syncRequiredScheduleParticipantSummarySheetViaApi(
+    "new_schedule_applications",
+    savedRow
+  );
   return {
     ok: true,
     sheet: "new_schedule_applications",
-    write: "append",
-    row: response.updates?.updatedRange || "",
+    write,
+    row,
     source: "sheets_api",
     applicationId,
-    scheduleId
+    scheduleId,
+    productFamilyId,
+    participantSummarySync
   };
 }
 
@@ -4739,20 +5376,45 @@ async function saveRecommendedScheduleViaSheetsApi(payload = {}) {
   const existingIndex = rows.findIndex((row) => asText(row.recommendedScheduleId || row.displayRuleId) === recommendedScheduleId);
   const existingRow = existingIndex >= 0 ? rows[existingIndex] : {};
   const rowValues = buildRecommendedScheduleSheetRow({ ...payload, recommendedScheduleId }, existingRow);
+  const nextRow = Object.fromEntries(GOOGLE_SHEET_HEADERS.recommended_schedules.map((header, index) => [header, rowValues[index]]));
+  const scheduleSource = buildRecommendedScheduleSummarySource(nextRow);
+  const requestedCapacity = getScheduleCapacity(scheduleSource);
+  const joinRows = await readGoogleSheetRowsViaApi("join_applications", { timeoutMs: 5000 });
+  const currentPeople = joinRows
+    .filter((row) => !isCancelledJoinApplication(row) && isJoinApplicationForSchedule(row, scheduleSource))
+    .reduce((sum, row) => sum + parsePeopleCount(row.applicantPeople || row.people), 0);
+  if (requestedCapacity < currentPeople) {
+    throw createHttpError(`Capacity cannot be less than current participants (${currentPeople})`, 409);
+  }
+  let savedPayload;
   if (existingIndex >= 0) {
     const rowNumber = existingIndex + 2;
     await updateGoogleSheetRowViaApi("recommended_schedules", rowNumber, rowValues, { timeoutMs: 6000, valueInputOption: "RAW" });
-    return { ok: true, sheet: "recommended_schedules", write: "update", row: rowNumber, source: "sheets_api", recommendedScheduleId };
+    savedPayload = { ok: true, sheet: "recommended_schedules", write: "update", row: rowNumber, source: "sheets_api", recommendedScheduleId };
+  } else {
+    const response = await appendGoogleSheetValuesViaApi("recommended_schedules", rowValues, { timeoutMs: 6000, valueInputOption: "RAW" });
+    savedPayload = {
+      ok: true,
+      sheet: "recommended_schedules",
+      write: "append",
+      row: response.updates?.updatedRange || "",
+      source: "sheets_api",
+      recommendedScheduleId
+    };
   }
-  const response = await appendGoogleSheetValuesViaApi("recommended_schedules", rowValues, { timeoutMs: 6000, valueInputOption: "RAW" });
-  return {
-    ok: true,
-    sheet: "recommended_schedules",
-    write: "append",
-    row: response.updates?.updatedRange || "",
-    source: "sheets_api",
-    recommendedScheduleId
-  };
+  let participantSummarySync;
+  try {
+    participantSummarySync = await syncScheduleParticipantSummarySheetViaApi("recommended_schedules", nextRow, {
+      appendMissing: currentPeople > 0
+    });
+  } catch (error) {
+    participantSummarySync = { ok: false, error: error?.message || String(error) };
+    console.warn("Failed to sync recommended schedule participant summary.", {
+      recommendedScheduleId,
+      message: participantSummarySync.error
+    });
+  }
+  return { ...savedPayload, capacity: requestedCapacity, currentPeople, participantSummarySync };
 }
 
 async function updateAdminStatusViaSheetsApi(payload = {}) {
@@ -4909,20 +5571,123 @@ async function saveJoinApplicationViaSheetsApi(payload = {}) {
   const capacityCheck = await assertJoinApplicationCapacityAvailable(payload, applicationId);
   const existingIndex = capacityCheck.existingIndex;
   const existingRow = capacityCheck.existingRow || {};
-  const rowValues = buildJoinApplicationSheetRow({ ...payload, applicationId }, existingRow, headers);
+  const targetSchedule = capacityCheck.targetSchedule || {};
+  const payloadProduct = payload.product && typeof payload.product === "object" ? payload.product : {};
+  const departureAirport = inferSecretTourDepartureAirportFromSchedule(
+    getValue(payload, "product.schedule"),
+    payload.schedule,
+    targetSchedule.schedule
+  ) || normalizeSecretTourAirportName(
+    targetSchedule.departureAirport,
+    targetSchedule.depAirport,
+    targetSchedule.airport,
+    targetSchedule.airportName,
+    getValue(payload, "product.departureAirport"),
+    payload.departureAirport,
+    getValue(payload, "product.depAirport"),
+    getValue(payload, "product.airport"),
+    getValue(payload, "product.airportName")
+  ) || inferSecretTourDepartureAirportFromTitle(
+    targetSchedule.productName,
+    targetSchedule.title,
+    targetSchedule.overrideTitle,
+    getValue(payload, "product.productName"),
+    payload.productName
+  );
+  const packTypeValue = targetSchedule.packType
+    || getValue(payload, "product.packType")
+    || payload.packType
+    || "";
+  const packTypeNameValue = targetSchedule.packTypeName
+    || targetSchedule.productType
+    || getValue(payload, "product.packTypeName")
+    || payload.packTypeName
+    || "";
+  const rawJoinAirlineValue = targetSchedule.airline
+    || getValue(payload, "product.airline")
+    || getValue(payload, "product.airlineName")
+    || getValue(payload, "product.airlineNm")
+    || getValue(payload, "product.air2Nm")
+    || getValue(payload, "product.air2CdNm")
+    || "";
+  const isGolfPack = asText(packTypeValue).toLowerCase() === "golf"
+    || asText(packTypeNameValue).includes("\uACE8\uD504")
+    || ((!packTypeValue && !packTypeNameValue) && isSecretTourIndividualAirlineName(rawJoinAirlineValue));
+  const airline = isGolfPack
+    ? "\uAC1C\uBCC4\uD56D\uACF5"
+    : normalizeSecretTourAirlineName(
+      targetSchedule.airline,
+      targetSchedule.airlineName,
+      targetSchedule.airlineNm,
+      getValue(payload, "product.airline"),
+      getValue(payload, "product.airlineName"),
+      getValue(payload, "product.airlineNm"),
+      getValue(payload, "product.air2Nm"),
+      getValue(payload, "product.air2CdNm")
+    );
+  const canonicalTargetScheduleId = asText(targetSchedule.scheduleId);
+  const canonicalTargetApplicationId = asText(targetSchedule.applicationId || targetSchedule.sourceApplicationId);
+  const canonicalErpEventSeq = normalizeCanonicalErpEventSeq(targetSchedule.erpEventSeq || targetSchedule.eventSeq);
+  const canonicalErpProductId = normalizeCanonicalErpProductId(
+    targetSchedule.erpProductId || targetSchedule.goodSeq || targetSchedule.productId,
+    canonicalErpEventSeq
+  );
+  const canonicalProductName = asText(targetSchedule.productName || targetSchedule.title);
+  const canonicalDepartureDate = normalizeSheetDateText(targetSchedule.departureDate || targetSchedule.departureDateFrom);
+  const canonicalReturnDate = normalizeSheetDateText(targetSchedule.returnDate || targetSchedule.returnDateFrom);
+  const rowPayload = {
+    ...payload,
+    applicationId,
+    ...(canonicalTargetScheduleId ? { targetScheduleId: canonicalTargetScheduleId } : {}),
+    ...(canonicalTargetApplicationId ? { targetApplicationId: canonicalTargetApplicationId } : {}),
+    ...(canonicalErpProductId ? { erpProductId: canonicalErpProductId } : {}),
+    ...(canonicalErpEventSeq ? { erpEventSeq: canonicalErpEventSeq } : {}),
+    ...(canonicalProductName ? { productName: canonicalProductName } : {}),
+    ...(canonicalDepartureDate ? { departureDate: canonicalDepartureDate } : {}),
+    ...(canonicalReturnDate ? { returnDate: canonicalReturnDate } : {}),
+    ...(targetSchedule.country ? { country: targetSchedule.country } : {}),
+    ...(targetSchedule.region ? { region: targetSchedule.region } : {}),
+    ...(departureAirport ? { departureAirport } : {}),
+    product: {
+      ...payloadProduct,
+      ...(canonicalErpProductId ? { erpProductId: canonicalErpProductId, productId: canonicalErpProductId } : {}),
+      ...(canonicalErpEventSeq ? { erpEventSeq: canonicalErpEventSeq, eventSeq: canonicalErpEventSeq } : {}),
+      ...(canonicalProductName ? { productName: canonicalProductName } : {}),
+      ...(canonicalDepartureDate ? { departureDate: canonicalDepartureDate } : {}),
+      ...(canonicalReturnDate ? { returnDate: canonicalReturnDate } : {}),
+      ...(targetSchedule.country ? { country: targetSchedule.country } : {}),
+      ...(targetSchedule.region ? { region: targetSchedule.region } : {}),
+      ...(packTypeValue ? { packType: packTypeValue } : {}),
+      ...(packTypeNameValue ? { packTypeName: packTypeNameValue } : {}),
+      ...(airline ? { airline } : {}),
+      ...(departureAirport ? { departureAirport } : {})
+    }
+  };
+  const rowValues = buildJoinApplicationSheetRow(rowPayload, existingRow, headers);
+  const savedRow = Object.fromEntries(headers.map((header, index) => [header, rowValues[index]]));
+  let write;
+  let row;
   if (existingIndex >= 0) {
-    const rowNumber = existingIndex + 2;
-    await updateGoogleSheetRowViaApi("join_applications", rowNumber, rowValues, { timeoutMs: 6000 });
-    return { ok: true, sheet: "join_applications", write: "update", row: rowNumber, source: "sheets_api", applicationId };
+    row = existingIndex + 2;
+    await updateGoogleSheetRowViaApi("join_applications", row, rowValues, { timeoutMs: 6000 });
+    write = "update";
+  } else {
+    const response = await appendGoogleSheetValuesViaApi("join_applications", rowValues, { timeoutMs: 6000 });
+    row = response.updates?.updatedRange || "";
+    write = "append";
   }
-  const response = await appendGoogleSheetValuesViaApi("join_applications", rowValues, { timeoutMs: 6000 });
+  const participantSummarySync = await syncRequiredScheduleParticipantSummarySheetViaApi(
+    "join_applications",
+    savedRow
+  );
   return {
     ok: true,
     sheet: "join_applications",
-    write: "append",
-    row: response.updates?.updatedRange || "",
+    write,
+    row,
     source: "sheets_api",
-    applicationId
+    applicationId,
+    participantSummarySync
   };
 }
 
@@ -5296,6 +6061,32 @@ function setHomeBootstrapLightCacheEntry(cacheKey, payload) {
   });
 }
 
+function resolveWithin(promise, timeoutMs) {
+  let timeout = null;
+  const timeoutPromise = new Promise((resolve) => {
+    timeout = setTimeout(() => resolve(null), Math.max(100, Number(timeoutMs) || 0));
+  });
+  return Promise.race([promise, timeoutPromise])
+    .finally(() => clearTimeout(timeout));
+}
+
+async function readHomeBootstrapLightSnapshotFromStorage() {
+  const objectName = getGolfJoinProductObjectName("golfjoin_home_cards.json");
+  const [buffer] = await storage.bucket(GOLFJOIN_PRODUCTS_BUCKET).file(objectName).download();
+  const payload = JSON.parse(buffer.toString("utf8") || "{}");
+  const snapshot = payload?.homeBootstrapLight;
+  if (
+    !snapshot
+    || !Array.isArray(snapshot.newScheduleSummaries)
+    || !Array.isArray(snapshot.participantSummaries)
+    || !Array.isArray(snapshot.displayRules)
+  ) return null;
+  return sanitizeHomeBootstrapLightPayload({
+    ...snapshot,
+    source: snapshot.source || "gcs_snapshot"
+  });
+}
+
 function refreshHomeBootstrapLightCache(cacheKey, params = {}) {
   const existing = homeBootstrapLightCache.get(cacheKey);
   if (existing?.refreshing) return existing.refreshing;
@@ -5403,10 +6194,11 @@ async function proxyHomeBootstrapLight(params, res) {
     return;
   }
   const refresh = refreshHomeBootstrapLightCache(cacheKey, params);
-  const timeout = new Promise((resolve) => {
-    setTimeout(() => resolve(null), HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS);
+  const snapshot = readHomeBootstrapLightSnapshotFromStorage().catch((error) => {
+    console.warn("Home bootstrap light storage snapshot read failed.", error?.message || error);
+    return null;
   });
-  const payload = await Promise.race([refresh, timeout]);
+  const payload = await resolveWithin(refresh, HOME_BOOTSTRAP_LIGHT_REFRESH_TIMEOUT_MS);
   if (payload) {
     res.status(200).json({
       ...cloneHomeBootstrapLightPayload(payload),
@@ -5414,12 +6206,29 @@ async function proxyHomeBootstrapLight(params, res) {
     });
     return;
   }
-  const fallback = await refresh;
-  if (!fallback) throw createHttpError("Home bootstrap light failed", 502);
-  res.status(200).json({
-    ...cloneHomeBootstrapLightPayload(fallback),
-    cache: { status: "miss-slow", ageMs: 0 }
-  });
+  const snapshotPayload = await resolveWithin(snapshot, HOME_BOOTSTRAP_LIGHT_SNAPSHOT_TIMEOUT_MS);
+  if (snapshotPayload) {
+    const snapshotTimestamp = Date.parse(snapshotPayload.updatedAt || snapshotPayload.serverTime || "");
+    const snapshotAgeMs = Number.isFinite(snapshotTimestamp) ? Math.max(0, Date.now() - snapshotTimestamp) : 0;
+    res.status(200).json({
+      ...cloneHomeBootstrapLightPayload(snapshotPayload),
+      warnings: [
+        ...(snapshotPayload.warnings || []),
+        { key: "cache", message: "Returned the stored home bootstrap snapshot while refreshing." }
+      ],
+      cache: { status: "snapshot", ageMs: snapshotAgeMs }
+    });
+    return;
+  }
+  const finalPayload = await resolveWithin(refresh, HOME_BOOTSTRAP_LIGHT_FINAL_WAIT_MS);
+  if (finalPayload) {
+    res.status(200).json({
+      ...cloneHomeBootstrapLightPayload(finalPayload),
+      cache: { status: "miss-slow", ageMs: 0 }
+    });
+    return;
+  }
+  throw createHttpError("Home bootstrap light refresh timed out", 504, { code: "home_bootstrap_timeout" });
 }
 
 async function proxyHomeStats(res) {
@@ -5737,6 +6546,84 @@ function buildSecretTourGoodsViewProxyUrl(query = {}) {
   return target;
 }
 
+function decodeSecretTourHtmlText(value = "") {
+  return String(value || "")
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, number) => String.fromCodePoint(Number(number)))
+    .replace(/&nbsp;|&ensp;|&emsp;/gi, " ")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&amp;/gi, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseSecretTourDetailTitleCopyHtml(html = "") {
+  const match = String(html || "").match(/<p\b(?=[^>]*\bclass\s*=\s*["'][^"']*\bdetail_title_copy\b[^"']*["'])[^>]*>([\s\S]*?)<\/p>/i);
+  return match ? decodeSecretTourHtmlText(match[1]) : "";
+}
+
+function getSecretTourHtmlAttribute(tag = "", attributeName = "") {
+  const safeName = String(attributeName || "").replace(/[^a-z0-9:_-]/gi, "");
+  if (!safeName) return "";
+  const pattern = new RegExp(`\\b${safeName}\\s*=\\s*(?:["']([^"']*)["']|([^\\s>]+))`, "i");
+  const match = String(tag || "").match(pattern);
+  return decodeSecretTourHtmlText(match?.[1] || match?.[2] || "");
+}
+
+function parseSecretTourDetailImageHtml(html = "") {
+  const metaTags = String(html || "").match(/<meta\b[^>]*>/gi) || [];
+  const preferredMetaNames = ["og:image:secure_url", "og:image", "twitter:image"];
+  for (const preferredName of preferredMetaNames) {
+    const tag = metaTags.find((item) => {
+      const name = getSecretTourHtmlAttribute(item, "property") || getSecretTourHtmlAttribute(item, "name");
+      return name.toLowerCase() === preferredName;
+    });
+    const content = getSecretTourHtmlAttribute(tag, "content");
+    if (content) return secretTourImageUrl(content);
+  }
+  const imageTags = String(html || "").match(/<img\b[^>]*>/gi) || [];
+  const representative = imageTags.find((tag) => /detail|goods?|product|visual|main/i.test(getSecretTourHtmlAttribute(tag, "class")));
+  return secretTourImageUrl(
+    getSecretTourHtmlAttribute(representative, "data-src")
+    || getSecretTourHtmlAttribute(representative, "src")
+  );
+}
+
+function parseSecretTourProductMetaHtml(html = "") {
+  const pageText = decodeSecretTourHtmlText(html);
+  const firstDayIndex = pageText.search(/(?:1\s*일차|DAY\s*1)/i);
+  const firstDayText = firstDayIndex >= 0
+    ? pageText.slice(firstDayIndex, pageText.search(/(?:2\s*일차|DAY\s*2)/i) > firstDayIndex
+      ? pageText.search(/(?:2\s*일차|DAY\s*2)/i)
+      : firstDayIndex + 1200)
+    : "";
+  return {
+    detailTitleCopy: parseSecretTourDetailTitleCopyHtml(html),
+    image: parseSecretTourDetailImageHtml(html),
+    departureAirport: inferSecretTourDepartureAirportFromSchedule(firstDayText)
+  };
+}
+
+async function fetchSecretTourProductMeta(product = {}) {
+  const target = buildSecretTourGoodsViewProxyUrl(product);
+  const response = await fetchWithTimeout(target, {
+    method: "GET",
+    headers: {
+      "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+      "User-Agent": "GolfJoinAdmin/1.0"
+    },
+    redirect: "follow"
+  }, EXTERNAL_FETCH_TIMEOUT_MS, "Secret Tour product detail subtitle");
+  const html = await response.text();
+  if (!response.ok) throw createHttpError(`Secret Tour product detail failed: ${response.status}`, 502);
+  return parseSecretTourProductMetaHtml(html);
+}
+
 function buildSecretTourFlightScheduleProxyUrl(query = {}) {
   const eventSeq = assertDigits(query.eventSeq, "eventSeq");
   const goodTransportSeq = assertDigits(query.goodTransportSeq, "goodTransportSeq");
@@ -5792,16 +6679,95 @@ function nowKstISOString() {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}T${String(date.getUTCHours()).padStart(2, "0")}:${String(date.getUTCMinutes()).padStart(2, "0")}:${String(date.getUTCSeconds()).padStart(2, "0")}+09:00`;
 }
 
+function isSecretTourIndividualAirlineName(value) {
+  return /(개별\s*항공|개별\s*발권)/.test(asText(value));
+}
+
 function isSecretTourAirlineName(value) {
-  return /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|사천항공|산동항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|항공사)/.test(asText(value));
+  const text = asText(value);
+  return isSecretTourIndividualAirlineName(text)
+    || /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|에어로케이|가루다\s*인도네시아(?:항공)?|사천항공|산동항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|[가-힣A-Za-z]+항공(?:사)?|Airlines?|항공사)/i.test(text);
+}
+
+const SECRET_TOUR_DEPARTURE_AIRPORT_NAMES = ["인천", "김포", "부산", "김해", "대구", "청주", "무안", "제주", "양양"];
+
+function extractSecretTourAirportName(value) {
+  const text = asText(value);
+  if (!text) return "";
+  return SECRET_TOUR_DEPARTURE_AIRPORT_NAMES.find((airport) => (
+    new RegExp(`(^|[^가-힣])${airport}(?:(?:국제)?공항)?(?=$|[^가-힣]|출발)`).test(text)
+  )) || "";
 }
 
 function normalizeSecretTourAirportName(...values) {
-  return values.map(asText).find((value) => value && !isSecretTourAirlineName(value)) || "";
+  return values.map(extractSecretTourAirportName).find(Boolean) || "";
+}
+
+function getSecretTourFirstDayScheduleText(value) {
+  let schedule = value;
+  if (typeof schedule === "string") {
+    try {
+      schedule = JSON.parse(schedule);
+    } catch (_) {
+      return schedule.trim();
+    }
+  }
+  if (schedule && !Array.isArray(schedule) && Array.isArray(schedule.schedule)) schedule = schedule.schedule;
+  const firstDay = Array.isArray(schedule) ? schedule[0] : schedule;
+  if (!firstDay) return "";
+  if (typeof firstDay === "string") return firstDay.trim();
+  return [
+    firstDay.rawText,
+    firstDay.content,
+    firstDay.text,
+    firstDay.description,
+    firstDay.route,
+    firstDay.departureAirport,
+    firstDay.fromCity
+  ].map(asText).filter(Boolean).join(" ").trim();
+}
+
+function inferSecretTourDepartureAirportFromSchedule(...values) {
+  for (const value of values) {
+    const text = getSecretTourFirstDayScheduleText(value);
+    if (!text) continue;
+    const departureMatches = [...text.matchAll(/출발/g)];
+    for (const match of departureMatches) {
+      const departureIndex = Number(match.index) || 0;
+      const before = text.slice(Math.max(0, departureIndex - 80), departureIndex);
+      const beforeAirport = SECRET_TOUR_DEPARTURE_AIRPORT_NAMES
+        .map((airport) => ({ airport, index: before.lastIndexOf(airport) }))
+        .sort((a, b) => b.index - a.index)
+        .find((item) => item.index >= 0)?.airport;
+      if (beforeAirport) return beforeAirport;
+      const after = text.slice(departureIndex + match[0].length, departureIndex + match[0].length + 40);
+      const afterAirport = SECRET_TOUR_DEPARTURE_AIRPORT_NAMES
+        .map((airport) => ({ airport, index: after.indexOf(airport) }))
+        .filter((item) => item.index >= 0)
+        .sort((a, b) => a.index - b.index)[0]?.airport;
+      if (afterAirport) return afterAirport;
+    }
+    const firstDayAirport = normalizeSecretTourAirportName(text);
+    if (firstDayAirport) return firstDayAirport;
+  }
+  return "";
+}
+
+function inferSecretTourDepartureAirportFromTitle(...values) {
+  for (const value of values) {
+    const text = asText(value);
+    if (!text) continue;
+    const leadingTag = /^\s*\[([^\]]+)\]/.exec(text)?.[1] || "";
+    const taggedAirport = SECRET_TOUR_DEPARTURE_AIRPORT_NAMES.find((airport) => leadingTag.includes(airport));
+    if (taggedAirport) return taggedAirport;
+    const departureAirport = SECRET_TOUR_DEPARTURE_AIRPORT_NAMES.find((airport) => new RegExp(`${airport}(?:(?:국제)?공항)?\\s*출발`).test(text));
+    if (departureAirport) return departureAirport;
+  }
+  return "";
 }
 
 function normalizeSecretTourAirlineName(...values) {
-  return values.map(asText).find(isSecretTourAirlineName) || "";
+  return values.map(asText).find((value) => isSecretTourAirlineName(value) && !isSecretTourIndividualAirlineName(value)) || "";
 }
 
 const SECRET_TOUR_TITLE_COUNTRIES = [
@@ -5846,10 +6812,13 @@ function parseSecretTourTitleDestination(...titles) {
 function normalizeSecretTourGoodsItem(item = {}, index = 0) {
   const departureDate = secretTourDateToISO(item.minStartDay);
   const dayCnt = Number(item.dayCnt) || 1;
-  const price = Number(item.dpPrice) || Number(item.minPrice) || 0;
+  const price = Number(item.dpPrice) || Number(item.maxPrice) || Number(item.adultPrice) || Number(item.minPrice) || 0;
   const productType = item.productType || item.goodsType || item.goodType || item.goodKind || item.goodDetailCdNm || item.goodDetailName || item.packageType || item.packType || item.tourType || item.airProductYn || item.airYn || item.flightYn || item.includeAirYn || "";
   const title = asText(item.goodNm) || "Golf join product";
   const destination = parseSecretTourTitleDestination(title);
+  const departureAirport = inferSecretTourDepartureAirportFromSchedule(item.schedule)
+    || normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName)
+    || inferSecretTourDepartureAirportFromTitle(title);
   return {
     id: item.goodSeq ? `secret-tour-${item.goodSeq}` : `secret-tour-product-${index}`,
     source: "secret-tour-goods",
@@ -5867,17 +6836,20 @@ function normalizeSecretTourGoodsItem(item = {}, index = 0) {
     air2CdNm: asText(item.air2CdNm),
     air2Nm: asText(item.air2Nm || item.air2CdNm),
     title,
+    sourceProductTitle: title,
     country: destination.country,
     region: destination.region || asText(item.tourCity || item.areaCdNm),
     category: asText(item.areaCdNm),
-    airport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
-    departureAirport: normalizeSecretTourAirportName(item.departureAirport, item.depAirport, item.airport, item.airportName, item.air2CdNm),
+    airport: departureAirport,
+    departureAirport,
     arrivalAirport: asText(item.arrivalAirport || item.arrAirport || item.toCity || item.arrivalCity || item.tourCity || item.areaCdNm),
     airline: normalizeSecretTourAirlineName(item.airline, item.airlineName, item.airlineNm, item.air2Nm, item.air2CdNm),
     departureDate,
     returnDate: addDaysToISO(departureDate, Math.max(dayCnt - 1, 0)),
     duration: asText(item.period || item.dayNightCnt),
     dayNightCnt: asText(item.period || item.dayNightCnt),
+    generalPrice: price,
+    memberPrice: Number(item.minPrice) || 0,
     price,
     image: secretTourImageUrl(item.imagePath),
     includes: [],
@@ -5891,19 +6863,31 @@ function normalizeSecretTourGoodsItem(item = {}, index = 0) {
 function normalizeSecretTourGoodsEventItem(product = {}, event = {}, index = 0) {
   const departureDate = secretTourDateToISO(event.startDay || event.depStartDay || product.minStartDay);
   const returnDate = secretTourDateToISO(event.endDay || event.arrStartDay);
-  const price = Number(event.adultPrice) || Number(event.minPrice) || Number(product.minPrice) || 0;
+  const price = Number(event.adultPrice) || Number(event.maxPrice) || Number(product.dpPrice) || Number(product.maxPrice) || Number(event.minPrice) || Number(product.minPrice) || 0;
   const restCnt = Number(event.restCnt);
   const productType = event.productType || event.goodsType || event.goodType || event.goodKind || event.goodDetailCdNm || event.goodDetailName || event.packageType || event.packType || event.tourType || event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.productType || product.goodsType || product.goodType || product.goodKind || product.goodDetailCdNm || product.goodDetailName || product.packageType || product.packType || product.tourType || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn || "";
   const goodSeq = asText(product.goodSeq);
   const eventSeq = asText(event.eventSeq);
   const title = asText(event.eventNm || product.goodNm) || "Golf join product";
   const destination = parseSecretTourTitleDestination(title, product.goodNm);
+  const departureAirport = inferSecretTourDepartureAirportFromSchedule(event.schedule, product.schedule)
+    || normalizeSecretTourAirportName(
+      event.departureAirport,
+      event.depAirport,
+      event.airport,
+      event.airportName,
+      product.departureAirport,
+      product.depAirport,
+      product.airport,
+      product.airportName
+    )
+    || inferSecretTourDepartureAirportFromTitle(title, product.goodNm);
   return {
     id: eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : `secret-tour-${goodSeq}-event-${index}`,
     source: "secret-tour-goods-event",
     goodSeq,
     eventSeq,
-    erpProductId: goodSeq && eventSeq ? `secret-tour-${goodSeq}-${eventSeq}` : goodSeq,
+    erpProductId: goodSeq,
     erpEventSeq: eventSeq,
     goodTransportSeq: asText(event.goodTransportSeq || event.transportSeq || event.goodAirSeq || event.airSeq || event.flightSeq || product.goodTransportSeq || product.transportSeq || product.goodAirSeq || product.airSeq || product.flightSeq),
     goodCd: asText(product.goodCd),
@@ -5915,17 +6899,20 @@ function normalizeSecretTourGoodsEventItem(product = {}, event = {}, index = 0) 
     air2CdNm: asText(product.air2CdNm),
     air2Nm: asText(event.air2Nm || product.air2Nm || product.air2CdNm),
     title,
+    sourceProductTitle: asText(product.goodNm) || title,
     country: destination.country,
     region: destination.region || asText(product.tourCity || product.areaCdNm),
     category: asText(product.areaCdNm),
-    airport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
-    departureAirport: normalizeSecretTourAirportName(event.departureAirport, event.depAirport, event.airport, event.airportName, product.airport, product.air2CdNm),
+    airport: departureAirport,
+    departureAirport,
     arrivalAirport: asText(event.arrivalAirport || event.arrAirport || event.toCity || event.arrivalCity || product.arrivalAirport || product.arrAirport || product.toCity || product.arrivalCity || product.tourCity || product.areaCdNm),
     airline: normalizeSecretTourAirlineName(event.airline, event.airlineName, event.airlineNm, event.air2Nm, product.airline, product.air2Nm, product.air2CdNm),
     departureDate,
     returnDate: returnDate || departureDate,
     duration: asText(event.period || product.period || product.dayNightCnt),
     dayNightCnt: asText(event.period || product.period || product.dayNightCnt),
+    generalPrice: price,
+    memberPrice: Number(event.minPrice) || Number(product.minPrice) || 0,
     price,
     image: secretTourImageUrl(event.imagePath || product.imagePath),
     includes: [],
@@ -6013,7 +7000,75 @@ async function loadSecretTourGoodsProducts() {
   return eventGroups.flat();
 }
 
-function buildGolfJoinProductsPayload(items = []) {
+async function loadSecretTourProductMetaByGoodSeq(items = [], previousMetaByGoodSeq = {}) {
+  const representativeByGoodSeq = new Map();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const goodSeq = asText(item.goodSeq || item.erpProductId);
+    const eventSeq = asText(item.eventSeq || item.erpEventSeq);
+    if (!/^\d+$/.test(goodSeq) || !/^\d+$/.test(eventSeq)) return;
+    const previous = representativeByGoodSeq.get(goodSeq);
+    if (!previous || String(item.departureDate || "9999-12-31").localeCompare(String(previous.departureDate || "9999-12-31")) < 0) {
+      representativeByGoodSeq.set(goodSeq, { goodSeq, eventSeq, departureDate: item.departureDate || "" });
+    }
+  });
+
+  const results = await mapWithConcurrency([...representativeByGoodSeq.values()], 4, async (product) => {
+    try {
+      const meta = await fetchSecretTourProductMeta(product);
+      return {
+        goodSeq: product.goodSeq,
+        ok: true,
+        detailTitleCopy: meta.detailTitleCopy || "",
+        image: meta.image || "",
+        departureAirport: meta.departureAirport || ""
+      };
+    } catch (error) {
+      console.warn("Secret Tour product metadata load failed", {
+        goodSeq: product.goodSeq,
+        eventSeq: product.eventSeq,
+        message: error?.message || String(error)
+      });
+      return { goodSeq: product.goodSeq, ok: false, detailTitleCopy: "", image: "", departureAirport: "" };
+    }
+  });
+
+  const productMetaByGoodSeq = {};
+  let loadedCount = 0;
+  let preservedCount = 0;
+  let failedCount = 0;
+  results.forEach((result) => {
+    const previous = previousMetaByGoodSeq?.[result.goodSeq];
+    if (result.ok) {
+      loadedCount += 1;
+      if (result.detailTitleCopy || result.image || result.departureAirport || previous?.detailTitleCopy || previous?.image || previous?.departureAirport) {
+        productMetaByGoodSeq[result.goodSeq] = {
+          ...(result.detailTitleCopy || previous?.detailTitleCopy ? { detailTitleCopy: result.detailTitleCopy || asText(previous?.detailTitleCopy) } : {}),
+          ...(result.image || previous?.image ? { image: result.image || secretTourImageUrl(previous?.image) } : {}),
+          ...(result.departureAirport || previous?.departureAirport ? { departureAirport: result.departureAirport || asText(previous?.departureAirport) } : {})
+        };
+      }
+      return;
+    }
+    failedCount += 1;
+    if (previous?.detailTitleCopy || previous?.image || previous?.departureAirport) {
+      productMetaByGoodSeq[result.goodSeq] = {
+        ...(previous.detailTitleCopy ? { detailTitleCopy: asText(previous.detailTitleCopy) } : {}),
+        ...(previous.image ? { image: secretTourImageUrl(previous.image) } : {}),
+        ...(previous.departureAirport ? { departureAirport: asText(previous.departureAirport) } : {})
+      };
+      preservedCount += 1;
+    }
+  });
+  return {
+    productMetaByGoodSeq,
+    requestedCount: representativeByGoodSeq.size,
+    loadedCount,
+    preservedCount,
+    failedCount
+  };
+}
+
+function buildGolfJoinProductsPayload(items = [], options = {}) {
   const dates = items.map((item) => item.departureDate).filter(Boolean).sort();
   return {
     schema: "secret-golf-join-board-v1",
@@ -6023,12 +7078,13 @@ function buildGolfJoinProductsPayload(items = []) {
       endDate: dates[dates.length - 1] || ""
     },
     count: items.length,
-    items
+    items,
+    productMetaByGoodSeq: options.productMetaByGoodSeq || {}
   };
 }
 
-const GOLFJOIN_HOME_SUMMARY_RANGE_DAYS = 240;
-const GOLFJOIN_HOME_SUMMARY_START_OFFSET_DAYS = 7;
+const GOLFJOIN_HOME_SUMMARY_RANGE_DAYS = 247;
+const GOLFJOIN_HOME_SUMMARY_START_OFFSET_DAYS = 0;
 const GOLFJOIN_HOME_SUMMARY_FIELDS = [
   "id",
   "source",
@@ -6162,9 +7218,29 @@ function buildGolfJoinHomeSummaryPayload(payload = {}, options = {}) {
   const startDate = addDaysToISODate(generatedDate, GOLFJOIN_HOME_SUMMARY_START_OFFSET_DAYS) || generatedDate || payload.range?.startDate || "";
   const endDate = addDaysToISODate(startDate, GOLFJOIN_HOME_SUMMARY_RANGE_DAYS) || payload.range?.endDate || "";
   const sourceItems = Array.isArray(payload.items) ? payload.items : [];
+  const productMetaByGoodSeq = payload.productMetaByGoodSeq || {};
   const items = sourceItems
     .filter((item) => !item.departureDate || (item.departureDate >= startDate && item.departureDate <= endDate))
-    .map(compactGolfJoinHomeSummaryItem);
+    .map((item) => {
+      const goodSeq = asText(item.goodSeq || item.erpProductId);
+      const productMeta = productMetaByGoodSeq?.[goodSeq] || {};
+      const departureAirport = inferSecretTourDepartureAirportFromSchedule(item.schedule)
+        || normalizeSecretTourAirportName(
+          item.departureAirport,
+          item.depAirport,
+          item.airport,
+          item.airportName,
+          productMeta.departureAirport
+        )
+        || inferSecretTourDepartureAirportFromTitle(item.title, item.sourceProductTitle);
+      const compactItem = compactGolfJoinHomeSummaryItem({
+        ...item,
+        ...(departureAirport ? { airport: departureAirport, departureAirport } : {})
+      });
+      const savedImage = secretTourImageUrl(productMetaByGoodSeq?.[goodSeq]?.image);
+      if (!compactItem.image && savedImage) compactItem.image = savedImage;
+      return compactItem;
+    });
   return {
     schema: "secret-golf-join-home-summary-v1",
     generatedAt: payload.generatedAt || nowKstISOString(),
@@ -6173,6 +7249,7 @@ function buildGolfJoinHomeSummaryPayload(payload = {}, options = {}) {
     sourceCount: sourceItems.length,
     count: items.length,
     items,
+    productMetaByGoodSeq,
     destinations: buildGolfJoinDestinationSummary(items),
     ...(options.homeBootstrapLight ? {
       homeBootstrapLight: options.homeBootstrapLight,
@@ -6181,8 +7258,130 @@ function buildGolfJoinHomeSummaryPayload(payload = {}, options = {}) {
   };
 }
 
+function collectGolfJoinDisplayRuleProductReferences(value, references = new Set(), parentKey = "") {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectGolfJoinDisplayRuleProductReferences(item, references, parentKey));
+    return references;
+  }
+  if (!value || typeof value !== "object") return references;
+  Object.entries(value).forEach(([key, item]) => {
+    if (item && typeof item === "object") {
+      collectGolfJoinDisplayRuleProductReferences(item, references, key);
+      return;
+    }
+    if (!/(?:good|event|product|schedule)(?:seq|id|key)/i.test(key || parentKey)) return;
+    const normalized = String(item || "").trim();
+    if (normalized) references.add(normalized);
+  });
+  return references;
+}
+
+function buildGolfJoinHomeCardsPayload(summaryPayload = {}) {
+  const referencedValues = collectGolfJoinDisplayRuleProductReferences(summaryPayload.homeBootstrapLight?.displayRules || []);
+  const availabilityRevision = buildGolfJoinAvailabilityRevision(summaryPayload);
+  return buildGolfJoinHomeArtifacts(summaryPayload, {
+    minimumAdvanceDays: HOME_PRODUCT_MINIMUM_ADVANCE_DAYS,
+    availabilityRevision,
+    availabilityObjectPrefix: getGolfJoinProductObjectName(`product-availability/${availabilityRevision}`),
+    referencedValues
+  }).homeCardsPayload;
+}
+
 function getGolfJoinProductObjectName(fileName) {
   return `${GOLFJOIN_PRODUCTS_PREFIX ? `${GOLFJOIN_PRODUCTS_PREFIX}/` : ""}${fileName}`;
+}
+
+function getGolfJoinProductPublicUrl(objectName = "") {
+  const normalizedObjectName = asText(objectName).replace(/^\/+/, "");
+  if (!normalizedObjectName) return "";
+  return `https://storage.googleapis.com/${GOLFJOIN_PRODUCTS_BUCKET}/${normalizedObjectName.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+function buildGolfJoinHomeStorageArtifacts(summaryPayload = {}) {
+  const referencedValues = collectGolfJoinDisplayRuleProductReferences(summaryPayload.homeBootstrapLight?.displayRules || []);
+  const availabilityRevision = buildGolfJoinAvailabilityRevision(summaryPayload);
+  const artifacts = buildGolfJoinHomeArtifacts(summaryPayload, {
+    minimumAdvanceDays: HOME_PRODUCT_MINIMUM_ADVANCE_DAYS,
+    availabilityRevision,
+    availabilityObjectPrefix: getGolfJoinProductObjectName(`product-availability/${availabilityRevision}`),
+    referencedValues
+  });
+  const cardsObjectName = getGolfJoinProductObjectName(`home-cards/${artifacts.publicationRevision}.json`);
+  const manifestObjectName = getGolfJoinProductObjectName("golfjoin_home_manifest.json");
+  return {
+    ...artifacts,
+    cardsObjectName,
+    manifestObjectName,
+    manifestPayload: {
+      schema: "secret-golf-join-home-manifest-v1",
+      generatedAt: summaryPayload.generatedAt || nowKstISOString(),
+      activePublicationRevision: artifacts.publicationRevision,
+      activeCardsObjectName: cardsObjectName,
+      activeCardsUrl: getGolfJoinProductPublicUrl(cardsObjectName),
+      availabilityRevision: artifacts.availabilityRevision,
+      minimumAdvanceDays: artifacts.minimumAdvanceDays,
+      bookableFrom: artifacts.bookableFrom
+    }
+  };
+}
+
+async function saveGolfJoinHomeArtifactsToStorage(bucket, summaryPayload = {}, options = {}) {
+  const artifacts = buildGolfJoinHomeStorageArtifacts(summaryPayload);
+  const availabilityManifestObjectName = getGolfJoinProductObjectName(
+    `product-availability/${artifacts.availabilityRevision}/manifest.json`
+  );
+  const mutableJsonOptions = {
+    resumable: false,
+    metadata: {
+      cacheControl: "public, max-age=60",
+      contentType: "application/json; charset=utf-8"
+    }
+  };
+  const immutableJsonOptions = {
+    resumable: false,
+    metadata: {
+      cacheControl: "public, max-age=31536000, immutable",
+      contentType: "application/json; charset=utf-8"
+    }
+  };
+
+  let shouldWriteAvailability = options.writeAvailability === true;
+  if (!shouldWriteAvailability && options.ensureAvailability === true) {
+    try {
+      const [availabilityExists] = await bucket.file(availabilityManifestObjectName).exists();
+      shouldWriteAvailability = !availabilityExists;
+    } catch (error) {
+      console.warn("Failed to check golfjoin availability publication marker.", error);
+      shouldWriteAvailability = true;
+    }
+  }
+
+  if (shouldWriteAvailability) {
+    await mapWithConcurrency(artifacts.availabilityArtifacts, 8, async (artifact) => {
+      if (!artifact.objectName) return;
+      await bucket.file(artifact.objectName).save(`${JSON.stringify(artifact.payload)}\n`, immutableJsonOptions);
+    });
+    await bucket.file(availabilityManifestObjectName).save(`${JSON.stringify({
+      schema: "secret-golf-join-product-availability-manifest-v1",
+      generatedAt: summaryPayload.generatedAt || nowKstISOString(),
+      availabilityRevision: artifacts.availabilityRevision,
+      minimumAdvanceDays: artifacts.minimumAdvanceDays,
+      productCount: artifacts.availabilityArtifacts.length
+    })}\n`, immutableJsonOptions);
+  }
+
+  await Promise.all([
+    bucket.file(getGolfJoinProductObjectName("golfjoin_home_summary.json"))
+      .save(`${JSON.stringify(summaryPayload)}\n`, mutableJsonOptions),
+    bucket.file(artifacts.cardsObjectName)
+      .save(`${JSON.stringify(artifacts.homeCardsPayload)}\n`, immutableJsonOptions),
+    bucket.file(getGolfJoinProductObjectName("golfjoin_home_cards.json"))
+      .save(`${JSON.stringify(artifacts.homeCardsPayload)}\n`, mutableJsonOptions)
+  ]);
+
+  await bucket.file(artifacts.manifestObjectName)
+    .save(`${JSON.stringify(artifacts.manifestPayload)}\n`, mutableJsonOptions);
+  return artifacts;
 }
 
 async function saveGolfJoinProductsPayload(payload) {
@@ -6196,7 +7395,6 @@ async function saveGolfJoinProductsPayload(payload) {
     console.warn("Failed to include home bootstrap light in product summary.", error);
   }
   const summaryPayload = buildGolfJoinHomeSummaryPayload(payload, { homeBootstrapLight });
-  const summaryText = `${JSON.stringify(summaryPayload)}\n`;
   const options = {
     resumable: false,
     metadata: {
@@ -6204,7 +7402,7 @@ async function saveGolfJoinProductsPayload(payload) {
       contentType: "application/json; charset=utf-8"
     }
   };
-  await bucket.file(getGolfJoinProductObjectName("golfjoin_home_summary.json")).save(summaryText, options);
+  await saveGolfJoinHomeArtifactsToStorage(bucket, summaryPayload, { writeAvailability: true });
   await bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.json")).save(jsonText, options);
   await bucket.file(getGolfJoinProductObjectName("golfjoin_local_data.js")).save(jsText, {
     ...options,
@@ -6226,6 +7424,1136 @@ async function readGolfJoinProductsPayloadFromStorage() {
   return payload;
 }
 
+const PRODUCT_FAMILY_SHEETS = Object.freeze([
+  "product_family_master",
+  "product_family_members",
+  "product_family_audit_log"
+]);
+
+function getProductFamilyAdminId(req) {
+  const token = getHeader(req, "x-golfjoin-admin-token");
+  const parts = token.split(".");
+  if (parts.length === 3 && parts[0] === "admin") {
+    try {
+      return asText(parseBase64UrlJson(parts[1])?.sub) || "admin";
+    } catch (error) {
+      return "admin";
+    }
+  }
+  return ADMIN_LOGIN_ID || "admin-api";
+}
+
+function buildSheetValuesFromObject(sheetName, row = {}) {
+  return (GOOGLE_SHEET_HEADERS[sheetName] || []).map((header) => {
+    const value = row[header];
+    if (value == null) return "";
+    if (typeof value === "boolean") return value ? "TRUE" : "FALSE";
+    return value;
+  });
+}
+
+function serializeProductFamilyAuditValue(value) {
+  if (value == null) return "";
+  const serialized = JSON.stringify(value);
+  return serialized.length <= 30000 ? serialized : `${serialized.slice(0, 29950)}...`;
+}
+
+async function ensureProductFamilySheetsViaApi() {
+  await ensureGoogleSheetsExistViaApi(PRODUCT_FAMILY_SHEETS, { timeoutMs: 8000 });
+  await Promise.all(PRODUCT_FAMILY_SHEETS.map((sheetName) => (
+    ensureGoogleSheetHeadersViaApi(sheetName, { timeoutMs: 8000 })
+  )));
+}
+
+async function readProductFamilySheetStateViaApi() {
+  await ensureProductFamilySheetsViaApi();
+  const rows = await readGoogleSheetRangesViaApi(PRODUCT_FAMILY_SHEETS, { timeoutMs: 10000 });
+  const families = hydrateFamilyState(
+    rows.product_family_master || [],
+    rows.product_family_members || []
+  );
+  return {
+    families,
+    auditLog: rows.product_family_audit_log || []
+  };
+}
+
+function buildCurrentProductFamilyCatalog(productsPayload = {}) {
+  const today = nowKstISOString().slice(0, 10);
+  const catalog = buildProductCatalog(productsPayload.items || [], { today });
+  const catalogRevision = asText(productsPayload.generatedAt) || sha256(JSON.stringify(productsPayload.range || {})).slice(0, 24);
+  const analysisRevision = buildAnalysisRevision(catalog, catalogRevision);
+  return { catalog, catalogRevision, analysisRevision };
+}
+
+function sanitizeProductFamilyForAdmin(family = {}) {
+  return {
+    familyId: asText(family.familyId),
+    status: asText(family.status),
+    representativeMode: asText(family.representativeMode) || REPRESENTATIVE_MODE.LOWEST_PRICE,
+    preferredGoodSeq: normalizeProductFamilyGoodSeq(family.preferredGoodSeq),
+    resolvedRepresentativeGoodSeq: normalizeProductFamilyGoodSeq(family.resolvedRepresentativeGoodSeq),
+    candidateKeySnapshot: asText(family.candidateKeySnapshot),
+    configRevision: normalizeProductFamilyRevision(family.configRevision),
+    analysisRevision: asText(family.analysisRevision),
+    catalogRevision: asText(family.catalogRevision),
+    publishStatus: asText(family.publishStatus),
+    publishedRevision: normalizeProductFamilyRevision(family.publishedRevision),
+    approvedBy: asText(family.approvedBy),
+    approvedAt: asText(family.approvedAt),
+    updatedAt: asText(family.updatedAt),
+    revokedAt: asText(family.revokedAt),
+    publishError: asText(family.publishError),
+    operationId: asText(family.operationId),
+    members: (family.members || []).map((member) => ({
+      goodSeq: normalizeProductFamilyGoodSeq(member.goodSeq),
+      memberStatus: asText(member.memberStatus) || "active",
+      durationNights: Number(member.durationNights || 0),
+      durationDays: Number(member.durationDays || 0),
+      sourceTitleSnapshot: asText(member.sourceTitleSnapshot),
+      materialSignature: asText(member.materialSignature),
+      sourceActive: asText(member.sourceActive).toUpperCase() !== "FALSE",
+      lastSeenCatalogRevision: asText(member.lastSeenCatalogRevision),
+      configRevision: normalizeProductFamilyRevision(member.configRevision),
+      approvedAt: asText(member.approvedAt),
+      updatedAt: asText(member.updatedAt)
+    }))
+  };
+}
+
+function assertProductFamilyAdminRequest(req) {
+  if (!isAdminReadRequest(req)) {
+    throw createHttpError(
+      hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured",
+      403
+    );
+  }
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+}
+
+function assertProductFamilyExpectedRevision(payload = {}, currentFamily = null) {
+  const expectedRevision = normalizeProductFamilyRevision(payload.expectedConfigRevision);
+  const currentRevision = normalizeProductFamilyRevision(currentFamily?.configRevision);
+  if (expectedRevision !== currentRevision) {
+    throw createHttpError("상품군 정보가 다른 관리자 작업으로 변경되었습니다. 새로고침 후 다시 시도해 주세요.", 409, {
+      code: "product_family_revision_conflict",
+      expectedConfigRevision: expectedRevision,
+      currentConfigRevision: currentRevision
+    });
+  }
+}
+
+function assertProductFamilyAnalysisRevision(payload = {}, analysisRevision = "") {
+  const expected = asText(payload.expectedAnalysisRevision);
+  if (!expected || expected !== asText(analysisRevision)) {
+    throw createHttpError("상품 데이터 분석 버전이 변경되었습니다. 최신 후보를 다시 확인해 주세요.", 409, {
+      code: "product_family_analysis_revision_conflict",
+      expectedAnalysisRevision: expected,
+      currentAnalysisRevision: asText(analysisRevision)
+    });
+  }
+}
+
+function getProductFamilyOperationId(payload = {}, ...fallbackParts) {
+  const supplied = asText(payload.operationId);
+  if (supplied && !/^[A-Za-z0-9_.:-]{8,120}$/.test(supplied)) {
+    throw createHttpError("operationId 형식이 올바르지 않습니다.", 400, { code: "product_family_operation_id_invalid" });
+  }
+  return supplied || buildGoogleSheetRecordId("pfo", ...fallbackParts);
+}
+
+function findProductFamilyIdempotentResult(families = [], operationId = "") {
+  if (!operationId) return null;
+  return (families || []).find((family) => asText(family.operationId) === operationId) || null;
+}
+
+async function appendProductFamilyAuditViaApi(entry = {}) {
+  return appendGoogleSheetValuesViaApi(
+    "product_family_audit_log",
+    buildSheetValuesFromObject("product_family_audit_log", entry),
+    { timeoutMs: 8000, valueInputOption: "RAW" }
+  );
+}
+
+async function commitProductFamilyVersionViaApi(options = {}) {
+  const {
+    master,
+    members,
+    action,
+    beforeValue,
+    adminId,
+    operationId,
+    createdAt
+  } = options;
+  const memberRows = (members || []).map((row) => buildSheetValuesFromObject("product_family_members", row));
+  if (memberRows.length) {
+    await appendGoogleSheetRowsViaApi("product_family_members", memberRows, {
+      timeoutMs: 12000,
+      valueInputOption: "RAW"
+    });
+  }
+  await appendGoogleSheetValuesViaApi(
+    "product_family_master",
+    buildSheetValuesFromObject("product_family_master", master),
+    { timeoutMs: 8000, valueInputOption: "RAW" }
+  );
+  let auditWarning = "";
+  try {
+    await appendProductFamilyAuditViaApi({
+      operationId,
+      familyId: master.familyId,
+      action,
+      beforeValue: serializeProductFamilyAuditValue(beforeValue),
+      afterValue: serializeProductFamilyAuditValue({ ...master, members }),
+      adminId,
+      createdAt,
+      result: "success"
+    });
+  } catch (error) {
+    auditWarning = error?.message || String(error);
+    console.warn("Product family audit log append failed after commit.", {
+      familyId: master.familyId,
+      operationId,
+      message: auditWarning
+    });
+  }
+  return { auditWarning };
+}
+
+function replaceProductFamilyState(families = [], nextFamily = {}) {
+  const familyId = asText(nextFamily.familyId);
+  return [
+    ...(families || []).filter((family) => asText(family.familyId) !== familyId),
+    nextFamily
+  ];
+}
+
+async function saveProductFamilyCatalogVersionToStorage(payload = {}) {
+  const publicationRevision = asText(payload.publicationRevision);
+  if (!/^pfc_[a-f0-9]{24}$/.test(publicationRevision)) {
+    throw createHttpError("Product family publication revision is invalid", 500, {
+      code: "product_family_publication_revision_invalid"
+    });
+  }
+  const objectName = getGolfJoinProductObjectName(`product-family/catalogs/${publicationRevision}.json`);
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const file = bucket.file(objectName);
+  let alreadyExists = false;
+  try {
+    await file.save(`${JSON.stringify(payload, null, 2)}\n`, {
+      resumable: false,
+      preconditionOpts: { ifGenerationMatch: 0 },
+      metadata: {
+        cacheControl: "public, max-age=31536000, immutable",
+        contentType: "application/json; charset=utf-8"
+      }
+    });
+  } catch (error) {
+    if (Number(error?.code) !== 412) throw error;
+    alreadyExists = true;
+  }
+  return {
+    bucket: GOLFJOIN_PRODUCTS_BUCKET,
+    objectName,
+    url: `https://storage.googleapis.com/${GOLFJOIN_PRODUCTS_BUCKET}/${objectName.split("/").map(encodeURIComponent).join("/")}`,
+    alreadyExists
+  };
+}
+
+async function readProductFamilyManifestFromStorage() {
+  const objectName = getGolfJoinProductObjectName("product-family/manifest.json");
+  const file = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET).file(objectName);
+  try {
+    const [[metadata], [buffer]] = await Promise.all([
+      file.getMetadata(),
+      file.download()
+    ]);
+    const payload = JSON.parse(buffer.toString("utf8") || "{}");
+    return {
+      exists: true,
+      generation: asText(metadata?.generation),
+      objectName,
+      payload
+    };
+  } catch (error) {
+    if (Number(error?.code) === 404) {
+      return { exists: false, generation: "", objectName, payload: {} };
+    }
+    throw error;
+  }
+}
+
+async function switchProductFamilyManifestAtomically(publishedCatalog = {}, storageResult = {}, options = {}) {
+  const current = await readProductFamilyManifestFromStorage();
+  const nextManifest = buildProductFamilyManifest(
+    publishedCatalog,
+    storageResult,
+    current.payload,
+    { publishedAt: asText(options.publishedAt) || nowKstISOString() }
+  );
+  if (current.exists
+    && asText(current.payload?.activePublicationRevision) === nextManifest.activePublicationRevision
+    && asText(current.payload?.activeCatalogObjectName) === nextManifest.activeCatalogObjectName) {
+    return {
+      ok: true,
+      unchanged: true,
+      generation: current.generation,
+      objectName: current.objectName,
+      url: `https://storage.googleapis.com/${GOLFJOIN_PRODUCTS_BUCKET}/${current.objectName.split("/").map(encodeURIComponent).join("/")}`,
+      manifest: current.payload
+    };
+  }
+  const file = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET).file(current.objectName);
+  try {
+    await file.save(`${JSON.stringify(nextManifest, null, 2)}\n`, {
+      resumable: false,
+      preconditionOpts: {
+        ifGenerationMatch: current.exists ? Number(current.generation) : 0
+      },
+      metadata: {
+        cacheControl: "public, max-age=15, must-revalidate",
+        contentType: "application/json; charset=utf-8"
+      }
+    });
+  } catch (error) {
+    if (Number(error?.code) === 412) {
+      throw createHttpError("Product family manifest changed during publication", 409, {
+        code: "product_family_manifest_revision_conflict"
+      });
+    }
+    throw error;
+  }
+  const [metadata] = await file.getMetadata();
+  return {
+    ok: true,
+    unchanged: false,
+    generation: asText(metadata?.generation),
+    objectName: current.objectName,
+    url: `https://storage.googleapis.com/${GOLFJOIN_PRODUCTS_BUCKET}/${current.objectName.split("/").map(encodeURIComponent).join("/")}`,
+    manifest: nextManifest
+  };
+}
+
+async function appendProductFamilyPublicationStateViaApi(options = {}) {
+  const {
+    families = [],
+    familyIds = [],
+    publicationRevision = "",
+    catalogRevision = "",
+    analysisRevision = "",
+    publishStatus = "published",
+    publishError = "",
+    adminId = "system-product-family-publisher",
+    now = nowKstISOString()
+  } = options;
+  const targetIds = new Set((familyIds || []).map(asText).filter(Boolean));
+  const warnings = [];
+  const updatedFamilies = [];
+  for (const family of families || []) {
+    const familyId = asText(family.familyId);
+    if (!targetIds.has(familyId)) continue;
+    const master = {
+      ...family,
+      publishStatus,
+      publishedRevision: publishStatus === "published"
+        ? normalizeProductFamilyRevision(family.configRevision)
+        : normalizeProductFamilyRevision(family.publishedRevision),
+      catalogRevision: asText(catalogRevision || family.catalogRevision),
+      analysisRevision: asText(analysisRevision || family.analysisRevision),
+      updatedAt: now,
+      publishError: asText(publishError).slice(0, 1000)
+    };
+    delete master.members;
+    await appendGoogleSheetValuesViaApi(
+      "product_family_master",
+      buildSheetValuesFromObject("product_family_master", master),
+      { timeoutMs: 8000, valueInputOption: "RAW" }
+    );
+    updatedFamilies.push({ ...master, members: family.members || [] });
+    try {
+      await appendProductFamilyAuditViaApi({
+        operationId: buildGoogleSheetRecordId("pfp", familyId, publicationRevision || publishStatus, family.configRevision),
+        familyId,
+        action: publishStatus === "published" ? "catalog_publish" : "catalog_publish_failed",
+        beforeValue: serializeProductFamilyAuditValue({
+          publishStatus: family.publishStatus,
+          publishedRevision: family.publishedRevision,
+          publishError: family.publishError
+        }),
+        afterValue: serializeProductFamilyAuditValue({
+          publishStatus,
+          publishedRevision: master.publishedRevision,
+          publicationRevision,
+          publishError: master.publishError
+        }),
+        adminId,
+        createdAt: now,
+        result: publishStatus === "published" ? "success" : "failed"
+      });
+    } catch (error) {
+      warnings.push({ familyId, warning: "audit_log_append_failed", message: error?.message || String(error) });
+    }
+  }
+  return { updatedFamilies, warnings };
+}
+
+async function publishProductFamilyCatalogSnapshotViaApi(options = {}) {
+  const {
+    families = [],
+    catalog = [],
+    catalogRevision = "",
+    analysisRevision = "",
+    targetFamilyIds = [],
+    adminId = "system-product-family-publisher"
+  } = options;
+  const now = nowKstISOString();
+  const targetIds = [...new Set((targetFamilyIds || []).map(asText).filter(Boolean))];
+  let publishedCatalog = null;
+  try {
+    publishedCatalog = buildPublishedFamilyCatalog(families, catalog, {
+      catalogRevision,
+      analysisRevision,
+      generatedAt: now
+    });
+    if (publishedCatalog.diagnostics.length) {
+      throw createHttpError("One or more approved product families failed publication validation", 409, {
+        code: "product_family_publication_validation_failed",
+        diagnostics: publishedCatalog.diagnostics
+      });
+    }
+    const publishedIds = new Set(publishedCatalog.families.map((family) => family.familyId));
+    const invalidTargetIds = targetIds.filter((familyId) => {
+      const family = (families || []).find((item) => asText(item.familyId) === familyId);
+      return asText(family?.status) === FAMILY_STATUS.APPROVED && !publishedIds.has(familyId);
+    });
+    if (invalidTargetIds.length) {
+      throw createHttpError("Approved product family could not be included in the published catalog", 409, {
+        code: "product_family_publication_validation_failed",
+        familyIds: invalidTargetIds,
+        diagnostics: publishedCatalog.diagnostics
+      });
+    }
+    const storageResult = await saveProductFamilyCatalogVersionToStorage(publishedCatalog);
+    const stateResult = await appendProductFamilyPublicationStateViaApi({
+      families,
+      familyIds: targetIds,
+      publicationRevision: publishedCatalog.publicationRevision,
+      catalogRevision,
+      analysisRevision,
+      publishStatus: "published",
+      adminId,
+      now
+    });
+    const manifestResult = await switchProductFamilyManifestAtomically(
+      publishedCatalog,
+      storageResult,
+      { publishedAt: now }
+    );
+    return {
+      ok: true,
+      publicationRevision: publishedCatalog.publicationRevision,
+      familyCount: publishedCatalog.familyCount,
+      memberCount: publishedCatalog.memberCount,
+      diagnostics: publishedCatalog.diagnostics,
+      storage: storageResult,
+      manifest: manifestResult,
+      updatedFamilies: stateResult.updatedFamilies,
+      warnings: stateResult.warnings
+    };
+  } catch (error) {
+    const message = error?.message || String(error);
+    const failureWarnings = [];
+    let failureUpdatedFamilies = [];
+    try {
+      const stateResult = await appendProductFamilyPublicationStateViaApi({
+        families,
+        familyIds: targetIds,
+        publicationRevision: publishedCatalog?.publicationRevision || "",
+        catalogRevision,
+        analysisRevision,
+        publishStatus: "failed",
+        publishError: message,
+        adminId,
+        now
+      });
+      failureUpdatedFamilies = stateResult.updatedFamilies || [];
+      failureWarnings.push(...stateResult.warnings);
+    } catch (stateError) {
+      failureWarnings.push({ warning: "publish_state_append_failed", message: stateError?.message || String(stateError) });
+    }
+    console.warn("Product family catalog publication failed.", {
+      targetFamilyIds: targetIds,
+      message
+    });
+    return {
+      ok: false,
+      publicationRevision: publishedCatalog?.publicationRevision || "",
+      error: message,
+      code: asText(error?.code) || "product_family_catalog_publish_failed",
+      updatedFamilies: failureUpdatedFamilies,
+      warnings: failureWarnings
+    };
+  }
+}
+
+const PRODUCT_FAMILY_MUTATION_LOCK_MAX_AGE_MS = 12 * 60 * 1000;
+
+async function acquireProductFamilyMutationLock() {
+  const objectName = getGolfJoinProductObjectName("product-family/locks/admin-mutation.lock");
+  const file = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET).file(objectName);
+  const lockPayload = `${JSON.stringify({ acquiredAt: new Date().toISOString(), instance: process.env.K_REVISION || "local" })}\n`;
+  const tryCreate = async () => {
+    await file.save(lockPayload, {
+      resumable: false,
+      preconditionOpts: { ifGenerationMatch: 0 },
+      metadata: {
+        cacheControl: "no-store",
+        contentType: "application/json; charset=utf-8"
+      }
+    });
+    const [metadata] = await file.getMetadata();
+    return asText(metadata?.generation);
+  };
+  try {
+    const generation = await tryCreate();
+    return { file, generation };
+  } catch (error) {
+    if (Number(error?.code) !== 412) throw error;
+  }
+
+  try {
+    const [metadata] = await file.getMetadata();
+    const generation = asText(metadata?.generation);
+    const createdAt = Date.parse(metadata?.timeCreated || metadata?.updated || "");
+    if (generation && Number.isFinite(createdAt) && Date.now() - createdAt > PRODUCT_FAMILY_MUTATION_LOCK_MAX_AGE_MS) {
+      await file.delete({ ifGenerationMatch: generation });
+      const nextGeneration = await tryCreate();
+      return { file, generation: nextGeneration };
+    }
+  } catch (error) {
+    if (![404, 412].includes(Number(error?.code))) throw error;
+    try {
+      const generation = await tryCreate();
+      return { file, generation };
+    } catch (retryError) {
+      if (Number(retryError?.code) !== 412) throw retryError;
+    }
+  }
+  throw createHttpError("Another product family operation is in progress. Please try again shortly.", 409, {
+    code: "product_family_operation_in_progress"
+  });
+}
+
+async function withProductFamilyMutationLock(task) {
+  const lock = await acquireProductFamilyMutationLock();
+  try {
+    return await task();
+  } finally {
+    try {
+      await lock.file.delete({ ifGenerationMatch: lock.generation });
+    } catch (error) {
+      if (Number(error?.code) !== 404 && Number(error?.code) !== 412) {
+        console.warn("Product family mutation lock release failed.", { message: error?.message || String(error) });
+      }
+    }
+  }
+}
+
+function buildGoogleSheetUserEnteredValue(value) {
+  if (typeof value === "boolean") return { boolValue: value };
+  if (typeof value === "number" && Number.isFinite(value)) return { numberValue: value };
+  return { stringValue: value == null ? "" : String(value) };
+}
+
+function buildGoogleSheetAppendCellsRows(rows = []) {
+  return (rows || []).map((row) => ({
+    values: row.map((value) => ({ userEnteredValue: buildGoogleSheetUserEnteredValue(value) }))
+  }));
+}
+
+async function compactProductFamilyCurrentStateViaApi(families = []) {
+  const metadata = await readGoogleSheetMetadataViaApi({ timeoutMs: 8000 });
+  const sheetMap = new Map((metadata.sheets || []).map((item) => [
+    asText(item?.properties?.title),
+    item?.properties || {}
+  ]));
+  const currentFamilies = (families || [])
+    .filter((family) => asText(family.familyId))
+    .slice()
+    .sort((left, right) => asText(left.familyId).localeCompare(asText(right.familyId)));
+  const masterRows = currentFamilies.map((family) => {
+    const master = { ...family };
+    delete master.members;
+    return buildSheetValuesFromObject("product_family_master", master);
+  });
+  const memberRows = currentFamilies
+    .filter((family) => asText(family.status) !== FAMILY_STATUS.REVOKED)
+    .flatMap((family) => (family.members || []).map((member) => buildSheetValuesFromObject("product_family_members", {
+      ...member,
+      familyId: asText(family.familyId),
+      configRevision: normalizeProductFamilyRevision(family.configRevision)
+    })));
+  const replacements = [
+    ["product_family_master", masterRows],
+    ["product_family_members", memberRows]
+  ];
+  const requests = [];
+  replacements.forEach(([sheetName, rows]) => {
+    const properties = sheetMap.get(sheetName);
+    const sheetId = Number(properties?.sheetId);
+    const rowCount = Number(properties?.gridProperties?.rowCount || 1);
+    if (!Number.isInteger(sheetId)) {
+      throw createHttpError(`${sheetName} sheet metadata is unavailable`, 500, {
+        code: "product_family_compaction_sheet_missing"
+      });
+    }
+    if (rowCount > 1) {
+      requests.push({
+        deleteDimension: {
+          range: {
+            sheetId,
+            dimension: "ROWS",
+            startIndex: 1,
+            endIndex: rowCount
+          }
+        }
+      });
+    }
+    if (rows.length) {
+      requests.push({
+        appendCells: {
+          sheetId,
+          rows: buildGoogleSheetAppendCellsRows(rows),
+          fields: "userEnteredValue"
+        }
+      });
+    }
+  });
+  if (!requests.length) return { ok: true, familyCount: 0, memberCount: 0 };
+  const token = await getGoogleMetadataAccessToken();
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(GOOGLE_SHEET_ID)}:batchUpdate`;
+  const response = await fetchWithTimeout(url, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ requests })
+  }, 12000, "Google Sheets compact product family current state");
+  const responseText = await response.text();
+  if (!response.ok) {
+    throw createHttpError(`Google Sheets product family compaction failed: ${response.status} ${responseText.slice(0, 200)}`, response.status, {
+      code: "product_family_compaction_failed"
+    });
+  }
+  return {
+    ok: true,
+    familyCount: masterRows.length,
+    memberCount: memberRows.length
+  };
+}
+
+async function compactProductFamilyCurrentStateSafely(families = []) {
+  try {
+    return await compactProductFamilyCurrentStateViaApi(families);
+  } catch (error) {
+    console.warn("Product family current-state compaction failed; append-only state remains valid.", {
+      message: error?.message || String(error)
+    });
+    return {
+      ok: false,
+      code: asText(error?.code) || "product_family_compaction_failed",
+      error: error?.message || String(error)
+    };
+  }
+}
+
+function buildProductFamilyAdminAnalysis(productState = {}, families = []) {
+  const familyDiagnostics = (families || [])
+    .filter((family) => asText(family.status) !== FAMILY_STATUS.REVOKED)
+    .map((family) => {
+      const reconciliation = reconcileFamilyWithCatalog(family, productState.catalog || []);
+      return {
+        familyId: asText(family.familyId),
+        status: asText(reconciliation.family?.status || family.status),
+        changed: Boolean(reconciliation.changed),
+        requiresReview: Boolean(reconciliation.requiresReview),
+        reasons: reconciliation.reasons || [],
+        resolvedRepresentativeGoodSeq: normalizeProductFamilyGoodSeq(
+          reconciliation.family?.resolvedRepresentativeGoodSeq || family.resolvedRepresentativeGoodSeq
+        )
+      };
+    });
+  const candidates = buildCandidateAnalysis(productState.catalog || [], families || []);
+  return {
+    candidates,
+    familyDiagnostics,
+    summary: {
+      catalogCount: (productState.catalog || []).length,
+      candidateCount: candidates.length,
+      familyCount: (families || []).filter((family) => asText(family.status) !== FAMILY_STATUS.REVOKED).length,
+      reviewRequiredCount: familyDiagnostics.filter((item) => item.requiresReview || item.status === FAMILY_STATUS.REVIEW_REQUIRED).length
+    }
+  };
+}
+
+async function reconcileProductFamiliesWithCatalogViaApi(options = {}) {
+  const {
+    families = [],
+    catalog = [],
+    catalogRevision = "",
+    analysisRevision = "",
+    adminId = "system-product-refresh"
+  } = options;
+  const reconciledFamilies = [];
+  const diagnostics = [];
+  const warnings = [];
+  let updatedCount = 0;
+  for (const currentFamily of families) {
+    const reconciliation = reconcileFamilyWithCatalog(currentFamily, catalog);
+    if (!reconciliation.changed) {
+      reconciledFamilies.push(currentFamily);
+      diagnostics.push({
+        familyId: asText(currentFamily.familyId),
+        changed: false,
+        requiresReview: Boolean(reconciliation.requiresReview),
+        reasons: reconciliation.reasons || []
+      });
+      continue;
+    }
+    const now = nowKstISOString();
+    const familyId = asText(currentFamily.familyId);
+    const configRevision = normalizeProductFamilyRevision(currentFamily.configRevision) + 1;
+    const operationId = buildGoogleSheetRecordId("pfr", familyId, analysisRevision, "catalog-reconcile");
+    const master = {
+      ...reconciliation.family,
+      familyId,
+      configRevision,
+      analysisRevision,
+      catalogRevision,
+      publishStatus: "pending",
+      updatedAt: now,
+      publishError: "",
+      operationId
+    };
+    delete master.members;
+    const members = (reconciliation.family.members || []).map((member) => ({
+      ...member,
+      familyId,
+      lastSeenCatalogRevision: member.sourceActive === false
+        ? asText(member.lastSeenCatalogRevision)
+        : catalogRevision,
+      configRevision,
+      updatedAt: now,
+      operationId
+    }));
+    const commit = await commitProductFamilyVersionViaApi({
+      master,
+      members,
+      action: reconciliation.requiresReview ? "catalog_reconcile_review_required" : "catalog_reconcile",
+      beforeValue: sanitizeProductFamilyForAdmin(currentFamily),
+      adminId,
+      operationId,
+      createdAt: now
+    });
+    if (commit.auditWarning) warnings.push({ familyId, warning: "audit_log_append_failed" });
+    const nextFamily = { ...master, members };
+    reconciledFamilies.push(nextFamily);
+    diagnostics.push({
+      familyId,
+      changed: true,
+      requiresReview: Boolean(reconciliation.requiresReview),
+      reasons: reconciliation.reasons || [],
+      configRevision
+    });
+    updatedCount += 1;
+  }
+  return {
+    families: reconciledFamilies,
+    diagnostics,
+    updatedCount,
+    unchangedCount: Math.max(0, families.length - updatedCount),
+    warnings
+  };
+}
+
+function buildProductFamilyVersionRows(options = {}) {
+  const {
+    currentFamily,
+    validated,
+    familyId,
+    configRevision,
+    catalogRevision,
+    analysisRevision,
+    adminId,
+    operationId,
+    now,
+    status = FAMILY_STATUS.APPROVED,
+    publishStatus = "pending"
+  } = options;
+  const approvedAt = asText(currentFamily?.approvedAt) || now;
+  const resolvedRepresentativeGoodSeq = resolveRepresentative(validated);
+  const master = {
+    familyId,
+    status,
+    representativeMode: validated.representativeMode,
+    preferredGoodSeq: validated.preferredGoodSeq,
+    resolvedRepresentativeGoodSeq,
+    candidateKeySnapshot: validated.candidateKeySnapshot,
+    configRevision,
+    analysisRevision,
+    catalogRevision,
+    publishStatus,
+    publishedRevision: normalizeProductFamilyRevision(currentFamily?.publishedRevision),
+    approvedBy: asText(currentFamily?.approvedBy) || adminId,
+    approvedAt,
+    updatedAt: now,
+    revokedAt: "",
+    publishError: "",
+    operationId
+  };
+  const members = validated.products.map((product) => ({
+    familyId,
+    goodSeq: product.goodSeq,
+    memberStatus: "active",
+    durationNights: Number(product.durationNights || 0),
+    durationDays: Number(product.durationDays || 0),
+    sourceTitleSnapshot: asText(product.title),
+    materialSignature: buildProductFamilyMaterialSignature(product),
+    sourceActive: product.sourceActive !== false,
+    lastSeenCatalogRevision: catalogRevision,
+    configRevision,
+    approvedAt,
+    updatedAt: now,
+    operationId
+  }));
+  return { master, members };
+}
+
+async function proxyAdminProductFamilyBootstrap(req, res) {
+  assertProductFamilyAdminRequest(req);
+  const [sheetState, productsPayload, newScheduleHeaders] = await Promise.all([
+    readProductFamilySheetStateViaApi(),
+    readGolfJoinProductsPayloadFromStorage(),
+    ensureGoogleSheetHeadersViaApi("new_schedule_applications", { timeoutMs: 8000 })
+  ]);
+  const productState = buildCurrentProductFamilyCatalog(productsPayload);
+  const adminAnalysis = buildProductFamilyAdminAnalysis(productState, sheetState.families);
+  res.status(200).json({
+    ok: true,
+    schema: "golfjoin-product-family-admin-v1",
+    catalogRevision: productState.catalogRevision,
+    analysisRevision: productState.analysisRevision,
+    catalog: productState.catalog,
+    candidates: adminAnalysis.candidates,
+    familyDiagnostics: adminAnalysis.familyDiagnostics,
+    summary: adminAnalysis.summary,
+    families: sheetState.families.map(sanitizeProductFamilyForAdmin),
+    persistence: {
+      newScheduleProductFamilyIdHeader: newScheduleHeaders.includes("productFamilyId")
+    }
+  });
+}
+
+async function getProductFamilyMutationContext(payload = {}) {
+  const [sheetState, productsPayload] = await Promise.all([
+    readProductFamilySheetStateViaApi(),
+    readGolfJoinProductsPayloadFromStorage()
+  ]);
+  const productState = buildCurrentProductFamilyCatalog(productsPayload);
+  assertProductFamilyAnalysisRevision(payload, productState.analysisRevision);
+  return { ...sheetState, ...productState };
+}
+
+async function proxyAdminProductFamilyAssign(req, res) {
+  assertProductFamilyAdminRequest(req);
+  const payload = readBody(req);
+  const context = await getProductFamilyMutationContext(payload);
+  const suppliedOperationId = asText(payload.operationId);
+  const idempotentFamily = findProductFamilyIdempotentResult(context.families, suppliedOperationId);
+  if (idempotentFamily) {
+    res.status(200).json({ ok: true, family: sanitizeProductFamilyForAdmin(idempotentFamily), unchanged: true });
+    return;
+  }
+  const requestedFamilyId = asText(payload.familyId);
+  const currentFamily = requestedFamilyId
+    ? context.families.find((family) => asText(family.familyId) === requestedFamilyId) || null
+    : null;
+  if (requestedFamilyId && !currentFamily) {
+    throw createHttpError("수정할 상품군을 찾지 못했습니다.", 404, { code: "product_family_not_found" });
+  }
+  assertProductFamilyExpectedRevision(payload, currentFamily);
+  const familyId = requestedFamilyId || createFamilyId();
+  const validated = validateFamilyAssignment({
+    familyId,
+    memberGoodSeqs: payload.memberGoodSeqs,
+    representativeMode: payload.representativeMode,
+    preferredGoodSeq: payload.preferredGoodSeq || payload.preferredRepresentativeGoodSeq
+  }, {
+    catalog: context.catalog,
+    families: context.families
+  });
+  const now = nowKstISOString();
+  const operationId = getProductFamilyOperationId(payload, familyId, "assign", now);
+  const configRevision = normalizeProductFamilyRevision(currentFamily?.configRevision) + 1;
+  const version = buildProductFamilyVersionRows({
+    currentFamily,
+    validated,
+    familyId,
+    configRevision,
+    catalogRevision: context.catalogRevision,
+    analysisRevision: context.analysisRevision,
+    adminId: getProductFamilyAdminId(req),
+    operationId,
+    now
+  });
+  const commit = await commitProductFamilyVersionViaApi({
+    ...version,
+    action: currentFamily ? "assignment_update" : "assignment_create",
+    beforeValue: currentFamily ? sanitizeProductFamilyForAdmin(currentFamily) : null,
+    adminId: getProductFamilyAdminId(req),
+    operationId,
+    createdAt: now
+  });
+  const nextFamily = { ...version.master, members: version.members };
+  const publication = await publishProductFamilyCatalogSnapshotViaApi({
+    families: replaceProductFamilyState(context.families, nextFamily),
+    catalog: context.catalog,
+    catalogRevision: context.catalogRevision,
+    analysisRevision: context.analysisRevision,
+    targetFamilyIds: [familyId],
+    adminId: getProductFamilyAdminId(req)
+  });
+  const publishedFamily = publication.updatedFamilies?.find((family) => asText(family.familyId) === familyId) || nextFamily;
+  const compaction = await compactProductFamilyCurrentStateSafely(
+    replaceProductFamilyState(context.families, publishedFamily)
+  );
+  res.status(200).json({
+    ok: true,
+    family: sanitizeProductFamilyForAdmin(publishedFamily),
+    publication,
+    compaction,
+    ...((commit.auditWarning || !publication.ok) ? {
+      warning: commit.auditWarning ? "audit_log_append_failed" : "product_family_catalog_publish_failed"
+    } : {})
+  });
+}
+
+async function proxyAdminProductFamilyRepresentativeUpdate(req, res) {
+  assertProductFamilyAdminRequest(req);
+  const payload = readBody(req);
+  const context = await getProductFamilyMutationContext(payload);
+  const suppliedOperationId = asText(payload.operationId);
+  const idempotentFamily = findProductFamilyIdempotentResult(context.families, suppliedOperationId);
+  if (idempotentFamily) {
+    res.status(200).json({ ok: true, family: sanitizeProductFamilyForAdmin(idempotentFamily), unchanged: true });
+    return;
+  }
+  const familyId = asText(payload.familyId);
+  const currentFamily = context.families.find((family) => asText(family.familyId) === familyId) || null;
+  if (!currentFamily || asText(currentFamily.status) === FAMILY_STATUS.REVOKED) {
+    throw createHttpError("변경할 승인 상품군을 찾지 못했습니다.", 404, { code: "product_family_not_found" });
+  }
+  assertProductFamilyExpectedRevision(payload, currentFamily);
+  const validated = validateFamilyAssignment({
+    familyId,
+    memberGoodSeqs: currentFamily.members.map((member) => member.goodSeq),
+    representativeMode: payload.representativeMode,
+    preferredGoodSeq: payload.preferredGoodSeq || payload.preferredRepresentativeGoodSeq
+  }, {
+    catalog: context.catalog,
+    families: context.families
+  });
+  const now = nowKstISOString();
+  const operationId = getProductFamilyOperationId(payload, familyId, "representative", now);
+  const version = buildProductFamilyVersionRows({
+    currentFamily,
+    validated,
+    familyId,
+    configRevision: normalizeProductFamilyRevision(currentFamily.configRevision) + 1,
+    catalogRevision: context.catalogRevision,
+    analysisRevision: context.analysisRevision,
+    adminId: getProductFamilyAdminId(req),
+    operationId,
+    now
+  });
+  const commit = await commitProductFamilyVersionViaApi({
+    ...version,
+    action: "representative_update",
+    beforeValue: sanitizeProductFamilyForAdmin(currentFamily),
+    adminId: getProductFamilyAdminId(req),
+    operationId,
+    createdAt: now
+  });
+  const nextFamily = { ...version.master, members: version.members };
+  const publication = await publishProductFamilyCatalogSnapshotViaApi({
+    families: replaceProductFamilyState(context.families, nextFamily),
+    catalog: context.catalog,
+    catalogRevision: context.catalogRevision,
+    analysisRevision: context.analysisRevision,
+    targetFamilyIds: [familyId],
+    adminId: getProductFamilyAdminId(req)
+  });
+  const publishedFamily = publication.updatedFamilies?.find((family) => asText(family.familyId) === familyId) || nextFamily;
+  const compaction = await compactProductFamilyCurrentStateSafely(
+    replaceProductFamilyState(context.families, publishedFamily)
+  );
+  res.status(200).json({
+    ok: true,
+    family: sanitizeProductFamilyForAdmin(publishedFamily),
+    publication,
+    compaction,
+    ...((commit.auditWarning || !publication.ok) ? {
+      warning: commit.auditWarning ? "audit_log_append_failed" : "product_family_catalog_publish_failed"
+    } : {})
+  });
+}
+
+async function proxyAdminProductFamilyRevoke(req, res) {
+  assertProductFamilyAdminRequest(req);
+  const payload = readBody(req);
+  const sheetState = await readProductFamilySheetStateViaApi();
+  const suppliedOperationId = asText(payload.operationId);
+  const idempotentFamily = findProductFamilyIdempotentResult(sheetState.families, suppliedOperationId);
+  if (idempotentFamily) {
+    res.status(200).json({ ok: true, family: sanitizeProductFamilyForAdmin(idempotentFamily), unchanged: true });
+    return;
+  }
+  const familyId = asText(payload.familyId);
+  const currentFamily = sheetState.families.find((family) => asText(family.familyId) === familyId) || null;
+  if (!currentFamily) throw createHttpError("취소할 상품군을 찾지 못했습니다.", 404, { code: "product_family_not_found" });
+  assertProductFamilyExpectedRevision(payload, currentFamily);
+  if (asText(currentFamily.status) === FAMILY_STATUS.REVOKED) {
+    res.status(200).json({ ok: true, family: sanitizeProductFamilyForAdmin(currentFamily), unchanged: true });
+    return;
+  }
+  const now = nowKstISOString();
+  const operationId = getProductFamilyOperationId(payload, familyId, "revoke", now);
+  const configRevision = normalizeProductFamilyRevision(currentFamily.configRevision) + 1;
+  const master = {
+    ...currentFamily,
+    status: FAMILY_STATUS.REVOKED,
+    configRevision,
+    publishStatus: "pending",
+    updatedAt: now,
+    revokedAt: now,
+    publishError: "",
+    operationId
+  };
+  delete master.members;
+  const members = (currentFamily.members || []).map((member) => ({
+    ...member,
+    familyId,
+    memberStatus: "revoked",
+    configRevision,
+    updatedAt: now,
+    operationId
+  }));
+  const commit = await commitProductFamilyVersionViaApi({
+    master,
+    members,
+    action: "assignment_revoke",
+    beforeValue: sanitizeProductFamilyForAdmin(currentFamily),
+    adminId: getProductFamilyAdminId(req),
+    operationId,
+    createdAt: now
+  });
+  const productsPayload = await readGolfJoinProductsPayloadFromStorage();
+  const productState = buildCurrentProductFamilyCatalog(productsPayload);
+  const nextFamily = { ...master, members };
+  const publication = await publishProductFamilyCatalogSnapshotViaApi({
+    families: replaceProductFamilyState(sheetState.families, nextFamily),
+    catalog: productState.catalog,
+    catalogRevision: productState.catalogRevision,
+    analysisRevision: productState.analysisRevision,
+    targetFamilyIds: [familyId],
+    adminId: getProductFamilyAdminId(req)
+  });
+  const publishedFamily = publication.updatedFamilies?.find((family) => asText(family.familyId) === familyId) || nextFamily;
+  const compaction = await compactProductFamilyCurrentStateSafely(
+    replaceProductFamilyState(sheetState.families, publishedFamily)
+  );
+  res.status(200).json({
+    ok: true,
+    family: sanitizeProductFamilyForAdmin(publishedFamily),
+    publication,
+    compaction,
+    ...((commit.auditWarning || !publication.ok) ? {
+      warning: commit.auditWarning ? "audit_log_append_failed" : "product_family_catalog_publish_failed"
+    } : {})
+  });
+}
+
+async function proxyAdminProductFamilyRepublish(req, res) {
+  assertProductFamilyAdminRequest(req);
+  const payload = readBody(req);
+  const sheetState = await getProductFamilyMutationContext(payload);
+  const suppliedOperationId = asText(payload.operationId);
+  const idempotentFamily = findProductFamilyIdempotentResult(sheetState.families, suppliedOperationId);
+  if (idempotentFamily) {
+    res.status(200).json({ ok: true, queued: true, family: sanitizeProductFamilyForAdmin(idempotentFamily), unchanged: true });
+    return;
+  }
+  const familyId = asText(payload.familyId);
+  const currentFamily = sheetState.families.find((family) => asText(family.familyId) === familyId) || null;
+  if (!currentFamily || asText(currentFamily.status) === FAMILY_STATUS.REVOKED) {
+    throw createHttpError("재발행할 승인 상품군을 찾지 못했습니다.", 404, { code: "product_family_not_found" });
+  }
+  assertProductFamilyExpectedRevision(payload, currentFamily);
+  const now = nowKstISOString();
+  const operationId = getProductFamilyOperationId(payload, familyId, "republish", now);
+  const configRevision = normalizeProductFamilyRevision(currentFamily.configRevision) + 1;
+  const master = {
+    ...currentFamily,
+    configRevision,
+    publishStatus: "pending",
+    updatedAt: now,
+    publishError: "",
+    operationId
+  };
+  delete master.members;
+  const members = (currentFamily.members || []).map((member) => ({
+    ...member,
+    familyId,
+    configRevision,
+    updatedAt: now,
+    operationId
+  }));
+  const commit = await commitProductFamilyVersionViaApi({
+    master,
+    members,
+    action: "republish_request",
+    beforeValue: sanitizeProductFamilyForAdmin(currentFamily),
+    adminId: getProductFamilyAdminId(req),
+    operationId,
+    createdAt: now
+  });
+  const nextFamily = { ...master, members };
+  const publication = await publishProductFamilyCatalogSnapshotViaApi({
+    families: replaceProductFamilyState(sheetState.families, nextFamily),
+    catalog: sheetState.catalog,
+    catalogRevision: sheetState.catalogRevision,
+    analysisRevision: sheetState.analysisRevision,
+    targetFamilyIds: [familyId],
+    adminId: getProductFamilyAdminId(req)
+  });
+  const publishedFamily = publication.updatedFamilies?.find((family) => asText(family.familyId) === familyId) || nextFamily;
+  const compaction = await compactProductFamilyCurrentStateSafely(
+    replaceProductFamilyState(sheetState.families, publishedFamily)
+  );
+  res.status(200).json({
+    ok: true,
+    queued: false,
+    family: sanitizeProductFamilyForAdmin(publishedFamily),
+    publication,
+    compaction,
+    ...((commit.auditWarning || !publication.ok) ? {
+      warning: commit.auditWarning ? "audit_log_append_failed" : "product_family_catalog_publish_failed"
+    } : {})
+  });
+}
+
 async function refreshGolfJoinHomeSummaryFromCurrentData(reason = "manual") {
   const [productsPayload, homeBootstrapLight] = await Promise.all([
     readGolfJoinProductsPayloadFromStorage(),
@@ -6234,17 +8562,18 @@ async function refreshGolfJoinHomeSummaryFromCurrentData(reason = "manual") {
   const summaryPayload = buildGolfJoinHomeSummaryPayload(productsPayload, { homeBootstrapLight });
   summaryPayload.refreshReason = asText(reason) || "manual";
   const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
-  await bucket.file(getGolfJoinProductObjectName("golfjoin_home_summary.json")).save(`${JSON.stringify(summaryPayload)}\n`, {
-    resumable: false,
-    metadata: {
-      cacheControl: "public, max-age=60",
-      contentType: "application/json; charset=utf-8"
-    }
+  await saveGolfJoinHomeArtifactsToStorage(bucket, summaryPayload, {
+    writeAvailability: false,
+    ensureAvailability: true
   });
   return summaryPayload;
 }
 
 function refreshGolfJoinHomeSummaryInBackground(reason = "write") {
+  // 일정 생성/참여 직후 이전 참여자 요약이 TTL 동안 다시 노출되지 않도록
+  // 공개 홈 캐시를 먼저 비우고 최신 스냅샷을 재생성한다.
+  homeBootstrapCache.clear();
+  homeBootstrapLightCache.clear();
   refreshGolfJoinHomeSummaryFromCurrentData(reason)
     .then((summary) => {
       console.log("golfjoin home summary refreshed", {
@@ -6270,8 +8599,50 @@ async function refreshSecretTourProducts(req, res) {
   }
   const items = await loadSecretTourGoodsProducts();
   if (!items.length) throw createHttpError("No Secret Tour products were loaded", 502);
-  const payload = buildGolfJoinProductsPayload(items);
+  let previousProductMetaByGoodSeq = {};
+  try {
+    const previousPayload = await readGolfJoinProductsPayloadFromStorage();
+    previousProductMetaByGoodSeq = previousPayload.productMetaByGoodSeq || {};
+  } catch (error) {
+    console.warn("Previous product metadata is unavailable.", {
+      message: error?.message || String(error)
+    });
+  }
+  const productMeta = await loadSecretTourProductMetaByGoodSeq(items, previousProductMetaByGoodSeq);
+  const payload = buildGolfJoinProductsPayload(items, {
+    productMetaByGoodSeq: productMeta.productMetaByGoodSeq
+  });
   await saveGolfJoinProductsPayload(payload);
+  const productState = buildCurrentProductFamilyCatalog(payload);
+  const familySheetState = await readProductFamilySheetStateViaApi();
+  const familyReconciliation = await reconcileProductFamiliesWithCatalogViaApi({
+    families: familySheetState.families,
+    catalog: productState.catalog,
+    catalogRevision: productState.catalogRevision,
+    analysisRevision: productState.analysisRevision,
+    adminId: getProductFamilyAdminId(req)
+  });
+  const publishTargetFamilyIds = familyReconciliation.families
+    .filter((family) => asText(family.status) !== FAMILY_STATUS.REVOKED)
+    .map((family) => asText(family.familyId))
+    .filter(Boolean);
+  const productFamilyPublication = publishTargetFamilyIds.length
+    ? await publishProductFamilyCatalogSnapshotViaApi({
+        families: familyReconciliation.families,
+        catalog: productState.catalog,
+        catalogRevision: productState.catalogRevision,
+        analysisRevision: productState.analysisRevision,
+        targetFamilyIds: publishTargetFamilyIds,
+        adminId: getProductFamilyAdminId(req)
+      })
+    : null;
+  const publishedFamilyMap = new Map((productFamilyPublication?.updatedFamilies || [])
+    .map((family) => [asText(family.familyId), family]));
+  const finalProductFamilies = familyReconciliation.families.map((family) => (
+    publishedFamilyMap.get(asText(family.familyId)) || family
+  ));
+  const productFamilyCompaction = await compactProductFamilyCurrentStateSafely(finalProductFamilies);
+  const productFamilyAnalysis = buildProductFamilyAdminAnalysis(productState, finalProductFamilies);
   const summaryPayload = buildGolfJoinHomeSummaryPayload(payload);
   res.status(200).json({
     ok: true,
@@ -6279,15 +8650,42 @@ async function refreshSecretTourProducts(req, res) {
     bucket: GOLFJOIN_PRODUCTS_BUCKET,
     files: [
       getGolfJoinProductObjectName("golfjoin_home_summary.json"),
+      getGolfJoinProductObjectName("golfjoin_home_cards.json"),
       getGolfJoinProductObjectName("golfjoin_local_data.js"),
-      getGolfJoinProductObjectName("golfjoin_local_data.json")
+      getGolfJoinProductObjectName("golfjoin_local_data.json"),
+      ...(productFamilyPublication?.storage?.objectName ? [productFamilyPublication.storage.objectName] : []),
+      ...(productFamilyPublication?.manifest?.objectName ? [productFamilyPublication.manifest.objectName] : [])
     ],
     generatedAt: payload.generatedAt,
     range: payload.range,
     summaryRange: summaryPayload.range,
     summaryCount: summaryPayload.count,
     count: payload.count,
-    items: payload.items
+    items: payload.items,
+    productMeta: {
+      count: Object.keys(payload.productMetaByGoodSeq || {}).length,
+      requestedCount: productMeta.requestedCount,
+      loadedCount: productMeta.loadedCount,
+      preservedCount: productMeta.preservedCount,
+      failedCount: productMeta.failedCount
+    },
+    productFamily: {
+      catalogRevision: productState.catalogRevision,
+      analysisRevision: productState.analysisRevision,
+      catalog: productState.catalog,
+      reconciliation: {
+        updatedCount: familyReconciliation.updatedCount,
+        unchangedCount: familyReconciliation.unchangedCount,
+        diagnostics: familyReconciliation.diagnostics,
+        warnings: familyReconciliation.warnings
+      },
+      publication: productFamilyPublication,
+      compaction: productFamilyCompaction,
+      candidates: productFamilyAnalysis.candidates,
+      familyDiagnostics: productFamilyAnalysis.familyDiagnostics,
+      summary: productFamilyAnalysis.summary,
+      families: finalProductFamilies.map(sanitizeProductFamilyForAdmin)
+    }
   });
 }
 
@@ -6395,7 +8793,8 @@ async function proxyGet(req, res) {
         sheet: requestedSheet || req.query?.sheet || ""
       });
       res.status(200).json(isAdmin ? payload : sanitizePublicPayload(payload, {
-        preserveQuoteLinks: preserveMemberQuoteLinks
+        preserveQuoteLinks: preserveMemberQuoteLinks,
+        sheet: requestedSheet
       }));
       return;
     } catch (error) {
@@ -6423,7 +8822,8 @@ async function proxyGet(req, res) {
   }
   try {
     res.send(JSON.stringify(sanitizePublicPayload(JSON.parse(text), {
-      preserveQuoteLinks: preserveMemberQuoteLinks
+      preserveQuoteLinks: preserveMemberQuoteLinks,
+      sheet: requestedSheet
     })));
   } catch (error) {
     res.send(text);
@@ -6697,8 +9097,8 @@ function buildAdminRosterScheduleSnapshot(canonical = {}, fallbackProduct = {}) 
       fallbackProduct.arrivalAirport,
       fallbackProduct.arrAirport
     ),
-    erpProductId: normalizeErpProductId(schedule.erpProductId, schedule.erpEventSeq),
-    erpEventSeq: asText(schedule.erpEventSeq)
+    erpProductId: normalizeCanonicalErpProductId(schedule.erpProductId, schedule.erpEventSeq),
+    erpEventSeq: normalizeCanonicalErpEventSeq(schedule.erpEventSeq)
   };
 }
 
@@ -7000,12 +9400,17 @@ async function proxyAdminParticipantBatchUpsert(req, res) {
     }
   }
   if (appendRows.length) await appendGoogleSheetRowsViaApi("join_applications", appendRows, { timeoutMs: 12_000 });
+  const participantSummarySync = await syncRequiredScheduleParticipantSummarySheetViaApi(
+    "join_applications",
+    savedRows[0]
+  );
   refreshGolfJoinHomeSummaryInBackground("admin_roster_batch_upsert");
   res.status(200).json({
     ok: true,
     savedCount: savedRows.length,
     profileCreatedCount: newProfiles.length,
     rosterBatchId: batchId,
+    participantSummarySync,
     rows: savedRows,
     identities: identities.map((identity, index) => ({
       rosterItemId: participants[index].rosterItemId,
@@ -7065,6 +9470,10 @@ async function proxyAdminParticipantDelete(req, res) {
       }
     }
   }
+  const participantSummarySync = await syncRequiredScheduleParticipantSummarySheetViaApi(
+    "join_applications",
+    row
+  );
   refreshGolfJoinHomeSummaryInBackground("admin_participant_delete");
   res.status(200).json({
     ok: true,
@@ -7072,7 +9481,182 @@ async function proxyAdminParticipantDelete(req, res) {
     sheet: "join_applications",
     applicationId,
     adminRosterItemId: asText(row.adminRosterItemId),
-    profileDeleted
+    profileDeleted,
+    participantSummarySync
+  });
+}
+
+const RECOMMENDED_SCHEDULE_MIGRATION_STATE_SHEETS = Object.freeze([
+  ...RECOMMENDED_SCHEDULE_MIGRATION_SHEETS,
+  "product_family_master",
+  "product_family_members"
+]);
+
+function findStoredGolfJoinProductByReference(productsPayload = {}, goodSeq = "", eventSeq = "") {
+  const expectedGoodSeq = asText(goodSeq);
+  const expectedEventSeq = asText(eventSeq);
+  return (Array.isArray(productsPayload.items) ? productsPayload.items : []).find((item) => (
+    asText(item.goodSeq || item.erpProductId || item.productId) === expectedGoodSeq
+    && asText(item.eventSeq || item.erpEventSeq) === expectedEventSeq
+  )) || null;
+}
+
+async function readRecommendedScheduleMigrationState() {
+  const [sheets, productsPayload, headerEntries] = await Promise.all([
+    readGoogleSheetRangesViaApi(RECOMMENDED_SCHEDULE_MIGRATION_STATE_SHEETS, { timeoutMs: 12_000 }),
+    readGolfJoinProductsPayloadFromStorage(),
+    Promise.all(RECOMMENDED_SCHEDULE_MIGRATION_SHEETS.map(async (sheetName) => (
+      [sheetName, await readGoogleSheetHeaderViaApi(sheetName, { timeoutMs: 8000 })]
+    )))
+  ]);
+  return {
+    sheets,
+    productsPayload,
+    headersBySheet: Object.fromEntries(headerEntries)
+  };
+}
+
+function verifyRecommendedScheduleMigrationState(sheets = {}, plan = {}) {
+  const sourceRemainingBySheet = RECOMMENDED_SCHEDULE_MIGRATION_SHEETS.reduce((result, sheetName) => {
+    const count = (sheets[sheetName] || []).filter((row) => (
+      rowMatchesRecommendedScheduleMigrationSource(sheetName, row, plan.source)
+    )).length;
+    if (count) result[sheetName] = count;
+    return result;
+  }, {});
+  const targetRuleCount = (sheets.recommended_schedules || []).filter((row) => (
+    asText(row.recommendedScheduleId || row.displayRuleId) === plan.target.recommendedScheduleId
+    && asText(row.erpProductId || row.goodSeq) === plan.target.goodSeq
+    && asText(row.erpEventSeq || row.eventSeq) === plan.target.eventSeq
+  )).length;
+  const targetParticipantCount = (sheets.join_applications || []).filter((row) => (
+    asText(row.targetScheduleId) === plan.target.adminScheduleId
+    && asText(row.targetApplicationId) === plan.target.recommendedScheduleId
+    && asText(row.erpProductId || row.goodSeq) === plan.target.goodSeq
+    && asText(row.erpEventSeq || row.eventSeq) === plan.target.eventSeq
+  )).length;
+  const targetSummaryCount = (sheets.schedule_participant_summary || []).filter((row) => (
+    asText(row.scheduleId) === plan.target.adminScheduleId
+    && asText(row.sourceApplicationId) === plan.target.recommendedScheduleId
+  )).length;
+  return {
+    ok: Object.keys(sourceRemainingBySheet).length === 0
+      && targetRuleCount === 1
+      && targetSummaryCount === 1,
+    sourceRemainingBySheet,
+    targetRuleCount,
+    targetParticipantCount,
+    targetSummaryCount
+  };
+}
+
+async function proxyAdminRecommendedScheduleMigrate(req, res) {
+  assertAdminErpRequest(req);
+  if (!GOOGLE_SHEET_ID) throw createHttpError("GOOGLE_SHEET_ID is not configured", 500);
+  const payload = readBody(req);
+  const sourceGoodSeq = assertTextLength(payload.sourceGoodSeq, "sourceGoodSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const sourceEventSeq = assertTextLength(payload.sourceEventSeq, "sourceEventSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const targetGoodSeq = assertTextLength(payload.targetGoodSeq, "targetGoodSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const targetEventSeq = assertTextLength(payload.targetEventSeq, "targetEventSeq", MAX_STRING_LENGTHS.short, { required: true });
+  const state = await readRecommendedScheduleMigrationState();
+  const targetProduct = findStoredGolfJoinProductByReference(state.productsPayload, targetGoodSeq, targetEventSeq);
+  if (!targetProduct) {
+    throw createHttpError("Target product was not found in the current product catalog", 404, {
+      code: "recommended_schedule_migration_target_product_not_found",
+      targetGoodSeq,
+      targetEventSeq
+    });
+  }
+  let plan;
+  try {
+    plan = buildRecommendedScheduleMigrationPlan({
+      sourceGoodSeq,
+      sourceEventSeq,
+      targetGoodSeq,
+      targetEventSeq,
+      targetProduct,
+      sheets: state.sheets,
+      headersBySheet: state.headersBySheet,
+      now: nowKstISOString()
+    });
+  } catch (error) {
+    throw createHttpError(error?.message || "Recommended schedule migration plan failed", 409, {
+      code: error?.code || "recommended_schedule_migration_plan_failed",
+      ...(error?.details || {})
+    });
+  }
+  const summary = summarizeRecommendedScheduleMigrationPlan(plan);
+  const expectedParticipantCount = payload.expectedParticipantCount === undefined || payload.expectedParticipantCount === ""
+    ? null
+    : Number(payload.expectedParticipantCount);
+  if (!plan.alreadyMigrated && expectedParticipantCount !== null && (
+    !Number.isInteger(expectedParticipantCount) || expectedParticipantCount !== plan.sourceParticipantCount
+  )) {
+    throw createHttpError("Participant count changed; migration was not applied", 409, {
+      code: "recommended_schedule_migration_participant_count_mismatch",
+      expectedParticipantCount,
+      actualParticipantCount: plan.sourceParticipantCount
+    });
+  }
+  if (payload.apply !== true) {
+    res.status(200).json({ ok: true, dryRun: true, migration: summary });
+    return;
+  }
+  if (asText(payload.confirmationKey) !== plan.migrationKey) {
+    throw createHttpError("Migration confirmation key does not match", 409, {
+      code: "recommended_schedule_migration_confirmation_mismatch",
+      expectedConfirmationKey: plan.migrationKey
+    });
+  }
+  if (plan.updates.length) {
+    await batchUpdateGoogleSheetRowsViaApi(plan.updates, { timeoutMs: 25_000, valueInputOption: "RAW" });
+  }
+  const verificationSheets = await readGoogleSheetRangesViaApi(RECOMMENDED_SCHEDULE_MIGRATION_STATE_SHEETS, { timeoutMs: 12_000 });
+  const verification = verifyRecommendedScheduleMigrationState(verificationSheets, plan);
+  const expectedMigratedParticipants = plan.alreadyMigrated ? expectedParticipantCount : plan.sourceParticipantCount;
+  const participantCountMatches = expectedMigratedParticipants === null
+    || verification.targetParticipantCount === expectedMigratedParticipants;
+  if (!verification.ok || !participantCountMatches) {
+    if (plan.updates.length) {
+      try {
+        await batchUpdateGoogleSheetRowsViaApi(plan.updates.map((item) => ({
+          ...item,
+          afterValues: item.beforeValues
+        })), { timeoutMs: 25_000, valueInputOption: "RAW" });
+      } catch (rollbackError) {
+        console.error("Recommended schedule migration rollback failed", {
+          message: rollbackError?.message || String(rollbackError),
+          fingerprint: plan.fingerprint
+        });
+      }
+    }
+    throw createHttpError("Recommended schedule migration verification failed; changes were rolled back", 500, {
+      code: "recommended_schedule_migration_verification_failed",
+      verification,
+      expectedMigratedParticipants
+    });
+  }
+
+  homeBootstrapCache.clear();
+  homeBootstrapLightCache.clear();
+  let homeSummaryRefresh;
+  try {
+    const refreshed = await refreshGolfJoinHomeSummaryFromCurrentData("admin_recommended_schedule_migrate");
+    homeSummaryRefresh = {
+      ok: true,
+      updatedAt: asText(refreshed.generatedAt || refreshed.updatedAt),
+      participantSummaryCount: refreshed.homeBootstrapLight?.participantSummaries?.length || 0
+    };
+  } catch (error) {
+    homeSummaryRefresh = { ok: false, error: error?.message || String(error) };
+  }
+  res.status(200).json({
+    ok: true,
+    dryRun: false,
+    applied: plan.updates.length > 0,
+    migration: summary,
+    verification,
+    homeSummaryRefresh
   });
 }
 
@@ -7153,6 +9737,36 @@ async function proxyPost(req, res) {
     return;
   }
 
+  if (req.query?.action === "admin_recommended_schedule_migrate") {
+    await withProductFamilyMutationLock(() => proxyAdminRecommendedScheduleMigrate(req, res));
+    return;
+  }
+
+  if (req.query?.action === "admin_product_family_bootstrap") {
+    await proxyAdminProductFamilyBootstrap(req, res);
+    return;
+  }
+
+  if (req.query?.action === "admin_product_family_assign") {
+    await withProductFamilyMutationLock(() => proxyAdminProductFamilyAssign(req, res));
+    return;
+  }
+
+  if (req.query?.action === "admin_product_family_representative_update") {
+    await withProductFamilyMutationLock(() => proxyAdminProductFamilyRepresentativeUpdate(req, res));
+    return;
+  }
+
+  if (req.query?.action === "admin_product_family_revoke") {
+    await withProductFamilyMutationLock(() => proxyAdminProductFamilyRevoke(req, res));
+    return;
+  }
+
+  if (req.query?.action === "admin_product_family_republish") {
+    await withProductFamilyMutationLock(() => proxyAdminProductFamilyRepublish(req, res));
+    return;
+  }
+
   if (req.query?.action === "admin_status_update") {
     if (!isAdminReadRequest(req)) {
       const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
@@ -7221,7 +9835,7 @@ async function proxyPost(req, res) {
   }
 
   if (req.query?.action === "refresh_secret_tour_products") {
-    await refreshSecretTourProducts(req, res);
+    await withProductFamilyMutationLock(() => refreshSecretTourProducts(req, res));
     return;
   }
 
@@ -7237,6 +9851,7 @@ async function proxyPost(req, res) {
     error.status = 400;
     throw error;
   }
+  canonicalizePayloadErpReferences(payload);
   const source = asText(payload.source);
   if (!isWriteRequestAuthorized(req) && !((source === "product_display_rule" || source === "recommended_schedule") && isAdminReadRequest(req))) {
     const error = new Error("Write token is required");
@@ -7283,7 +9898,15 @@ async function proxyPost(req, res) {
   if (source === "join_apply" && GOOGLE_SHEET_ID) {
     try {
       const savedPayload = await saveJoinApplicationViaSheetsApi(payload);
-      const notifications = await dispatchGolfjoinApplicationNotifications(payload, asText(payload.targetScheduleId || getValue(payload, "target.scheduleId")), requestId);
+      const notificationPayload = {
+        ...payload,
+        applicationId: savedPayload.applicationId || payload.applicationId || payload.joinApplyId
+      };
+      const notifications = await dispatchGolfjoinApplicationNotifications(
+        notificationPayload,
+        asText(notificationPayload.targetScheduleId || getValue(notificationPayload, "target.scheduleId")),
+        requestId
+      );
       refreshGolfJoinHomeSummaryInBackground(source);
       res.status(200).json({
         ...savedPayload,
@@ -7332,6 +9955,7 @@ async function proxyPost(req, res) {
       res.status(200).json(savedPayload);
       return;
     } catch (error) {
+      if (Number(error?.status || 0) >= 400 && Number(error?.status || 0) < 500) throw error;
       console.warn("Recommended schedule save via Google Sheets API failed; falling back to Apps Script.", {
         requestId,
         name: error?.name || "",
@@ -7394,7 +10018,12 @@ async function proxyPost(req, res) {
       res.status(409).send(JSON.stringify(savedPayload));
       return;
     }
-    const notifications = await dispatchGolfjoinApplicationNotifications(payload, notificationScheduleId, requestId);
+    const notificationPayload = {
+      ...payload,
+      applicationId: savedPayload.applicationId || payload.applicationId || payload.joinApplyId,
+      scheduleId: savedPayload.scheduleId || payload.scheduleId
+    };
+    const notifications = await dispatchGolfjoinApplicationNotifications(notificationPayload, notificationScheduleId, requestId);
     refreshGolfJoinHomeSummaryInBackground(source);
     res.send(JSON.stringify({
       ...savedPayload,
@@ -7446,7 +10075,13 @@ exports.proxyGoogleSheet = async (req, res) => {
       ...(Number.isFinite(error.remainingSeats) ? { remainingSeats: error.remainingSeats } : {}),
       ...(Number.isFinite(error.requestedPeople) ? { requestedPeople: error.requestedPeople } : {}),
       ...(Number.isFinite(error.capacity) ? { capacity: error.capacity } : {}),
-      ...(Number.isFinite(error.confirmedPeople) ? { confirmedPeople: error.confirmedPeople } : {})
+      ...(Number.isFinite(error.confirmedPeople) ? { confirmedPeople: error.confirmedPeople } : {}),
+      ...(Number.isFinite(error.expectedConfigRevision) ? { expectedConfigRevision: error.expectedConfigRevision } : {}),
+      ...(Number.isFinite(error.currentConfigRevision) ? { currentConfigRevision: error.currentConfigRevision } : {}),
+      ...(error.expectedAnalysisRevision ? { expectedAnalysisRevision: error.expectedAnalysisRevision } : {}),
+      ...(error.currentAnalysisRevision ? { currentAnalysisRevision: error.currentAnalysisRevision } : {}),
+      ...(Array.isArray(error.missingGoodSeqs) ? { missingGoodSeqs: error.missingGoodSeqs } : {}),
+      ...(Array.isArray(error.conflicts) ? { conflicts: error.conflicts } : {})
     });
   }
 };

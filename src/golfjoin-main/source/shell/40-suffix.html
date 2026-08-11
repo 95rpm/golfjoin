@@ -1,0 +1,754 @@
+</script>
+
+
+<div class="overlay sgj-portal-overlay" id="joinMyMenuModal" onclick="if(event.target.id === 'joinMyMenuModal') closeJoinMyMenu({ reopenDrawer: true })" style="z-index: 2147483620 !important;">
+    <div class="modal join-my-modal" role="dialog" aria-modal="true" aria-labelledby="joinMyMenuTitle">
+      <div class="modal-header">
+        <button type="button" class="modal-close-icon modal-back-icon" onclick="closeJoinMyMenu({ reopenDrawer: true })" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
+          </svg>
+        </button>
+        <div class="modal-title" id="joinMyMenuTitle">내 예약</div>
+        <span class="modal-header-spacer" aria-hidden="true"></span>
+      </div>
+      <div class="join-my-body" id="joinMyMenuBody">
+        <div class="join-my-reservation-nav" role="tablist" aria-label="내예약 분류">
+          <button type="button" class="join-my-tab active" data-join-my-tab="created" role="tab" aria-selected="true" onclick="switchJoinMyTab('created')">내가 만든 일정</button>
+          <button type="button" class="join-my-tab" data-join-my-tab="joined" role="tab" aria-selected="false" onclick="switchJoinMyTab('joined')">참여중</button>
+          <button type="button" class="join-my-tab" data-join-my-tab="completed" role="tab" aria-selected="false" onclick="switchJoinMyTab('completed')">다녀온 일정</button>
+        </div>
+        <div class="join-my-profile">
+          <section class="join-my-section" data-join-my-section="created">
+            <div class="join-my-reservation-title">내가 만든 일정</div>
+            
+        <article class="join-my-card join-my-card-accordion">
+          <div class="join-my-card-summary">
+            <div class="join-my-card-summary-top">
+              <div class="join-my-card-dday">D+37</div>
+              <button type="button" class="join-my-card-product-button" onclick="event.stopPropagation(); handleJoinMyReservationProduct('j3', '태국 방콕 2색 3박5일 썬라이즈 호텔')" aria-label="자세히 보기"><i class="join-my-card-product-label-desktop">자세히 보기</i><i class="join-my-card-product-label-mobile">자세히 보기</i> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-right-icon lucide-chevron-right" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></button>
+            </div>
+            <div class="join-my-card-title">태국 방콕 2색 3박5일 썬라이즈 호텔</div>
+            <div class="join-my-summary-line location"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="11" r="2.5" stroke="currentColor"></circle></svg><div class="join-my-summary-line-text">방콕<i class="join-my-summary-dot" aria-hidden="true"></i>인천출발<i class="join-my-summary-dot join-my-summary-mobile-duration-dot" aria-hidden="true"></i><i class="join-my-summary-mobile-duration">3박5일</i></div></div>
+            <div class="join-my-summary-line period"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor"></rect><path d="M8 2v4M16 2v4M3 10h18" stroke="currentColor" stroke-linecap="round"></path></svg><div class="join-my-summary-line-text">2026.05.11(월) ~ 2026.05.15(금)<i class="join-my-summary-dot join-my-summary-duration" aria-hidden="true"></i><i class="join-my-summary-duration">3박5일</i></div></div>
+          </div>
+          <div class="join-my-card-expanded">
+            
+        <div class="join-my-participant-status">
+          <div class="join-my-participant-panel">
+            <div class="join-my-participant-panel-head">
+              <div class="join-my-participant-panel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="9" cy="7" r="4" stroke="currentColor"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+              <div class="join-my-participant-panel-title">참여현황</div>
+            </div>
+            <div class="join-my-participant-main">
+              <div class="join-my-participant-icons-box">
+                <div class="join-my-card-participants"><div class="join-my-card-participant-slot">
+        <div class="team-avatar-wrap">
+          <button type="button" class="team-avatar participant-flow-avatar participant-gender-male" data-participant="%7B%22joinId%22%3A%22j3%22%2C%22participantId%22%3A%22j3p1%22%7D" data-participant-gender="남성" style="--participant-flow-delay:-6.68s;" onclick="event.stopPropagation(); handleParticipantClick(this)" title="한** / 40대 / 82타" aria-label="한** 참여자 정보">
+            <img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man2.webp" alt="한**">
+          </button>
+        </div>
+      </div><div class="join-my-card-participant-slot">
+        <div class="join-my-empty-slot" aria-label="빈 인원 슬롯">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+      </div><div class="join-my-card-participant-slot">
+        <div class="join-my-empty-slot" aria-label="빈 인원 슬롯">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+      </div><div class="join-my-card-participant-slot">
+        <div class="join-my-empty-slot" aria-label="빈 인원 슬롯">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+      </div></div>
+              </div>
+              <div class="join-my-participant-counts">
+                <div class="join-my-participant-count">
+                  <div class="join-my-participant-count-label">현재인원</div>
+                  <div class="join-my-participant-count-value">1/4명</div>
+                </div>
+                <div class="join-my-participant-count">
+                  <div class="join-my-participant-count-label">남은자리</div>
+                  <div class="join-my-participant-count-value">3자리</div>
+                </div>
+              </div>
+            </div>
+            <div class="join-my-participant-summary">
+              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">인원구성</div><div class="join-my-participant-pill-value">남성 1명</div></div>
+              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">평균타수</div><div class="join-my-participant-pill-value">80대 정도</div></div>
+              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">평균연령</div><div class="join-my-participant-pill-value">40대 중반</div></div>
+            </div>
+          </div>
+        </div>
+      
+          </div>
+        </article>
+      
+          </section>
+          <section class="join-my-section" data-join-my-section="joined" hidden="">
+            <div class="join-my-reservation-title">내가 참여중인 일정</div>
+            
+        <article class="join-my-card">
+          <div class="join-my-card-thumb">
+            <img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/main_sl_02.jpg" alt="다낭 바나힐 조인 골프" loading="lazy" decoding="async">
+            <div class="join-my-card-thumb-badge">다낭</div>
+          </div>
+          <div class="join-my-card-content">
+            <div class="join-my-card-head">
+              <div>
+                <div class="join-my-card-dday">D-7</div>
+                <div class="join-my-card-title">다낭 바나힐 조인 골프</div>
+              </div>
+              <div class="join-my-status-pill ">예약 가능 확인</div>
+            </div>
+            <div class="join-my-card-detail-list">
+        <div class="join-my-card-detail-row">
+          <div class="join-my-card-detail-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="11" r="2.5" stroke="currentColor"></circle></svg></div>
+          <div class="join-my-card-detail-copy">
+            <div class="join-my-card-detail-label">여행지</div>
+            <div class="join-my-card-detail-value">베트남 다낭</div>
+          </div>
+        </div>
+      
+        <div class="join-my-card-detail-row">
+          <div class="join-my-card-detail-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor"></rect><path d="M8 2v4M16 2v4M3 10h18" stroke="currentColor" stroke-linecap="round"></path><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" stroke="currentColor" stroke-linecap="round"></path></svg></div>
+          <div class="join-my-card-detail-copy">
+            <div class="join-my-card-detail-label">여행기간</div>
+            <div class="join-my-card-detail-value">2026.06.24(수) ~ 2026.06.27(토)</div>
+          </div>
+        </div>
+      
+        <div class="join-my-card-detail-row participants">
+          <div class="join-my-card-detail-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="9" cy="7" r="4" stroke="currentColor"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          <div class="join-my-card-detail-copy">
+            <div class="join-my-card-detail-label">참여현황</div>
+            <div class="join-my-card-detail-value">
+        <div class="join-my-participant-status">
+          <div class="join-my-participant-panel">
+            <div class="join-my-participant-panel-head">
+              <div class="join-my-participant-panel-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="9" cy="7" r="4" stroke="currentColor"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+              <div class="join-my-participant-panel-title">참여현황</div>
+            </div>
+            <div class="join-my-participant-main">
+              <div class="join-my-participant-icons-box">
+                <div class="join-my-card-participants"><div class="join-my-card-participant-slot">
+        <div class="join-my-empty-slot" aria-label="빈 인원 슬롯">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+      </div></div>
+              </div>
+              <div class="join-my-participant-counts">
+                <div class="join-my-participant-count">
+                  <div class="join-my-participant-count-label">현재인원</div>
+                  <div class="join-my-participant-count-value">0명</div>
+                </div>
+                <div class="join-my-participant-count">
+                  <div class="join-my-participant-count-label">남은자리</div>
+                  <div class="join-my-participant-count-value">0자리</div>
+                </div>
+              </div>
+            </div>
+            <div class="join-my-participant-summary">
+              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">인원구성</div><div class="join-my-participant-pill-value">확인중</div></div>
+              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">평균타수</div><div class="join-my-participant-pill-value">확인중</div></div>
+              <div class="join-my-participant-pill"><div class="join-my-participant-pill-label">평균연령</div><div class="join-my-participant-pill-value">확인중</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+          </div>
+        </div>
+      </div>
+            <div class="join-my-card-info">
+              
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">내 상태</div>
+                  <div class="join-my-info-chip-value">신청접수</div>
+                </div>
+              
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">예약금</div>
+                  <div class="join-my-info-chip-value">안내 예정</div>
+                </div>
+              
+                <div class="join-my-info-chip">
+                  <div class="join-my-info-chip-label">동반자</div>
+                  <div class="join-my-info-chip-value">3명 확인</div>
+                </div>
+              
+            </div>
+            <div class="join-my-card-actions">
+              <button type="button" class="primary" onclick="handleJoinMyReservationProduct('', '다낭 바나힐 조인 골프')">상품 정보</button><button type="button" class="" onclick="void 0">입금 완료 알림</button><button type="button" class="" onclick="void 0">취소 요청</button>
+            </div>
+          </div>
+        </article>
+      
+          </section>
+          <section class="join-my-section" data-join-my-section="completed" hidden="">
+            <div class="join-my-reservation-title">내가 다녀온 일정</div>
+            <div class="join-my-state">아직 다녀온 모임이 없어요.</div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+<div class="overlay sgj-portal-overlay" id="builderModal" onclick="if(event.target.id === 'builderModal') closeModal('builderModal')" style="--builder-bottom-offset: 118px; z-index: 2147483500 !important;">
+    <div class="modal builder-modal" style="z-index: 2147483501 !important;">
+      <div class="builder-header">
+        <button type="button" class="modal-close-icon modal-back-icon" onclick="closeModal('builderModal')" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
+          </svg>
+        </button>
+        <div class="builder-header-copy">
+          <div class="builder-title">새로운 모임 만들기</div>
+        </div>
+        <span class="modal-header-spacer" aria-hidden="true"></span>
+      </div>
+      <div class="builder-progress">
+        <button type="button" class="builder-progress-item done" data-builder-progress="1" onclick="goBuilderProgressStep(1)"><div class="builder-progress-dot"></div><div class="builder-progress-label">날짜선택<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big-icon lucide-circle-check-big builder-progress-check" aria-hidden="true"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div></button>
+        <button type="button" class="builder-progress-item done" data-builder-progress="2" onclick="goBuilderProgressStep(2)"><div class="builder-progress-dot"></div><div class="builder-progress-label">지역선택<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check-big-icon lucide-circle-check-big builder-progress-check" aria-hidden="true"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></div></button>
+        <button type="button" class="builder-progress-item active" data-builder-progress="3" onclick="goBuilderProgressStep(3)"><div class="builder-progress-dot"></div><div class="builder-progress-label">참여자정보</div></button>
+      </div>
+      <div class="builder-body builder-step-3" id="builderBody">
+        <div class="builder-step" data-builder-step="1">
+          <div class="builder-card builder-calendar-card">
+            <div class="builder-calendar-head">
+              <div class="builder-calendar-legend" id="builderActiveScheduleLegend" hidden>
+                <div class="builder-calendar-legend-dot" aria-hidden="true"></div>
+                <div>참여중</div>
+              </div>
+              <div class="builder-month-nav">
+                <button type="button" class="builder-month-button" onclick="changeBuilderMonth(-1)" aria-label="이전 달" style="margin-right: 0px !important;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                <div class="builder-calendar-month" id="builderCalendarMonth">2026년 6월</div>
+                <button type="button" class="builder-month-button" onclick="changeBuilderMonth(1)" aria-label="다음 달" style="margin-right: 0px !important;"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+              </div>
+              <button type="button" class="builder-date-reset" onclick="resetBuilderDates()" aria-label="날짜 초기화" style="margin-right: 0px !important;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-refresh-ccw-icon lucide-refresh-ccw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M16 16h5v5"></path></svg>
+                <div class="builder-date-reset-text">초기화</div>
+              </button>
+            </div>
+            <div class="builder-calendar-weekdays" aria-hidden="true">
+              <div class="builder-weekday">일</div><div class="builder-weekday">월</div><div class="builder-weekday">화</div><div class="builder-weekday">수</div><div class="builder-weekday">목</div><div class="builder-weekday">금</div><div class="builder-weekday">토</div>
+            </div>
+            <div class="builder-calendar-grid" id="builderCalendar"><div class="builder-calendar-week"><button type="button" class="builder-day muted unavailable sunday" data-builder-day-offset="0" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">31</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="1" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">1</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="2" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">2</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="3" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">3</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="4" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">4</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="5" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">5</div></button><button type="button" class="builder-day unavailable saturday" data-builder-day-offset="6" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">6</div></button></div><div class="builder-calendar-week"><button type="button" class="builder-day unavailable sunday" data-builder-day-offset="7" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">7</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="8" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">8</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="9" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">9</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="10" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">10</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="11" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">11</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="12" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">12</div></button><button type="button" class="builder-day unavailable saturday" data-builder-day-offset="13" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">13</div></button></div><div class="builder-calendar-week"><button type="button" class="builder-day unavailable sunday" data-builder-day-offset="14" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">14</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="15" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">15</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="16" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">16</div></button><button type="button" class="builder-day unavailable today" data-builder-day-offset="17" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">17</div><div class="builder-day-today-label">TODAY</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="18" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">18</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="19" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">19</div></button><button type="button" class="builder-day unavailable saturday" data-builder-day-offset="20" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">20</div></button></div><div class="builder-calendar-week"><button type="button" class="builder-day unavailable sunday" data-builder-day-offset="21" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">21</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="22" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">22</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="23" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">23</div></button><button type="button" class="builder-day flex flex-single linked start" data-builder-day-offset="24" onclick="openBuilderDatePopover('start', this)" style="margin-right: 0px !important;"><div class="builder-day-number">24</div><div class="builder-day-label">출발</div></button><button type="button" class="builder-day range" data-builder-day-offset="25" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">25</div></button><button type="button" class="builder-day range" data-builder-day-offset="26" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">26</div></button><button type="button" class="builder-day saturday flex flex-single linked end" data-builder-day-offset="27" onclick="openBuilderDatePopover('end', this)" style="margin-right: 0px !important;" data-hover-bound="true"><div class="builder-day-number">27</div><div class="builder-day-label">도착</div></button></div><div class="builder-calendar-week"><button type="button" class="builder-day unavailable sunday" data-builder-day-offset="28" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">28</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="29" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">29</div></button><button type="button" class="builder-day unavailable" data-builder-day-offset="30" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">30</div></button><button type="button" class="builder-day muted unavailable" data-builder-day-offset="31" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">1</div></button><button type="button" class="builder-day muted unavailable" data-builder-day-offset="32" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">2</div></button><button type="button" class="builder-day muted unavailable" data-builder-day-offset="33" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">3</div></button><button type="button" class="builder-day muted unavailable saturday" data-builder-day-offset="34" disabled="" style="margin-right: 0px !important;"><div class="builder-day-number">4</div></button></div></div>
+            <div class="builder-calendar-loading" id="builderCalendarLoading">
+              <div class="join-action-loading-box has-message" role="status" aria-live="polite" aria-label="가능한 출발일을 확인하고 있어요">
+                <div class="join-action-loading-icon" id="builderCalendarLoadingIcon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tickets-plane-icon lucide-tickets-plane"><path d="M10.5 17h1.227a2 2 0 0 0 1.345-.52L18 12"></path><path d="m12 13.5 3.794.506"></path><path d="m3.173 8.18 11-5a2 2 0 0 1 2.647.993L18.56 8"></path><path d="M6 10V8"></path><path d="M6 14v1"></path><path d="M6 19v2"></path><rect x="2" y="8" width="20" height="13" rx="2"></rect></svg></div>
+                <div class="join-action-loading-message" id="builderCalendarLoadingMessage"><div class="join-loading-text">가능한 출발일을 확인하고 있어요<div class="join-loading-dots" aria-hidden="true"><div class="join-loading-dot">.</div><div class="join-loading-dot">.</div><div class="join-loading-dot">.</div></div></div></div>
+              </div>
+            </div>
+            <div class="builder-date-popover" id="builderDatePopover">
+              <div class="builder-date-popover-title" id="builderDatePopoverTitle">
+        <div class="builder-date-title-row">
+          <span class="builder-date-title-label">도착일</span>
+          <span class="builder-date-title-range">6.27<span class="builder-date-weekday">토</span></span>
+        </div>
+        <div class="builder-date-mode-toggle" role="group" aria-label="도착일 선택 방식">
+          <button type="button" class="builder-date-mode-button active" aria-pressed="true" onclick="setBuilderPopoverMode('fixed')">이날만</button>
+          <button type="button" class="builder-date-mode-button" aria-pressed="false" onclick="setBuilderPopoverMode('flex')">여유롭게</button>
+        </div>
+        <div class="builder-date-stepper-stage">
+          <div class="builder-date-side-stepper">
+            <div class="builder-date-side-label">전</div>
+            <div class="builder-date-side-controls">
+              <button type="button" onclick="changeBuilderPopoverFlex('before', 1)" aria-label="이전 여유날짜 늘리기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+              <span id="builderMobileBeforeFlex">+0일</span>
+              <button type="button" onclick="changeBuilderPopoverFlex('before', -1)" aria-label="이전 여유날짜 줄이기" disabled=""><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            </div>
+          </div>
+          <div class="builder-date-center-stepper">
+            <div class="builder-date-side-label">기준일</div>
+            <div class="builder-date-title-selected">6.27<span class="builder-date-weekday">토</span></div>
+          </div>
+          <div class="builder-date-side-stepper">
+            <div class="builder-date-side-label">후</div>
+            <div class="builder-date-side-controls">
+              <button type="button" onclick="changeBuilderPopoverFlex('after', -1)" aria-label="이후 여유날짜 줄이기" disabled=""><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+              <span id="builderMobileAfterFlex">+0일</span>
+              <button type="button" onclick="changeBuilderPopoverFlex('after', 1)" aria-label="이후 여유날짜 늘리기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+              <div class="builder-date-popover-actions">
+                <button type="button" onclick="toggleBuilderPopoverFlex()" style="margin-right: 0px !important;">여유롭게</button>
+                <button type="button" class="primary-action" onclick="fixBuilderSelectedDate()" style="margin-right: 0px !important;">이날만</button>
+              </div>
+              <div class="builder-date-flex-panel">
+                <div class="builder-date-flex-row"><div>전</div><div class="builder-stepper"><button type="button" data-builder-popover-flex-side="before" data-builder-popover-flex-delta="-1" onclick="changeBuilderPopoverFlex('before', -1)" style="margin-right: 0px !important;" disabled=""><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderPopoverBeforeFlex">+0일</span><button type="button" data-builder-popover-flex-side="before" data-builder-popover-flex-delta="1" onclick="changeBuilderPopoverFlex('before', 1)" style="margin-right: 0px !important;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
+                <div class="builder-date-flex-row"><div>후</div><div class="builder-stepper"><button type="button" data-builder-popover-flex-side="after" data-builder-popover-flex-delta="-1" onclick="changeBuilderPopoverFlex('after', -1)" style="margin-right: 0px !important;" disabled=""><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderPopoverAfterFlex">+0일</span><button type="button" data-builder-popover-flex-side="after" data-builder-popover-flex-delta="1" onclick="changeBuilderPopoverFlex('after', 1)" style="margin-right: 0px !important;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
+              <div class="builder-date-flex-actions"><button type="button" onclick="cancelBuilderPopoverFlex()" style="margin-right: 0px !important;">취소</button><button type="button" class="primary-action" onclick="confirmBuilderPopoverFlex()" style="margin-right: 0px !important;">선택완료</button></div>
+              </div>
+            </div>
+            <div class="builder-duration-popover" id="builderDurationPopover" aria-live="polite">
+              <div class="builder-duration-title">여행 기간 선택</div>
+              <div class="builder-duration-copy">선택 가능한 기간을 골라주세요.</div>
+              <div class="builder-duration-options" id="builderDurationOptions"></div>
+            </div>
+          </div>
+        </div>
+        <div class="builder-step" data-builder-step="2">
+          <div class="builder-field builder-region-field">
+            <div class="builder-region-search">
+              <div class="builder-region-search-row">
+                <div class="region-search-field builder-region-search-field">
+                  <input id="builderRegionSearchInput" type="search" placeholder="국가 또는 도시명을 검색해보세요" oninput="handleBuilderRegionSearchInput(this.value)">
+                  <button type="button" class="region-search-clear-input" onclick="clearBuilderRegionSearchInput()" aria-label="검색어 지우기">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+                  </button>
+                  <svg class="mobile-search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+                </div>
+                <button type="button" class="builder-region-filter-button" onclick="showBuilderRegionSelector()">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2"></path><circle cx="12" cy="11" r="2.3" stroke="currentColor" stroke-width="2"></circle></svg>
+                  <span>지역선택</span>
+                </button>
+              </div>
+              <div class="builder-region-selected" id="builderSelectedRegion">선택 지역: 선택 전</div>
+              <div class="builder-region-results" id="builderRegionSearchResults"></div>
+              <div class="region-search-body builder-region-body" id="builderRegionSearchBody">
+          <details class="region-group featured" ontoggle="handleBuilderRegionCategoryToggle(this, 0)">
+            <summary>동남아/서남아</summary>
+            <div class="region-grid-list">
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(0, 0)">
+                <span>라오스</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(0, 1)">
+                <span>말레이시아</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              
+            </div>
+          
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(0, 2)">
+                <span>미얀마</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(0, 3)">
+                <span>베트남</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              
+            </div>
+          
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(0, 4)">
+                <span>브루나이</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(0, 5)">
+                <span>인도네시아</span>
+              </button>
+            
+              
+            </div>
+          
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(0, 6)">
+                <span>태국</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(0, 7)">
+                <span>필리핀</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              
+            </div>
+          </div>
+          </details>
+        
+          <details class="region-group " ontoggle="handleBuilderRegionCategoryToggle(this, 1)">
+            <summary>일본</summary>
+            <div class="region-grid-list">
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle active" onclick="toggleBuilderRegionCountry(1, 0)">
+                <span>일본</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              
+                <div class="region-subregion-list">
+                  <button type="button" class="region-subregion-heading" onclick="selectBuilderEmbeddedRegion('일본')"><span>일본 전체</span></button>
+                  <button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('구마모토, 일본')"><span>구마모토</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('가고시마, 일본')"><span>가고시마</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('기타큐슈, 일본')"><span>기타큐슈</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('나가사키, 일본')"><span>나가사키</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('나고야, 일본')"><span>나고야</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('미야자키, 일본')"><span>미야자키</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('오키나와, 일본')"><span>오키나와</span><span class="region-desktop-hot-badge">HOT</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('아오모리, 일본')"><span>아오모리</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('후쿠오카, 일본')"><span>후쿠오카</span><span class="region-desktop-hot-badge">HOT</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('이바라키, 일본')"><span>이바라키</span></button><button type="button" class="region-subregion" onclick="selectBuilderEmbeddedRegion('시즈오카, 일본')"><span>시즈오카</span></button>
+                </div>
+              
+            </div>
+          </div>
+          </details>
+        
+          <details class="region-group " ontoggle="handleBuilderRegionCategoryToggle(this, 2)">
+            <summary>중국/대만</summary>
+            <div class="region-grid-list">
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(2, 0)">
+                <span>중국</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(2, 1)">
+                <span>대만</span>
+              </button>
+            
+              
+            </div>
+          </div>
+          </details>
+        
+          <details class="region-group " ontoggle="handleBuilderRegionCategoryToggle(this, 3)">
+            <summary>괌/사이판</summary>
+            <div class="region-grid-list">
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleBuilderRegionCountry(3, 0)">
+                <span>괌</span>
+              </button>
+            <button type="button" class="region-option" onclick="selectBuilderEmbeddedRegion('사이판')"><span>사이판</span></button>
+              
+            </div>
+          </div>
+          </details>
+        </div>
+              <div class="builder-region-product-area" id="builderRegionProductArea"></div>
+            </div>
+          </div>
+        </div>
+        <div class="builder-step active" data-builder-step="3">
+          <div class="builder-apply-form">
+            <div class="apply-product-info-title apply-section-heading">상품 정보</div>
+            <div class="apply-join-summary builder-apply-join-summary">
+              <div class="apply-join-info-row builder-product-summary-line" id="builderProductSummaryLine"><div class="apply-join-info-label">상품명</div><div class="apply-join-info-value" id="builderProductSummary">선택 전</div></div>
+              <div class="apply-join-info-row"><div class="apply-join-info-label">일정</div><div class="apply-join-info-value" id="builderDateSummary">선택 전</div></div>
+              <div class="apply-join-info-row"><div class="apply-join-info-label">기간</div><div class="apply-join-info-value" id="builderTripSummary">선택 전</div></div>
+              <div class="apply-join-info-row"><div class="apply-join-info-label">지역</div><div class="apply-join-info-value" id="builderRegionSummary">선택 전</div></div>
+              <div class="apply-join-info-row"><div class="apply-join-info-label">참가비</div><div class="apply-join-info-value" id="builderPriceSummary">선택 전</div></div>
+              <div hidden><span id="builderStartSummary"></span><span id="builderEndSummary"></span></div>
+            </div>
+            <div class="apply-section">
+              <div class="apply-section-head">
+                <div class="apply-section-heading">참여 인원</div>
+              </div>
+              <div class="detail-apply-grid traveler-info-grid">
+                <div class="field traveler-field" data-builder-apply-field="name">
+                  <div class="traveler-hint"><span class="traveler-hint-full">여권명과 동일하게 입력해주세요.</span><span class="traveler-hint-compact">여권과 동일</span></div>
+                  <input id="builderApplyName" type="text" placeholder="한글이름" data-label="한글이름" data-example="홍길동" oninput="updateBuilderTravelerFieldState(this); updateBuilderApplySummary()">
+                  <div class="apply-error">한글이름을 입력해 주세요.</div>
+                </div>
+                <div class="field" data-builder-apply-field="gender">
+                  <div class="apply-chip-group traveler-gender-select" data-chip-group="builder-gender">
+                    <button type="button" class="apply-chip active" data-value="남성">남성</button>
+                    <button type="button" class="apply-chip" data-value="여성">여성</button>
+                  </div>
+                  <div class="apply-error">성별을 선택해 주세요.</div>
+                </div>
+                <div class="field full traveler-field" data-builder-apply-field="birthYear">
+                  <div class="traveler-hint">4자리로 입력해주세요</div>
+                  <input id="builderApplyBirthYear" type="text" inputmode="numeric" maxlength="4" placeholder="생년월일" data-label="생년월일" data-example="1960" oninput="updateBuilderTravelerFieldState(this); updateBuilderApplySummary()">
+                  <div class="apply-error">생년월일을 입력해 주세요.</div>
+                </div>
+                <div class="field full traveler-field" data-builder-apply-field="phone">
+                  <div class="traveler-hint">'-'는 제외하고 숫자만 입력해주세요</div>
+                  <input id="builderApplyPhone" type="tel" inputmode="numeric" maxlength="11" placeholder="휴대폰 번호" data-label="휴대폰 번호" data-example="01012345678" onfocus="handleBuilderApplyPhoneFocus(this)" onclick="handleBuilderApplyPhoneFocus(this)" oninput="formatBuilderApplyPhone(this); updateBuilderTravelerFieldState(this)">
+                  <div class="apply-error">휴대폰 번호를 입력해 주세요.</div>
+                </div>
+                <div class="field full traveler-field" data-builder-apply-field="profession">
+                  <div class="traveler-hint">같은 관심사의 참여자 매칭에 참고돼요.</div>
+                  <input id="builderApplyProfession" type="text" maxlength="80" placeholder="주요경력/관심분야" data-label="주요경력/관심분야" data-example="경영" oninput="updateBuilderTravelerFieldState(this); syncBuilderProfessionChipsFromInput(); updateBuilderApplySummary()">
+                  <div class="profession-chip-row" aria-label="주요경력/관심분야 빠른 선택">
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('경영')">경영</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('사업')">사업</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('부동산')">부동산</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('건설')">건설</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('금융')">금융</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('보험')">보험</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('세무')">세무</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('법률')">법률</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('의료')">의료</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('제조')">제조</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('유통')">유통</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('무역')">무역</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('영업')">영업</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('교육')">교육</button>
+                    <button type="button" class="profession-chip" onclick="setBuilderApplyProfession('공공')">공공</button>
+                  </div>
+                </div>
+                <div class="field full" data-companion-field="builder">
+                  <div class="apply-people-label-row">
+                    <div class="apply-remaining-seat">최대 4명</div>
+                  </div>
+                  <div class="apply-people-select">
+                    <input id="builderApplyPeople" type="hidden" value="1">
+                    <div class="apply-people-mode" data-builder-apply-single="">
+                      <button type="button" class="apply-people-button active" data-mode="solo" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('solo')">
+                        <div class="apply-people-button-label">혼자가요</div>
+                        <span class="apply-people-button-back" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M15 18 9 12l6-6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+                      </button>
+                      <button type="button" class="apply-people-button" data-mode="group" data-join-mode="group" onclick="selectBuilderApplyOption(this); setBuilderApplyPeopleMode('group')">
+                        <div class="apply-people-button-label">같이가요</div>
+                      </button>
+                      <div class="apply-people-inline-add" aria-label="동반자 성별 추가">
+                        <button type="button" class="apply-people-inline-add-button" onclick="event.stopPropagation(); addCompanionGender('builder', '남성')">
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"></path></svg>
+                          <span>남</span>
+                        </button>
+                        <button type="button" class="apply-people-inline-add-button" onclick="event.stopPropagation(); addCompanionGender('builder', '여성')">
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"></path></svg>
+                          <span>여</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="apply-people-accordion" id="builderApplyPeopleAccordion">
+                      <div class="apply-people-group-panel">
+                        <div class="apply-people-total-head">
+                          <div class="apply-people-total-title">총 인원</div>
+                          <div class="apply-people-total-helper">신청자 포함 총 인원</div>
+                        </div>
+                        <div class="apply-people-count-stepper" data-people-stepper="builder">
+                          <button type="button" class="apply-people-stepper-button" data-people-step="minus" onclick="changeCompanionPeople('builder', -1)" aria-label="총 인원 줄이기" disabled="">-</button>
+                          <div class="apply-people-count-value" id="builderApplyPeopleDisplay">1명</div>
+                          <button type="button" class="apply-people-stepper-button" data-people-step="plus" onclick="changeCompanionPeople('builder', 1)" aria-label="총 인원 늘리기">+</button>
+                        </div>
+                        <div class="apply-companion-head">
+                          <div class="apply-companion-title">동반자 성별</div>
+                          <div class="apply-companion-helper">동반자 성별을 선택해 주세요.</div>
+                        </div>
+                        <div class="apply-companion-list" id="builderCompanionList">
+        
+        
+        
+        <div class="apply-companion-status">
+          
+          <div class="apply-companion-status-line"><div class="apply-companion-status-label">신규</div><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"></path></svg><div class="apply-companion-status-count">총 1명</div><svg class="apply-companion-status-divider" viewBox="0 0 1 12" fill="none" aria-hidden="true"><path d="M0.5 0.5v11" stroke="currentColor" stroke-linecap="round"></path></svg><div class="apply-companion-status-gender">남성 1명</div></div>
+        </div><div class="apply-participant-rail"><div class="apply-participant-slot filled " data-apply-participant-index="0" data-participant-key="applicant--남성-나">
+          
+          <div class="apply-participant-avatar-wrap">
+            <div class="apply-participant-avatar"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt="나"></div>
+          </div>
+          <div class="apply-participant-label"><div class="join-my-card-participant-me-badge apply-me-badge">나</div></div>
+        </div>
+        <div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div>
+      <div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div><div class="apply-participant-slot empty" data-participant-key="empty"><div class="apply-participant-avatar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div><div class="apply-participant-label">빈자리</div></div></div>
+          
+        </div>
+                        <div class="apply-companion-error">모든 동반자 성별을 선택해 주세요.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field full">
+                  <div class="apply-booking-option-section is-hidden" data-apply-flight-option="builder">
+                    <div class="apply-section-heading">항공예약</div>
+                    <div>
+                      <div class="apply-people-mode" data-chip-group="builder-flight-request">
+                        <button type="button" class="apply-people-button active" data-mode="solo" data-value="대행요청" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('builder')">
+                          <div class="apply-people-button-label">대행 요청</div>
+                        </button>
+                        <button type="button" class="apply-people-button" data-mode="group" data-value="직접예약" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('builder')">
+                          <div class="apply-people-button-label">직접 예약</div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field full">
+                  <div class="apply-booking-option-section" data-apply-room-option="builder">
+                    <div class="apply-section-heading">숙소타입</div>
+                    <div>
+                      <div class="apply-people-mode" data-chip-group="builder-room-type">
+                        <button type="button" class="apply-people-button active" data-mode="solo" data-value="2인1실" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('builder')">
+                          <div class="apply-people-button-label">2인1실</div>
+                        </button>
+                        <button type="button" class="apply-people-button" data-mode="group" data-value="1인1실" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('builder')">
+                          <div class="apply-people-button-label">1인1실</div>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="apply-room-surcharge" data-apply-room-surcharge="builder"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="apply-section with-divider">
+              <div class="apply-section-head">
+                <div class="apply-section-heading"></div>
+              </div>
+              <div class="detail-apply-grid">
+                <div class="field full">
+                  <div class="apply-preference-title">라운딩 스타일</div>
+                  <div class="apply-preference-copy">나와 잘 맞는 조인을 위해 최대 3개만 골라주세요.</div>
+                  <div class="apply-chip-group" data-chip-group="builder-style" data-multi="true" data-max="3">
+                    <button type="button" class="apply-chip" data-value="매너중시">매너중시 &#x1F91D;</button>
+                    <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 &#x1F60A;</button>
+                    <button type="button" class="apply-chip" data-value="조용히집중">조용히집중 &#x1F3AF;</button>
+                    <button type="button" class="apply-chip" data-value="사진도좋아요">사진도좋아요 &#x1F4F7;</button>
+                    <button type="button" class="apply-chip" data-value="진행빠른편">진행빠른편 &#x26A1;</button>
+                    <button type="button" class="apply-chip" data-value="초보배려">초보배려 &#x1F331;</button>
+                    <button type="button" class="apply-chip" data-value="대화좋아요">대화좋아요 &#x1F4AC;</button>
+                    <button type="button" class="apply-chip" data-value="분위기메이커">분위기메이커 &#x1F324;&#xFE0F;</button>
+                    <button type="button" class="apply-chip" data-value="시간약속중요">시간약속중요 &#x23F1;&#xFE0F;</button>
+                    <button type="button" class="apply-chip" data-value="편안한라운딩">편안한라운딩 &#x1F343;</button>
+                  </div>
+                </div>
+                <div class="field full">
+                  <div class="apply-preference-title">선호 멤버 구성</div>
+                  <div class="apply-preference-copy">맞춤형 조인 노출 조건에 반영돼요.</div>
+                  <div class="apply-chip-group" data-chip-group="builder-member-preference" data-multi="true" data-max="3">
+                    <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 &#x1F389;</button>
+                    <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 &#x1F465;</button>
+                    <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 &#x1F382;</button>
+                    <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 &#x26F3;</button>
+                  </div>
+                </div>
+                <div class="field full">
+                  <div class="apply-preference-title">한 줄 인사</div>
+                  <div class="apply-template-row">
+                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('반갑습니다. 즐거운 라운딩 기대합니다.')">반갑습니다 &#x1F60A;</button>
+                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('매너 있게 편안히 치겠습니다.')">매너 있게 &#x1F91D;</button>
+                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('잘 부탁해요.')">잘 부탁해요 &#x1F64F;</button>
+                    <button type="button" class="apply-template" onclick="setBuilderApplyGreeting('즐겁고 기분 좋은 하루 만들어요.')">기분 좋은 하루 &#x1F324;&#xFE0F;</button>
+                  </div>
+                  <textarea id="builderApplyGreeting" maxlength="80" placeholder="예: 오랜만의 조인이라 설레네요. 잘 부탁드립니다.">잘 부탁드립니다.</textarea>
+                </div>
+              </div>
+            </div>
+            <div class="apply-reservation-rule-section">
+              <div class="apply-section-heading">예약/취소 규정 확인</div>
+              <div class="apply-reservation-accordion">
+                <div class="apply-reservation-part">
+                  <button type="button" class="apply-reservation-part-button" onclick="toggleApplyReservationPart(this)" aria-expanded="true">
+                    <div>예약 전 꼭 확인해주세요</div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up-icon lucide-chevron-up" aria-hidden="true"><path d="m18 15-6-6-6 6"></path></svg>
+                  </button>
+                  <div class="apply-reservation-part-body">
+                    <div>본 상품은 4인 1팀으로 운영되는 골프조인 상품입니다.</div>
+                    <div>예약 신청 후 참가 인원, 항공 좌석, 숙소 및 골프장 예약이 모두 확정되면 최종 출발이 확정됩니다.</div>
+                    <div>조인 인원이 충족되지 않아 출발이 취소되는 경우 예약금은 전액 환불됩니다.</div>
+                  </div>
+                </div>
+                <div class="apply-reservation-part">
+                  <button type="button" class="apply-reservation-part-button" onclick="toggleApplyReservationPart(this)" aria-expanded="true">
+                    <div>취소 및 환불 안내</div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up-icon lucide-chevron-up" aria-hidden="true"><path d="m18 15-6-6-6 6"></path></svg>
+                  </button>
+                  <div class="apply-reservation-part-body">
+                    <div>출발 확정 후에는 항공권, 객실 및 골프장 예약에 따른 실제 비용이 발생하므로 아래 기준에 따라 취소수수료가 적용됩니다.</div>
+                    <table class="apply-reservation-fee-table">
+                      <thead><tr><th>취소 시점</th><th>취소수수료</th></tr></thead>
+                      <tbody>
+                        <tr><td>출발 20일 전까지</td><td>여행요금의 20% + 항공사 위약금</td></tr>
+                        <tr><td>출발 19~10일 전</td><td>여행요금의 30% + 항공사 위약금</td></tr>
+                        <tr><td>출발 9~8일 전</td><td>여행요금의 50% + 항공사 위약금</td></tr>
+                        <tr><td>출발 7~4일 전</td><td>여행요금의 70% + 항공사 위약금</td></tr>
+                        <tr><td>출발 3일 전 ~ 당일</td><td>환불 불가</td></tr>
+                      </tbody>
+                    </table>
+                    <div class="apply-reservation-note">※ 항공권 발권 후 발생하는 항공사 취소수수료는 별도 적용될 수 있습니다.</div>
+                  </div>
+                </div>
+                <div class="apply-reservation-part">
+                  <button type="button" class="apply-reservation-part-button" onclick="toggleApplyReservationPart(this)" aria-expanded="true">
+                    <div>이용 안내</div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up-icon lucide-chevron-up" aria-hidden="true"><path d="m18 15-6-6-6 6"></path></svg>
+                  </button>
+                  <div class="apply-reservation-part-body">
+                    <div>1인 예약 시 룸조인 또는 싱글룸 추가요금이 발생할 수 있습니다.</div>
+                    <div>참가자 취소로 조인 인원 변동이 발생할 경우 여행사는 대체 참가자 모집을 위해 최선을 다합니다.</div>
+                    <div>영문명, 여권정보, 생년월일 등 예약정보 오류로 발생하는 비용은 고객 부담입니다.</div>
+                    <div>천재지변, 항공기 결항 등 불가항력적 상황은 항공사 및 현지 업체 규정에 따라 처리됩니다.</div>
+                    <div>취소 및 변경 접수는 평일 영업시간(09:00~18:00) 기준으로 적용됩니다.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="builder-step" data-builder-step="4">
+          <div class="builder-complete builder-apply-complete-state" aria-live="polite">
+            <div class="apply-complete-card">
+              <svg class="apply-complete-illustration" viewBox="0 0 126 126" fill="none" aria-hidden="true">
+                <rect x="22" y="28" width="82" height="68" rx="18" fill="#ffffff" stroke="#dbe4ee" stroke-width="3"></rect>
+                <path d="M36 49h42M36 64h30M36 79h22" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"></path>
+                <circle cx="88" cy="77" r="22" fill="#373A3C"></circle>
+                <path d="M78 77.5l7 7 13-15" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <circle cx="35" cy="30" r="8" fill="#f8fafc" stroke="#dbe4ee" stroke-width="3"></circle>
+                <circle cx="91" cy="32" r="6" fill="#f8fafc" stroke="#dbe4ee" stroke-width="3"></circle>
+              </svg>
+              <div>
+                <div class="apply-complete-title">새 모임이 만들어졌어요.</div>
+                <div class="apply-complete-copy">담당자가 예약 내용을 확인한 뒤<br>24시간 이내에 안내 드립니다.</div>
+              </div>
+              <div class="apply-complete-contact">
+                <div class="apply-complete-contact-main">고객센터 02-3446-1119</div>
+                <div class="apply-complete-contact-time">운영시간 오전 9시-오후 6시</div>
+              </div>
+              <div class="apply-complete-actions-grid" aria-label="추가 상담 채널">
+                <button type="button" class="apply-complete-action-card" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">
+                  <img alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_kakao.webp">
+                  <div class="apply-complete-action-label">채팅으로 문의</div>
+                </button>
+                <button type="button" class="apply-complete-action-card" onclick="openExternalLink('https://band.us/@secrettour')">
+                  <img alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_band.webp">
+                  <div class="apply-complete-action-label">밴드 가입하기</div>
+                </button>
+              </div>
+              <button type="button" class="apply-complete-share-button" onclick="handleCompletionShare('builder')">
+                <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+                <span>공유하기</span>
+              </button>
+              <button type="button" class="apply-complete-close" onclick="closeAllJoinModals()">확인</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="builder-bottom step-3" id="builderBottom" style="display: grid;">
+        <div class="builder-contact-phone">02-3446-1119</div>
+        <button type="button" class="button secondary" id="builderPrevButton" onclick="prevBuilderStep()" style="">이전</button>
+        <button type="button" class="button primary" id="builderNextButton" onclick="nextBuilderStep()" style="">신청하기</button>
+      </div>
+      <div class="builder-flex-sheet" id="builderFlexSheet">
+        <div class="builder-flex-head"><div><div class="builder-flex-title" id="builderFlexTitle">출발일 선택</div><div class="builder-subtitle" id="builderFlexDate">5월 1일</div></div><button type="button" class="modal-close-icon" onclick="closeBuilderFlexSheet()" aria-label="닫기"></button></div>
+        <div class="builder-stepper-row"><span>전</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('before', -1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderBeforeFlex">+0일</span><button type="button" onclick="changeBuilderFlex('before', 1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
+        <div class="builder-stepper-row"><span>후</span><div class="builder-stepper"><button type="button" onclick="changeBuilderFlex('after', -1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minus-icon lucide-minus" aria-hidden="true"><path d="M5 12h14"></path></svg></button><span id="builderAfterFlex">+0일</span><button type="button" onclick="changeBuilderFlex('after', 1)"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></button></div></div>
+      </div>
+      <div class="builder-active-schedule-backdrop" id="builderActiveScheduleBackdrop" onclick="closeBuilderActiveScheduleSheet()" aria-hidden="true"></div>
+      <div class="builder-flex-sheet builder-active-schedule-sheet" id="builderActiveScheduleSheet" aria-hidden="true">
+        <div class="builder-flex-head"><div><div class="builder-flex-title">참여중인 일정</div></div><button type="button" class="modal-close-icon" onclick="closeBuilderActiveScheduleSheet()" aria-label="닫기"></button></div>
+        <div class="builder-active-schedule-list calendar-accordion-list" id="builderActiveScheduleList"></div>
+      </div>
+      <div class="builder-product-detail" id="builderProductDetail">
+        <div class="builder-header"><button type="button" class="modal-close-icon modal-back-icon" onclick="closeBuilderProductDetail()" aria-label="뒤로가기"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg></button><div class="builder-header-copy"><div class="builder-title">추천 상품 상세</div></div><span class="modal-header-spacer" aria-hidden="true"></span></div>
+        <div class="builder-detail-body"><img class="builder-detail-hero" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="추천 상품" loading="lazy" decoding="async"><div class="builder-complete-title">조건에 맞는 조인 일정 상담</div><p class="builder-complete-subtitle">선택한 조건으로 담당자가 가능한 일정을 확인합니다.</p></div>
+      </div>
+    </div>
+  </div>
+<div class="join-action-loading-overlay sgj-portal-overlay" id="joinActionLoadingOverlay" aria-hidden="true" style="z-index: 2147483647 !important;">
+    <div class="join-action-loading-box" role="status" aria-live="polite" aria-label="loading" style="z-index: 2147483647 !important;">
+      <div class="join-action-loading-icon" id="joinActionLoadingIcon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tickets-plane-icon lucide-tickets-plane"><path d="M10.5 17h1.227a2 2 0 0 0 1.345-.52L18 12"></path><path d="m12 13.5 3.794.506"></path><path d="m3.173 8.18 11-5a2 2 0 0 1 2.647.993L18.56 8"></path><path d="M6 10V8"></path><path d="M6 14v1"></path><path d="M6 19v2"></path><rect x="2" y="8" width="20" height="13" rx="2"></rect></svg></div>
+      <div class="join-action-loading-message" id="joinActionLoadingMessage"></div>
+    </div>
+  </div></body><div id="codex-browser-sidebar-comments-root" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483647;"></div></html>

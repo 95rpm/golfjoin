@@ -1,0 +1,541 @@
+{
+  "page": {
+    "title": "https://www.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+    "startedDateTime": "2026-08-05T07:35:38.398Z",
+    "onContentLoadMs": 831.7069999993691,
+    "onLoadMs": 4019.1780000004655
+  },
+  "entries": 117,
+  "wallSpanMs": 24124.178999999538,
+  "totalTransferBytes": 557071,
+  "statuses": {
+    "0": 1,
+    "200": 110,
+    "204": 3,
+    "304": 3
+  },
+  "resourceTypes": {
+    "document": {
+      "count": 2,
+      "transferBytes": 489613,
+      "zeroTransferCount": 0
+    },
+    "stylesheet": {
+      "count": 8,
+      "transferBytes": 0,
+      "zeroTransferCount": 8
+    },
+    "script": {
+      "count": 44,
+      "transferBytes": 0,
+      "zeroTransferCount": 44
+    },
+    "image": {
+      "count": 48,
+      "transferBytes": 44,
+      "zeroTransferCount": 46
+    },
+    "xhr": {
+      "count": 3,
+      "transferBytes": 908,
+      "zeroTransferCount": 0
+    },
+    "fetch": {
+      "count": 9,
+      "transferBytes": 65730,
+      "zeroTransferCount": 1
+    },
+    "ping": {
+      "count": 1,
+      "transferBytes": 776,
+      "zeroTransferCount": 0
+    },
+    "preflight": {
+      "count": 1,
+      "transferBytes": 0,
+      "zeroTransferCount": 1
+    },
+    "other": {
+      "count": 1,
+      "transferBytes": 0,
+      "zeroTransferCount": 1
+    }
+  },
+  "duplicateRequestGroups": 1,
+  "slowestRequests": [
+    {
+      "startMs": 862,
+      "endMs": 2181.2710000004254,
+      "durationMs": 1319.2710000004254,
+      "waitMs": 22.34999999971152,
+      "receiveMs": 1287.281000000803,
+      "status": 200,
+      "transferBytes": 23,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "ssl.logger.co.kr/tracker.1.tsp"
+    },
+    {
+      "startMs": 6466,
+      "endMs": 7498.922000000326,
+      "durationMs": 1032.922000000326,
+      "waitMs": 1024.4469999996466,
+      "receiveMs": 6.790000001274166,
+      "status": 200,
+      "transferBytes": 17508,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "golfjoin-sheet-api?sheet=new_schedule_applications"
+    },
+    {
+      "startMs": 6466,
+      "endMs": 7047.935999998677,
+      "durationMs": 581.9359999986773,
+      "waitMs": 578.8690000003562,
+      "receiveMs": 1.2329999990470242,
+      "status": 200,
+      "transferBytes": 8048,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "golfjoin-sheet-api?sheet=new_schedule_applications&member=1"
+    },
+    {
+      "startMs": 5928,
+      "endMs": 6447.161999998687,
+      "durationMs": 519.161999998687,
+      "waitMs": 74.25600000084262,
+      "receiveMs": 439.12599999930535,
+      "status": 204,
+      "transferBytes": 20,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "analytics.google.com/g/collect"
+    },
+    {
+      "startMs": 2190,
+      "endMs": 2483.566999998802,
+      "durationMs": 293.5669999988022,
+      "waitMs": 10.737000000087779,
+      "receiveMs": 244.76299999878393,
+      "status": 200,
+      "transferBytes": 21,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "gptrk.logger.co.kr/logger"
+    },
+    {
+      "startMs": 0,
+      "endMs": 199.29099999899336,
+      "durationMs": 199.29099999899336,
+      "waitMs": 135.09600000085925,
+      "receiveMs": 52.20199999894248,
+      "status": 200,
+      "transferBytes": 489594,
+      "resourceType": "document",
+      "priority": "VeryHigh",
+      "label": "www.secret-tour.com/event/plan_view"
+    },
+    {
+      "startMs": 769,
+      "endMs": 936.4349999993865,
+      "durationMs": 167.4349999993865,
+      "waitMs": 74.26399999941444,
+      "receiveMs": 17.09099999970931,
+      "status": 200,
+      "transferBytes": 31072,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "golfjoin-sheet-api?action=home_bootstrap_light"
+    },
+    {
+      "startMs": 525,
+      "endMs": 685.8280000000377,
+      "durationMs": 160.82800000003772,
+      "waitMs": 0,
+      "receiveMs": 0,
+      "status": 0,
+      "transferBytes": 0,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg"
+    },
+    {
+      "startMs": 196,
+      "endMs": 319.3859999993001,
+      "durationMs": 123.38599999930011,
+      "waitMs": 6.03400000062841,
+      "receiveMs": 9.542999998302548,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "script",
+      "priority": "Low",
+      "label": "www.googletagmanager.com/gtag/js"
+    },
+    {
+      "startMs": 690,
+      "endMs": 804.207000000023,
+      "durationMs": 114.20700000002293,
+      "waitMs": 69.56900000029977,
+      "receiveMs": 6.2450000004901085,
+      "status": 304,
+      "transferBytes": 13,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "storage.googleapis.com/golfjoin-bucket/web/golfjoin_home_manifest.json"
+    },
+    {
+      "startMs": 690,
+      "endMs": 804.1219999990426,
+      "durationMs": 114.1219999990426,
+      "waitMs": 101.40399999972898,
+      "receiveMs": 9.076000000277418,
+      "status": 304,
+      "transferBytes": 13,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "storage.googleapis.com/golfjoin-bucket/web/product-family/manifest.json"
+    },
+    {
+      "startMs": 24013,
+      "endMs": 24124.178999999538,
+      "durationMs": 111.17899999953806,
+      "waitMs": 101.64500000020244,
+      "receiveMs": 1.9570000004023314,
+      "status": 200,
+      "transferBytes": 9043,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "www.secret-tour.com/mypage/member"
+    },
+    {
+      "startMs": 195,
+      "endMs": 295.4720000000816,
+      "durationMs": 100.47200000008161,
+      "waitMs": 1.7719999998908023,
+      "receiveMs": 20.888999999442603,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "stylesheet",
+      "priority": "VeryHigh",
+      "label": "www.secret-tour.com/asp/css/lib/ezdz/jquery.ezdz.css"
+    },
+    {
+      "startMs": 194,
+      "endMs": 294.2709999993385,
+      "durationMs": 100.27099999933853,
+      "waitMs": 1.7499999999972058,
+      "receiveMs": 20.709000000351807,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "stylesheet",
+      "priority": "VeryHigh",
+      "label": "www.secret-tour.com/asp/css/ui/swiper.min.css"
+    },
+    {
+      "startMs": 194,
+      "endMs": 292.3960000012303,
+      "durationMs": 98.39600000123028,
+      "waitMs": 1.6909999992091915,
+      "receiveMs": 18.8960000014049,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "stylesheet",
+      "priority": "VeryHigh",
+      "label": "www.secret-tour.com/asp/css/ui/style.css"
+    },
+    {
+      "startMs": 194,
+      "endMs": 292.1529999990016,
+      "durationMs": 98.15299999900162,
+      "waitMs": 1.678000000159372,
+      "receiveMs": 18.662999998923624,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "stylesheet",
+      "priority": "VeryHigh",
+      "label": "www.secret-tour.com/asp/css/ui/layout.css"
+    },
+    {
+      "startMs": 194,
+      "endMs": 291.96599999936006,
+      "durationMs": 97.96599999936006,
+      "waitMs": 1.6760000006447076,
+      "receiveMs": 18.50399999966612,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "stylesheet",
+      "priority": "VeryHigh",
+      "label": "www.secret-tour.com/asp/css/ui/sub.css"
+    },
+    {
+      "startMs": 194,
+      "endMs": 277.27099999951315,
+      "durationMs": 83.27099999951315,
+      "waitMs": 1.6230000003924356,
+      "receiveMs": 10.153999999602092,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "stylesheet",
+      "priority": "VeryHigh",
+      "label": "www.secret-tour.com/asp/css/ui/contents_c.css"
+    },
+    {
+      "startMs": 194,
+      "endMs": 267.10899999902176,
+      "durationMs": 73.10899999902176,
+      "waitMs": 0.3169999992848602,
+      "receiveMs": 4.382000000987318,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "stylesheet",
+      "priority": "VeryHigh",
+      "label": "www.secret-tour.com/asp/css/ui/common_c.css"
+    },
+    {
+      "startMs": 771,
+      "endMs": 843.0309999999008,
+      "durationMs": 72.03099999990081,
+      "waitMs": 71.10500000021315,
+      "receiveMs": 0.5739999996876577,
+      "status": 204,
+      "transferBytes": 0,
+      "resourceType": "preflight",
+      "priority": "High",
+      "label": "golfjoin-sheet-api?action=home_bootstrap_light"
+    }
+  ],
+  "golfjoinStaticTimeline": [
+    {
+      "startMs": 690,
+      "endMs": 804.1219999990426,
+      "durationMs": 114.1219999990426,
+      "waitMs": 101.40399999972898,
+      "receiveMs": 9.076000000277418,
+      "status": 304,
+      "transferBytes": 13,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "storage.googleapis.com/golfjoin-bucket/web/product-family/manifest.json"
+    },
+    {
+      "startMs": 690,
+      "endMs": 804.207000000023,
+      "durationMs": 114.20700000002293,
+      "waitMs": 69.56900000029977,
+      "receiveMs": 6.2450000004901085,
+      "status": 304,
+      "transferBytes": 13,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "storage.googleapis.com/golfjoin-bucket/web/golfjoin_home_manifest.json"
+    },
+    {
+      "startMs": 863,
+      "endMs": 874.463000000731,
+      "durationMs": 11.463000000730972,
+      "waitMs": 5.568000000469153,
+      "receiveMs": 1.9350000002305023,
+      "status": 304,
+      "transferBytes": 13,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "storage.googleapis.com/golfjoin-bucket/web/product-family/catalogs/pfc_549a82879c8323031a3e7f76.json"
+    },
+    {
+      "startMs": 864,
+      "endMs": 869.3429999989021,
+      "durationMs": 5.342999998902087,
+      "waitMs": 0.788999999405467,
+      "receiveMs": 1.7929999994521495,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "storage.googleapis.com/golfjoin-bucket/web/home-cards/ghc_ae528dd46cf2061fe653d927.json"
+    }
+  ],
+  "golfjoinApiTimeline": [
+    {
+      "startMs": 769,
+      "endMs": 936.4349999993865,
+      "durationMs": 167.4349999993865,
+      "waitMs": 74.26399999941444,
+      "receiveMs": 17.09099999970931,
+      "status": 200,
+      "transferBytes": 31072,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "golfjoin-sheet-api?action=home_bootstrap_light"
+    },
+    {
+      "startMs": 6466,
+      "endMs": 7498.922000000326,
+      "durationMs": 1032.922000000326,
+      "waitMs": 1024.4469999996466,
+      "receiveMs": 6.790000001274166,
+      "status": 200,
+      "transferBytes": 17508,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "golfjoin-sheet-api?sheet=new_schedule_applications"
+    },
+    {
+      "startMs": 6466,
+      "endMs": 7047.935999998677,
+      "durationMs": 581.9359999986773,
+      "waitMs": 578.8690000003562,
+      "receiveMs": 1.2329999990470242,
+      "status": 200,
+      "transferBytes": 8048,
+      "resourceType": "fetch",
+      "priority": "High",
+      "label": "golfjoin-sheet-api?sheet=new_schedule_applications&member=1"
+    }
+  ],
+  "productImageTimeline": [
+    {
+      "startMs": 2185,
+      "endMs": 2213.975999999602,
+      "durationMs": 28.97599999960221,
+      "waitMs": 0.3079999993109386,
+      "receiveMs": 5.171000000700587,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "www.secret-tour.com/upload/secrettour/image/goods/main/30001264/secrettour_cm9900_30010915.jpg",
+      "goodSeq": "30001264",
+      "initiatorType": "parser",
+      "initiatorFunctions": []
+    },
+    {
+      "startMs": 2186,
+      "endMs": 2215.5790000000125,
+      "durationMs": 29.579000000012456,
+      "waitMs": 2.2430000000299186,
+      "receiveMs": 3.1529999996564584,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "www.secret-tour.com/upload/secrettour/image/goods/main/30001279/secrettour_cm9900_30011133.jpg",
+      "goodSeq": "30001279",
+      "initiatorType": "parser",
+      "initiatorFunctions": []
+    },
+    {
+      "startMs": 3990,
+      "endMs": 3990.195000000531,
+      "durationMs": 0.19500000053085387,
+      "waitMs": 0.18000000090978574,
+      "receiveMs": 0.014999999621068127,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "www.secret-tour.com/upload/secrettour/image/goods/main/30001092/secrettour_cm9900_30008742.jpg",
+      "goodSeq": "30001092",
+      "initiatorType": "script",
+      "initiatorFunctions": [
+        "renderJoins",
+        "applyHomeBootstrapLightRows",
+        "hydrateHomeBootstrapLightFromGoogleSheet"
+      ]
+    },
+    {
+      "startMs": 4059,
+      "endMs": 4059.137999999424,
+      "durationMs": 0.13799999942420982,
+      "waitMs": 0.12400000014167745,
+      "receiveMs": 0.013999999282532372,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "www.secret-tour.com/upload/secrettour/image/goods/main/30001104/secrettour_cm9900_30008868.jpg",
+      "goodSeq": "30001104",
+      "initiatorType": "script",
+      "initiatorFunctions": [
+        "renderMdPickSectionOnly",
+        "run"
+      ]
+    },
+    {
+      "startMs": 4059,
+      "endMs": 4059.0729999992473,
+      "durationMs": 0.07299999924725853,
+      "waitMs": 0.06399999983841553,
+      "receiveMs": 0.008999999408842996,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "www.secret-tour.com/upload/secrettour/image/goods/main/30001089/secrettour_cm9900_30008707.jpg",
+      "goodSeq": "30001089",
+      "initiatorType": "script",
+      "initiatorFunctions": [
+        "renderMdPickSectionOnly",
+        "run"
+      ]
+    },
+    {
+      "startMs": 4059,
+      "endMs": 4059.061000000642,
+      "durationMs": 0.06100000064179767,
+      "waitMs": 0.05200000123295467,
+      "receiveMs": 0.008999999408842996,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "www.secret-tour.com/upload/secrettour/image/goods/main/30001084/secrettour_cm9900_30008654.jpg",
+      "goodSeq": "30001084",
+      "initiatorType": "script",
+      "initiatorFunctions": [
+        "renderMdPickSectionOnly",
+        "run"
+      ]
+    },
+    {
+      "startMs": 12470,
+      "endMs": 12473.146000000925,
+      "durationMs": 3.146000000924687,
+      "waitMs": 0.544999999177875,
+      "receiveMs": 1.4180000016494887,
+      "status": 200,
+      "transferBytes": 0,
+      "resourceType": "image",
+      "priority": "Low",
+      "label": "www.secret-tour.com/upload/secrettour/image/goods/main/30001242/secrettour_cm9900_30010639.jpg",
+      "goodSeq": "30001242",
+      "initiatorType": "script",
+      "initiatorFunctions": []
+    }
+  ],
+  "originalPageRequests": [
+    {
+      "startMs": 747,
+      "endMs": 762.135999999984,
+      "durationMs": 15.135999999984051,
+      "waitMs": 11.854999999272753,
+      "receiveMs": 0.8940000006987248,
+      "status": 200,
+      "transferBytes": 413,
+      "resourceType": "xhr",
+      "priority": "High",
+      "label": "www.secret-tour.com/event/getEventTab.json?eventPlanSeq=3"
+    },
+    {
+      "startMs": 795,
+      "endMs": 819.4039999997767,
+      "durationMs": 24.403999999776715,
+      "waitMs": 10.467000000184285,
+      "receiveMs": 0.4929999995511025,
+      "status": 200,
+      "transferBytes": 220,
+      "resourceType": "xhr",
+      "priority": "High",
+      "label": "www.secret-tour.com/event/getEventGoodsList.json?eventPlanSeq=3&tabSeq=1"
+    }
+  ]
+}

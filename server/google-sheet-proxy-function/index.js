@@ -33,6 +33,14 @@ const {
   buildAvailabilityRevision: buildGolfJoinAvailabilityRevision,
   buildGolfJoinHomeArtifacts
 } = require("./home-products");
+const { assertDataContract } = require("./data-contracts");
+const {
+  publishRelease: publishGolfJoinReleaseV2,
+  rollbackRelease: rollbackGolfJoinReleaseV2,
+  readRootManifest: readGolfJoinReleaseV2Root,
+  verifyRemoteRelease: verifyGolfJoinReleaseV2
+} = require("./release-publisher");
+const { buildReleasePublishInput: buildGolfJoinReleaseV2Input } = require("./release-sources");
 const {
   MIGRATION_SHEETS: RECOMMENDED_SCHEDULE_MIGRATION_SHEETS,
   buildRecommendedScheduleMigrationPlan,
@@ -999,11 +1007,12 @@ function assertRequestAllowed(req) {
     "admin_product_family_representative_update",
     "admin_product_family_revoke",
     "admin_product_family_republish",
+    "admin_release_v2_publish",
     "quote_generate",
     "admin_bootstrap",
     "refresh_secret_tour_products"
   ]);
-  const standaloneActions = new Set(["admin_login", "admin_erp_login_check", "admin_erp_member_lookup", "home_stats", "secret_tour_goods_detail", "secret_tour_flight_schedule", "secret_tour_goods_list", "secret_tour_goods_events"]);
+  const standaloneActions = new Set(["admin_login", "admin_erp_login_check", "admin_erp_member_lookup", "admin_release_v2_status", "admin_release_v2_rollback", "home_stats", "secret_tour_goods_detail", "secret_tour_flight_schedule", "secret_tour_goods_list", "secret_tour_goods_events"]);
   const canUseSheetsApiOnly = Boolean(GOOGLE_SHEET_ID && sheetsApiOnlyActions.has(action));
   const canUseStandaloneAction = standaloneActions.has(action);
   const canUseSheetsApiRead = Boolean(GOOGLE_SHEET_ID && req.method === "GET" && !asText(req.query?.action));
@@ -8569,6 +8578,127 @@ async function refreshGolfJoinHomeSummaryFromCurrentData(reason = "manual") {
   return summaryPayload;
 }
 
+function assertGolfJoinReleaseAdmin(req) {
+  if (isAdminReadRequest(req)) return;
+  const error = new Error(hasAdminReadAuthConfigured() ? "Admin credentials are required" : "Admin reads are not configured");
+  error.status = 403;
+  throw error;
+}
+
+async function readGolfJoinReleaseFamilyCatalog() {
+  const current = await readProductFamilyManifestFromStorage();
+  const objectName = asText(current.payload?.activeCatalogObjectName);
+  if (!current.exists || !objectName) {
+    throw createHttpError("Published product family catalog is required for release V2", 409, {
+      code: "release_family_catalog_missing"
+    });
+  }
+  let payload;
+  try {
+    const [buffer] = await storage.bucket(GOLFJOIN_PRODUCTS_BUCKET).file(objectName).download();
+    payload = JSON.parse(buffer.toString("utf8") || "{}");
+  } catch (error) {
+    if (Number(error?.code) === 404) {
+      throw createHttpError("Published product family catalog object is missing", 409, {
+        code: "release_family_catalog_object_missing"
+      });
+    }
+    throw error;
+  }
+  assertDataContract("productFamilyCatalogV1", payload);
+  if (asText(payload.publicationRevision) !== asText(current.payload.activePublicationRevision)) {
+    throw createHttpError("Product family manifest and catalog revisions do not match", 409, {
+      code: "release_family_revision_mismatch"
+    });
+  }
+  return payload;
+}
+
+async function prepareGolfJoinReleaseV2Input() {
+  const [productsPayload, homeBootstrapLight, familyCatalog] = await Promise.all([
+    readGolfJoinProductsPayloadFromStorage(),
+    readHomeBootstrapLightDirect({ newScheduleLimit: 100, joinApplicationLimit: 100 }),
+    readGolfJoinReleaseFamilyCatalog()
+  ]);
+  const summaryPayload = buildGolfJoinHomeSummaryPayload(productsPayload, { homeBootstrapLight });
+  const publishedAt = nowKstISOString();
+  return buildGolfJoinReleaseV2Input({
+    bucketName: GOLFJOIN_PRODUCTS_BUCKET,
+    prefix: GOLFJOIN_PRODUCTS_PREFIX || "web",
+    generatedAt: publishedAt,
+    publishedAt,
+    summaryPayload,
+    homeBootstrapLight,
+    familyCatalog
+  });
+}
+
+function summarizeGolfJoinReleaseV2Root(root = {}, verification = null) {
+  const manifest = root.payload || {};
+  return {
+    exists: root.exists === true,
+    generation: asText(root.generation),
+    objectName: asText(root.objectName),
+    releaseRevision: asText(manifest.releaseRevision),
+    previousStableRevision: asText(manifest.previousStableRevision),
+    sourceSnapshotWatermark: asText(manifest.sourceSnapshotWatermark),
+    staticRevision: asText(manifest.staticRevision),
+    liveRevision: asText(manifest.liveRevision),
+    familyRevision: asText(manifest.familyRevision),
+    availabilityRevision: asText(manifest.availabilityRevision),
+    detailRevision: asText(manifest.detailRevision),
+    browserReadEnabled: manifest.browserReadEnabled === true,
+    objectCount: Number(verification?.objectCount || 0),
+    ...(manifest.rollbackFromRevision ? { rollbackFromRevision: asText(manifest.rollbackFromRevision) } : {})
+  };
+}
+
+async function proxyAdminReleaseV2Status(req, res) {
+  assertGolfJoinReleaseAdmin(req);
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const root = await readGolfJoinReleaseV2Root(bucket, GOLFJOIN_PRODUCTS_PREFIX || "web");
+  if (!root.exists) {
+    res.status(200).json({ ok: true, release: summarizeGolfJoinReleaseV2Root(root) });
+    return;
+  }
+  const verification = await verifyGolfJoinReleaseV2(bucket, root.payload);
+  res.status(200).json({ ok: true, release: summarizeGolfJoinReleaseV2Root(root, verification) });
+}
+
+async function proxyAdminReleaseV2Publish(req, res) {
+  assertGolfJoinReleaseAdmin(req);
+  const input = await prepareGolfJoinReleaseV2Input();
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const publication = await publishGolfJoinReleaseV2(bucket, input);
+  const verification = await verifyGolfJoinReleaseV2(bucket, publication.root.payload);
+  res.status(200).json({
+    ok: true,
+    release: summarizeGolfJoinReleaseV2Root(publication.root, verification),
+    manifestObjectName: publication.bundle.manifestObjectName,
+    rootUpdatedLast: true
+  });
+}
+
+async function proxyAdminReleaseV2Rollback(req, res) {
+  assertGolfJoinReleaseAdmin(req);
+  const payload = readBody(req);
+  const targetReleaseRevision = asText(payload.targetReleaseRevision);
+  if (!targetReleaseRevision) throw createHttpError("targetReleaseRevision is required", 400);
+  const bucket = storage.bucket(GOLFJOIN_PRODUCTS_BUCKET);
+  const rollback = await rollbackGolfJoinReleaseV2(bucket, targetReleaseRevision, {
+    prefix: GOLFJOIN_PRODUCTS_PREFIX || "web",
+    publishedAt: nowKstISOString()
+  });
+  const verification = rollback.root.exists
+    ? await verifyGolfJoinReleaseV2(bucket, rollback.root.payload)
+    : null;
+  res.status(200).json({
+    ok: true,
+    unchanged: rollback.unchanged === true,
+    release: summarizeGolfJoinReleaseV2Root(rollback.root, verification)
+  });
+}
+
 function refreshGolfJoinHomeSummaryInBackground(reason = "write") {
   // 일정 생성/참여 직후 이전 참여자 요약이 TTL 동안 다시 노출되지 않도록
   // 공개 홈 캐시를 먼저 비우고 최신 스냅샷을 재생성한다.
@@ -8752,6 +8882,10 @@ async function proxyGet(req, res) {
   }
   if (req.query?.action === "secret_tour_goods_list" || req.query?.action === "secret_tour_goods_events") {
     await proxySecretTourJson(req, res);
+    return;
+  }
+  if (req.query?.action === "admin_release_v2_status") {
+    await proxyAdminReleaseV2Status(req, res);
     return;
   }
   if (req.query?.action === "admin_bootstrap" && GOOGLE_SHEET_ID) {
@@ -9739,6 +9873,16 @@ async function proxyPost(req, res) {
 
   if (req.query?.action === "admin_recommended_schedule_migrate") {
     await withProductFamilyMutationLock(() => proxyAdminRecommendedScheduleMigrate(req, res));
+    return;
+  }
+
+  if (req.query?.action === "admin_release_v2_publish") {
+    await withProductFamilyMutationLock(() => proxyAdminReleaseV2Publish(req, res));
+    return;
+  }
+
+  if (req.query?.action === "admin_release_v2_rollback") {
+    await withProductFamilyMutationLock(() => proxyAdminReleaseV2Rollback(req, res));
     return;
   }
 

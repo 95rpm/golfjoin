@@ -15,3 +15,8 @@ build/
 .env
 .env.*
 !.env.example
+
+# Browser E2E artifacts and local authentication state
+test-results/
+playwright-report/
+tests/e2e/.auth/

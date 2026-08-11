@@ -1,0 +1,2078 @@
+</style>
+</head>
+<body class="home-initial-loading modal-open">
+  <div class="home-initial-loading-overlay open" id="homeInitialLoadingOverlay" aria-hidden="false">
+    <div class="join-action-loading-box has-message" role="status" aria-live="polite" aria-label="상품을 확인하고 있어요">
+      <div class="join-action-loading-icon" id="homeInitialLoadingIcon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-tickets-plane-icon lucide-tickets-plane"><path d="M10.5 17h1.227a2 2 0 0 0 1.345-.52L18 12"></path><path d="m12 13.5 3.794.506"></path><path d="m3.173 8.18 11-5a2 2 0 0 1 2.647.993L18.56 8"></path><path d="M6 10V8"></path><path d="M6 14v1"></path><path d="M6 19v2"></path><rect x="2" y="8" width="20" height="13" rx="2"></rect></svg></div>
+      <div class="join-action-loading-message" id="homeInitialLoadingMessage">상품을 확인하고 있어요</div>
+    </div>
+  </div>
+  <div id="secret-golf-join" class="sgj-page">
+  <section class="sgj-section hero">
+    <div class="page-container hero-grid">
+      <div>
+        <div class="hero-title">취향이 통하는<br>특별한 만남</div>
+        <p class="hero-subtitle">해외골프, 조인으로 떠나보세요!</p>
+        <div class="hero-search-stack">
+          <div class="mobile-search-panel">
+            <button type="button" class="mobile-search-input" onclick="openMainMobileRegionSearch(this)">
+              <div class="hero-destination-search-text">어디로 떠나고 싶으세요?</div>
+              <svg class="mobile-search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
+                <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+              </svg>
+            </button>
+          </div>
+          <button type="button" class="button secondary hero-calendar-button" onclick="openCalendarSheet()">
+            <svg class="hero-calendar-shape" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+              <path class="hero-calendar-main-shape"></path>
+              <path class="hero-calendar-cta-shape"></path>
+            </svg>
+            <div class="hero-calendar-copy">
+              <div class="hero-calendar-button-text">모집 중인 조인 확인하기</div>
+              <div class="hero-calendar-button-desc">원하는 날짜에 함께할 멤버를 찾아보세요</div>
+            </div>
+            <div class="hero-calendar-social-proof">
+              <div class="hero-calendar-thumb-stack" aria-hidden="true">
+                <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man1.webp" alt=""></div>
+                <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/woman1.webp" alt=""></div>
+                <div class="hero-calendar-thumb"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/man2.webp" alt=""></div>
+              </div>
+              <div class="hero-calendar-count-stack">
+                <div class="hero-calendar-profile-count" aria-label="최근 30일 홈페이지 방문자 수">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-plus-icon lucide-user-plus" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg>
+                  <div class="hero-calendar-profile-count-number" id="heroCalendarProfileCount">0</div>
+                </div>
+                <div class="hero-calendar-active-count" aria-label="현재 보고 있는 인원">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  <div class="hero-calendar-active-count-number" id="heroCalendarActiveCount">0</div>
+                </div>
+              </div>
+            </div>
+            <span class="button-chevron">모임찾기</span>
+          </button>
+          <button type="button" class="button primary hero-create-button" onclick="openBuilderModalFromMain(this)">
+            <div>새로운 모임 만들기</div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right" aria-hidden="true">
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-slider-viewport">
+          <div class="hero-slider-track" id="heroSliderTrack">
+            <div class="hero-slide is-clickable" role="button" tabindex="0" aria-label="10월 월례회 상품 자세히 보기" onclick="openHeroOctoberMonthlyDetail()" onkeydown="handleHeroOctoberMonthlyKeydown(event)">
+              <img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner.webp" alt="10월 월례회 골프 조인 배너" loading="eager" decoding="async" fetchpriority="high" style="width: 100%; height: 100%;">
+            </div>
+          </div>
+        </div>
+        <div class="hero-slick-dots" id="heroSlickDots" aria-label="히어로 배너 페이지"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sgj-section sgj-active-section" id="active">
+    <div class="page-container">
+      <div class="join-section-nav-slot" id="joinSectionNavSlot">
+      <div class="join-section-nav" id="joinSectionNav" aria-label="조인 상품 섹션 이동">
+        <button type="button" class="chip" data-join-section-target="my" onclick="scrollHomeJoinSection('my')" aria-current="false" hidden><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav0.webp" alt=""></div><div class="join-section-nav-label">나의모임</div></button>
+        <button type="button" class="chip active" data-join-section-target="mdpick" onclick="scrollHomeJoinSection('mdpick')" aria-current="true"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav1.webp" alt=""></div><div class="join-section-nav-label">추천여행</div></button>
+        <button type="button" class="chip" data-join-section-target="mdpick-theme" onclick="scrollHomeJoinSection('mdpick-theme')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav1-1.webp" alt=""></div><div class="join-section-nav-label">취향맞춤</div></button>
+        <button type="button" class="chip" data-join-section-target="quick" onclick="scrollHomeJoinSection('quick')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav2.webp" alt=""></div><div class="join-section-nav-label">마감임박</div></button>
+        <button type="button" class="chip" data-join-section-target="soon" onclick="scrollHomeJoinSection('soon')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav3.webp" alt=""></div><div class="join-section-nav-label">곧출발</div></button>
+        <button type="button" class="chip" data-join-section-target="custom" onclick="scrollHomeJoinSection('custom')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav4.webp" alt=""></div><div class="join-section-nav-label">맞춤조인</div></button>
+        <button type="button" class="chip" data-join-section-target="overseas" onclick="scrollHomeJoinSection('overseas')" aria-current="false"><div class="join-section-nav-icon"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/nav5.webp" alt=""></div><div class="join-section-nav-label">해외BEST</div></button>
+      </div>
+
+      </div>
+
+      <div id="joinMyHomeSection"></div>
+
+      <div id="joinMdPickSection">
+        <section class="join-product-section layout-mdpick" id="join-section-mdpick" data-join-section="mdpick" aria-label="MD PICK! 추천여행">
+          <div class="join-product-section-head">
+            <div class="join-product-section-copy">
+              <div class="join-product-section-title">MD PICK! 추천여행<div class="join-product-section-icon popular" aria-hidden="true"></div></div>
+              <p class="join-product-section-desc">인기 상품으로 멤버를 모집해보세요.</p>
+            </div>
+          </div>
+          <div class="join-mdpick-countries">
+            
+        <div class="join-mdpick-country" data-mdpick-country="thailand">
+          <div class="join-mdpick-country-head">
+            <div class="join-mdpick-country-name">
+              
+        <button type="button" class="join-mdpick-country-trigger active" data-mdpick-country-option="thailand" onclick="selectMdPickCountry('thailand', event)" aria-current="true">
+          <i class="join-mdpick-country-current">태국<img class="join-mdpick-country-flag" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/flag_thai.png" alt=""></i>
+        </button>
+        <div class="join-mdpick-country-options" role="group" aria-label="MD PICK 국가 선택">
+          <button type="button" class="join-mdpick-country-option join-mdpick-country-option-alt" data-mdpick-country-option="japan" onclick="selectMdPickCountry('japan', event)" aria-current="false">일본<img class="join-mdpick-country-flag join-mdpick-country-flag-japan" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/flag_japan.png" alt=""></button><button type="button" class="join-mdpick-country-option join-mdpick-country-option-alt" data-mdpick-country-option="china" onclick="selectMdPickCountry('china', event)" aria-current="false">중국<img class="join-mdpick-country-flag" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/flag_china.png" alt=""></button>
+        </div>
+        <button type="button" class="join-mdpick-country-toggle" onclick="toggleMdPickCountryMenu(event)" aria-expanded="false" aria-label="국가 선택 열기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M12 15.838a1.2 1.2 0 0 1-.8-.3l-4.625-4.626a1.03 1.03 0 0 1-.312-.788c.008-.308.12-.57.337-.787.217-.216.483-.325.8-.325.317 0 .583.109.8.325l3.8 3.8 3.825-3.825c.217-.216.48-.32.788-.311.308.008.57.12.787.337.217.216.325.483.325.8 0 .316-.108.583-.325.8l-4.6 4.6a1.2 1.2 0 0 1-.8.3Z"></path></svg>
+        </button>
+            </div>
+            <div class="join-mdpick-pack-chips" aria-label="태국 상품 유형">
+              <button type="button" class="join-mdpick-pack-chip active" data-mdpick-pack-filter="golf" onclick="setMdPickPackFilter('thailand', 'golf')">골프팩</button>
+              <button type="button" class="join-mdpick-pack-chip" data-mdpick-pack-filter="air" onclick="setMdPickPackFilter('thailand', 'air')">항공팩</button>
+              <button type="button" class="join-mdpick-pack-info-button" onclick="toggleMdPickPackTooltip(event, 'thailand')" aria-label="상품 유형 안내">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.3"></circle>
+                  <path d="M8 7.1v4.1" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"></path>
+                  <circle cx="8" cy="4.95" r=".85" fill="currentColor"></circle>
+                </svg>
+              </button>
+              <div class="join-mdpick-pack-tooltip" id="mdPickPackTooltip-thailand" role="tooltip">
+                <div class="join-mdpick-pack-info-list">
+                  <div><strong>골프팩</strong><span>골프 + 숙박이 포함된 상품입니다.</span></div>
+                  <div><strong>항공팩</strong><span>항공 + 골프 + 숙박이 포함된 상품입니다.</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="join-mdpick-list" ontouchstart="handleMdPickListTouchStart(event)" ontouchmove="handleMdPickListTouchMove(event)" ontouchend="handleMdPickListTouchEnd(event)">
+        <button type="button" class="join-mdpick-card" onclick="if (consumeMdPickSwipeClick()) return; openMdPickProductDetail('good-30001104', 'thailand')">
+          <div class="join-mdpick-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 우돈타니 로얄크릭 3박5일 로얄크릭" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-info">
+            <div class="join-mdpick-region">우돈타니</div>
+            <div class="join-mdpick-title">태국 우돈타니 로얄크릭 3박5일 로얄크릭</div>
+            <div class="join-mdpick-price">259,000<i class="join-mdpick-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-card" onclick="if (consumeMdPickSwipeClick()) return; openMdPickProductDetail('good-30001089', 'thailand')">
+          <div class="join-mdpick-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 방콕 2색 3박5일 썬라이즈 호텔" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-info">
+            <div class="join-mdpick-region">방콕</div>
+            <div class="join-mdpick-title">태국 방콕 2색 3박5일 썬라이즈 호텔</div>
+            <div class="join-mdpick-price">274,000<i class="join-mdpick-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-card" onclick="if (consumeMdPickSwipeClick()) return; openMdPickProductDetail('good-30001092', 'thailand')">
+          <div class="join-mdpick-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 치앙마이 아티타야 3박5일 아티타야" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-info">
+            <div class="join-mdpick-region">치앙마이</div>
+            <div class="join-mdpick-title">태국 치앙마이 아티타야 3박5일 아티타야</div>
+            <div class="join-mdpick-price">310,000<i class="join-mdpick-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-card" onclick="if (consumeMdPickSwipeClick()) return; openMdPickProductDetail('good-30001084', 'thailand')">
+          <div class="join-mdpick-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 방콕 아티타야 3박5일" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-info">
+            <div class="join-mdpick-region">방콕</div>
+            <div class="join-mdpick-title">태국 방콕 아티타야 3박5일</div>
+            <div class="join-mdpick-price">330,000<i class="join-mdpick-price-unit">원~</i></div>
+          </div>
+        </button>
+      </div>
+        </div>
+      
+          </div>
+          <div class="join-slide-dots is-visible" data-slide-dots="mdpick-country" aria-hidden="true" data-active-index="0"><div class="join-slide-dot active"></div><div class="join-slide-dot"></div><div class="join-slide-dot"></div></div>
+          
+        <div class="join-mdpick-theme-section" id="join-section-mdpick-theme" data-join-section="mdpick-theme">
+          <div class="join-mdpick-theme-title">취향맞춤 TOP3</div>
+          <div class="join-mdpick-theme-copy">라운드 스타일 따라 떠나는 여행</div>
+          <div class="join-mdpick-theme-groups" onscroll="updateMdPickThemeDots()">
+            
+              <div class="join-mdpick-theme-group theme-relax active" data-mdpick-theme-group="relax">
+                <div class="join-mdpick-theme-head">
+                  <div class="join-mdpick-theme-name">휴양형 🌴</div>
+                  <div class="join-mdpick-theme-subcopy">푸른 바다와 리조트에서<br>쉬어가는 여유로운 골프여행</div>
+                  <div class="join-mdpick-theme-pills" role="tablist" aria-label="취향맞춤 테마 선택">
+                    
+                      <button type="button" class="join-mdpick-theme-tab active" onclick="setMdPickTheme('relax')" role="tab" aria-selected="true">🌴 쉼이 있는 바다 라운드</button>
+                    
+                      <button type="button" class="join-mdpick-theme-tab" onclick="setMdPickTheme('city')" role="tab" aria-selected="false">🛍️ 라운드 후 도심 산책</button>
+                    
+                      <button type="button" class="join-mdpick-theme-tab" onclick="setMdPickTheme('passion')" role="tab" aria-selected="false">⛳ 하루 꽉 찬 집중 라운드</button>
+                    
+                  </div>
+                </div>
+                <div class="join-mdpick-theme-grid">
+                  
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001096', 'thailand')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 치앙마이 로얄치앙마이 3박5일 로얄 카트비" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">치앙마이</div>
+            <div class="join-mdpick-theme-product">태국 치앙마이 로얄치앙마이 3박5일 로얄 카트비</div>
+            <div class="join-mdpick-theme-price">415,000<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001018', '')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="말레이지아 조호바루 팜리조트 3박5일 팜리조트 카트비" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">조호바루</div>
+            <div class="join-mdpick-theme-product">말레이지아 조호바루 팜리조트 3박5일 팜리조트 카트비</div>
+            <div class="join-mdpick-theme-price">535,000<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001100', 'thailand')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 치앙마이 하이랜드 3박5일 하이랜드 카트비" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">치앙마이</div>
+            <div class="join-mdpick-theme-product">태국 치앙마이 하이랜드 3박5일 하이랜드 카트비</div>
+            <div class="join-mdpick-theme-price">580,000<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+                </div>
+              </div>
+      
+              <div class="join-mdpick-theme-group theme-city" data-mdpick-theme-group="city">
+                <div class="join-mdpick-theme-head">
+                  <div class="join-mdpick-theme-name">시내형 🛍️</div>
+                  <div class="join-mdpick-theme-subcopy">라운드 후 맛집, 쇼핑, 관광까지 함께 즐기는 도심형 일정</div>
+                  <div class="join-mdpick-theme-pills" role="tablist" aria-label="취향맞춤 테마 선택">
+                    
+                      <button type="button" class="join-mdpick-theme-tab" onclick="setMdPickTheme('relax')" role="tab" aria-selected="false">🌴 쉼이 있는 바다 라운드</button>
+                    
+                      <button type="button" class="join-mdpick-theme-tab active" onclick="setMdPickTheme('city')" role="tab" aria-selected="true">🛍️ 라운드 후 도심 산책</button>
+                    
+                      <button type="button" class="join-mdpick-theme-tab" onclick="setMdPickTheme('passion')" role="tab" aria-selected="false">⛳ 하루 꽉 찬 집중 라운드</button>
+                    
+                  </div>
+                </div>
+                <div class="join-mdpick-theme-grid">
+                  
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001021', '')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="말레이지아 코타키나발루 가람부나이 3박5일 넥서스 카트비 관광세 한국인 및 현지인 안내가이드" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">코타키나발루</div>
+            <div class="join-mdpick-theme-product">말레이지아 코타키나발루 가람부나이 3박5일 넥서스 카트비 관광세 한국인 및 현지인 안내가이드</div>
+            <div class="join-mdpick-theme-price">580,000<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001010', '')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="라오스 비엔티안 3색 3박5일 랜드마크 레지던스 카트비 캐디피 미팅샌딩비 전일정 차량료 쇼핑 1회 라오스 전통마사지 1시간(팁별도) 커피 및 열대과일 시식 웰컴과일도시락 1인1세트" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">비엔티안</div>
+            <div class="join-mdpick-theme-product">라오스 비엔티안 3색 3박5일 랜드마크 레지던스 카트비 캐디피 미팅샌딩비 전일정 차량료 쇼핑 1회 라오스 전통마사지 1시간(팁별도) 커피 및 열대과일 시식 웰컴과일도시락 1인1세트</div>
+            <div class="join-mdpick-theme-price">646,400<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001011', '')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="라오스 비엔티안 4색 4박6일 랜드마크 레지던스 카트비 캐디피 미팅샌딩비 전일정 차량료 쇼핑 1회 라오스 전통마사지 1시간(팁별도) 커피 및 열대과일 시식 웰컴과일도시락 1인1세트" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">비엔티안</div>
+            <div class="join-mdpick-theme-product">라오스 비엔티안 4색 4박6일 랜드마크 레지던스 카트비 캐디피 미팅샌딩비 전일정 차량료 쇼핑 1회 라오스 전통마사지 1시간(팁별도) 커피 및 열대과일 시식 웰컴과일도시락 1인1세트</div>
+            <div class="join-mdpick-theme-price">803,200<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+                </div>
+              </div>
+      
+              <div class="join-mdpick-theme-group theme-passion" data-mdpick-theme-group="passion">
+                <div class="join-mdpick-theme-head">
+                  <div class="join-mdpick-theme-name">열정형 ⛳</div>
+                  <div class="join-mdpick-theme-subcopy">라운드에 집중하고 싶은 골퍼를 위한 알찬 골프 일정</div>
+                  <div class="join-mdpick-theme-pills" role="tablist" aria-label="취향맞춤 테마 선택">
+                    
+                      <button type="button" class="join-mdpick-theme-tab" onclick="setMdPickTheme('relax')" role="tab" aria-selected="false">🌴 쉼이 있는 바다 라운드</button>
+                    
+                      <button type="button" class="join-mdpick-theme-tab" onclick="setMdPickTheme('city')" role="tab" aria-selected="false">🛍️ 라운드 후 도심 산책</button>
+                    
+                      <button type="button" class="join-mdpick-theme-tab active" onclick="setMdPickTheme('passion')" role="tab" aria-selected="true">⛳ 하루 꽉 찬 집중 라운드</button>
+                    
+                  </div>
+                </div>
+                <div class="join-mdpick-theme-grid">
+                  
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001192', 'japan')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="일본 미야자키 모치오 2박3일 수출발 모치오가든 카트비 미팅샌딩비 평일 한정 9홀 라운드 서비스" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">미야자키</div>
+            <div class="join-mdpick-theme-product">일본 미야자키 모치오 2박3일 수출발 모치오가든 카트비 미팅샌딩비 평일 한정 9홀 라운드 서비스</div>
+            <div class="join-mdpick-theme-price">480,000<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001156', 'china')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="중국 대련 장흥도 3박4일 장흥도 골프텔 또는 둔호호텔" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">대련</div>
+            <div class="join-mdpick-theme-product">중국 대련 장흥도 3박4일 장흥도 골프텔 또는 둔호호텔</div>
+            <div class="join-mdpick-theme-price">490,000<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001091', 'thailand')">
+          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 방콕 시라차 3박5일 랜덤4색 무제한 2인출발가능 3박5일 그린우드/파타비아/트레저힐/마운틴쉐도우" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-meta">
+            <div class="join-mdpick-theme-region">방콕</div>
+            <div class="join-mdpick-theme-product">태국 방콕 시라차 3박5일 랜덤4색 무제한 2인출발가능 3박5일 그린우드/파타비아/트레저힐/마운틴쉐도우</div>
+            <div class="join-mdpick-theme-price">495,000<i class="join-mdpick-theme-price-unit">원~</i></div>
+          </div>
+        </button>
+      
+                </div>
+              </div>
+      
+          </div>
+          <div class="join-slide-dots is-visible" data-slide-dots="mdpick-theme" aria-hidden="true" data-active-index="0"><div class="join-slide-dot active"></div><div class="join-slide-dot"></div><div class="join-slide-dot"></div></div>
+        </div>
+      
+        </section>
+      </div>
+
+      <section class="sgj-section sgj-create-section" id="create">
+        <div class="cta-panel">
+          <div class="cta-copy-stage">
+            <img class="cta-character-image man" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/bg_sub_man1.webp" alt="" loading="lazy" decoding="async" aria-hidden="true">
+            <div class="cta-copy">
+              <div class="section-title cta-title">원하는 일정으로<div class="cta-title-pc-space"> </div><br class="cta-title-linebreak">골프친구 찾기</div>
+              <div class="cta-subcopy">
+                <div class="section-desc cta-subcopy-text">원하는 날짜와 지역의 상품으로<div class="cta-pc-space"> </div><br class="cta-subcopy-linebreak">직접 멤버를 모집해보세요.</div>
+              </div>
+            </div>
+            <img class="cta-character-image woman" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/bg_sub_woman1.webp" alt="" loading="lazy" decoding="async" aria-hidden="true">
+          </div>
+          <button class="button primary large cta-create-button" onclick="openBuilderModalFromMain(this)">
+            <div class="cta-create-button-text">새로운 모임 만들기</div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </button>
+        </div>
+      </section>
+
+      <div class="section-head-row" id="joinActiveSectionHead">
+        <div>
+          <div class="section-title">지금, 함께 떠나는 조인여행 <div class="section-title-bolt" aria-hidden="true"></div></div>
+          <p class="section-desc">실시간으로 기다림 없이 바로 합류하세요.</p>
+        </div>
+      </div>
+
+      <div class="join-section-list" id="joinSectionList">
+      </div>
+    </div>
+  </section>
+
+
+  <section class="sgj-section sgj-trust-section">
+    <div class="page-container">
+      <div class="section-title" style="text-align:center;">안심하고 가볍게 참여하세요</div>
+      <div class="trust-grid" style="margin-top:24px;">
+        <div class="trust-card"><div class="trust-icon">1</div><div class="trust-card-title">참여자를 미리 확인하세요</div><div class="trust-card-copy">성별부터 스타일까지 한눈에</div><img class="trust-card-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/trust_card_img1.webp" alt="" loading="lazy" decoding="async" aria-hidden="true"></div>
+        <div class="trust-card"><div class="trust-icon">2</div><div class="trust-card-title">담당자가 끝까지 책임집니다</div><div class="trust-card-copy">출발 전후 빠른 응대와 안심 안내</div><img class="trust-card-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/trust_card_img2.webp" alt="" loading="lazy" decoding="async" aria-hidden="true"></div>
+        <div class="trust-card"><div class="trust-icon">3</div><div class="trust-card-title">회원이라 더 특별한 혜택</div><div class="trust-card-copy">특가부터 단체 프로그램까지 연결</div><img class="trust-card-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/trust_card_img3.webp" alt="" loading="lazy" decoding="async" aria-hidden="true"></div>
+        <div class="trust-card"><div class="trust-icon">4</div><div class="trust-card-title">가볍게 묻고 편하게 참여</div><div class="trust-card-copy">매너 있는 분들과 즐거운 일정</div><img class="trust-card-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/trust_card_img4.webp" alt="" loading="lazy" decoding="async" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sgj-section sgj-faq-section">
+    <div class="page-container">
+      <div class="section-title" style="text-align:center;">자주 묻는 질문</div>
+      <div class="faq-list" style="margin-top:24px;">
+        <details open=""><summary><div class="faq-question">혼자 신청해도 괜찮을까요?</div></summary><p class="faq-answer">네, 혼자 참여하시는 회원님이 많아 부담 없이 시작하실 수 있습니다. 참여자의 정보를 미리 확인한 뒤 마음에 드는 일정에 신청하시면 됩니다.</p></details>
+        <details><summary><div class="faq-question">같이 가는 동반자를 미리 볼 수 있나요?</div></summary><p class="faq-answer">네, 신청 전에 참여자 정보를 확인하실 수 있습니다. 성별, 연령대, 라운딩 스타일 등을 참고해 편안한 모임을 선택해 보세요.</p></details>
+        <details><summary><div class="faq-question">골프를 잘 못 쳐도 괜찮을까요?</div></summary><p class="faq-answer">물론입니다. 참여자의 구력과 라운딩 스타일을 참고해 자신에게 맞는 분위기의 모임을 선택하시면 됩니다.</p></details>
+        <details><summary><div class="faq-question">신청하면 바로 예약이 확정되나요?</div></summary><p class="faq-answer">아니요, 신청만으로 예약이 확정되지는 않습니다. 담당자가 가능 여부와 견적을 안내해 드리며, 예약금 입금 후 참여 신청이 완료됩니다.</p></details>
+        <details><summary><div class="faq-question">출발 전에 취소하면 환불받을 수 있나요?</div></summary><p class="faq-answer">네, 출발이 확정되기 전까지는 예약금을 전액 환불해 드립니다. 4인 조인이 완료되어 출발이 확정된 이후에는 상품 취소 규정이 적용됩니다.</p></details>
+        <details><summary><div class="faq-question">원하는 일정의 모임이 없으면 어떻게 하나요?</div></summary><p class="faq-answer">직접 원하는 일정으로 새 모임을 만들 수 있습니다. 희망 날짜와 지역을 등록하시면 같은 일정을 찾는 다른 회원들도 참여할 수 있습니다.</p></details>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="sgj-section sgj-support-section">
+    <div class="page-container">
+      <div class="support-grid">
+        <button type="button" class="support-action-card" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')" aria-label="카카오톡 상담하기" style="position: relative;">
+          <div class="support-card-visual">
+            <img class="support-card-image" alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_kakao.webp" style="width: 100%; height: 100%;">
+          </div>
+          <div class="support-card-content">
+            <div class="support-card-text">
+              <div class="support-card-label">카카오톡 상담하기</div>
+              <div class="support-card-title">24시간 채팅 상담</div>
+              <div class="support-card-copy">기다림 없이 톡으로 편하게</div>
+            </div>
+            <div class="support-card-arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+          </div>
+        </button>
+        <button type="button" class="support-action-card" onclick="handlePhoneContact()" aria-label="전화로 문의하기">
+          <div class="support-card-visual">
+            <img class="support-card-image" alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_phone.webp" style="width: 100%; height: 100%;">
+          </div>
+          <div class="support-card-content">
+            <div class="support-card-text">
+              <div class="support-card-label">전화로 문의하기</div>
+              <div class="support-card-title">베테랑 매니저 직통</div>
+              <div class="support-card-copy">궁금하신 점, 목소리로 듣고 해결</div>
+            </div>
+            <div class="support-card-arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+          </div>
+        </button>
+        <button type="button" class="support-action-card" onclick="openExternalLink('https://band.us/@secrettour')" aria-label="밴드 가입하기" style="position: relative;">
+          <div class="support-card-visual">
+            <img class="support-card-image" alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_band.webp" style="width: 100%; height: 100%;">
+          </div>
+          <div class="support-card-content">
+            <div class="support-card-text">
+              <div class="support-card-label">밴드 가입하기</div>
+              <div class="support-card-title">3,500명 정예 커뮤니티</div>
+              <div class="support-card-copy">매일 업데이트되는 특가 조인</div>
+            </div>
+            <div class="support-card-arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+          </div>
+        </button>
+        <button type="button" class="support-action-card" onclick="openExternalLink('https://mbti.secret-tour.com/')" aria-label="내 여행 스타일은?">
+          <div class="support-card-visual">
+            <img class="support-card-image" alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_mbti.webp" style="width: 100%; height: 100%;">
+          </div>
+          <div class="support-card-content">
+            <div class="support-card-text">
+              <div class="support-card-label">내 여행 스타일은?</div>
+              <div class="support-card-title">나의 골프 MBTI는?</div>
+              <div class="support-card-copy">찰떡궁합 동반자를 찾아드려요</div>
+            </div>
+            <div class="support-card-arrow" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right-icon lucide-arrow-right"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></div>
+          </div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="join-mobile-bottom-nav is-visible" id="joinMobileBottomNav" role="navigation" aria-label="모바일 빠른 메뉴">
+    <div class="join-mobile-bottom-nav-shell" id="joinMobileBottomNavShell">
+      <div class="join-mobile-bottom-nav-inactive-layer" id="joinMobileBottomNavInactiveLayer">
+        <button type="button" class="join-mobile-bottom-nav-button" data-mobile-nav-key="create" onclick="handleJoinMobileCreateClick(this)" aria-label="새모임 생성하기">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.35 21H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v2.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14.8 12.4A1 1 0 0 0 14 12h-4a1 1 0 0 0-1 1v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div class="join-mobile-bottom-nav-label">모임생성</div>
+        </button>
+        <button type="button" class="join-mobile-bottom-nav-button" data-mobile-nav-key="find" onclick="handleJoinMobileFindClick()" aria-label="참여가능한 모임">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 11.75V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="m22 22-1.875-1.875" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="18" cy="18" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <div class="join-mobile-bottom-nav-label">모임찾기</div>
+        </button>
+        <button type="button" class="join-mobile-bottom-nav-button is-active" data-mobile-nav-key="my" onclick="handleJoinMyButtonClick()" aria-label="마이메뉴">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <div class="join-mobile-bottom-nav-label">나의모임</div>
+        </button>
+        <button type="button" class="join-mobile-bottom-nav-button nav-phone" data-mobile-nav-key="phone" onclick="handleJoinMobilePhoneClick()" aria-label="전화로 연결">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div class="join-mobile-bottom-nav-label">고객센터</div>
+        </button>
+      </div>
+      <div class="join-mobile-bottom-nav-indicator" aria-hidden="true">
+        <div class="join-mobile-bottom-nav-indicator-deform">
+          <div class="join-mobile-bottom-nav-indicator-visual"></div>
+        </div>
+      </div>
+      <div class="join-mobile-bottom-nav-active-overlay" aria-hidden="true">
+        <div class="join-mobile-bottom-nav-overlay-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12.35 21H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 .71-1.53l7-6a2 2 0 0 1 2.58 0l7 6A2 2 0 0 1 21 10v2.35" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14.8 12.4A1 1 0 0 0 14 12h-4a1 1 0 0 0-1 1v8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M15 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 15v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div class="join-mobile-bottom-nav-label">모임생성</div>
+        </div>
+        <div class="join-mobile-bottom-nav-overlay-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 11.75V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="m22 22-1.875-1.875" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 10h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="18" cy="18" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <div class="join-mobile-bottom-nav-label">모임찾기</div>
+        </div>
+        <div class="join-mobile-bottom-nav-overlay-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+          <div class="join-mobile-bottom-nav-label">나의모임</div>
+        </div>
+        <div class="join-mobile-bottom-nav-overlay-item">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div class="join-mobile-bottom-nav-label">고객센터</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="join-my-drawer-overlay" id="joinMyDrawerOverlay" onclick="if(event.target.id === 'joinMyDrawerOverlay') closeJoinMyDrawer()" aria-hidden="true" style="--join-pc-header-zone-offset: 0px;">
+    <aside class="join-my-drawer" role="dialog" aria-modal="true" aria-labelledby="joinMyDrawerName">
+      <div class="join-my-drawer-profile">
+        <button type="button" class="modal-close-icon join-my-drawer-close" onclick="closeJoinMyDrawer()" aria-label="마이메뉴 닫기"></button>
+        <div class="join-my-drawer-profile-row">
+          <div class="join-my-drawer-avatar" id="joinMyDrawerAvatar" aria-hidden="true"></div>
+          <div class="join-my-drawer-profile-copy">
+            <div class="join-my-drawer-name" id="joinMyDrawerName">관리자</div>
+            <div class="join-my-drawer-meta">
+              <div id="joinMyDrawerGender">남성</div>
+              <div class="join-my-drawer-dot" aria-hidden="true"></div>
+              <div id="joinMyDrawerAge">50대</div>
+            </div>
+            <button type="button" class="join-my-drawer-profile-manage" onclick="closeJoinMyDrawer(); openJoinProfileManageModal()"><div class="join-my-drawer-profile-manage-text">프로필 관리</div></button>
+          </div>
+        </div>
+      </div>
+      <div class="join-my-drawer-divider"></div>
+      <div class="join-my-drawer-list">
+        <button type="button" class="join-my-drawer-item" data-join-my-menu="reservation" onclick="handleJoinMyTripClick(this)">
+          <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 20h4" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="16" cy="20" r="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle><circle cx="8" cy="20" r="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle></svg></div>
+          <div>내 예약</div>
+        </button>
+        <button type="button" class="join-my-drawer-item" data-join-my-menu="recent" onclick="handleJoinMyRecentClick(this)">
+          <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></circle></svg></div>
+          <div>최근 본 상품</div>
+        </button>
+        <button type="button" class="join-my-drawer-item" data-join-my-menu="wish" onclick="handleJoinMyWishClick(this)">
+          <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          <div>찜한 상품</div>
+        </button>
+      </div>
+      <div class="join-my-drawer-divider"></div>
+      <div class="join-my-drawer-section-title">고객지원</div>
+      <div class="join-my-drawer-list">
+        <button type="button" class="join-my-drawer-item" onclick="closeJoinMyDrawer(); openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">
+          <div class="join-my-drawer-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M12 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M16 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path><path d="M8 11h.01" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          <div>채팅문의</div>
+        </button>
+        <button type="button" class="join-my-drawer-item" onclick="closeJoinMyDrawer(); handlePhoneContact()">
+          <div class="join-my-drawer-icon join-my-drawer-phone-icon" aria-hidden="true"><div class="join-my-drawer-phone-image"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/callcenter.webp" alt=""></div></div>
+          <div>전화문의</div>
+        </button>
+      </div>
+      <div class="join-my-drawer-divider"></div>
+      <div class="join-my-drawer-support-info">
+        <div class="join-my-drawer-support-title">고객지원실 운영안내</div>
+        <div class="join-my-drawer-support-line">
+          <div class="join-my-drawer-support-label">채팅상담</div>
+          <div class="join-my-drawer-support-value">연중무휴 24시간</div>
+        </div>
+        <div class="join-my-drawer-support-line">
+          <div class="join-my-drawer-support-label">유선상담</div>
+          <div class="join-my-drawer-support-value">주중 09:00-18:00</div>
+        </div>
+        <div class="join-my-drawer-support-line">
+          <div class="join-my-drawer-support-label">대표번호</div>
+          <div class="join-my-drawer-support-value">02-3446-1119</div>
+        </div>
+      </div>
+      <div class="join-my-drawer-divider"></div>
+      <button type="button" class="join-my-drawer-logout" onclick="handleJoinMyLogout()">로그아웃</button>
+    </aside>
+  </div>
+
+
+
+  <div class="overlay join-member-login-overlay" id="joinMemberLoginModal">
+    <div class="modal join-member-login-modal" role="dialog" aria-modal="true" aria-labelledby="joinMemberLoginTitle">
+      <div class="join-member-login-header">
+        <button type="button" class="join-member-login-back" onclick="handleJoinMemberLoginBack()" aria-label="뒤로 가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
+          </svg>
+        </button>
+        <div class="join-member-login-title" id="joinMemberLoginTitle">로그인</div>
+        <button type="button" class="join-member-login-complete-close" onclick="continueJoinMemberSignupComplete()" aria-label="완료 화면 닫기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="join-member-login-body">
+        <div class="join-member-login-main">
+          <div class="join-member-login-logo">
+            <img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/logo.png" alt="SECRET TOUR">
+          </div>
+          <div class="join-member-login-copy">
+            <div class="join-member-login-copy-line join-member-login-copy-headline">혼자라도 즐거운 골프라이프</div>
+            <div class="join-member-login-copy-line dynamic">
+              <div class="join-member-login-copy-rotator" aria-label="취향맞춤 비즈니스 골프친구">
+                <div class="join-member-login-copy-word taste">
+                  <div class="join-member-login-copy-text">취향맞춤 &#x1F3AF;</div>
+                </div>
+                <div class="join-member-login-copy-word business">
+                  <div class="join-member-login-copy-text">비즈니스 &#x1F4BC;</div>
+                </div>
+                <div class="join-member-login-copy-word romance">
+                  <div class="join-member-login-copy-text">골프친구 &#x26F3;</div>
+                </div>
+              </div>
+              <div class="join-member-login-copy-fixed">인연 만들기</div>
+            </div>
+          </div>
+          <div class="join-member-login-actions">
+            <button type="button" class="join-member-login-button kakao" onclick="continueJoinMemberLogin('kakao')">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M12 2.667c-5.89 0-10.667 3.775-10.667 8.432 0 3.031 2.024 5.689 5.06 7.175-.222.833-.807 3.017-.924 3.485-.145.58.212.572.447.416.183-.122 2.922-1.985 4.104-2.789.642.096 1.304.146 1.98.146 5.891 0 10.667-3.775 10.667-8.433 0-4.657-4.776-8.432-10.667-8.432Z" clip-rule="evenodd"></path>
+              </svg>
+              <div class="join-member-login-button-label">카카오로 계속하기</div>
+            </button>
+            <button type="button" class="join-member-login-button email" onclick="openJoinMemberEmailForm()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-id-card-icon lucide-id-card" aria-hidden="true">
+                <path d="M16 10h2"></path>
+                <path d="M16 14h2"></path>
+                <path d="M6.17 15a3 3 0 0 1 5.66 0"></path>
+                <circle cx="9" cy="11" r="2"></circle>
+                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+              </svg>
+              <div class="join-member-login-button-label">아이디로 로그인</div>
+            </button>
+            <div class="join-member-email-form" id="joinMemberEmailForm">
+              <label class="join-member-email-field" for="joinMemberLoginId" id="joinMemberLoginIdField">
+                <div class="join-member-email-label">아이디*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberLoginId" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" autocapitalize="none" spellcheck="false" oninput="normalizeJoinMemberLoginIdInput(this); setJoinMemberFieldInvalid('joinMemberLoginIdField', 'joinMemberLoginIdHelper', '')" onblur="normalizeJoinMemberLoginIdInput(this); validateJoinMemberEmailField(false)">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberLoginIdHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field" for="joinMemberLoginPassword" id="joinMemberLoginPasswordField">
+                <div class="join-member-email-label">비밀번호*</div>
+                <div class="join-member-email-input-wrap">
+                  <div class="join-member-password-input-wrap">
+                    <input type="password" id="joinMemberLoginPassword" autocomplete="current-password" maxlength="20" placeholder="비밀번호를 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberLoginPasswordField', 'joinMemberLoginPasswordHelper', '')" onblur="validateJoinMemberPasswordField(false)" onkeydown="if(event.key === 'Enter') submitJoinMemberEmailLogin()">
+                    <button type="button" class="join-member-password-toggle" onclick="toggleJoinMemberPasswordVisibility('joinMemberLoginPassword', this)" aria-label="비밀번호 보기" aria-pressed="false" data-password-toggle="">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="join-member-email-helper" id="joinMemberLoginPasswordHelper" aria-live="polite"></div>
+              </label>
+              <button type="button" class="join-member-login-button signup" onclick="submitJoinMemberEmailLogin()">로그인하기</button>
+              <div class="join-member-find-links">
+                <a href="#find-id" onclick="openJoinMemberFindIdForm(); return false;">아이디 찾기</a>
+                <a href="#find-pw" onclick="openJoinMemberFindPwForm(); return false;">비밀번호 찾기</a>
+              </div>
+            </div>
+            <div class="join-member-find-id-form" id="joinMemberFindIdForm">
+              <label class="join-member-email-field" for="joinMemberFindIdName" id="joinMemberFindIdNameField">
+                <div class="join-member-email-label">이름*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberFindIdName" autocomplete="name" maxlength="20" placeholder="이름을 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberFindIdNameField', 'joinMemberFindIdNameHelper', ''); document.getElementById('joinMemberFindIdFail')?.classList.remove('is-visible')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberFindIdNameHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field" for="joinMemberFindIdMobile" id="joinMemberFindIdMobileField">
+                <div class="join-member-email-label">휴대폰번호*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="tel" id="joinMemberFindIdMobile" autocomplete="tel" inputmode="numeric" maxlength="13" placeholder="휴대폰번호를 입력해 주세요" oninput="formatJoinMemberSignupMobile(this); setJoinMemberFieldInvalid('joinMemberFindIdMobileField', 'joinMemberFindIdMobileHelper', ''); document.getElementById('joinMemberFindIdFail')?.classList.remove('is-visible')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberFindIdMobileHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field" for="joinMemberFindIdEmail" id="joinMemberFindIdEmailField">
+                <div class="join-member-email-label">이메일주소*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberFindIdEmail" autocomplete="email" maxlength="50" placeholder="이메일을 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberFindIdEmailField', 'joinMemberFindIdEmailHelper', ''); document.getElementById('joinMemberFindIdFail')?.classList.remove('is-visible')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberFindIdEmailHelper" aria-live="polite"></div>
+              </label>
+              <button type="button" class="join-member-login-button signup" onclick="submitJoinMemberFindId()">아이디 찾기</button>
+              <div class="join-member-find-result" id="joinMemberFindIdResult" aria-live="polite">
+                <div class="join-member-find-result-title">가입된 아이디를 찾았어요</div>
+                <div class="join-member-find-result-copy">아래 아이디로 로그인하거나 비밀번호를 다시 설정할 수 있습니다.</div>
+                <div class="join-member-found-id" id="joinMemberFoundId"></div>
+                <div class="join-member-find-actions">
+                  <button type="button" class="join-member-login-button secondary" onclick="openJoinMemberFindPwForm(true)">비밀번호 찾기</button>
+                  <button type="button" class="join-member-login-button signup" onclick="prefillJoinMemberLoginFromFoundId()">로그인</button>
+                </div>
+              </div>
+              <div class="join-member-find-result is-fail" id="joinMemberFindIdFail" aria-live="polite">
+                <div class="join-member-find-result-title">일치하는 아이디를 찾을 수 없어요</div>
+                <div class="join-member-find-result-copy">입력한 이름, 휴대폰번호, 이메일주소가 회원정보와 일치하는지 다시 확인해 주세요.</div>
+                <div class="join-member-find-actions">
+                  <button type="button" class="join-member-login-button secondary" onclick="retryJoinMemberFindId()">다시 입력</button>
+                  <button type="button" class="join-member-login-button signup" onclick="openJoinMemberSignupIntro()">회원가입</button>
+                </div>
+              </div>
+            </div>
+            <div class="join-member-find-pw-form" id="joinMemberFindPwForm">
+              <label class="join-member-email-field" for="joinMemberFindPwId" id="joinMemberFindPwIdField">
+                <div class="join-member-email-label">아이디*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberFindPwId" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberFindPwIdField', 'joinMemberFindPwIdHelper', ''); document.getElementById('joinMemberFindPwFail')?.classList.remove('is-visible')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberFindPwIdHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field" for="joinMemberFindPwName" id="joinMemberFindPwNameField">
+                <div class="join-member-email-label">이름*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberFindPwName" autocomplete="name" maxlength="20" placeholder="이름을 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberFindPwNameField', 'joinMemberFindPwNameHelper', ''); document.getElementById('joinMemberFindPwFail')?.classList.remove('is-visible')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberFindPwNameHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field" for="joinMemberFindPwMobile" id="joinMemberFindPwMobileField">
+                <div class="join-member-email-label">휴대폰번호*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="tel" id="joinMemberFindPwMobile" autocomplete="tel" inputmode="numeric" maxlength="13" placeholder="휴대폰번호를 입력해 주세요" oninput="formatJoinMemberSignupMobile(this); setJoinMemberFieldInvalid('joinMemberFindPwMobileField', 'joinMemberFindPwMobileHelper', ''); document.getElementById('joinMemberFindPwFail')?.classList.remove('is-visible')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberFindPwMobileHelper" aria-live="polite"></div>
+              </label>
+              <button type="button" class="join-member-login-button signup" data-find-pw-check="" onclick="submitJoinMemberFindPw()">비밀번호 찾기</button>
+              <div class="join-member-find-result is-fail" id="joinMemberFindPwFail" aria-live="polite">
+                <div class="join-member-find-result-title">일치하는 계정을 찾을 수 없어요</div>
+                <div class="join-member-find-result-copy">아이디, 이름, 휴대폰번호가 회원정보와 일치하는지 다시 확인해 주세요.</div>
+                <div class="join-member-find-actions">
+                  <button type="button" class="join-member-login-button secondary" onclick="retryJoinMemberFindPw()">다시 입력</button>
+                  <button type="button" class="join-member-login-button signup" onclick="openJoinMemberFindIdForm()">아이디 찾기</button>
+                </div>
+              </div>
+              <div class="join-member-find-result" id="joinMemberFindPwReset" aria-live="polite">
+                <div class="join-member-find-result-title">새 비밀번호를 입력해 주세요</div>
+                <div class="join-member-find-result-copy">영문, 숫자, 특수문자를 조합해서 8자 이상 입력해 주세요.</div>
+                <label class="join-member-email-field" for="joinMemberResetPassword" id="joinMemberResetPasswordField">
+                  <div class="join-member-email-label">새 비밀번호*</div>
+                  <div class="join-member-email-input-wrap">
+                    <div class="join-member-password-input-wrap">
+                      <input type="password" id="joinMemberResetPassword" autocomplete="new-password" maxlength="20" placeholder="새 비밀번호를 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberResetPasswordField', 'joinMemberResetPasswordHelper', '')">
+                      <button type="button" class="join-member-password-toggle" onclick="toggleJoinMemberPasswordVisibility('joinMemberResetPassword', this)" aria-label="비밀번호 보기" aria-pressed="false" data-password-toggle="">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="join-member-email-helper" id="joinMemberResetPasswordHelper" aria-live="polite"></div>
+                </label>
+                <label class="join-member-email-field" for="joinMemberResetPasswordConfirm" id="joinMemberResetPasswordConfirmField">
+                  <div class="join-member-email-label">비밀번호 확인*</div>
+                  <div class="join-member-email-input-wrap">
+                    <div class="join-member-password-input-wrap">
+                      <input type="password" id="joinMemberResetPasswordConfirm" autocomplete="new-password" maxlength="20" placeholder="비밀번호를 한 번 더 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberResetPasswordConfirmField', 'joinMemberResetPasswordConfirmHelper', '')">
+                      <button type="button" class="join-member-password-toggle" onclick="toggleJoinMemberPasswordVisibility('joinMemberResetPasswordConfirm', this)" aria-label="비밀번호 보기" aria-pressed="false" data-password-toggle="">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="join-member-email-helper" id="joinMemberResetPasswordConfirmHelper" aria-live="polite"></div>
+                </label>
+                <button type="button" class="join-member-login-button signup" onclick="submitJoinMemberResetPassword()">비밀번호 변경</button>
+              </div>
+            </div>
+            <div class="join-member-signup-intro" id="joinMemberSignupIntro">
+              <div class="join-member-signup-intro-head">
+                <div class="join-member-signup-intro-title">반가워요!</div>
+                <div class="join-member-signup-intro-copy">시크릿투어 회원에게만 드리는<br>특별한 혜택을 꼭 받아보세요.</div>
+              </div>
+              <div class="join-member-benefit-list" aria-label="회원 혜택">
+                <div class="join-member-benefit-card mileage">
+                  <div>
+                    <div class="join-member-benefit-eyebrow">떠날 때마다 쌓이는 즐거움</div>
+                    <div class="join-member-benefit-title">최대 7만원 즉시 할인</div>
+                  </div>
+                  <svg class="join-member-benefit-art" viewBox="0 0 80 64" fill="none" aria-hidden="true">
+                    <circle cx="58" cy="8" r="5" fill="#ffbd2e"></circle>
+                    <rect x="36" y="12" width="32" height="38" rx="5" fill="#4385f5" transform="rotate(-14 36 12)"></rect>
+                    <rect x="42" y="19" width="20" height="5" rx="2.5" fill="#9fc2ff"></rect>
+                    <circle cx="49" cy="37" r="5" fill="#ffd666"></circle>
+                    <circle cx="61" cy="33" r="4" fill="#ff9f1c"></circle>
+                    <path d="M12 48h34" stroke="#7aa7ff" stroke-width="4" stroke-linecap="round"></path>
+                    <path d="M20 56h28" stroke="#bed5ff" stroke-width="4" stroke-linecap="round"></path>
+                  </svg>
+                </div>
+                <div class="join-member-benefit-card coupon">
+                  <div>
+                    <div class="join-member-benefit-eyebrow">번개보다 빠른 단독 특가</div>
+                    <div class="join-member-benefit-title">업계 최저가 선공개</div>
+                  </div>
+                  <svg class="join-member-benefit-art" viewBox="0 0 80 64" fill="none" aria-hidden="true">
+                    <rect x="41" y="24" width="28" height="28" rx="4" fill="#5795ff"></rect>
+                    <path d="M41 33h28" stroke="#dce9ff" stroke-width="3"></path>
+                    <path d="M55 24v28" stroke="#dce9ff" stroke-width="3"></path>
+                    <rect x="47" y="14" width="18" height="12" rx="6" fill="#b8d3ff"></rect>
+                    <rect x="26" y="33" width="16" height="16" rx="4" fill="#d6e5ff"></rect>
+                    <circle cx="26" cy="44" r="7" fill="#ffd9a6"></circle>
+                    <path d="M30 13c5 2 8 5 9 10" stroke="#8bb8ff" stroke-width="3" stroke-linecap="round"></path>
+                  </svg>
+                </div>
+                <div class="join-member-benefit-card live">
+                  <div>
+                    <div class="join-member-benefit-eyebrow">매월 기다려지는 특별한 만남</div>
+                    <div class="join-member-benefit-title">매월 월례회 단체 해외여행</div>
+                  </div>
+                  <svg class="join-member-benefit-art" viewBox="0 0 80 64" fill="none" aria-hidden="true">
+                    <circle cx="28" cy="34" r="17" fill="#ffd063"></circle>
+                    <circle cx="28" cy="34" r="11" fill="#fff3c6"></circle>
+                    <path d="M28 26v8l6 4" stroke="#f59f00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <rect x="44" y="20" width="23" height="27" rx="5" fill="#8a4b24" transform="rotate(10 44 20)"></rect>
+                    <path d="M48 29h15" stroke="#ffcf7a" stroke-width="3" stroke-linecap="round"></path>
+                    <path d="M51 37h9" stroke="#fff0c2" stroke-width="3" stroke-linecap="round"></path>
+                    <circle cx="63" cy="15" r="4" fill="#ff9f1c"></circle>
+                  </svg>
+                </div>
+              </div>
+              <div class="join-member-signup-intro-actions">
+                <button type="button" class="join-member-login-button kakao" onclick="continueJoinMemberLogin('kakao')">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M12 2.667c-5.89 0-10.667 3.775-10.667 8.432 0 3.031 2.024 5.689 5.06 7.175-.222.833-.807 3.017-.924 3.485-.145.58.212.572.447.416.183-.122 2.922-1.985 4.104-2.789.642.096 1.304.146 1.98.146 5.891 0 10.667-3.775 10.667-8.433 0-4.657-4.776-8.432-10.667-8.432Z" clip-rule="evenodd"></path>
+                  </svg>
+                  <div class="join-member-login-button-label">카카오로 회원가입</div>
+                </button>
+                <button type="button" class="join-member-login-button email" onclick="openJoinMemberSignupForm()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-id-card-icon lucide-id-card" aria-hidden="true">
+                    <path d="M16 10h2"></path>
+                    <path d="M16 14h2"></path>
+                    <path d="M6.17 15a3 3 0 0 1 5.66 0"></path>
+                    <circle cx="9" cy="11" r="2"></circle>
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                  </svg>
+                  <div class="join-member-login-button-label">일반 회원가입</div>
+                </button>
+              </div>
+            </div>
+            <div class="join-member-signup-form" id="joinMemberSignupForm" data-step="1">
+              <div class="join-member-signup-progress" data-signup-progress="">
+                <div class="join-member-signup-progress-bar is-active" data-progress-step="1"></div>
+                <div class="join-member-signup-progress-bar" data-progress-step="2"></div>
+                <div class="join-member-signup-progress-bar" data-progress-step="3"></div>
+                <div class="join-member-signup-progress-bar" data-progress-step="4"></div>
+                <div class="join-member-signup-progress-bar" data-progress-step="5"></div>
+                <div class="join-member-signup-progress-bar" data-progress-step="6"></div>
+              </div>
+              <div class="join-member-signup-step-copy" data-signup-copy="">
+                <div class="join-member-signup-step-title" id="joinMemberSignupStepTitle">약관 내용을 확인하고</div>
+                <div class="join-member-signup-step-desc is-title-style" id="joinMemberSignupStepDesc">동의해주세요.</div>
+              </div>
+              <label class="join-member-email-field join-member-signup-field" data-signup-step="2" for="joinMemberSignupEmail" id="joinMemberSignupEmailField">
+                <div class="join-member-email-label">아이디*</div>
+                <div class="join-member-signup-password-desc">영문, 숫자를 조합하여 6자리 이상 입력해주세요.</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberSignupEmail" autocomplete="username" maxlength="50" placeholder="아이디를 입력해 주세요" onpointerdown="handleJoinMemberSignupIdPointerDown(event)" onfocus="handleJoinMemberSignupIdFocus(event)" onkeydown="handleJoinMemberSignupIdKeydown(event)" onbeforeinput="handleJoinMemberSignupIdBeforeInput(event)" oncompositionstart="handleJoinMemberSignupIdCompositionStart()" oncompositionend="handleJoinMemberSignupIdCompositionEnd(event)" oninput="handleJoinMemberSignupIdInput(event); setJoinMemberFieldInvalid('joinMemberSignupEmailField', 'joinMemberSignupEmailHelper', ''); clearJoinMemberSignupDuplicateLock('id'); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState(); scheduleJoinMemberSignupDuplicateCheck('id')" onblur="normalizeJoinMemberSignupIdInput(this); validateJoinMemberSignupEmailField(false); syncJoinMemberSignupEmailGate(); updateJoinMemberSignupNavState(); checkJoinMemberSignupFieldDuplicate('id')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberSignupEmailHelper" aria-live="polite"></div>
+              </label>
+              <div class="join-member-signup-password-guide" data-signup-step="2">
+                <div class="join-member-signup-password-title">비밀번호*</div>
+                <div class="join-member-signup-password-desc">영문, 숫자, 특수문자를 조합해서 8자 이상 입력해 주세요.</div>
+              </div>
+              <label class="join-member-email-field join-member-signup-field join-member-signup-password-field" data-signup-step="2" for="joinMemberSignupPassword" id="joinMemberSignupPasswordField">
+                <div class="join-member-email-input-wrap">
+                  <div class="join-member-password-input-wrap">
+                    <input type="password" id="joinMemberSignupPassword" autocomplete="new-password" maxlength="20" placeholder="비밀번호를 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberSignupPasswordField', 'joinMemberSignupPasswordHelper', ''); setJoinMemberFieldInvalid('joinMemberSignupPasswordConfirmField', 'joinMemberSignupPasswordConfirmHelper', ''); updateJoinMemberSignupNavState()" onblur="validateJoinMemberSignupPasswordField(false); updateJoinMemberSignupNavState()">
+                    <button type="button" class="join-member-password-toggle" onclick="toggleJoinMemberPasswordVisibility('joinMemberSignupPassword', this)" aria-label="비밀번호 보기" aria-pressed="false" data-password-toggle="">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="join-member-email-helper" id="joinMemberSignupPasswordHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field join-member-signup-field join-member-signup-password-field" data-signup-step="2" for="joinMemberSignupPasswordConfirm" id="joinMemberSignupPasswordConfirmField">
+                <div class="join-member-email-input-wrap">
+                  <div class="join-member-password-input-wrap">
+                    <input type="password" id="joinMemberSignupPasswordConfirm" autocomplete="new-password" maxlength="20" placeholder="비밀번호를 한 번 더 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberSignupPasswordConfirmField', 'joinMemberSignupPasswordConfirmHelper', ''); updateJoinMemberSignupNavState()" onblur="validateJoinMemberSignupPasswordConfirmField(false); updateJoinMemberSignupNavState()">
+                    <button type="button" class="join-member-password-toggle" onclick="toggleJoinMemberPasswordVisibility('joinMemberSignupPasswordConfirm', this)" aria-label="비밀번호 보기" aria-pressed="false" data-password-toggle="">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></circle></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="join-member-email-helper" id="joinMemberSignupPasswordConfirmHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field join-member-signup-field join-member-kakao-nickname-field join-member-signup-profile-field" data-signup-step="3" for="joinMemberSignupKakaoNickname" id="joinMemberSignupKakaoNicknameField">
+                <div class="join-member-email-label">카카오 닉네임</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberSignupKakaoNickname" autocomplete="off" maxlength="30" placeholder="카카오 닉네임" disabled="">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberSignupKakaoNicknameHelper">카카오 계정에서 가져온 정보입니다.</div>
+              </label>
+              <label class="join-member-email-field join-member-signup-field join-member-signup-profile-field" data-signup-step="3" for="joinMemberSignupName" id="joinMemberSignupNameField">
+                <div class="join-member-email-label">이름*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberSignupName" autocomplete="name" maxlength="20" placeholder="실명을 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberSignupNameField', 'joinMemberSignupNameHelper', ''); updateJoinMemberSignupNavState()" onblur="validateJoinMemberSignupNameField(false); updateJoinMemberSignupNavState()">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberSignupNameHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field join-member-signup-field join-member-signup-profile-field" data-signup-step="3" for="joinMemberSignupMobile" id="joinMemberSignupMobileField">
+                <div class="join-member-email-label">휴대폰번호*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="tel" id="joinMemberSignupMobile" autocomplete="tel" maxlength="13" inputmode="numeric" placeholder="휴대폰번호를 입력해 주세요" oninput="formatJoinMemberSignupMobile(this); setJoinMemberFieldInvalid('joinMemberSignupMobileField', 'joinMemberSignupMobileHelper', ''); clearJoinMemberSignupDuplicateLock('mobile'); updateJoinMemberSignupNavState(); scheduleJoinMemberSignupDuplicateCheck('mobile')" onblur="validateJoinMemberSignupMobileField(false); updateJoinMemberSignupNavState(); checkJoinMemberSignupFieldDuplicate('mobile')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberSignupMobileHelper" aria-live="polite"></div>
+              </label>
+              <label class="join-member-email-field join-member-signup-field join-member-signup-profile-field" data-signup-step="3" for="joinMemberSignupContactEmail" id="joinMemberSignupContactEmailField">
+                <div class="join-member-email-label">이메일주소*</div>
+                <div class="join-member-email-input-wrap">
+                  <input type="text" id="joinMemberSignupContactEmail" autocomplete="email" maxlength="50" placeholder="이메일을 입력해 주세요" oninput="setJoinMemberFieldInvalid('joinMemberSignupContactEmailField', 'joinMemberSignupContactEmailHelper', ''); clearJoinMemberSignupDuplicateLock('email'); updateJoinMemberSignupNavState(); scheduleJoinMemberSignupDuplicateCheck('email')" onblur="validateJoinMemberSignupContactEmailField(false); updateJoinMemberSignupNavState(); checkJoinMemberSignupFieldDuplicate('email')">
+                </div>
+                <div class="join-member-email-helper" id="joinMemberSignupContactEmailHelper" aria-live="polite"></div>
+              </label>
+              <div class="join-member-birth-gender-grid join-member-signup-profile-field" data-signup-step="3">
+                <label class="join-member-email-field" for="joinMemberSignupBirthYear" id="joinMemberSignupBirthYearField">
+                  <div class="join-member-email-label">출생연도</div>
+                  <select class="join-member-year-select" id="joinMemberSignupBirthYear" onchange="setJoinMemberFieldInvalid('joinMemberSignupBirthYearField', 'joinMemberSignupBirthYearHelper', ''); updateJoinMemberSignupNavState()">
+                    <option value="">선택</option>
+                  </select>
+                  <div class="join-member-email-helper" id="joinMemberSignupBirthYearHelper" aria-live="polite"></div>
+                </label>
+                <div class="join-member-email-field" id="joinMemberSignupGenderField">
+                  <div class="join-member-email-label">성별</div>
+                  <div class="apply-chip-group traveler-gender-select" data-chip-group="join-member-gender">
+                    <button type="button" class="apply-chip" data-value="남성">남성</button>
+                    <button type="button" class="apply-chip" data-value="여성">여성</button>
+                  </div>
+                  <div class="join-member-email-helper" id="joinMemberSignupGenderHelper" aria-live="polite"></div>
+                </div>
+              </div>
+              <div class="field full" data-signup-step="5">
+                <input id="joinMemberSignupProfession" type="hidden" value="">
+                <div class="profession-chip-row join-member-signup-chip-row" aria-label="직업/관심분야 빠른 선택">
+                  <button type="button" class="profession-chip" data-signup-profession-chip="경영" onclick="toggleJoinMemberSignupProfession('경영')">&#x1F4CA; 경영</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="사업" onclick="toggleJoinMemberSignupProfession('사업')">&#x1F4BC; 사업</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="부동산" onclick="toggleJoinMemberSignupProfession('부동산')">&#x1F3E0; 부동산</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="건설" onclick="toggleJoinMemberSignupProfession('건설')">&#x1F3D7;&#xFE0F; 건설</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="금융" onclick="toggleJoinMemberSignupProfession('금융')">&#x1F3E6; 금융</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="보험" onclick="toggleJoinMemberSignupProfession('보험')">&#x1F6E1;&#xFE0F; 보험</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="세무" onclick="toggleJoinMemberSignupProfession('세무')">&#x1F9FE; 세무</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="법률" onclick="toggleJoinMemberSignupProfession('법률')">&#x2696;&#xFE0F; 법률</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="의료" onclick="toggleJoinMemberSignupProfession('의료')">&#x2695;&#xFE0F; 의료</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="제조" onclick="toggleJoinMemberSignupProfession('제조')">&#x1F3ED; 제조</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="유통" onclick="toggleJoinMemberSignupProfession('유통')">&#x1F4E6; 유통</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="무역" onclick="toggleJoinMemberSignupProfession('무역')">&#x1F30F; 무역</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="영업" onclick="toggleJoinMemberSignupProfession('영업')">&#x1F91D; 영업</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="교육" onclick="toggleJoinMemberSignupProfession('교육')">&#x1F393; 교육</button>
+                  <button type="button" class="profession-chip" data-signup-profession-chip="공공" onclick="toggleJoinMemberSignupProfession('공공')">&#x1F3DB;&#xFE0F; 공공</button>
+                  <div class="profession-chip join-member-signup-custom-profession" role="button" tabindex="0" onclick="handleJoinMemberSignupCustomProfessionClick(event, this)" onkeydown="handleJoinMemberSignupCustomProfessionKeydown(event, this)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg> 직접입력</div>
+                </div>
+              </div>
+              <div class="field full" data-signup-step="4">
+                <div class="apply-chip-group" data-chip-group="join-member-level">
+                  <button type="button" class="apply-chip" data-value="입문·초보입니다">&#x1F331; 입문·초보입니다</button>
+                  <button type="button" class="apply-chip" data-value="편안한 보기 플레이">&#x1F642; 편안한 보기 플레이</button>
+                  <button type="button" class="apply-chip" data-value="90대 정도입니다">&#x1F3CC;&#xFE0F; 90대 정도입니다</button>
+                  <button type="button" class="apply-chip" data-value="80대 정도입니다">&#x26F3; 80대 정도입니다</button>
+                  <button type="button" class="apply-chip" data-value="싱글 수준입니다">&#x1F3C6; 싱글 수준입니다</button>
+                  <button type="button" class="apply-chip" data-value="골프 프로입니다">&#x1F393; 골프 프로입니다</button>
+                </div>
+              </div>
+              <div class="field full" data-signup-step="6">
+                <div class="apply-chip-group" data-chip-group="join-member-travel-style" data-multi="true" data-max="3" aria-label="라운딩 스타일">
+                  <button type="button" class="apply-chip" data-value="여유로운">여유로운 &#x1F343;</button>
+                  <button type="button" class="apply-chip" data-value="친목중심">친목중심 &#x1F91D;</button>
+                  <button type="button" class="apply-chip" data-value="실력향상">실력향상 &#x1F4C8;</button>
+                  <button type="button" class="apply-chip" data-value="맛집관광">맛집관광 &#x1F37D;&#xFE0F;</button>
+                  <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 &#x1F60A;</button>
+                  <button type="button" class="apply-chip" data-value="비즈니스">비즈니스 &#x1F4BC;</button>
+                </div>
+              </div>
+              <div class="apply-agree-box join-member-signup-agree" data-signup-step="1">
+                <div class="apply-agree-all">
+                  <label class="apply-check-line">
+                    <input type="checkbox" id="joinMemberSignupAgreeAll" onchange="toggleJoinMemberSignupAllAgreement(this.checked)">
+                    <div class="apply-check-box" aria-hidden="true"></div>
+                    <div class="apply-check-line-text">모두 동의합니다</div>
+                  </label>
+                </div>
+                <div class="apply-agreement-list">
+                  <div class="apply-agreement-row">
+                    <label class="apply-check-line"><input class="join-member-signup-agreement" type="checkbox" data-required="true" onchange="syncJoinMemberSignupAgreementState()"><div class="apply-check-box" aria-hidden="true"></div><div class="apply-check-line-text">(필수) 예약안내 및 취소규정 동의</div></label>
+                    <button type="button" class="agreement-detail-button" onclick="openAgreementDetail('booking')" aria-label="예약안내 및 취소규정 상세 보기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  </div>
+                  <div class="apply-agreement-row">
+                    <label class="apply-check-line"><input class="join-member-signup-agreement" type="checkbox" data-required="true" data-agreement-key="privacyUse" onchange="syncJoinMemberSignupAgreementState()"><div class="apply-check-box" aria-hidden="true"></div><div class="apply-check-line-text">(필수) 개인정보 수집 및 이용 동의</div></label>
+                    <button type="button" class="agreement-detail-button" onclick="openAgreementDetail('privacyUse')" aria-label="개인정보 수집 및 이용 상세 보기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  </div>
+                  <div class="apply-agreement-row">
+                    <label class="apply-check-line"><input class="join-member-signup-agreement" type="checkbox" data-required="true" onchange="syncJoinMemberSignupAgreementState()"><div class="apply-check-box" aria-hidden="true"></div><div class="apply-check-line-text">(필수) 공개 프로필 제공 동의</div></label>
+                    <button type="button" class="agreement-detail-button" onclick="openAgreementDetail('publicProfile')" aria-label="공개 프로필 제공 상세 보기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  </div>
+                  <div class="apply-agreement-row">
+                    <label class="apply-check-line"><input class="join-member-signup-agreement" type="checkbox" data-required="true" onchange="syncJoinMemberSignupAgreementState()"><div class="apply-check-box" aria-hidden="true"></div><div class="apply-check-line-text">(필수) 개인정보 제3자 제공 동의</div></label>
+                    <button type="button" class="agreement-detail-button" onclick="openAgreementDetail('thirdParty')" aria-label="개인정보 제3자 제공 상세 보기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  </div>
+                  <div class="apply-agreement-row">
+                    <label class="apply-check-line"><input class="join-member-signup-agreement" type="checkbox" data-required="true" onchange="syncJoinMemberSignupAgreementState()"><div class="apply-check-box" aria-hidden="true"></div><div class="apply-check-line-text">(필수) 개인정보 처리위탁 안내 확인</div></label>
+                    <button type="button" class="agreement-detail-button" onclick="openAgreementDetail('outsourcing')" aria-label="개인정보 처리위탁 안내 상세 보기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  </div>
+                  <div class="apply-agreement-row">
+                    <label class="apply-check-line"><input class="join-member-signup-agreement" type="checkbox" data-required="true" onchange="syncJoinMemberSignupAgreementState()"><div class="apply-check-box" aria-hidden="true"></div><div class="apply-check-line-text">(필수) 여행자보험 가입 및 보험약관 동의</div></label>
+                    <button type="button" class="agreement-detail-button" onclick="openAgreementDetail('insurance')" aria-label="여행자보험 가입 및 보험약관 상세 보기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  </div>
+                  <div class="apply-agreement-row">
+                    <label class="apply-check-line"><input class="join-member-signup-agreement" type="checkbox" data-required="false" data-agreement-key="marketing" onchange="syncJoinMemberSignupAgreementState()"><div class="apply-check-box" aria-hidden="true"></div><div class="apply-check-line-text">(선택) 골프여행 특가·이벤트 수신 동의</div></label>
+                    <button type="button" class="agreement-detail-button" onclick="openAgreementDetail('marketing')" aria-label="골프여행 특가·이벤트 수신 상세 보기"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg></button>
+                  </div>
+                </div>
+              </div>
+              <div class="join-member-signup-complete" data-signup-step="7">
+                <div class="join-member-confetti" aria-hidden="true" id="joinMemberSignupConfetti"></div>
+                <div class="join-member-signup-complete-title">가입이 완료되었어요</div>
+                <div class="join-member-signup-complete-copy">이제 나에게 맞는 조인여행을 시작해볼까요?</div>
+                <button type="button" class="join-member-login-button signup join-member-signup-complete-action" onclick="continueJoinMemberSignupComplete()">여행 참여하기</button>
+              </div>
+              <div class="join-member-signup-nav" data-signup-nav="">
+                <button type="button" class="join-member-signup-prev" data-signup-prev="" onclick="goJoinMemberSignupStep(-1)">이전</button>
+                <button type="button" class="join-member-login-button signup" data-signup-next="" onclick="goJoinMemberSignupStep(1)">다음</button>
+                <button type="button" class="join-member-login-button signup" data-signup-submit="" hidden="" onclick="submitJoinMemberSignup()">입력 완료</button>
+              </div>
+            </div>
+            <div class="join-member-login-status" id="joinMemberLoginStatus" aria-live="polite"></div>
+            <div class="join-member-signup-alert" id="joinMemberSignupAlert" role="alertdialog" aria-modal="true" aria-labelledby="joinMemberSignupAlertTitle" aria-describedby="joinMemberSignupAlertMessage" hidden>
+              <div class="join-member-signup-alert-panel">
+                <div class="join-member-signup-alert-title" id="joinMemberSignupAlertTitle">이미 가입된 정보입니다</div>
+                <div class="join-member-signup-alert-message" id="joinMemberSignupAlertMessage"></div>
+                <button type="button" class="join-member-signup-alert-button" onclick="closeJoinMemberSignupAlert()">확인</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="join-member-login-signup">
+          <div class="join-member-login-signup-copy">회원가입하고, 회원 전용 할인/혜택을 받아보세요.</div>
+          <button type="button" class="join-member-login-button signup" onclick="continueJoinMemberLogin('signup')">회원가입하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <div class="builder-alert-overlay" id="builderAlertModal" onclick="handleBuilderAlertBackdropClick(event)" aria-hidden="true">
+    <div class="builder-alert-modal" role="alertdialog" aria-modal="true" aria-labelledby="builderAlertMessage">
+      <div class="builder-alert-message" id="builderAlertMessage">도착일을 선택해주세요.</div>
+      <button type="button" class="builder-alert-button" onclick="confirmBuilderAlert()">확인</button>
+    </div>
+  </div>
+
+  <div class="apply-submit-confirm-overlay" id="applySubmitConfirmModal" onclick="handleApplySubmitConfirmBackdropClick(event)" aria-hidden="true">
+    <div class="apply-submit-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="applySubmitConfirmTitle" aria-describedby="applySubmitConfirmMessage">
+      <div class="apply-submit-confirm-title" id="applySubmitConfirmTitle">신청을 진행할까요?</div>
+      <div class="apply-submit-confirm-message" id="applySubmitConfirmMessage">입력한 정보로 신청을 전송합니다.</div>
+      <div class="apply-submit-confirm-actions">
+        <button type="button" class="button secondary" onclick="closeApplySubmitConfirmModal()">취소</button>
+        <button type="button" class="button primary" id="applySubmitConfirmButton" onclick="confirmApplySubmitModal()">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="calendar-sheet-overlay" id="calendarSheet" onclick="handleCalendarSheetBackdrop(event)" aria-modal="true" role="dialog" aria-labelledby="calendarSheetTitle">
+    <div class="calendar-sheet">
+      <div class="calendar-sheet-header">
+        <button type="button" class="modal-close-icon modal-back-icon" onclick="closeCalendarSheet()" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+            <path d="m12 19-7-7 7-7"></path>
+            <path d="M19 12H5"></path>
+          </svg>
+        </button>
+        <div class="calendar-sheet-title" id="calendarSheetTitle">참여 가능한 모임</div>
+        <span class="modal-header-spacer" aria-hidden="true"></span>
+      </div>
+      <div class="calendar-sheet-body" id="calendarSheetBody"></div>
+    </div>
+    <div class="calendar-empty-schedule-sheet" id="calendarEmptyScheduleSheet" onclick="event.stopPropagation()">
+      <button type="button" class="modal-close-icon calendar-empty-schedule-close" onclick="closeCalendarEmptyScheduleSheet()" aria-label="닫기"></button>
+      <div class="calendar-empty-schedule-copy">이 날짜에는 아직 열린 모임이 없어요.<br>첫 모임을 만들어볼까요?</div>
+      <button type="button" class="button primary large calendar-empty-schedule-action" onclick="openBuilderFromCalendarEmptyDate()">새 모임 만들기</button>
+    </div>
+  </div>
+
+
+  <div class="overlay region-search-overlay" id="travelDateModal">
+    <div class="modal travel-date-modal">
+      <div class="travel-date-shell">
+        <div class="region-search-header">
+          <button type="button" class="region-search-back" onclick="closeTravelDateModal()" aria-label="뒤로가기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+              <path d="m12 19-7-7 7-7"></path>
+              <path d="M19 12H5"></path>
+            </svg>
+          </button>
+          <div class="region-search-title">여행 일정 선택</div>
+        </div>
+        <div class="travel-weekdays"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+        <div class="travel-date-body" id="travelDateBody"></div>
+        <div class="travel-date-bottom">
+          <div class="travel-date-summary" id="travelDateSummary">여행일을 선택해주세요</div>
+          <div class="travel-date-actions">
+            <button type="button" class="travel-date-view" onclick="closeTravelDateModal()">상품보기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="global-apply-overlay" id="globalApplyOverlay" onclick="handleGlobalApplyBackdrop(event)">
+    <div class="detail-apply-panel" id="globalApplyPanel">
+      <div class="detail-apply-head">
+        <button type="button" class="modal-close-icon modal-back-icon global-apply-back" onclick="closeGlobalApply()" aria-label="뒤로가기">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+        </button>
+        <div>
+          <div class="detail-apply-title">참여 신청</div>
+        </div>
+        <div class="global-apply-header-spacer" aria-hidden="true"></div>
+      </div>
+      <div class="detail-apply-scroll">
+        <div class="apply-section-heading apply-product-info-title">상품 정보</div>
+        <div class="apply-join-summary" id="globalApplyJoinSummary" aria-label="조인 일정 요약"></div>
+        <div class="apply-section apply-traveler-info-section">
+          <div class="detail-apply-grid traveler-info-grid">
+            <div class="field traveler-field apply-member-source-field" data-apply-field="name">
+              <div class="traveler-hint">여권명과 동일하게 입력해주세요.</div>
+              <input id="globalApplyName" type="text" placeholder="한글이름" data-label="한글이름" data-example="홍길동" onfocus="handleTravelerFieldFocus(this)" onblur="handleTravelerFieldBlur(this)" oninput="updateTravelerFieldState(this); updateApplyProgressive()">
+              <div class="apply-error">한글이름을 입력해 주세요.</div>
+            </div>
+            <div class="field apply-member-source-field" data-apply-field="gender">
+              <div class="apply-chip-group traveler-gender-select" data-chip-group="global-gender">
+                <button type="button" class="apply-chip active" data-value="남성">남성</button>
+                <button type="button" class="apply-chip" data-value="여성">여성</button>
+              </div>
+              <div class="apply-error">성별을 선택해 주세요.</div>
+            </div>
+            <div class="field full traveler-field apply-member-source-field" data-apply-field="birthYear">
+              <div class="traveler-hint">4자리로 입력해주세요</div>
+              <input id="globalApplyBirthYear" type="text" inputmode="numeric" maxlength="4" placeholder="생년월일" data-label="생년월일" data-example="1960" onfocus="handleTravelerFieldFocus(this)" onblur="handleTravelerFieldBlur(this)" oninput="formatApplyBirthYear(this); updateTravelerFieldState(this); updateApplyProgressive()">
+              <div class="apply-error">생년월일을 입력해 주세요.</div>
+            </div>
+            <div class="field full traveler-field apply-member-source-field" data-apply-field="phone">
+              <div class="traveler-hint">'-'는 제외하고 숫자만 입력해주세요</div>
+              <input id="globalApplyPhone" type="tel" inputmode="numeric" maxlength="11" placeholder="휴대폰 번호" data-label="휴대폰 번호" data-example="01012345678" onfocus="handleTravelerFieldFocus(this)" onblur="handleTravelerFieldBlur(this)" oninput="formatApplyPhone(this); updateTravelerFieldState(this)">
+              <div class="apply-error">휴대폰 번호를 입력해 주세요.</div>
+            </div>
+            <div class="field full traveler-field" data-apply-field="profession">
+              <div class="traveler-hint">같은 관심사의 참여자 매칭에 참고돼요.</div>
+              <input id="globalApplyProfession" type="text" maxlength="80" placeholder="주요경력/관심분야" data-label="주요경력/관심분야" data-example="경영" onfocus="handleTravelerFieldFocus(this)" onblur="handleTravelerFieldBlur(this)" oninput="handleApplyProfessionInput(this); updateTravelerFieldState(this)">
+              <div class="profession-chip-row" aria-label="주요경력/관심분야 빠른 선택">
+                <button type="button" class="profession-chip" data-profession-chip="경영" onclick="setApplyProfession('경영')">경영</button>
+                <button type="button" class="profession-chip" data-profession-chip="사업" onclick="setApplyProfession('사업')">사업</button>
+                <button type="button" class="profession-chip" data-profession-chip="부동산" onclick="setApplyProfession('부동산')">부동산</button>
+                <button type="button" class="profession-chip" data-profession-chip="건설" onclick="setApplyProfession('건설')">건설</button>
+                <button type="button" class="profession-chip" data-profession-chip="금융" onclick="setApplyProfession('금융')">금융</button>
+                <button type="button" class="profession-chip" data-profession-chip="보험" onclick="setApplyProfession('보험')">보험</button>
+                <button type="button" class="profession-chip" data-profession-chip="세무" onclick="setApplyProfession('세무')">세무</button>
+                <button type="button" class="profession-chip" data-profession-chip="법률" onclick="setApplyProfession('법률')">법률</button>
+                <button type="button" class="profession-chip" data-profession-chip="의료" onclick="setApplyProfession('의료')">의료</button>
+                <button type="button" class="profession-chip" data-profession-chip="제조" onclick="setApplyProfession('제조')">제조</button>
+                <button type="button" class="profession-chip" data-profession-chip="유통" onclick="setApplyProfession('유통')">유통</button>
+                <button type="button" class="profession-chip" data-profession-chip="무역" onclick="setApplyProfession('무역')">무역</button>
+                <button type="button" class="profession-chip" data-profession-chip="영업" onclick="setApplyProfession('영업')">영업</button>
+                <button type="button" class="profession-chip" data-profession-chip="교육" onclick="setApplyProfession('교육')">교육</button>
+                <button type="button" class="profession-chip" data-profession-chip="공공" onclick="setApplyProfession('공공')">공공</button>
+              </div>
+            </div>
+            <div class="field full" data-companion-field="global">
+              <div class="apply-people-label-row">
+                <div class="apply-section-heading">참여 인원</div>
+                <div class="apply-remaining-seat" id="globalApplyRemainingSeat">잔여좌석 확인중</div>
+              </div>
+              <div class="apply-people-select">
+                <input id="globalApplyPeople" type="hidden" value="1">
+                <div class="apply-people-mode" data-people-mode="global">
+                  <button type="button" class="apply-people-button active" data-mode="solo" onclick="setGlobalApplyPeopleMode('solo')">
+                    <div class="apply-people-button-label">혼자가요</div>
+                    <span class="apply-people-button-back" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-chevron-right-icon lucide-chevron-right" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></span>
+                  </button>
+                  <button type="button" class="apply-people-button" data-mode="group" onclick="setGlobalApplyPeopleMode('group')">
+                    <div class="apply-people-button-label">같이가요</div>
+                  </button>
+                  <div class="apply-people-inline-add" aria-label="동반자 성별 추가">
+                    <button type="button" class="apply-people-inline-add-button" onclick="event.stopPropagation(); addCompanionGender('global', '남성')">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"></path></svg>
+                      <span>남</span>
+                    </button>
+                    <button type="button" class="apply-people-inline-add-button" onclick="event.stopPropagation(); addCompanionGender('global', '여성')">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-linecap="round"></path></svg>
+                      <span>여</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="apply-people-accordion" id="globalApplyPeopleAccordion">
+                  <div class="apply-people-group-panel">
+                    <div class="apply-people-total-head">
+                      <div class="apply-people-total-title">총 인원</div>
+                      <div class="apply-people-total-helper">신청자 포함 총 인원</div>
+                    </div>
+                    <div class="apply-people-count-stepper" data-people-stepper="global">
+                      <button type="button" class="apply-people-stepper-button" data-people-step="minus" onclick="changeCompanionPeople('global', -1)" aria-label="총 인원 줄이기">-</button>
+                      <div class="apply-people-count-value" id="globalApplyPeopleDisplay">2명</div>
+                      <button type="button" class="apply-people-stepper-button" data-people-step="plus" onclick="changeCompanionPeople('global', 1)" aria-label="총 인원 늘리기">+</button>
+                    </div>
+                    <div class="apply-companion-head">
+                      <div class="apply-companion-title">동반자 성별</div>
+                      <div class="apply-companion-helper">동반자 성별을 선택해 주세요.</div>
+                    </div>
+                    <div class="apply-companion-list" id="globalCompanionList"></div>
+                    <div class="apply-companion-error">모든 동반자 성별을 선택해 주세요.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="field full">
+              <div class="apply-booking-option-section is-hidden" data-apply-flight-option="global">
+                <div class="apply-section-heading">항공예약</div>
+                <div>
+                  <div class="apply-people-mode" data-chip-group="global-flight-request">
+                    <button type="button" class="apply-people-button active" data-mode="solo" data-value="대행요청" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('global')">
+                      <div class="apply-people-button-label">대행 요청</div>
+                    </button>
+                    <button type="button" class="apply-people-button" data-mode="group" data-value="직접예약" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('global')">
+                      <div class="apply-people-button-label">직접 예약</div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="field full">
+              <div class="apply-booking-option-section" data-apply-room-option="global">
+                <div class="apply-section-heading">숙소타입</div>
+                <div>
+                  <div class="apply-people-mode" data-chip-group="global-room-type">
+                    <button type="button" class="apply-people-button active" data-mode="solo" data-value="2인1실" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('global')">
+                      <div class="apply-people-button-label">2인1실</div>
+                    </button>
+                    <button type="button" class="apply-people-button" data-mode="group" data-value="1인1실" onclick="selectApplyBookingOption(this); updateApplyBookingOptions('global')">
+                      <div class="apply-people-button-label">1인1실</div>
+                    </button>
+                  </div>
+                </div>
+                <div class="apply-room-surcharge" data-apply-room-surcharge="global"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="apply-section with-divider">
+          <div class="apply-section-head">
+            <div class="apply-section-heading"></div>
+          </div>
+          <div class="detail-apply-grid">
+            <div class="field full">
+              <div class="apply-preference-title">라운딩 스타일</div>
+              <div class="apply-preference-copy">나와 잘 맞는 조인을 위해 최대 3개만 골라주세요.</div>
+              <div class="apply-chip-group" data-chip-group="global-style" data-multi="true" data-max="3">
+                <button type="button" class="apply-chip" data-value="매너중시">매너중시 &#x1F91D;</button>
+                <button type="button" class="apply-chip" data-value="명랑골프">명랑골프 &#x1F60A;</button>
+                <button type="button" class="apply-chip" data-value="조용히집중">조용히집중 &#x1F3AF;</button>
+                <button type="button" class="apply-chip" data-value="사진도좋아요">사진도좋아요 &#x1F4F7;</button>
+                <button type="button" class="apply-chip" data-value="진행빠른편">진행빠른편 &#x26A1;</button>
+                <button type="button" class="apply-chip" data-value="초보배려">초보배려 &#x1F331;</button>
+                <button type="button" class="apply-chip" data-value="대화좋아요">대화좋아요 &#x1F4AC;</button>
+                <button type="button" class="apply-chip" data-value="분위기메이커">분위기메이커 &#x1F324;&#xFE0F;</button>
+                <button type="button" class="apply-chip" data-value="시간약속중요">시간약속중요 &#x23F1;&#xFE0F;</button>
+                <button type="button" class="apply-chip" data-value="편안한라운딩">편안한라운딩 &#x1F343;</button>
+              </div>
+            </div>
+            <div class="field full">
+              <div class="apply-preference-title">선호 멤버 구성</div>
+              <div class="apply-preference-copy">맞춤형 조인 노출 조건에 반영돼요.</div>
+              <div class="apply-chip-group" data-chip-group="global-member-preference" data-multi="true" data-max="3">
+                <button type="button" class="apply-chip" data-value="누구나 즐겁게">누구나 즐겁게 &#x1F389;</button>
+                <button type="button" class="apply-chip" data-value="같은 성별끼리">같은 성별끼리 &#x1F465;</button>
+                <button type="button" class="apply-chip" data-value="같은 연령대">같은 연령대 &#x1F382;</button>
+                <button type="button" class="apply-chip" data-value="비슷한 실력끼리">비슷한 실력끼리 &#x26F3;</button>
+              </div>
+            </div>
+            <div class="field full">
+              <div class="apply-preference-title">한 줄 인사</div>
+              <div class="apply-template-row">
+                <button type="button" class="apply-template" onclick="setApplyGreeting('반갑습니다. 즐거운 라운딩 기대합니다.')">반갑습니다 &#x1F60A;</button>
+                <button type="button" class="apply-template" onclick="setApplyGreeting('매너 있게 편안히 치겠습니다.')">매너 있게 &#x1F91D;</button>
+                <button type="button" class="apply-template" onclick="setApplyGreeting('잘 부탁해요.')">잘 부탁해요 &#x1F64F;</button>
+                <button type="button" class="apply-template" onclick="setApplyGreeting('즐겁고 기분 좋은 하루 만들어요.')">기분 좋은 하루 &#x1F324;&#xFE0F;</button>
+              </div>
+              <textarea id="globalApplyGreeting" maxlength="80" placeholder="예: 오랜만의 조인이라 설레네요. 잘 부탁드립니다." oninput="updateApplyProgressive()">잘 부탁드립니다.</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="apply-reservation-rule-section">
+          <div class="apply-section-heading">예약/취소 규정 확인</div>
+          <div class="apply-reservation-accordion">
+            <div class="apply-reservation-part">
+              <button type="button" class="apply-reservation-part-button" onclick="toggleApplyReservationPart(this)" aria-expanded="true">
+                <div>예약 전 꼭 확인해주세요</div>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-up-icon lucide-chevron-up" aria-hidden="true"><path d="m18 15-6-6-6 6"></path></svg>
+              </button>
+              <div class="apply-reservation-part-body">
+                <div>본 상품은 4인 1팀으로 운영되는 골프조인 상품입니다.</div>
+                <div>예약 신청 후 참가 인원, 항공 좌석, 숙소 및 골프장 예약이 모두 확정되면 최종 출발이 확정됩니다.</div>
+                <div>조인 인원이 충족되지 않아 출발이 취소되는 경우 예약금은 전액 환불됩니다.</div>
+              </div>
+            </div>
+            <div class="apply-reservation-part">
+              <button type="button" class="apply-reservation-part-button" onclick="toggleApplyReservationPart(this)" aria-expanded="true">
+                <div>취소 및 환불 안내</div>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </button>
+              <div class="apply-reservation-part-body">
+                <div>출발 확정 후에는 항공권, 객실 및 골프장 예약에 따른 실제 비용이 발생하므로 아래 기준에 따라 취소수수료가 적용됩니다.</div>
+                <table class="apply-reservation-fee-table">
+                  <thead><tr><th>취소 시점</th><th>취소수수료</th></tr></thead>
+                  <tbody>
+                    <tr><td>출발 20일 전까지</td><td>여행요금의 20% + 항공사 위약금</td></tr>
+                    <tr><td>출발 19~10일 전</td><td>여행요금의 30% + 항공사 위약금</td></tr>
+                    <tr><td>출발 9~8일 전</td><td>여행요금의 50% + 항공사 위약금</td></tr>
+                    <tr><td>출발 7~4일 전</td><td>여행요금의 70% + 항공사 위약금</td></tr>
+                    <tr><td>출발 3일 전 ~ 당일</td><td>환불 불가</td></tr>
+                  </tbody>
+                </table>
+                <div class="apply-reservation-note">※ 항공권 발권 후 발생하는 항공사 취소수수료는 별도 적용될 수 있습니다.</div>
+              </div>
+            </div>
+            <div class="apply-reservation-part">
+              <button type="button" class="apply-reservation-part-button" onclick="toggleApplyReservationPart(this)" aria-expanded="true">
+                <div>이용 안내</div>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </button>
+              <div class="apply-reservation-part-body">
+                <div>1인 예약 시 룸조인 또는 싱글룸 추가요금이 발생할 수 있습니다.</div>
+                <div>참가자 취소로 조인 인원 변동이 발생할 경우 여행사는 대체 참가자 모집을 위해 최선을 다합니다.</div>
+                <div>영문명, 여권정보, 생년월일 등 예약정보 오류로 발생하는 비용은 고객 부담입니다.</div>
+                <div>천재지변, 항공기 결항 등 불가항력적 상황은 항공사 및 현지 업체 규정에 따라 처리됩니다.</div>
+                <div>취소 및 변경 접수는 평일 영업시간(09:00~18:00) 기준으로 적용됩니다.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="apply-complete-state" aria-live="polite">
+        <div class="apply-complete-card">
+          <svg class="apply-complete-illustration" viewBox="0 0 126 126" fill="none" aria-hidden="true">
+            <rect x="22" y="28" width="82" height="68" rx="18" fill="#ffffff" stroke="#dbe4ee" stroke-width="3"></rect>
+            <path d="M36 49h42M36 64h30M36 79h22" stroke="#94a3b8" stroke-width="5" stroke-linecap="round"></path>
+            <circle cx="88" cy="77" r="22" fill="#373A3C"></circle>
+            <path d="M78 77.5l7 7 13-15" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="35" cy="30" r="8" fill="#f8fafc" stroke="#dbe4ee" stroke-width="3"></circle>
+            <circle cx="91" cy="32" r="6" fill="#f8fafc" stroke="#dbe4ee" stroke-width="3"></circle>
+          </svg>
+          <div>
+            <div class="apply-complete-title">참여 신청이 완료되었어요</div>
+            <div class="apply-complete-copy">담당자가 예약 내용을 확인한 뒤<br>24시간 이내에 안내 드립니다.</div>
+          </div>
+          <div class="apply-complete-contact">
+            <div class="apply-complete-contact-main">고객센터 02-3446-1119</div>
+            <div class="apply-complete-contact-time">운영시간 오전 9시-오후 6시</div>
+          </div>
+          <div class="apply-complete-actions-grid" aria-label="추가 상담 채널">
+            <button type="button" class="apply-complete-action-card" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')">
+              <img alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_kakao.webp">
+              <div class="apply-complete-action-label">채팅으로 문의</div>
+            </button>
+            <button type="button" class="apply-complete-action-card" onclick="openExternalLink('https://band.us/@secrettour')">
+              <img alt="" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_band.webp">
+              <div class="apply-complete-action-label">밴드 가입하기</div>
+            </button>
+          </div>
+          <button type="button" class="apply-complete-share-button" onclick="handleCompletionShare('apply')">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+            <span>공유하기</span>
+          </button>
+          <button type="button" class="apply-complete-close" onclick="closeAllJoinModals()">확인</button>
+        </div>
+      </div>
+      <div class="detail-apply-actions">
+        <button type="button" class="button primary" id="globalApplySubmitButton" onclick="submitGlobalApply()">모임 참여 신청하기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="privacyApplyModal">
+    <div class="modal small">
+      <div class="modal-scroll">
+        <div class="modal-header">
+          <div class="modal-title">개인정보 수집 및 이용 안내</div>
+          <button type="button" class="modal-close-icon" onclick="closePrivacyApplyModal()" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body privacy-modal-body">
+          <div id="privacyApplyModalContent"></div>
+          <div class="privacy-modal-footer">
+            <button type="button" class="button primary full large" id="privacyApplyModalConfirm" onclick="confirmPrivacyApplyModal()">동의하고 닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="waitlistApplyModal">
+    <div class="modal small">
+      <div class="modal-scroll">
+        <div class="modal-header">
+          <div class="modal-title">대기 신청 안내</div>
+          <button type="button" class="modal-close-icon" onclick="chooseWaitlistSolo()" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body">
+          <div class="waitlist-modal-copy" id="waitlistApplyMessage">대기로 신청하시겠어요?</div>
+          <div class="waitlist-modal-actions">
+            <button type="button" class="button secondary" onclick="chooseWaitlistSolo()">혼자갈게요</button>
+            <button type="button" class="button primary" onclick="confirmWaitlistApply()">대기신청</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="overlay" id="phoneModal">
+    <div class="modal small">
+      <div class="modal-scroll">
+        <div class="modal-header">
+          <div class="modal-title">고객센터</div>
+          <button type="button" class="modal-close-icon" onclick="closeModal('phoneModal')" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body">
+          <div class="phone-info">
+            <div class="phone-intro">
+              <div class="phone-intro-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-phone-icon lucide-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg>
+              </div>
+              <div>
+                <div class="phone-intro-title">상담이 필요하신가요?</div>
+                <div class="phone-intro-copy">운영시간 내 빠르게 안내드릴게요.</div>
+              </div>
+            </div>
+            <div class="phone-number-box">
+              <div class="phone-number-label">대표번호</div>
+              <div class="phone-number-value">02-3446-1119</div>
+            </div>
+            <div class="phone-hours">
+              <div class="phone-hours-row">
+                <div class="phone-hours-label">운영시간</div>
+                <div class="phone-hours-value">평일 9시 - 18시</div>
+              </div>
+              <div class="phone-hours-row">
+                <div class="phone-hours-label">점심시간</div>
+                <div class="phone-hours-value">12시 - 13시</div>
+              </div>
+            </div>
+            <button type="button" class="button primary phone-call-button" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')" aria-label="카톡채널로 연결">
+              <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-message-circle-icon lucide-message-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path></svg>
+              <span>채팅으로 문의하기</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="applyModal">
+    <div class="modal small">
+      <div class="modal-scroll">
+        <div class="modal-header">
+          <div class="modal-title">참여 신청</div>
+          <button type="button" class="modal-close-icon" onclick="closeModal('applyModal')" aria-label="닫기"></button>
+        </div>
+        <div class="modal-body">
+          <div class="field"><label>이름</label><input type="text" placeholder="홍길동"></div>
+          <div class="field"><label>연락처</label><input type="text" placeholder="010-1234-5678"></div>
+          <div class="field"><label>성별</label><select><option>남성</option><option>여성</option></select></div>
+          <div class="field"><label>연령대</label><select><option>30대</option><option>40대</option><option>50대</option></select></div>
+          <div class="field"><label>평균 타수</label><select><option>80대</option><option>90대</option><option>100대</option></select></div>
+          <div class="field"><label>소개</label><textarea>즐겁게 라운딩할 수 있는 동반자를 찾고 있습니다.</textarea></div>
+          <label class="check-line"><input type="checkbox" checked=""><div>[필수] 개인정보 수집 및 이용에 동의합니다.</div></label>
+          <div class="helper">필수 항목: 이름, 연락처, 성별, 연령대, 평균 타수</div>
+          <button class="button primary large" style="margin-top:14px;" onclick="alert('게시판용 단일 HTML입니다.')">신청하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+  </div>
+
+
+  <div class="participant-floating" id="participantModal">
+    <div class="participant-popover" id="participantContent"></div>
+  </div>
+
+  <div class="overlay sgj-portal-overlay" id="detailModal" style="z-index: 2147483643 !important;">
+    <div class="modal detail-modal" style="z-index: 2147483644 !important;">
+      <div class="modal-header">
+        <div class="modal-title" id="detailModalTitle">일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비</div>
+        <div class="detail-pc-header-actions" aria-label="상품상세 액션">
+          <button type="button" class="detail-mobile-header-button" data-detail-wish-button="" aria-label="찜하기" aria-pressed="false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-bookmark-check-icon lucide-bookmark-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path><path d="m9 10 2 2 4-4"></path></svg>
+          </button>
+          <button type="button" class="detail-mobile-header-button" aria-label="공유하기">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+          </button>
+          <button type="button" class="modal-close-icon" onclick="closeModal('detailModal')" aria-label="닫기"></button>
+        </div>
+      </div>
+      <div class="modal-body" id="detailContent">
+        <div class="detail-mobile-sticky-header" aria-hidden="true">
+          <button type="button" class="detail-mobile-header-button" onclick="closeModal('detailModal')" aria-label="뒤로가기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+          </button>
+          <div class="detail-mobile-sticky-title">일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비</div>
+          <button type="button" class="detail-mobile-header-button" data-detail-wish-button="" aria-label="찜하기" aria-pressed="false" data-wish-bound="true">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-bookmark-check-icon lucide-bookmark-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path><path d="m9 10 2 2 4-4"></path></svg>
+          </button>
+          <button type="button" class="detail-mobile-header-button" aria-label="공유하기" data-share-bound="true">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+          </button>
+        </div>
+        <div class="detail-slider">
+          <button type="button" class="detail-slider-back" onclick="closeModal('detailModal')" aria-label="뒤로가기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
+          </button>
+          <div class="detail-slider-actions" aria-label="상품상세 액션">
+            <button type="button" class="detail-mobile-header-button" data-detail-wish-button="" aria-label="찜하기" aria-pressed="false">
+              <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-bookmark-check-icon lucide-bookmark-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2 2 0 0 1 2 2v15a1 1 0 0 1-1.496.868l-4.512-2.578a2 2 0 0 0-1.984 0l-4.512 2.578A1 1 0 0 1 5 20V5a2 2 0 0 1 2-2z"></path><path d="m9 10 2 2 4-4"></path></svg>
+            </button>
+            <button type="button" class="detail-mobile-header-button" aria-label="공유하기">
+              <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-share2-icon lucide-share-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>
+            </button>
+          </div>
+          <button type="button" class="detail-slider-nav prev" onclick="changeDetailSlide(-1)" aria-label="이전 이미지">&lt;</button>
+          <div class="detail-slider-viewport" data-swipe-bound="true">
+            <div class="detail-slider-track" style="transform: translateX(0%); position: relative;">
+              <img class="detail-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 이미지 1" loading="lazy" decoding="async"><img class="detail-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/20190227_085648.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 이미지 2" loading="lazy" decoding="async"><img class="detail-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 이미지 3" loading="lazy" decoding="async"><img class="detail-thumb" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 이미지 1" loading="lazy" decoding="async">
+            </div>
+          </div>
+          <button type="button" class="detail-slider-nav next" onclick="changeDetailSlide(1)" aria-label="다음 이미지">&gt;</button>
+          <div class="detail-slider-dots">
+            <button type="button" class="detail-slider-dot swiper-pagination-bullet active swiper-pagination-bullet-active" onclick="setDetailSlide(0)" aria-label="슬라이드 1 보기"></button><button type="button" class="detail-slider-dot swiper-pagination-bullet swiper-pagination-bullet-active-next" onclick="setDetailSlide(1)" aria-label="슬라이드 2 보기"></button><button type="button" class="detail-slider-dot swiper-pagination-bullet swiper-pagination-bullet-active-prev" onclick="setDetailSlide(2)" aria-label="슬라이드 3 보기"></button>
+          </div>
+          <div class="detail-slider-pagination" aria-label="상품 이미지 1 / 3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-image-icon lucide-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
+            <div id="detailSliderPageText" class="detail-slider-page-text">1/3</div>
+          </div>
+        </div>
+        <div class="detail-content-sheet">
+        <div class="detail-section detail-product-head">
+          <div class="detail-main-title">일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비</div>
+          <div class="detail-product-price-row">
+            <div class="detail-price-value">1,220,000<div class="detail-price-unit">원~</div></div>
+          </div>
+          
+        <div class="detail-benefit-card">
+          <div class="detail-benefit-head">
+            <div class="detail-benefit-title"><img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/banner_membership2.png" alt="">회원할인</div>
+            <div class="detail-benefit-max">즉시 70,000원 할인</div>
+          </div>
+          <div class="detail-benefit-body">
+            <div class="detail-benefit-row"><div>한 번 가입으로 여행마다 할인!</div></div>
+            <div class="detail-benefit-note-row">
+              <div class="detail-benefit-note">멤버십 가입하고, 할인가로 예약해보세요.</div>
+              <button type="button" class="detail-benefit-link" onclick="toggleDetailBenefitAccordion(this)" aria-expanded="false">자세히 보기</button>
+            </div>
+            <div class="detail-benefit-accordion">
+              <div class="detail-benefit-accordion-title">회원 할인 안내</div>
+              <div class="detail-benefit-accordion-subtitle">여행할수록 이득인 시크릿투어 멤버십</div>
+              <div class="detail-benefit-accordion-copy">해외 골프여행 예약 시 <span class="detail-benefit-highlight">여행마다 최대 7만원 추가 할인</span> 혜택!</div>
+              <div class="detail-benefit-table-title">멤버십 종류</div>
+              <div class="detail-benefit-table" role="table" aria-label="멤버십 종류">
+                <div class="detail-benefit-table-head" role="rowgroup">
+                  <div class="detail-benefit-table-row" role="row">
+                    <div class="detail-benefit-table-cell" role="columnheader">구분</div>
+                    <div class="detail-benefit-table-cell" role="columnheader">가입비</div>
+                    <div class="detail-benefit-table-cell" role="columnheader">이용기간</div>
+                  </div>
+                </div>
+                <div class="detail-benefit-table-body" role="rowgroup">
+                  <div class="detail-benefit-table-row" role="row"><div class="detail-benefit-table-cell" role="cell">1년 회원</div><div class="detail-benefit-table-cell" role="cell">50,000원</div><div class="detail-benefit-table-cell" role="cell">첫 여행 출발일부터 1년</div></div>
+                  <div class="detail-benefit-table-row" role="row"><div class="detail-benefit-table-cell" role="cell">5년 회원</div><div class="detail-benefit-table-cell" role="cell">150,000원</div><div class="detail-benefit-table-cell" role="cell">첫 여행 출발일부터 5년</div></div>
+                  <div class="detail-benefit-table-row" role="row"><div class="detail-benefit-table-cell" role="cell">평생 회원</div><div class="detail-benefit-table-cell" role="cell">300,000원</div><div class="detail-benefit-table-cell" role="cell">평생</div></div>
+                </div>
+              </div>
+              <div class="detail-benefit-recommend-title">이런 분께 추천합니다</div>
+              <div class="detail-benefit-recommend-list">
+                <div class="detail-benefit-recommend-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span>1년에 1회 이상 해외 골프여행을 계획 중이신 분</span></div>
+                <div class="detail-benefit-recommend-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span>해외 조인 골프를 정기적으로 즐기시는 분</span></div>
+                <div class="detail-benefit-recommend-item"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg><span>장기적으로 가장 큰 할인 혜택을 받고 싶으신 분</span></div>
+              </div>
+              <a class="detail-benefit-join-call" href="tel:0234461119"><svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-phone-icon lucide-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg>가입문의</a>
+            </div>
+          </div>
+        </div>
+      
+          
+        </div>
+        <div class="detail-anchor-tabs is-visible" aria-label="상세정보 바로가기" data-show-at="0">
+          <button type="button" class="detail-anchor-chip active" data-anchor-target="summary" onclick="scrollDetailSection('summary')">상품요약</button>
+          <button type="button" class="detail-anchor-chip" data-anchor-target="flight" onclick="scrollDetailSection('flight')">항공정보</button>
+          <button type="button" class="detail-anchor-chip" data-anchor-target="includes" onclick="scrollDetailSection('includes')">포함·불포함</button>
+          <button type="button" class="detail-anchor-chip" data-anchor-target="schedule" onclick="scrollDetailSection('schedule')">일정표</button>
+          <button type="button" class="detail-anchor-chip" data-anchor-target="place" onclick="scrollDetailSection('place')">시설소개</button>
+          
+        </div>
+        <div class="detail-anchor-tabs-spacer" aria-hidden="true" style="height: 0px;"></div>
+        
+        <div class="detail-section" data-detail-section="summary">
+          <div class="detail-section-heading">상품 요약 정보</div>
+          <div class="detail-summary-card">
+            <div class="detail-summary-grid">
+              <div class="detail-summary-label">상품유형</div>
+              <div class="detail-summary-value">골프팩</div>
+              <div class="detail-summary-label">여행기간</div>
+              <div class="detail-summary-value">3박4일</div>
+              <div class="detail-summary-label">여행일정</div>
+              <div class="detail-summary-value">2026.6.24(수) ~ 2026.6.27(토)</div>
+              <div class="detail-summary-label">출발지역</div>
+              <div class="detail-summary-value">인천</div>
+              <div class="detail-summary-label">방문지역</div>
+              <div class="detail-summary-value">후쿠오카</div>
+            </div>
+          </div>
+        </div>
+      
+        
+        <div class="detail-section" data-detail-section="flight">
+          <div class="detail-section-heading">항공정보</div>
+          <div class="detail-summary-flight-card">
+          <div class="detail-flight-separate-card">
+            <div class="detail-flight-separate-title">항공 별도</div>
+            <div>항공권은 포함되지 않은 상품입니다.<br>원하시는 항공편을 직접 예약하시거나, 시크릿투어를 통해 항공 예약 및 발권 대행을 요청하실 수 있습니다.</div>
+          </div>
+        </div>
+        </div>
+      
+        
+        <div class="detail-section" data-detail-section="includes">
+          <div class="detail-section-heading">포함 · 불포함사항</div>
+          <div class="detail-inclusion-grid">
+            
+        <div class="detail-info-box">
+          <div class="detail-info-box-title include"><svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-circle-icon lucide-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle></svg>포함사항</div>
+          <ul class="detail-list"><li><div class="detail-list-item"><svg xmlns="http://www.w3.org/2000/svg" class="detail-list-dot" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle></svg><div class="detail-list-text">상품 상세 확인 후 안내드립니다.</div></div></li></ul>
+        </div>
+      
+            
+        <div class="detail-info-box">
+          <div class="detail-info-box-title exclude"><svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-x-icon lucide-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>불포함사항</div>
+          <ul class="detail-list"><li><div class="detail-list-item"><svg xmlns="http://www.w3.org/2000/svg" class="detail-list-dot" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle></svg><div class="detail-list-text">상품 상세 확인 후 안내드립니다.</div></div></li></ul>
+        </div>
+      
+          </div>
+        </div>
+      
+        
+        <div class="detail-section">
+          <div class="detail-section-heading">참고사항</div>
+          
+        <div class="detail-note-card">
+          <ul class="detail-list">
+            
+          </ul>
+          
+        </div>
+      
+        </div>
+      
+        
+        <div class="detail-section" data-detail-section="schedule">
+          <div class="detail-section-heading">상세일정</div>
+          
+        <div class="detail-schedule-day-nav" role="tablist" aria-label="상세일정 일차 선택">
+          <button type="button" class="detail-schedule-day-chip active" role="tab" aria-selected="true" onclick="selectDetailScheduleDay(0)">1일차</button><button type="button" class="detail-schedule-day-chip" role="tab" aria-selected="false" onclick="selectDetailScheduleDay(1)">2일차</button><button type="button" class="detail-schedule-day-chip" role="tab" aria-selected="false" onclick="selectDetailScheduleDay(2)">3일차</button><button type="button" class="detail-schedule-day-chip" role="tab" aria-selected="false" onclick="selectDetailScheduleDay(3)">4일차</button>
+        </div>
+        <div class="detail-schedule is-flat">
+          
+            <div class="detail-schedule-item open" data-schedule-index="0">
+              <div class="detail-schedule-row">
+                <div class="detail-schedule-day">1일차<div class="detail-schedule-date">6/24(수)</div></div>
+                <div class="detail-schedule-copy" style="--schedule-open-height: 137px;">
+                  <div class="detail-schedule-timeline">
+                    <div class="detail-schedule-point">인천 출발</div><div class="detail-schedule-point">방콕 도착 후 호텔 체크인</div>
+                  </div>
+                  
+        <div class="detail-schedule-extra">
+          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-icon hotel" aria-hidden="true"></div>
+            <div class="detail-schedule-extra-title">방콕 시내 5성급 호텔</div>
+          </div>
+          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-icon meal" aria-hidden="true"></div>
+            <div class="detail-meal-list">
+              <div class="detail-meal-item"><div class="detail-meal-label">조식</div><div class="detail-meal-menu">기내식</div></div><div class="detail-meal-item"><div class="detail-meal-label">중식</div><div class="detail-meal-menu">불포함</div></div><div class="detail-meal-item"><div class="detail-meal-label">석식</div><div class="detail-meal-menu">현지식</div></div>
+            </div>
+          </div>
+        </div>
+      
+                </div>
+              </div>
+            </div>
+          
+            <div class="detail-schedule-item open" data-schedule-index="1">
+              <div class="detail-schedule-row">
+                <div class="detail-schedule-day">2일차<div class="detail-schedule-date">6/25(목)</div></div>
+                <div class="detail-schedule-copy" style="--schedule-open-height: 137px;">
+                  <div class="detail-schedule-timeline">
+                    <div class="detail-schedule-point">조식 후 18홀 라운드</div><div class="detail-schedule-point">현지 자유 일정</div>
+                  </div>
+                  
+        <div class="detail-schedule-extra">
+          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-icon hotel" aria-hidden="true"></div>
+            <div class="detail-schedule-extra-title">방콕 시내 5성급 호텔</div>
+          </div>
+          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-icon meal" aria-hidden="true"></div>
+            <div class="detail-meal-list">
+              <div class="detail-meal-item"><div class="detail-meal-label">조식</div><div class="detail-meal-menu">호텔식</div></div><div class="detail-meal-item"><div class="detail-meal-label">중식</div><div class="detail-meal-menu">클럽하우스</div></div><div class="detail-meal-item"><div class="detail-meal-label">석식</div><div class="detail-meal-menu">자유식</div></div>
+            </div>
+          </div>
+        </div>
+      
+                </div>
+              </div>
+            </div>
+          
+            <div class="detail-schedule-item open" data-schedule-index="2">
+              <div class="detail-schedule-row">
+                <div class="detail-schedule-day">3일차<div class="detail-schedule-date">6/26(금)</div></div>
+                <div class="detail-schedule-copy" style="--schedule-open-height: 137px;">
+                  <div class="detail-schedule-timeline">
+                    <div class="detail-schedule-point">조식 후 18홀 라운드</div><div class="detail-schedule-point">선택관광 또는 자유시간</div>
+                  </div>
+                  
+        <div class="detail-schedule-extra">
+          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-icon hotel" aria-hidden="true"></div>
+            <div class="detail-schedule-extra-title">방콕 시내 5성급 호텔</div>
+          </div>
+          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-icon meal" aria-hidden="true"></div>
+            <div class="detail-meal-list">
+              <div class="detail-meal-item"><div class="detail-meal-label">조식</div><div class="detail-meal-menu">호텔식</div></div><div class="detail-meal-item"><div class="detail-meal-label">중식</div><div class="detail-meal-menu">클럽하우스</div></div><div class="detail-meal-item"><div class="detail-meal-label">석식</div><div class="detail-meal-menu">현지식</div></div>
+            </div>
+          </div>
+        </div>
+      
+                </div>
+              </div>
+            </div>
+          
+            <div class="detail-schedule-item open" data-schedule-index="3">
+              <div class="detail-schedule-row">
+                <div class="detail-schedule-day">4일차<div class="detail-schedule-date">6/27(토)</div></div>
+                <div class="detail-schedule-copy" style="--schedule-open-height: 137px;">
+                  <div class="detail-schedule-timeline">
+                    <div class="detail-schedule-point">체크아웃 후 공항 이동</div><div class="detail-schedule-point">인천 귀국</div>
+                  </div>
+                  
+        <div class="detail-schedule-extra">
+          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-icon hotel" aria-hidden="true"></div>
+            <div class="detail-schedule-extra-title">방콕 시내 5성급 호텔</div>
+          </div>
+          <div class="detail-schedule-extra-row">
+            <div class="detail-schedule-extra-icon meal" aria-hidden="true"></div>
+            <div class="detail-meal-list">
+              <div class="detail-meal-item"><div class="detail-meal-label">조식</div><div class="detail-meal-menu">호텔식</div></div><div class="detail-meal-item"><div class="detail-meal-label">중식</div><div class="detail-meal-menu">기내식</div></div><div class="detail-meal-item"><div class="detail-meal-label">석식</div><div class="detail-meal-menu">불포함</div></div>
+            </div>
+          </div>
+        </div>
+      
+                </div>
+              </div>
+            </div>
+          
+        </div>
+      
+        </div>
+        
+        <div class="detail-section" data-detail-section="place">
+          <div class="detail-section-heading">시설정보</div>
+          <div class="detail-place-gallery" aria-label="상품소개 이미지">
+            <img class="detail-place-photo" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 상품소개 이미지 1" loading="lazy" decoding="async"><img class="detail-place-photo" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/20190227_085648.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 상품소개 이미지 2" loading="lazy" decoding="async"><img class="detail-place-photo" src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg" alt="일본 후쿠오카 카오/포레스트난칸/아마카세/쿠루메/썬레이크/위너스 3박4일 그린리치호텔 토수 에키마에 카트비 미팅샌딩비 상품소개 이미지 3" loading="lazy" decoding="async">
+          </div>
+        </div>
+      
+        
+        <div class="detail-section">
+          <div class="detail-section-heading">외교부 해외여행 안전정보</div>
+          <a class="detail-safety-link" href="https://www.0404.go.kr/ntnSafetyInfo/list" target="_blank" rel="noopener">
+            <div>
+              <div class="detail-safety-link-title">국가별 안전정보 확인하기</div>
+              <div class="detail-safety-link-source">외교부 해외안전여행</div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-chevron-right-icon lucide-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          </a>
+        </div>
+      
+      
+        </div>
+      </div>
+      <div class="detail-schedule-conflict-notice" id="detailScheduleConflictNotice" aria-live="polite">&#x1F4A1;이 기간에는 이미 참여(생성)중인 조인 일정이 있어요.</div>
+      <div class="detail-modal-actions">
+        <button type="button" class="button secondary detail-contact-button detail-phone-button" id="detailPhoneButton" onclick="handlePhoneContact()" aria-label="전화문의"><svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-phone-icon lucide-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.832 16.568a1 1 0 0 0 1.213-.303l.355-.465A2 2 0 0 1 17 15h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2A18 18 0 0 1 2 4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-.8 1.6l-.468.351a1 1 0 0 0-.292 1.233 14 14 0 0 0 6.392 6.384"></path></svg></button>
+        <button type="button" class="button secondary detail-contact-button detail-kakao-button" id="detailKakaoButton" onclick="openExternalLink('http://pf.kakao.com/_lRbYxj/chat')" aria-label="카톡문의">
+          <svg xmlns="http://www.w3.org/2000/svg" class="lucide lucide-message-circle-more-icon lucide-message-circle-more" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"></path><path d="M8 12h.01"></path><path d="M12 12h.01"></path><path d="M16 12h.01"></path></svg>
+        </button>
+        <button type="button" class="button secondary detail-date-change-button" id="detailDateChangeButton" onclick="handleDetailDateChangeAction()" hidden="">날짜변경</button>
+        <button type="button" class="button primary" id="detailPrimaryButton" onclick="openGlobalApply()">참여하기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay region-search-overlay sgj-portal-overlay" id="regionSearchModal" onclick="handleRegionSearchBackdrop(event)" style="z-index: 2147483000 !important;">
+    <div class="modal region-search-modal">
+      <div class="region-search-shell">
+        <div class="region-search-header">
+          <button type="button" class="region-search-back" onclick="closeRegionSearchModal()" aria-label="뒤로가기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true">
+              <path d="m12 19-7-7 7-7"></path>
+              <path d="M19 12H5"></path>
+            </svg>
+          </button>
+          <div class="region-search-title">여행지 검색</div>
+          <span class="modal-header-spacer region-search-header-spacer" aria-hidden="true"></span>
+        </div>
+        <div class="region-search-row">
+          <div class="region-search-field">
+            <input id="regionSearchInput" type="text" placeholder="국가 또는 도시명을 검색해보세요" oninput="handleRegionSearchInput(this.value)" onkeydown="if(event.key === 'Enter') { event.preventDefault(); performRegionProductSearch(); }">
+            <button type="button" class="region-search-clear-input" onclick="clearRegionSearchInput()" aria-label="검색어 삭제">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-icon lucide-x" aria-hidden="true">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+            </button>
+            <svg class="mobile-search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
+              <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <button type="button" class="region-search-all-button" onclick="openRegionAllPanel()">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 21s6-4.35 6-10a6 6 0 1 0-12 0c0 5.65 6 10 6 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="12" cy="11" r="2.5" stroke="currentColor" stroke-width="2"></circle>
+            </svg>
+            지역 전체
+          </button>
+        </div>
+        <div class="region-search-results" id="regionSearchResults"></div>
+        <div class="region-search-quickbar" id="regionSearchQuickbar">
+          <div class="region-search-quickcol">
+            <div class="region-search-quickhead">
+              <div class="region-search-quicktitle">지금 핫한 지역<svg class="region-search-hot-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12.3 21c-3.6 0-6.3-2.5-6.3-6 0-2.3 1.1-4.1 2.8-5.8 1.4-1.4 2.4-2.9 2.3-5.2 2.8 1.2 4.6 3.3 4.8 6.2.7-.6 1.2-1.5 1.3-2.6 1.7 1.5 2.8 3.6 2.8 6.2 0 4.1-3.3 7.2-7.7 7.2Z" fill="#ff8a00"></path>
+                  <path d="M12.1 19c-1.8 0-3.1-1.2-3.1-3 0-1.3.8-2.3 1.8-3.2.9-.8 1.5-1.7 1.4-3 1.9 1 3 2.5 2.8 4.5.6-.4 1-.9 1.2-1.6.9 1 1.4 2.1 1.4 3.3 0 1.9-1.6 3-5.5 3Z" fill="#ffd166"></path>
+                </svg></div>
+            </div>
+            <div class="region-search-quicklist region-search-hotlist" id="regionHotList"></div>
+          </div>
+          <div class="region-search-quickcol">
+            <div class="region-search-quickhead">
+              <div class="region-search-quicktitle">최근 검색한 지역</div>
+              <button type="button" class="region-search-clear" onclick="clearRegionRecent()">전체삭제</button>
+            </div>
+            <div class="region-search-quicklist region-search-recentlist" id="regionQuickRecentList"></div>
+          </div>
+        </div>
+        <div class="region-desktop-header">
+          <div class="region-desktop-heading">여행지 선택</div>
+          <button type="button" class="modal-close-icon" onclick="closeRegionSearchModal()" aria-label="닫기"></button>
+        </div>
+        <div class="region-desktop-panel" id="regionDesktopPanel">
+          <div class="region-selection-panel">
+            <div class="region-selection-col">
+              <div class="region-recent-head">
+                <div>선택한 지역</div>
+                <button type="button" class="region-recent-clear" onclick="clearRegionSelected()">전체삭제</button>
+              </div>
+              <div class="region-selected-list" id="regionSelectedList"><div class="region-result-empty">선택한 지역이 없습니다.</div></div>
+            </div>
+            <div class="region-selection-col">
+              <div class="region-recent-head"><div>최근 검색 지역</div></div>
+              <div class="region-recent-list region-hot-window" id="regionRecentList"></div>
+            </div>
+          </div>
+          <div class="region-desktop-title">주요도시</div>
+          <div class="region-desktop-columns">
+            <div class="region-desktop-col region-desktop-main" id="regionDesktopCategories">
+        <button type="button" class="region-desktop-button active" onclick="selectRegionCategory(0)">
+          <div>동남아/서남아</div>
+        </button>
+      
+        <button type="button" class="region-desktop-button " onclick="selectRegionCategory(1)">
+          <div>일본</div>
+        </button>
+      
+        <button type="button" class="region-desktop-button " onclick="selectRegionCategory(2)">
+          <div>중국/대만</div>
+        </button>
+      
+        <button type="button" class="region-desktop-button " onclick="selectRegionCategory(3)">
+          <div>괌/사이판</div>
+        </button>
+      </div>
+            <div class="region-desktop-col" id="regionDesktopCountries"><div class="region-desktop-country-list">
+          <button type="button" class="region-desktop-button active has-children" onclick="selectRegionCountry(0)">
+            <div class="region-desktop-label"><span>라오스</span><span class="region-desktop-hot-badge">HOT</span></div>
+            
+              <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            
+          </button>
+        
+          <button type="button" class="region-desktop-button  has-children" onclick="selectRegionCountry(1)">
+            <div class="region-desktop-label"><span>말레이시아</span><span class="region-desktop-hot-badge">HOT</span></div>
+            
+              <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            
+          </button>
+        
+          <button type="button" class="region-desktop-button  has-children" onclick="selectRegionCountry(2)">
+            <div class="region-desktop-label"><span>미얀마</span></div>
+            
+              <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            
+          </button>
+        
+          <button type="button" class="region-desktop-button  has-children" onclick="selectRegionCountry(3)">
+            <div class="region-desktop-label"><span>베트남</span><span class="region-desktop-hot-badge">HOT</span></div>
+            
+              <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            
+          </button>
+        
+          <button type="button" class="region-desktop-button  has-children" onclick="selectRegionCountry(4)">
+            <div class="region-desktop-label"><span>브루나이</span></div>
+            
+              <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            
+          </button>
+        
+          <button type="button" class="region-desktop-button  has-children" onclick="selectRegionCountry(5)">
+            <div class="region-desktop-label"><span>인도네시아</span></div>
+            
+              <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            
+          </button>
+        
+          <button type="button" class="region-desktop-button  has-children" onclick="selectRegionCountry(6)">
+            <div class="region-desktop-label"><span>태국</span><span class="region-desktop-hot-badge">HOT</span></div>
+            
+              <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            
+          </button>
+        
+          <button type="button" class="region-desktop-button  has-children" onclick="selectRegionCountry(7)">
+            <div class="region-desktop-label"><span>필리핀</span><span class="region-desktop-hot-badge">HOT</span></div>
+            
+              <svg class="region-desktop-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+            
+          </button>
+        </div></div>
+            <div class="region-desktop-col" id="regionDesktopCities"><div class="region-desktop-city-list">
+          <button type="button" class="region-desktop-city" onclick="selectDesktopRegion('비엔티안, 라오스')">
+            <div class="region-desktop-label"><span>비엔티안</span><span class="region-desktop-hot-badge">HOT</span></div>
+          </button>
+        </div></div>
+          </div>
+          <div class="region-desktop-confirm">
+            <button type="button" class="region-confirm-button" onclick="confirmRegionSelection()">선택 완료</button>
+          </div>
+        </div>
+        <div class="region-search-type">
+          <button type="button" class="active">해외</button>
+        </div>
+        <div class="region-search-body">
+          <details class="region-group featured" data-region-category-index="0" open="">
+            <summary>동남아/서남아</summary>
+            <div class="region-grid-list">
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle active" onclick="toggleMobileRegionCountry(0, 0)">
+                <span>라오스</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(0, 1)">
+                <span>말레이시아</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              
+                <div class="region-subregion-list">
+                  <button type="button" class="region-subregion-heading" data-region="라오스" onclick="selectRegionResult('라오스')"><span>라오스 전체</span></button>
+                  <button type="button" class="region-subregion" data-region="비엔티안, 라오스" onclick="selectRegionResult('비엔티안, 라오스')"><span>비엔티안</span><span class="region-desktop-hot-badge">HOT</span></button>
+                </div>
+              
+            </div>
+          
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(0, 2)">
+                <span>미얀마</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(0, 3)">
+                <span>베트남</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              
+            </div>
+          
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(0, 4)">
+                <span>브루나이</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(0, 5)">
+                <span>인도네시아</span>
+              </button>
+            
+              
+            </div>
+          
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(0, 6)">
+                <span>태국</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(0, 7)">
+                <span>필리핀</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              
+            </div>
+          </div>
+          </details>
+        
+          <details class="region-group " data-region-category-index="1">
+            <summary>일본</summary>
+            <div class="region-grid-list">
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(1, 0)">
+                <span>일본</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              
+            </div>
+          </div>
+          </details>
+        
+          <details class="region-group " data-region-category-index="2">
+            <summary>중국/대만</summary>
+            <div class="region-grid-list">
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(2, 0)">
+                <span>중국</span><span class="region-desktop-hot-badge">HOT</span>
+              </button>
+            
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(2, 1)">
+                <span>대만</span>
+              </button>
+            
+              
+            </div>
+          </div>
+          </details>
+        
+          <details class="region-group " data-region-category-index="3">
+            <summary>괌/사이판</summary>
+            <div class="region-grid-list">
+            <div class="region-grid-row">
+              
+              <button type="button" class="region-subgroup-toggle " onclick="toggleMobileRegionCountry(3, 0)">
+                <span>괌</span>
+              </button>
+            <button type="button" class="region-option" data-region="사이판" onclick="selectRegionResult('사이판')"><span>사이판</span></button>
+              
+            </div>
+          </div>
+          </details>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>

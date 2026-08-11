@@ -4,6 +4,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>골프 조인 게시판</title>
   <script>
+    (function normalizeEmbeddedBoardShellBeforeFirstPaint() {
+      var host = document.currentScript && document.currentScript.closest(".read_contens");
+      if (!host) return;
+      host.classList.add("sgj-board-host");
+      var board = host.closest(".boardread_type1");
+      var page = host.closest(".middle_wrap");
+      if (board) board.classList.add("sgj-board-root");
+      if (page) page.classList.add("sgj-board-page");
+    })();
     window.updateMdPickThemeDots = window.updateMdPickThemeDots || function() {};
     window.updateCustomSectionControls = window.updateCustomSectionControls || function() {};
     window.updateQuickSectionControls = window.updateQuickSectionControls || function() {};
@@ -90,6 +99,7 @@
       --blue-soft: #dbeafe;
       --green: #16a34a;
       --green-soft: #dcfce7;
+      --calendar-available-color: #22c55e;
       --apply-accent: #373A3C;
       --apply-accent-soft: #f1f5f9;
       --apply-green: #16a34a;
@@ -1493,6 +1503,10 @@
       gap: 22px;
       margin-top: 34px;
     }
+    .join-mdpick-theme-deferred {
+      min-height: 1px;
+      margin-top: 34px;
+    }
     .join-mdpick-theme-title {
       color: var(--text);
       font-size: var(--font-product-section-title);
@@ -1525,9 +1539,6 @@
     .join-mdpick-theme-group:not(.active) {
       display: none;
     }
-    .join-mdpick-theme-group.legacy-active-hidden {
-      display: none !important;
-    }
     .join-mdpick-theme-head {
       position: relative;
       display: flex;
@@ -1549,17 +1560,17 @@
       pointer-events: none;
       background: linear-gradient(180deg, var(--mdpick-theme-shade, rgba(13, 55, 105, .7)) 0%, var(--mdpick-theme-shade-mid, rgba(13, 55, 105, .46)) 48%, rgba(13, 55, 105, 0) 76%);
     }
-    .join-mdpick-theme-group.theme-relax .join-mdpick-theme-head {
+    .join-mdpick-theme-group.is-theme-ready.theme-relax .join-mdpick-theme-head {
       --mdpick-theme-bg-image: url("https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/taste_bg1.webp");
       --mdpick-theme-shade: rgb(0 137 255 / 82%);
       --mdpick-theme-shade-mid: rgb(18 128 191 / 64%);
     }
-    .join-mdpick-theme-group.theme-city .join-mdpick-theme-head {
+    .join-mdpick-theme-group.is-theme-ready.theme-city .join-mdpick-theme-head {
       --mdpick-theme-bg-image: url("https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/taste_bg2.webp");
       --mdpick-theme-shade: rgb(255 127 4 / 76%);
       --mdpick-theme-shade-mid: rgb(236 124 3 / 71%);
     }
-    .join-mdpick-theme-group.theme-passion .join-mdpick-theme-head {
+    .join-mdpick-theme-group.is-theme-ready.theme-passion .join-mdpick-theme-head {
       --mdpick-theme-bg-image: url("https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/taste_bg3.webp");
       --mdpick-theme-shade: rgb(12 223 28 / 65%);
       --mdpick-theme-shade-mid: rgb(21 169 30 / 51%);
@@ -4120,7 +4131,7 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #22c55e;
+      background: var(--calendar-available-color);
       box-shadow: 0 0 0 2px #ffffff;
     }
     .calendar-cell.can-create:not(.has-data) .calendar-day-button strong {
@@ -4351,6 +4362,44 @@
       padding: 10px 0 6px;
       background: #fff;
       text-align: center;
+    }
+    .calendar-month-title.has-availability-legend {
+      grid-template-columns: minmax(92px, 1fr) auto minmax(92px, 1fr);
+    }
+    .calendar-availability-legend {
+      grid-column: 1;
+      justify-self: start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 32px;
+      color: #16a34a;
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .calendar-availability-legend-dot {
+      width: 12px;
+      height: 12px;
+      flex: 0 0 12px;
+      border-radius: 999px;
+      background: var(--calendar-available-color);
+      box-shadow: inset 0 0 0 1px rgba(21, 128, 61, 0.16);
+    }
+    .calendar-month-navigation {
+      grid-column: 2;
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-width: 0;
+    }
+    .calendar-month-navigation .calendar-month-label,
+    .calendar-month-navigation .calendar-month-nav.prev,
+    .calendar-month-navigation .calendar-month-nav.next {
+      grid-column: auto;
     }
     .calendar-month-label {
       grid-column: 2;
@@ -7763,6 +7812,44 @@
       padding: 18px 20px 16px;
       gap: 10px;
     }
+    .join-read-loading-target {
+      position: relative !important;
+    }
+    .join-read-loading-indicator {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      border-radius: inherit;
+      background: rgba(248, 250, 252, .94);
+      color: #4b5563;
+      pointer-events: none;
+    }
+    .join-read-loading-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      max-width: 100%;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: center;
+      word-break: keep-all;
+    }
+    .join-read-loading-icon {
+      flex: 0 0 auto;
+      width: 24px;
+      height: 24px;
+    }
+    .join-read-loading-icon svg {
+      display: block;
+      width: 24px;
+      height: 24px;
+    }
     .join-action-loading-icon {
       width: 28px;
       height: 28px;
@@ -9301,7 +9388,7 @@
       color: var(--text-soft);
       font-size: 12px;
       font-weight: 700;
-      margin-top: 2px;
+      margin-top: 0px;
     }
     .region-result-empty {
       padding: 24px 0;
@@ -16372,7 +16459,20 @@
         display: block;
         background: #fff;
       }
+      .calendar-mobile-month-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+      }
+      .calendar-mobile-month-head .calendar-availability-legend {
+        grid-column: 1;
+        position: relative;
+        top: 5px;
+        left: 15px;
+        font-size: 13px;
+      }
       .calendar-mobile-month-label {
+        grid-column: 2;
         min-height: var(--calendar-sticky-month-height, 36px);
         padding: 15px 0 5px;
         color: var(--text);
@@ -20475,12 +20575,12 @@
     }
     #regionSearchModal .region-result-name {
       color: var(--text);
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 800;
     }
     #regionSearchModal .region-result-type {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 16px;
+      font-weight: 600;
     }
     #regionSearchModal .region-product-head {
       position: relative;
@@ -21501,9 +21601,9 @@
     }
     @media (max-width: 640px) {
       #regionSearchModal {
-        --region-mobile-major-font-size: 15px;
-        --region-mobile-mid-font-size: 14px;
-        --region-mobile-small-font-size: 14px;
+        --region-mobile-major-font-size: 20px;
+        --region-mobile-mid-font-size: 18px;
+        --region-mobile-small-font-size: 18px;
       }
       #regionSearchModal .region-result-empty {
         padding: 28px 12px 12px;
@@ -21633,17 +21733,54 @@
         margin-bottom: 6px;
       }
       #regionSearchModal .region-group summary {
-        padding: 8px 15px;
+        padding: 13px 15px;
         font-size: var(--region-mobile-major-font-size);
         font-weight: 700;
       }
       #regionSearchModal .region-option,
       #regionSearchModal .region-subgroup summary,
       #regionSearchModal .region-subgroup-toggle {
+        min-height: 43px;
         font-size: var(--region-mobile-mid-font-size);
       }
+      #regionSearchModal .region-subgroup summary,
       #regionSearchModal .region-subgroup-toggle {
+        position: relative;
+        padding-right: 36px;
         padding-left: 10px;
+      }
+      #regionSearchModal .region-subgroup summary::after,
+      #regionSearchModal .region-subgroup-toggle::after {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        width: 16px;
+        height: 16px;
+        flex: 0 0 16px;
+        margin-left: 0;
+        background-size: 16px 16px;
+        transform: translateY(-50%) rotate(0deg);
+      }
+      #regionSearchModal .region-subgroup[open] > summary::after,
+      #regionSearchModal .region-subgroup-toggle.active::after {
+        transform: translateY(-50%) rotate(180deg);
+      }
+      #regionSearchModal .region-subgroup-label {
+        position: relative;
+        display: inline-flex;
+        align-self: stretch;
+        align-items: center;
+        gap: 5px;
+      }
+      #regionSearchModal .region-subgroup-toggle.active .region-subgroup-label::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: #373a3c;
+        pointer-events: none;
       }
       #regionSearchModal .region-grid-list {
         display: block;
@@ -21663,11 +21800,12 @@
       }
       #regionSearchModal .region-subregion,
       #regionSearchModal .region-subregion-heading {
+        min-height: 43px;
         font-size: var(--region-mobile-small-font-size);
         padding-left: 10px;
       }
       #regionSearchModal .region-subregion-heading {
-        min-height: 38px;
+        min-height: 43px;
         color: #373A3C;
         font-weight: 700;
       }
@@ -22406,9 +22544,6 @@
         min-height: 0;
         scroll-snap-align: center;
         scroll-snap-stop: always;
-      }
-      .join-mdpick-theme-group.legacy-active-hidden {
-        display: none !important;
       }
       .join-mdpick-theme-head {
         min-height: 170px;
@@ -23939,30 +24074,58 @@
     }
 
     .join-my-loading-state {
+      position: relative;
       display: grid;
       gap: 12px;
       padding: 2px 0 12px;
     }
 
-    .join-my-loading-copy {
-      color: #475569;
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 1.45;
+    .join-my-loading-common {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
     }
 
     .join-my-loading-card {
       display: grid;
+      grid-template-columns: 128px minmax(0, 1fr);
+      gap: 14px;
+      min-height: 168px;
+      padding: 20px;
+      border: 0;
+      border-radius: 12px;
+      background: transparent;
+    }
+
+    .join-my-loading-thumb,
+    .join-my-loading-line,
+    .join-my-loading-avatar,
+    .join-my-loading-button {
+      border: 0;
+      background: #f1f3f5;
+      box-shadow: none;
+    }
+
+    .join-my-loading-thumb {
+      width: 128px;
+      height: 128px;
+      border-radius: 10px;
+    }
+
+    .join-my-loading-content {
+      min-width: 0;
+      display: grid;
+      align-content: start;
       gap: 12px;
-      padding: 18px;
-      border: 1px solid #edf0f4;
-      border-radius: 8px;
-      background: #fff;
     }
 
     .join-my-loading-line {
       height: 13px;
-      border-radius: 999px;
+      border-radius: 6px;
     }
 
     .join-my-loading-line.title {
@@ -23985,6 +24148,13 @@
       height: 38px;
       border-radius: 50%;
       flex: 0 0 auto;
+    }
+
+    .join-my-loading-button {
+      width: 112px;
+      height: 34px;
+      margin-top: 2px;
+      border-radius: 8px;
     }
 
     .join-my-reservation-section > .join-my-state {
@@ -26214,6 +26384,32 @@
         gap: 11px;
         padding: 12px;
         border-radius: 12px;
+      }
+
+      .join-my-loading-card {
+        grid-template-columns: 104px minmax(0, 1fr);
+        gap: 11px;
+        min-height: 128px;
+        padding: 12px;
+      }
+
+      .join-my-loading-thumb {
+        width: 104px;
+        height: 104px;
+      }
+
+      .join-my-loading-content {
+        gap: 10px;
+      }
+
+      .join-my-loading-avatar {
+        width: 32px;
+        height: 32px;
+      }
+
+      .join-my-loading-button {
+        width: 92px;
+        height: 30px;
       }
 
       .join-my-card.join-my-card-accordion {
@@ -28996,7 +29192,7 @@
         <div class="hero-slider-viewport">
           <div class="hero-slider-track" id="heroSliderTrack">
             <div class="hero-slide is-clickable" role="button" tabindex="0" aria-label="10월 월례회 상품 자세히 보기" onclick="openHeroOctoberMonthlyDetail()" onkeydown="handleHeroOctoberMonthlyKeydown(event)">
-              <img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner.webp" alt="10월 월례회 골프 조인 배너" style="width: 100%; height: 100%;">
+              <img src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/hero_banner.webp" alt="10월 월례회 골프 조인 배너" loading="eager" decoding="async" fetchpriority="high" style="width: 100%; height: 100%;">
             </div>
           </div>
         </div>
@@ -29249,51 +29445,6 @@
                 </div>
               </div>
       
-              <div class="join-mdpick-theme-group legacy-active-hidden theme-relax">
-                <div class="join-mdpick-theme-head">
-                  <div class="join-mdpick-theme-name">휴양형 🌴</div>
-                  <div class="join-mdpick-theme-subcopy">푸른 바다와 리조트에서 쉬어가는 여유로운 골프여행</div>
-                  <div class="join-mdpick-theme-pills" role="tablist" aria-label="취향맞춤 테마 선택">
-                    
-                      <button type="button" class="join-mdpick-theme-tab active" onclick="setMdPickTheme('relax')" role="tab" aria-selected="true">쉼이 있는 바다 라운드</button>
-                    
-                      <button type="button" class="join-mdpick-theme-tab" onclick="setMdPickTheme('city')" role="tab" aria-selected="false">라운드 후 도심 산책</button>
-                    
-                      <button type="button" class="join-mdpick-theme-tab" onclick="setMdPickTheme('passion')" role="tab" aria-selected="false">하루 꽉 찬 집중 라운드</button>
-                    
-                  </div>
-                </div>
-                <div class="join-mdpick-theme-grid">
-                  
-        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001096', 'thailand')">
-          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 치앙마이 로얄치앙마이 3박5일 로얄 카트비" loading="lazy" decoding="async"></div>
-          <div class="join-mdpick-theme-meta">
-            <div class="join-mdpick-theme-region">치앙마이</div>
-            <div class="join-mdpick-theme-product">태국 치앙마이 로얄치앙마이 3박5일 로얄 카트비</div>
-            <div class="join-mdpick-theme-price">415,000<i class="join-mdpick-theme-price-unit">원~</i></div>
-          </div>
-        </button>
-      
-        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001018', '')">
-          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="말레이지아 조호바루 팜리조트 3박5일 팜리조트 카트비" loading="lazy" decoding="async"></div>
-          <div class="join-mdpick-theme-meta">
-            <div class="join-mdpick-theme-region">조호바루</div>
-            <div class="join-mdpick-theme-product">말레이지아 조호바루 팜리조트 3박5일 팜리조트 카트비</div>
-            <div class="join-mdpick-theme-price">535,000<i class="join-mdpick-theme-price-unit">원~</i></div>
-          </div>
-        </button>
-      
-        <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('good-30001100', 'thailand')">
-          <div class="join-mdpick-theme-thumb"><img src="https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg" alt="태국 치앙마이 하이랜드 3박5일 하이랜드 카트비" loading="lazy" decoding="async"></div>
-          <div class="join-mdpick-theme-meta">
-            <div class="join-mdpick-theme-region">치앙마이</div>
-            <div class="join-mdpick-theme-product">태국 치앙마이 하이랜드 3박5일 하이랜드 카트비</div>
-            <div class="join-mdpick-theme-price">580,000<i class="join-mdpick-theme-price-unit">원~</i></div>
-          </div>
-        </button>
-      
-                </div>
-              </div>
           </div>
           <div class="join-slide-dots is-visible" data-slide-dots="mdpick-theme" aria-hidden="true" data-active-index="0"><div class="join-slide-dot active"></div><div class="join-slide-dot"></div><div class="join-slide-dot"></div></div>
         </div>
@@ -31520,6 +31671,248 @@
     const PRODUCTION_DUMMY_JOIN_ID_PATTERN = /^(?:j\d+|dummy-)/;
     const PRODUCTION_DUMMY_PAYLOAD_PATTERN = /dummy-|테스트|01000000000|j[1-8]p\d/;
 
+    // GOLFJOIN_DIAGNOSTICS_START
+    // Diagnostics stay in the browser Performance Timeline only. Mark names are
+    // static and diagnostic console arguments are sanitized before they are shown.
+    const GOLFJOIN_PERFORMANCE_ENTRY_PREFIX = "golfjoin:";
+    const GOLFJOIN_PERFORMANCE_MARK_NAMES = new Set([
+      "golfjoin:boot:start",
+      "golfjoin:boot:overlay-open",
+      "golfjoin:boot:interactive",
+      "golfjoin:boot:products-ready",
+      "golfjoin:boot:products-failed",
+      "golfjoin:boot:bootstrap-settled",
+      "golfjoin:home:local-render-start",
+      "golfjoin:home:local-render-ready",
+      "golfjoin:mdpick:data-ready",
+      "golfjoin:mdpick:primary-render-start",
+      "golfjoin:mdpick:primary-dom-ready",
+      "golfjoin:image:mdpick-first-ready",
+      "golfjoin:image:mdpick-first-failed",
+      "golfjoin:private:start",
+      "golfjoin:private:ready",
+      "golfjoin:detail:start",
+      "golfjoin:detail:visible",
+      "golfjoin:detail:erp-ready",
+      "golfjoin:detail:erp-failed",
+      "golfjoin:detail:flight-ready",
+      "golfjoin:detail:flight-failed"
+    ]);
+    const GOLFJOIN_PERFORMANCE_MEASURE_NAMES = new Set([
+      "golfjoin:duration:boot-interactive",
+      "golfjoin:duration:home-products",
+      "golfjoin:duration:home-bootstrap",
+      "golfjoin:duration:home-local-render",
+      "golfjoin:duration:mdpick-data",
+      "golfjoin:duration:mdpick-primary-render",
+      "golfjoin:duration:mdpick-data-to-dom",
+      "golfjoin:duration:mdpick-first-image",
+      "golfjoin:duration:private-data",
+      "golfjoin:duration:detail-visible",
+      "golfjoin:duration:detail-erp",
+      "golfjoin:duration:detail-flight"
+    ]);
+    const GOLFJOIN_ORIGINAL_CONSOLE = {
+      warn: window.console?.warn?.bind(window.console) || (() => {}),
+      error: window.console?.error?.bind(window.console) || (() => {}),
+      log: window.console?.log?.bind(window.console) || (() => {})
+    };
+    const golfJoinPerformanceOnceMarks = new Set();
+    const golfJoinObservedPerformanceImages = new WeakSet();
+    const golfJoinDiagnosticPrivateValues = new Set();
+    let golfJoinDetailPerformanceGeneration = 0;
+
+    function isGolfJoinSensitiveDiagnosticKey(key = "") {
+      const normalized = String(key || "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+      return /^(?:name|phone|mobile|email|memberkey|memberid|memberseq|membername|applicantname|applicantphone|applicantmobile|applicantemail|creatorname|hostname|username|customername|token|accesstoken|refreshtoken|authorization|cookie|password|birthday|birthdate)$/.test(normalized);
+    }
+
+    function registerGolfJoinDiagnosticPrivateValues(member = {}) {
+      if (!member || typeof member !== "object") return;
+      [
+        "name", "memberName", "applicantName", "phone", "mobile", "memberMobile",
+        "email", "memberEmail", "memberKey", "memberId", "memberSeq"
+      ].forEach((key) => {
+        const value = String(member[key] ?? "").trim();
+        if (value.length >= 2) golfJoinDiagnosticPrivateValues.add(value);
+      });
+    }
+
+    function sanitizeGolfJoinDiagnosticString(value = "", options = {}) {
+      let output = String(value ?? "");
+      const trimmed = output.trim();
+      if (options.parseJson !== false && trimmed.length <= 100000 && (
+        (trimmed.startsWith("{") && trimmed.endsWith("}"))
+        || (trimmed.startsWith("[") && trimmed.endsWith("]"))
+      )) {
+        try {
+          return JSON.stringify(sanitizeGolfJoinDiagnosticValue(JSON.parse(trimmed), 0, new WeakSet()));
+        } catch (error) {
+          // Non-JSON diagnostic text continues through the normal masking rules.
+        }
+      }
+      output = output.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[redacted-email]");
+      output = output.replace(/\b(?:\+?82[-\s]?(?:0)?1[016789]|01[016789])[-\s]?\d{3,4}[-\s]?\d{4}\b/g, "[redacted-phone]");
+      output = output.replace(/https?:\/\/[^\s\"'<>]+/gi, (candidate) => {
+        const trailingMatch = candidate.match(/[),.;]+$/);
+        const trailing = trailingMatch?.[0] || "";
+        const core = trailing ? candidate.slice(0, -trailing.length) : candidate;
+        try {
+          const parsed = new URL(core);
+          return `${parsed.origin}${parsed.pathname}${trailing}`;
+        } catch (error) {
+          return candidate.replace(/[?#].*$/, "");
+        }
+      });
+      output = output.replace(/(^|[\s(\"'])((?:\/|\.\.?\/)[^\s\"'<>?#]+)\?[^\s\"'<>]*/g, "$1$2");
+      output = output.replace(/\b(memberKey|memberId|memberSeq|memberMobile|memberEmail|phone|mobile|email|name)=([^\s&]+)/gi, "$1=[redacted]");
+      golfJoinDiagnosticPrivateValues.forEach((privateValue) => {
+        output = output.split(privateValue).join("[redacted-private]");
+      });
+      return output;
+    }
+
+    function sanitizeGolfJoinDiagnosticValue(value, depth = 0, seen = new WeakSet()) {
+      if (value === null || value === undefined || typeof value === "boolean" || typeof value === "number") return value;
+      if (typeof value === "string") return sanitizeGolfJoinDiagnosticString(value);
+      if (typeof value === "bigint") return String(value);
+      if (typeof value === "function" || typeof value === "symbol") return `[${typeof value}]`;
+      const isError = value instanceof Error || Object.prototype.toString.call(value) === "[object Error]";
+      if (isError) {
+        return {
+          name: sanitizeGolfJoinDiagnosticString(value.name || "Error", { parseJson: false }),
+          message: sanitizeGolfJoinDiagnosticString(value.message || "", { parseJson: false }),
+          code: sanitizeGolfJoinDiagnosticString(value.code || value.serverCode || "", { parseJson: false }),
+          status: Number(value.status) || undefined
+        };
+      }
+      if (depth >= 4) return "[truncated]";
+      if (seen.has(value)) return "[circular]";
+      seen.add(value);
+      if (Array.isArray(value)) {
+        return value.slice(0, 30).map((item) => sanitizeGolfJoinDiagnosticValue(item, depth + 1, seen));
+      }
+      const result = {};
+      Object.entries(value).slice(0, 50).forEach(([key, item]) => {
+        result[key] = isGolfJoinSensitiveDiagnosticKey(key)
+          ? "[redacted]"
+          : sanitizeGolfJoinDiagnosticValue(item, depth + 1, seen);
+      });
+      return result;
+    }
+
+    function golfJoinSafeConsole(method, args = []) {
+      const logger = GOLFJOIN_ORIGINAL_CONSOLE[method] || GOLFJOIN_ORIGINAL_CONSOLE.log;
+      try {
+        logger(...Array.from(args).map((item) => sanitizeGolfJoinDiagnosticValue(item)));
+      } catch (error) {
+        logger("[GolfJoin] Diagnostic logging failed safely.");
+      }
+    }
+
+    function golfJoinSafeWarn(...args) {
+      golfJoinSafeConsole("warn", args);
+    }
+
+    function golfJoinSafeError(...args) {
+      golfJoinSafeConsole("error", args);
+    }
+
+    function golfJoinSafeLog(...args) {
+      golfJoinSafeConsole("log", args);
+    }
+
+    function markGolfJoinPerformance(name, options = {}) {
+      if (!GOLFJOIN_PERFORMANCE_MARK_NAMES.has(name) || !window.performance?.mark) return false;
+      if (options.once && golfJoinPerformanceOnceMarks.has(name)) return false;
+      try {
+        window.performance.mark(name);
+        if (options.once) golfJoinPerformanceOnceMarks.add(name);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function measureGolfJoinPerformance(name, startMark, endMark) {
+      if (
+        !GOLFJOIN_PERFORMANCE_MEASURE_NAMES.has(name)
+        || !GOLFJOIN_PERFORMANCE_MARK_NAMES.has(startMark)
+        || !GOLFJOIN_PERFORMANCE_MARK_NAMES.has(endMark)
+        || !window.performance?.measure
+      ) return false;
+      try {
+        window.performance.measure(name, startMark, endMark);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function markGolfJoinPerformanceOnce(name, measureName = "", startMark = "") {
+      const marked = markGolfJoinPerformance(name, { once: true });
+      if (marked && measureName && startMark) measureGolfJoinPerformance(measureName, startMark, name);
+      return marked;
+    }
+
+    function beginGolfJoinDetailPerformance() {
+      golfJoinDetailPerformanceGeneration += 1;
+      [
+        "golfjoin:detail:start", "golfjoin:detail:visible", "golfjoin:detail:erp-ready",
+        "golfjoin:detail:erp-failed", "golfjoin:detail:flight-ready", "golfjoin:detail:flight-failed"
+      ].forEach((name) => window.performance?.clearMarks?.(name));
+      [
+        "golfjoin:duration:detail-visible", "golfjoin:duration:detail-erp", "golfjoin:duration:detail-flight"
+      ].forEach((name) => window.performance?.clearMeasures?.(name));
+      markGolfJoinPerformance("golfjoin:detail:start");
+      return golfJoinDetailPerformanceGeneration;
+    }
+
+    function finishGolfJoinDetailPerformance(generation, markName, measureName) {
+      if (generation !== golfJoinDetailPerformanceGeneration) return false;
+      const marked = markGolfJoinPerformance(markName);
+      if (marked && measureName) measureGolfJoinPerformance(measureName, "golfjoin:detail:start", markName);
+      return marked;
+    }
+
+    function observeGolfJoinMdPickFirstImageReady(root = document) {
+      if (
+        golfJoinPerformanceOnceMarks.has("golfjoin:image:mdpick-first-ready")
+        || golfJoinPerformanceOnceMarks.has("golfjoin:image:mdpick-first-failed")
+      ) return;
+      const image = root?.querySelector?.(".join-mdpick-card img");
+      if (!image || golfJoinObservedPerformanceImages.has(image)) return;
+      golfJoinObservedPerformanceImages.add(image);
+      const finish = (markName) => markGolfJoinPerformanceOnce(
+        markName,
+        "golfjoin:duration:mdpick-first-image",
+        "golfjoin:boot:start"
+      );
+      if (image.complete) {
+        finish(image.naturalWidth > 0 ? "golfjoin:image:mdpick-first-ready" : "golfjoin:image:mdpick-first-failed");
+        return;
+      }
+      image.addEventListener("load", () => finish("golfjoin:image:mdpick-first-ready"), { once: true });
+      image.addEventListener("error", () => finish("golfjoin:image:mdpick-first-failed"), { once: true });
+    }
+
+    function getGolfJoinPerformanceSnapshot() {
+      if (!window.performance?.getEntriesByType) return [];
+      return [
+        ...window.performance.getEntriesByType("mark"),
+        ...window.performance.getEntriesByType("measure")
+      ].filter((entry) => String(entry.name || "").startsWith(GOLFJOIN_PERFORMANCE_ENTRY_PREFIX))
+        .map((entry) => ({
+          name: String(entry.name || ""),
+          entryType: String(entry.entryType || ""),
+          startTime: Math.round((Number(entry.startTime) || 0) * 100) / 100,
+          duration: Math.round((Number(entry.duration) || 0) * 100) / 100
+        }));
+    }
+
+    window.getGolfJoinPerformanceSnapshot = getGolfJoinPerformanceSnapshot;
+    // GOLFJOIN_DIAGNOSTICS_END
+
     function isProductionDummyJoin(join = {}) {
       const id = String(join.id || "");
       if (PRODUCTION_DUMMY_JOIN_ID_PATTERN.test(id)) return true;
@@ -31586,7 +31979,7 @@
           const filtered = filterProductionDummyPayload(JSON.parse(raw));
           localStorage.setItem(key, JSON.stringify(filtered));
         } catch (error) {
-          console.warn("Failed to purge production dummy local storage.", key, error);
+          golfJoinSafeWarn("Failed to purge production dummy local storage.", key, error);
         }
       });
     }
@@ -31611,6 +32004,10 @@
     let builderStep = 1;
     let suppressBuilderNextUntil = 0;
     let joinActionLoadingCount = 0;
+    const joinActionLoadingOwners = new Map();
+    let joinActionLoadingGeneration = 0;
+    const joinReadLoadingOwners = new Map();
+    let joinReadLoadingGeneration = 0;
     let joinActionLoadingIconIndex = 0;
     let joinActionLoadingTimer = null;
     let joinActionLoadingOpenedAt = 0;
@@ -31631,6 +32028,7 @@
     let homeInitialLoadingMessageIndex = 0;
     let homeInitialLoadingMessageDotIndex = 0;
     const JOIN_ACTION_LOADING_MIN_VISIBLE_MS = 450;
+    const JOIN_READ_LOADING_DELAY_MS = 150;
     const JOIN_ACTION_LOADING_ICON_INTERVAL_MS = 400;
     const BUILDER_CALENDAR_LOADING_MESSAGE = "가능한 출발일을 확인하고 있어요";
     const JOIN_LOADING_DOT_SUFFIXES = ["", ".", "..", "..."];
@@ -31966,6 +32364,11 @@
       const overlay = document.getElementById("homeInitialLoadingOverlay");
       overlay?.classList.remove("open");
       overlay?.setAttribute("aria-hidden", "true");
+      markGolfJoinPerformanceOnce(
+        "golfjoin:boot:interactive",
+        "golfjoin:duration:boot-interactive",
+        "golfjoin:boot:start"
+      );
       document.documentElement.classList.remove("home-initial-loading");
       document.body.classList.remove("home-initial-loading");
       if (!hasOpenBlockingModal() && !isJoinActionLoadingOpen()) {
@@ -31994,22 +32397,28 @@
     }
 
     function openJoinActionLoading(message = "", options = {}) {
-      joinActionLoadingCount += 1;
+      const ownerToken = String(options.ownerToken || `action-${++joinActionLoadingGeneration}`);
+      if (joinActionLoadingOwners.has(ownerToken)) return ownerToken;
       if (isHomeInitialLoadingOpen()) {
         closeHomeInitialLoading();
       }
       const overlay = portalOverlayToBody("joinActionLoadingOverlay");
-      if (!overlay) return;
+      if (!overlay) return ownerToken;
       const minVisibleMs = Number(options.minVisibleMs);
-      joinActionLoadingMinVisibleMs = Math.max(
-        joinActionLoadingMinVisibleMs,
-        Number.isFinite(minVisibleMs) ? minVisibleMs : JOIN_ACTION_LOADING_MIN_VISIBLE_MS
-      );
+      const owner = {
+        token: ownerToken,
+        openedAt: Date.now(),
+        minVisibleMs: Number.isFinite(minVisibleMs) ? minVisibleMs : JOIN_ACTION_LOADING_MIN_VISIBLE_MS,
+        message: normalizeLoadingMessageBase(message)
+      };
+      joinActionLoadingOwners.set(ownerToken, owner);
+      joinActionLoadingCount = joinActionLoadingOwners.size;
+      joinActionLoadingMinVisibleMs = owner.minVisibleMs;
       document.body.appendChild(overlay);
       const box = overlay.querySelector(".join-action-loading-box");
       const messageEl = document.getElementById("joinActionLoadingMessage");
       box?.style.setProperty("z-index", "2147483647", "important");
-      const cleanMessage = normalizeLoadingMessageBase(message);
+      const cleanMessage = owner.message;
       joinActionLoadingMessageBase = cleanMessage;
       joinActionLoadingMessageDotIndex = 0;
       if (messageEl) {
@@ -32018,7 +32427,7 @@
       joinActionLoadingMessageDotIndex = (joinActionLoadingMessageDotIndex + 1) % JOIN_LOADING_DOT_SUFFIXES.length;
       box?.classList.toggle("has-message", Boolean(cleanMessage));
       box?.setAttribute("aria-label", cleanMessage || "처리 중");
-      joinActionLoadingOpenedAt = Date.now();
+      joinActionLoadingOpenedAt = owner.openedAt;
       renderJoinActionLoadingIcon();
       overlay.style.setProperty("display", "flex", "important");
       overlay.style.setProperty("visibility", "visible", "important");
@@ -32031,13 +32440,31 @@
       if (!joinActionLoadingTimer) {
         joinActionLoadingTimer = setInterval(renderJoinActionLoadingIcon, JOIN_ACTION_LOADING_ICON_INTERVAL_MS);
       }
+      return ownerToken;
     }
 
-    async function closeJoinActionLoading() {
-      joinActionLoadingCount = Math.max(0, joinActionLoadingCount - 1);
-      if (joinActionLoadingCount > 0) return;
-      const elapsed = Date.now() - joinActionLoadingOpenedAt;
-      const remaining = joinActionLoadingMinVisibleMs - elapsed;
+    async function closeJoinActionLoading(ownerToken = null) {
+      const resolvedToken = ownerToken == null
+        ? [...joinActionLoadingOwners.keys()].pop()
+        : String(ownerToken);
+      if (!resolvedToken || !joinActionLoadingOwners.has(resolvedToken)) return;
+      const closingOwner = joinActionLoadingOwners.get(resolvedToken);
+      joinActionLoadingOwners.delete(resolvedToken);
+      joinActionLoadingCount = joinActionLoadingOwners.size;
+      if (joinActionLoadingCount > 0) {
+        const activeOwner = [...joinActionLoadingOwners.values()].pop();
+        joinActionLoadingOpenedAt = activeOwner.openedAt;
+        joinActionLoadingMinVisibleMs = activeOwner.minVisibleMs;
+        joinActionLoadingMessageBase = activeOwner.message;
+        joinActionLoadingMessageDotIndex = 0;
+        const box = document.querySelector("#joinActionLoadingOverlay .join-action-loading-box");
+        box?.classList.toggle("has-message", Boolean(activeOwner.message));
+        box?.setAttribute("aria-label", activeOwner.message || "처리 중");
+        renderAnimatedLoadingMessage("joinActionLoadingMessage", activeOwner.message, 0);
+        return;
+      }
+      const elapsed = Date.now() - closingOwner.openedAt;
+      const remaining = closingOwner.minVisibleMs - elapsed;
       if (remaining > 0) {
         await new Promise((resolve) => setTimeout(resolve, remaining));
       }
@@ -32075,16 +32502,112 @@
         button.dataset.joinLoadingLocked = "true";
         button.setAttribute("aria-disabled", "true");
       }
-      openJoinActionLoading(options.message, { minVisibleMs: options.minVisibleMs });
+      const loadingToken = openJoinActionLoading(options.message, { minVisibleMs: options.minVisibleMs });
       try {
         return await action();
       } finally {
-        await closeJoinActionLoading();
+        await closeJoinActionLoading(loadingToken);
         if (button) {
           button.removeAttribute("aria-disabled");
           delete button.dataset.joinLoadingLocked;
         }
       }
+    }
+
+    function resolveJoinReadLoadingTarget(options = {}) {
+      const target = typeof options.getTarget === "function" ? options.getTarget() : options.target;
+      return target?.nodeType === 1 ? target : null;
+    }
+
+    function attachJoinReadLoadingTarget(state, target) {
+      if (!state || !target) return;
+      const ownerToken = String(state.token);
+      if (!state.previousAriaBusy.has(target)) {
+        state.previousAriaBusy.set(target, target.getAttribute("aria-busy"));
+      }
+      state.targets.add(target);
+      target.classList.add("join-read-loading-target");
+      target.setAttribute("aria-busy", "true");
+      target.dataset.joinReadLoadingOwner = ownerToken;
+      target.querySelectorAll(":scope > .join-read-loading-indicator").forEach((indicator) => indicator.remove());
+      const indicator = document.createElement("div");
+      indicator.className = "join-read-loading-indicator";
+      indicator.dataset.joinReadLoadingOwner = ownerToken;
+      indicator.setAttribute("role", "status");
+      indicator.setAttribute("aria-live", "polite");
+      const content = document.createElement("div");
+      content.className = "join-read-loading-content";
+      const icon = document.createElement("span");
+      icon.className = "join-read-loading-icon";
+      icon.setAttribute("aria-hidden", "true");
+      icon.innerHTML = joinActionLoadingIcons[1] || joinActionLoadingIcons[0] || "";
+      const message = document.createElement("span");
+      message.textContent = state.message;
+      content.append(icon, message);
+      indicator.appendChild(content);
+      target.appendChild(indicator);
+    }
+
+    function beginJoinReadLoading(options = {}) {
+      const ownerKey = String(options.ownerKey || `read-${++joinReadLoadingGeneration}`);
+      const state = {
+        ownerKey,
+        token: ++joinReadLoadingGeneration,
+        message: normalizeLoadingMessageBase(options.message) || "정보를 확인하고 있어요",
+        options,
+        timer: null,
+        promise: null,
+        targets: new Set(),
+        previousAriaBusy: new Map()
+      };
+      const initialTarget = resolveJoinReadLoadingTarget(options);
+      if (initialTarget) {
+        state.targets.add(initialTarget);
+        state.previousAriaBusy.set(initialTarget, initialTarget.getAttribute("aria-busy"));
+        initialTarget.setAttribute("aria-busy", "true");
+        initialTarget.dataset.joinReadLoadingOwner = String(state.token);
+      }
+      const delayMs = Number.isFinite(Number(options.delayMs))
+        ? Math.max(0, Number(options.delayMs))
+        : JOIN_READ_LOADING_DELAY_MS;
+      state.timer = setTimeout(() => {
+        state.timer = null;
+        attachJoinReadLoadingTarget(state, resolveJoinReadLoadingTarget(options));
+      }, delayMs);
+      joinReadLoadingOwners.set(ownerKey, state);
+      return state;
+    }
+
+    function endJoinReadLoading(state) {
+      if (!state) return;
+      if (state.timer) clearTimeout(state.timer);
+      const currentTarget = resolveJoinReadLoadingTarget(state.options);
+      if (currentTarget) state.targets.add(currentTarget);
+      state.targets.forEach((target) => {
+        if (target.dataset.joinReadLoadingOwner !== String(state.token)) return;
+        target.querySelectorAll(`:scope > .join-read-loading-indicator[data-join-read-loading-owner="${state.token}"]`)
+          .forEach((indicator) => indicator.remove());
+        target.classList.remove("join-read-loading-target");
+        const previousAriaBusy = state.previousAriaBusy.get(target);
+        if (previousAriaBusy == null) target.removeAttribute("aria-busy");
+        else target.setAttribute("aria-busy", previousAriaBusy);
+        delete target.dataset.joinReadLoadingOwner;
+      });
+      if (joinReadLoadingOwners.get(state.ownerKey) === state) {
+        joinReadLoadingOwners.delete(state.ownerKey);
+      }
+      flushDeferredHomeRenderIfReady();
+    }
+
+    function runJoinReadLoading(action, options = {}) {
+      const ownerKey = String(options.ownerKey || `read-${joinReadLoadingGeneration + 1}`);
+      const existing = joinReadLoadingOwners.get(ownerKey);
+      if (existing?.promise) return existing.promise;
+      const state = beginJoinReadLoading({ ...options, ownerKey });
+      state.promise = Promise.resolve()
+        .then(action)
+        .finally(() => endJoinReadLoading(state));
+      return state.promise;
     }
 
     function getJoinActionLoadingMessage(actionName = "") {
@@ -32173,11 +32696,46 @@
     const JOIN_MEMBER_PROFILE_COMPLETION_KEY = "joinMemberProfileCompletion";
     const JOIN_MEMBER_PROFILE_COMPLETION_TTL_MS = 10 * 60 * 1000;
     const JOIN_KAKAO_JS_KEY = "3925751273a92614723fe138c525f646";
+    let renderedCookieDataStringCache;
+    let renderedCookieDataStringScannedWhileLoading = false;
+    let renderedCookieDataStringRescanScheduled = false;
 
     function getRenderedCookieDataString() {
+      // CookieData is server-rendered into this document and does not change
+      // without a navigation. Re-reading documentElement.innerHTML for every
+      // card/member check copies and scans the entire embedded page repeatedly.
+      if (renderedCookieDataStringCache !== undefined) return renderedCookieDataStringCache;
+      // The golf-join script can execute before the outer event page finishes
+      // parsing. If CookieData is emitted later in that same document, keep the
+      // loading-time miss cheap and allow exactly one fresh scan after parsing.
+      if (document.readyState === "loading" && renderedCookieDataStringScannedWhileLoading) return "";
       const html = document.documentElement?.innerHTML || "";
       const match = html.match(/CookieData\(([^)]*(?:userSeq|userId)[^)]*)\)/);
-      return match ? `CookieData(${match[1]})` : "";
+      if (match) {
+        renderedCookieDataStringCache = `CookieData(${match[1]})`;
+        return renderedCookieDataStringCache;
+      }
+      if (document.readyState === "loading") {
+        renderedCookieDataStringScannedWhileLoading = true;
+        if (!renderedCookieDataStringRescanScheduled) {
+          renderedCookieDataStringRescanScheduled = true;
+          document.addEventListener("DOMContentLoaded", () => {
+            renderedCookieDataStringCache = undefined;
+            renderedCookieDataStringScannedWhileLoading = false;
+            renderedCookieDataStringRescanScheduled = false;
+          }, { once: true });
+        }
+        return "";
+      }
+      renderedCookieDataStringCache = "";
+      return renderedCookieDataStringCache;
+    }
+
+    function waitForRenderedCookieDataReady() {
+      if (document.readyState !== "loading") return Promise.resolve();
+      return new Promise((resolve) => {
+        document.addEventListener("DOMContentLoaded", resolve, { once: true });
+      });
     }
 
     function parseJoinCookieData(raw = getRenderedCookieDataString()) {
@@ -32231,7 +32789,7 @@
       try {
         sessionStorage.setItem(JOIN_TEMP_ADMIN_LOGIN_KEY, JSON.stringify(member));
       } catch (error) {
-        console.warn("Failed to store temp admin login.", error);
+        golfJoinSafeWarn("Failed to store temp admin login.", error);
       }
       return member;
     }
@@ -32286,7 +32844,7 @@
       try {
         sessionStorage.setItem(JOIN_SESSION_MEMBER_KEY, JSON.stringify(sessionMember));
       } catch (error) {
-        console.warn("Failed to store join session member.", error);
+        golfJoinSafeWarn("Failed to store join session member.", error);
       }
       joinMyMenuState.memberPromise = Promise.resolve(sessionMember);
       clearActiveJoinMySchedulesCache();
@@ -32318,7 +32876,7 @@
           documentId: JOIN_AUTH_DOCUMENT_ID
         }));
       } catch (error) {
-        console.warn("Failed to store join logout marker.", error);
+        golfJoinSafeWarn("Failed to store join logout marker.", error);
       }
     }
 
@@ -32326,7 +32884,7 @@
       try {
         sessionStorage.removeItem(JOIN_LOGOUT_MARKER_KEY);
       } catch (error) {
-        console.warn("Failed to clear join logout marker.", error);
+        golfJoinSafeWarn("Failed to clear join logout marker.", error);
       }
     }
 
@@ -32632,7 +33190,7 @@
           returnUrl: getJoinKakaoProfileReturnUrl()
         }));
       } catch (error) {
-        console.warn("Failed to store pending Kakao profile state.", error);
+        golfJoinSafeWarn("Failed to store pending Kakao profile state.", error);
       }
     }
 
@@ -32719,7 +33277,7 @@
                       openLocalKakaoProfileRequiredForm(res, authObj);
                     }).catch((profileError) => {
                       joinMyMenuState.loginRedirecting = false;
-                      console.warn("Existing Kakao profile lookup failed.", profileError);
+                      golfJoinSafeWarn("Existing Kakao profile lookup failed.", profileError);
                       openLocalKakaoProfileRequiredForm(res, authObj);
                     }).finally(finish);
                     return;
@@ -32750,14 +33308,14 @@
                     return undefined;
                   }).catch((error) => {
                     joinMyMenuState.loginRedirecting = false;
-                    console.warn("Kakao external login failed.", error);
+                    golfJoinSafeWarn("Kakao external login failed.", error);
                     if (isJoinLocalDevHost()) {
                       return continueWithExistingKakaoProfileIfReady(res).then((continued) => {
                         if (continued) return;
                         openKakaoProfileForm(res, authObj);
                         setJoinMemberLoginStatus("");
                       }).catch((profileError) => {
-                        console.warn("Existing Kakao profile lookup failed.", profileError);
+                        golfJoinSafeWarn("Existing Kakao profile lookup failed.", profileError);
                         openKakaoProfileForm(res, authObj);
                         setJoinMemberLoginStatus("");
                       });
@@ -32767,7 +33325,7 @@
                 },
                 fail(error) {
                   joinMyMenuState.loginRedirecting = false;
-                  console.warn("Kakao profile request failed.", error);
+                  golfJoinSafeWarn("Kakao profile request failed.", error);
                   reopenLoginWithStatus("카카오 계정 정보를 가져오지 못했습니다.");
                   finish();
                 }
@@ -32775,7 +33333,7 @@
             },
             fail(error) {
               joinMyMenuState.loginRedirecting = false;
-              console.warn("Kakao auth failed.", error);
+              golfJoinSafeWarn("Kakao auth failed.", error);
               setJoinMemberLoginStatus("카카오 로그인이 취소되었거나 실패했습니다.");
               finish();
             }
@@ -32783,7 +33341,7 @@
         });
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
-        console.warn("Failed to initialize Kakao login.", error);
+        golfJoinSafeWarn("Failed to initialize Kakao login.", error);
         setJoinMemberLoginStatus("카카오 로그인을 준비하지 못했습니다.");
       }
     }
@@ -33363,7 +33921,7 @@
         updateJoinMemberSignupNavState();
         return true;
       } catch (error) {
-        console.warn("Signup duplicate check failed.", error);
+        golfJoinSafeWarn("Signup duplicate check failed.", error);
         if (!silent) showJoinMemberSignupAlert("중복 확인을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.", getJoinMemberSignupDuplicateFocusId(type));
         return silent;
       }
@@ -33954,7 +34512,7 @@
       try {
         return String(window.Kakao?.Auth?.getAccessToken?.() || "").trim();
       } catch (error) {
-        console.warn("Failed to restore Kakao access token.", error);
+        golfJoinSafeWarn("Failed to restore Kakao access token.", error);
         return "";
       }
     }
@@ -33964,7 +34522,7 @@
       try {
         sessionStorage.removeItem("joinPendingKakaoProfile");
       } catch (error) {
-        console.warn("Failed to clear pending Kakao profile state.", error);
+        golfJoinSafeWarn("Failed to clear pending Kakao profile state.", error);
       }
     }
 
@@ -34021,7 +34579,7 @@
           }));
         });
       } catch (error) {
-        console.warn("Failed to cache join member profile completion.", error);
+        golfJoinSafeWarn("Failed to cache join member profile completion.", error);
       }
     }
 
@@ -34043,7 +34601,7 @@
           sessionStorage.setItem(storageKey, JSON.stringify(memberWithoutCompletion));
         });
       } catch (error) {
-        console.warn("Failed to clear join member profile completion.", error);
+        golfJoinSafeWarn("Failed to clear join member profile completion.", error);
       }
     }
 
@@ -34103,7 +34661,7 @@
           }));
         }
       } catch (error) {
-        console.warn("Failed to cache join member profile.", error);
+        golfJoinSafeWarn("Failed to cache join member profile.", error);
       }
     }
 
@@ -34121,7 +34679,7 @@
           if (store[key]) return store[key];
         }
       } catch (error) {
-        console.warn("Failed to read cached join member profile.", error);
+        golfJoinSafeWarn("Failed to read cached join member profile.", error);
       }
       return {};
     }
@@ -34170,7 +34728,7 @@
           }
         });
       } catch (error) {
-        console.warn("Failed to clear cached join member profile.", error);
+        golfJoinSafeWarn("Failed to clear cached join member profile.", error);
       }
     }
 
@@ -34259,7 +34817,7 @@
           return profile;
         }
       } catch (error) {
-        console.warn("Failed to load join member profile from Google Sheet.", error);
+        golfJoinSafeWarn("Failed to load join member profile from Google Sheet.", error);
         const lookupFailedProfile = { __lookupFailed: true };
         joinMemberProfileLookupResults.set(lookupKey, { fetchedAt: Date.now(), profile: lookupFailedProfile });
         return lookupFailedProfile;
@@ -34493,7 +35051,7 @@
           })
         ]);
       } catch (error) {
-        console.warn("Failed to wait for required join member profile fields.", error);
+        golfJoinSafeWarn("Failed to wait for required join member profile fields.", error);
       }
     }
 
@@ -34793,7 +35351,7 @@
         setJoinMemberLoginStatus("");
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
-        console.warn("Find ID failed.", error);
+        golfJoinSafeWarn("Find ID failed.", error);
         setJoinMemberLoginStatus("아이디 찾기 처리 중 오류가 발생했습니다.");
       }
     }
@@ -34839,7 +35397,7 @@
         requestAnimationFrame(() => document.getElementById("joinMemberResetPassword")?.focus());
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
-        console.warn("Find password failed.", error);
+        golfJoinSafeWarn("Find password failed.", error);
         setJoinMemberLoginStatus("비밀번호 찾기 처리 중 오류가 발생했습니다.");
       }
     }
@@ -34884,7 +35442,7 @@
         requestAnimationFrame(() => loginPassword?.focus());
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
-        console.warn("Reset password failed.", error);
+        golfJoinSafeWarn("Reset password failed.", error);
         setJoinMemberLoginStatus("비밀번호 변경 처리 중 오류가 발생했습니다.");
       }
     }
@@ -35143,7 +35701,7 @@
           joinMyMenuState.loginRedirecting = true;
           setJoinMemberLoginStatus("카카오 회원가입을 진행하고 있어요.");
           if (!canUseSecretTourMemberApi()) {
-            console.warn("Kakao ERP signup skipped outside secret-tour.com.", location.origin);
+            golfJoinSafeWarn("Kakao ERP signup skipped outside secret-tour.com.", location.origin);
             await saveJoinMemberKakaoProfileAndContinue(data);
             return;
           }
@@ -35175,7 +35733,7 @@
           return;
         } catch (error) {
           joinMyMenuState.loginRedirecting = false;
-          console.warn("Kakao signup failed.", error);
+          golfJoinSafeWarn("Kakao signup failed.", error);
           if (error?.endpoint === "/member/saveExternalMember.json" && Number(error?.status) === 400) {
             try {
               const duplicateMessage = await checkJoinMemberKakaoSignupDuplicates(data);
@@ -35188,7 +35746,7 @@
                 return;
               }
             } catch (duplicateCheckError) {
-              console.warn("Kakao signup duplicate recheck failed.", duplicateCheckError);
+              golfJoinSafeWarn("Kakao signup duplicate recheck failed.", duplicateCheckError);
             }
           }
           const detail = error?.serverMessage || error?.message || "";
@@ -35234,7 +35792,7 @@
         finishJoinMemberSignupAndContinue(member, savedProfile);
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
-        console.warn("Kakao profile save failed.", error);
+        golfJoinSafeWarn("Kakao profile save failed.", error);
         setJoinMemberLoginStatus("추가정보 저장 중 오류가 발생했습니다.");
       }
     }
@@ -35370,7 +35928,7 @@
           finishJoinMemberSignupAndContinue(signupMember, savedSignupProfile);
           return;
         } catch (loginError) {
-          console.warn("Auto login after signup failed.", loginError);
+          golfJoinSafeWarn("Auto login after signup failed.", loginError);
         }
         openJoinMemberEmailForm();
         const loginIdInput = document.getElementById("joinMemberLoginId");
@@ -35379,7 +35937,7 @@
         setJoinMemberLoginStatus("가입이 완료되었어요. 아이디로 로그인해 주세요.");
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
-        console.warn("Email signup failed.", error);
+        golfJoinSafeWarn("Email signup failed.", error);
         if (error?.endpoint === "/member/saveMember.json" && Number(error?.status) === 400) {
           try {
             const duplicateMessage = await checkJoinMemberSignupDuplicates(data);
@@ -35392,7 +35950,7 @@
               return;
             }
           } catch (duplicateCheckError) {
-            console.warn("Email signup duplicate recheck failed.", duplicateCheckError);
+            golfJoinSafeWarn("Email signup duplicate recheck failed.", duplicateCheckError);
           }
         }
         const detail = [
@@ -35427,7 +35985,7 @@
             if (readyMember) continueAfterJoinMemberLogin(afterLogin);
           })
           .catch((error) => {
-            console.warn("Failed to verify temp admin profile.", error);
+            golfJoinSafeWarn("Failed to verify temp admin profile.", error);
             alert("회원정보 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
           });
         return;
@@ -35458,7 +36016,7 @@
         document.getElementById("joinMemberLoginId")?.focus();
       }).catch((error) => {
         joinMyMenuState.loginRedirecting = false;
-        console.warn("Email login failed.", error);
+        golfJoinSafeWarn("Email login failed.", error);
         setJoinMemberLoginStatus("로그인 처리 중 오류가 발생했습니다.");
       });
     }
@@ -35645,11 +36203,11 @@
           birthday: fallbackDetail.birthday || detail.birthday || ""
         };
       } catch (error) {
-        console.warn("Failed to load member detail from /mypage/member.", error);
+        golfJoinSafeWarn("Failed to load member detail from /mypage/member.", error);
         try {
           return await fetchJoinMemberDetailPage("/mypage/mypage");
         } catch (fallbackError) {
-          console.warn("Failed to load member detail from /mypage/mypage.", fallbackError);
+          golfJoinSafeWarn("Failed to load member detail from /mypage/mypage.", fallbackError);
           return {};
         }
       }
@@ -35682,7 +36240,7 @@
       try {
         sessionStorage.removeItem(JOIN_SESSION_MEMBER_KEY);
       } catch (error) {
-        console.warn("Failed to clear join ERP session member.", error);
+        golfJoinSafeWarn("Failed to clear join ERP session member.", error);
       }
       clearJoinMemberProfileCompletion();
       clearJoinPrivateClientCaches();
@@ -35731,7 +36289,7 @@
         }
         return { isLogin: true, member };
       })().catch((error) => {
-        console.warn("Failed to synchronize Secret Tour member session.", error);
+        golfJoinSafeWarn("Failed to synchronize Secret Tour member session.", error);
         return before;
       }).finally(() => {
         joinErpSessionSyncPromise = null;
@@ -35803,7 +36361,7 @@
             return refreshedMember;
           })
           .catch((error) => {
-            console.warn("Failed to refresh cached incomplete join member profile.", error);
+            golfJoinSafeWarn("Failed to refresh cached incomplete join member profile.", error);
             return null;
           });
         joinMyMenuState.pendingProfileDetailPromise = refreshPromise;
@@ -35841,7 +36399,7 @@
         openJoinMemberRequiredProfileForm(member, "my-menu", { startupProfileRequired: "true" });
         return true;
       } catch (error) {
-        console.warn("Failed to check required join member profile on startup.", error);
+        golfJoinSafeWarn("Failed to check required join member profile on startup.", error);
         return false;
       }
     }
@@ -35906,7 +36464,9 @@
     function getJoinCachedCurrentMember() {
       const loginState = getJoinLoginState();
       if (!loginState.isLogin) return null;
-      return getJoinMemberWithCachedProfile(loginState.member || {});
+      const member = getJoinMemberWithCachedProfile(loginState.member || {});
+      registerGolfJoinDiagnosticPrivateValues(member);
+      return member;
     }
 
     function refreshJoinMemberInBackground(onReady, options = {}) {
@@ -35922,7 +36482,7 @@
           return member;
         })
         .catch((error) => {
-          console.warn("Failed to refresh join member in background.", error);
+          golfJoinSafeWarn("Failed to refresh join member in background.", error);
           return null;
         });
     }
@@ -35940,7 +36500,7 @@
             if (member) preloadJoinProfileImage(member);
           })
           .catch((error) => {
-            console.warn("Failed to preload join member profile.", error);
+            golfJoinSafeWarn("Failed to preload join member profile.", error);
           });
       };
       if (window.requestIdleCallback) {
@@ -36070,7 +36630,7 @@
       try {
         localStorage.setItem(JOIN_RECENT_VIEW_STORAGE_KEY, JSON.stringify(items.map(normalizeJoinRecentViewedItem)));
       } catch (error) {
-        console.warn("Failed to save recent viewed products.", error);
+        golfJoinSafeWarn("Failed to save recent viewed products.", error);
       }
     }
 
@@ -36388,7 +36948,7 @@
         if (String(cached.memberKey || "") !== memberKey) return [];
         return Array.isArray(cached.items) ? cached.items : [];
       } catch (error) {
-        console.warn("Failed to read member-scoped join cache.", storageKey, error);
+        golfJoinSafeWarn("Failed to read member-scoped join cache.", storageKey, error);
         return [];
       }
     }
@@ -36404,7 +36964,7 @@
         }));
         return true;
       } catch (error) {
-        console.warn("Failed to write member-scoped join cache.", storageKey, error);
+        golfJoinSafeWarn("Failed to write member-scoped join cache.", storageKey, error);
         return false;
       }
     }
@@ -36518,7 +37078,7 @@
           rows: nextRows
         }));
       } catch (error) {
-        console.warn("Failed to update wish rows cache.", error);
+        golfJoinSafeWarn("Failed to update wish rows cache.", error);
       }
     }
 
@@ -36644,7 +37204,7 @@
       updateJoinWishRowsCache(snapshot, "active");
       invalidateHomeBootstrapLightCache();
       void saveJoinWishToGoogleSheet(snapshot, "active").catch((error) => {
-        console.warn("Failed to save wish to Google Sheet.", error);
+        golfJoinSafeWarn("Failed to save wish to Google Sheet.", error);
       });
       return true;
     }
@@ -36661,7 +37221,7 @@
       updateJoinWishRowsCache(removed, "deleted");
       invalidateHomeBootstrapLightCache();
       void saveJoinWishToGoogleSheet(removed, "deleted").catch((error) => {
-        console.warn("Failed to remove wish from Google Sheet.", error);
+        golfJoinSafeWarn("Failed to remove wish from Google Sheet.", error);
       });
       refreshDetailWishButtons();
       if (isJoinMyMenuViewOpen("wish")) {
@@ -36777,7 +37337,7 @@
       } catch (error) {
         googleSheetJoinWishesReadCompleted = true;
         googleSheetJoinWishesReadFailed = true;
-        console.warn("Failed to load join wishes from Google Sheet.", error);
+        golfJoinSafeWarn("Failed to load join wishes from Google Sheet.", error);
         return getJoinWishProducts();
       } finally {
         googleSheetJoinWishesLoading = false;
@@ -36896,7 +37456,7 @@
         applyHomeStatsPayload(data || {}, { render: !renderedFreshCache });
         return { ok: true, data };
       } catch (error) {
-        console.warn("Failed to load home stats.", error);
+        golfJoinSafeWarn("Failed to load home stats.", error);
         if (!renderedFreshCache) hydrateHomeStatsFromLocalCache();
         return { ok: false, error };
       }
@@ -37099,7 +37659,7 @@
         }
         return payload.homeBootstrapLight;
       }).catch((error) => {
-        console.warn("Failed to load home bootstrap from home summary JSON.", error);
+        golfJoinSafeWarn("Failed to load home bootstrap from home summary JSON.", error);
         return null;
       });
     }
@@ -37111,12 +37671,12 @@
         }
         return payload.homeBootstrapLight;
       }).catch((error) => {
-        console.warn("Failed to load home bootstrap from home cards JSON.", error);
+        golfJoinSafeWarn("Failed to load home bootstrap from home cards JSON.", error);
         return null;
       });
     }
 
-    async function hydrateHomeBootstrapLightFromGoogleSheet() {
+    async function hydrateHomeBootstrapLightFromGoogleSheet(options = {}) {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return { ok: false };
       googleSheetBuilderApplicationsLoading = true;
       googleSheetJoinApplicationsLoading = true;
@@ -37130,7 +37690,10 @@
         const isSnapshotFallback = data?.cache?.status === "snapshot";
         homeBootstrapSnapshotNeedsRefresh = isSnapshotFallback;
         writeJoinJsonCache(HOME_BOOTSTRAP_LIGHT_CACHE_KEY, data || {});
-        applyHomeBootstrapLightRows(data || {}, { fromCache: isSnapshotFallback });
+        applyHomeBootstrapLightRows(data || {}, {
+          fromCache: isSnapshotFallback,
+          render: options.render
+        });
         return { ok: true, data };
       } catch (error) {
         googleSheetBuilderApplicationsLoading = false;
@@ -37164,12 +37727,13 @@
         try {
           await hydrateHomeBootstrapLightFromGoogleSheet();
         } catch (error) {
-          console.warn("Failed to refresh the stored home bootstrap snapshot.", error);
+          golfJoinSafeWarn("Failed to refresh the stored home bootstrap snapshot.", error);
         }
       }
       const member = getJoinCachedCurrentMember();
       const memberKey = getJoinWishMemberKey(member);
       if (memberKey) {
+        markGolfJoinPerformanceOnce("golfjoin:private:start");
         const memberCacheOptions = { memberKey };
         try {
           if (
@@ -37191,9 +37755,15 @@
           refreshDetailWishButtons();
           refreshOpenJoinMyMenu();
         } catch (error) {
-          console.warn("Failed to refresh secondary member data after home startup.", error);
+          golfJoinSafeWarn("Failed to refresh secondary member data after home startup.", error);
         }
+        markGolfJoinPerformanceOnce(
+          "golfjoin:private:ready",
+          "golfjoin:duration:private-data",
+          "golfjoin:private:start"
+        );
       }
+      await resumeJoinExternalDeepLink();
       await hydrateHomeStatsFromGoogleSheet({ preferCache: true });
     }
 
@@ -37204,7 +37774,7 @@
         const run = () => {
           waitForHomeBootstrapBeforeSecondaryHydration(bootstrapPromise)
             .then(() => hydrateHomeSecondaryData())
-            .catch((error) => console.warn("Failed to hydrate deferred home data.", error));
+            .catch((error) => golfJoinSafeWarn("Failed to hydrate deferred home data.", error));
         };
         if ("requestIdleCallback" in window) {
           window.requestIdleCallback(run, { timeout: 2500 });
@@ -37280,7 +37850,7 @@
         try {
           if (type === "product") await deleteSecretTourWishProduct(key);
         } catch (error) {
-          console.warn("Secret Tour delete wish request failed.", error);
+          golfJoinSafeWarn("Secret Tour delete wish request failed.", error);
         }
       }, { message: "찜한 목록에서 삭제하고 있어요", button: null, minVisibleMs: 250 });
     }
@@ -37318,7 +37888,7 @@
         });
         if (!response.ok) throw new Error(`logout failed: ${response.status}`);
       } catch (error) {
-        console.warn("Secret Tour logout request failed.", error);
+        golfJoinSafeWarn("Secret Tour logout request failed.", error);
         alert("로그아웃 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
         return;
       }
@@ -37330,7 +37900,7 @@
         clearJoinPrivateClientCaches();
         joinMyMenuState.memberPromise = null;
       } catch (error) {
-        console.warn("Failed to clear join login state.", error);
+        golfJoinSafeWarn("Failed to clear join login state.", error);
       }
       closeJoinMyMenu();
       closeJoinMyDrawer();
@@ -37786,7 +38356,7 @@
       try {
         localStorage.setItem(JOIN_REVIEW_STORAGE_KEY, JSON.stringify(store));
       } catch (error) {
-        console.warn("Failed to save join review", error);
+        golfJoinSafeWarn("Failed to save join review", error);
       }
     }
 
@@ -38412,7 +38982,7 @@
 
     function isHomeJoinScheduleVisibleForCurrentMember(join = {}) {
       if (isCurrentMemberCreatedJoinSchedule(join) || isCurrentMemberJoinedJoinSchedule(join) || findOwnActiveJoinSchedule(join)) {
-        return true;
+        return false;
       }
       return !isJoinExcludedByActiveScheduleOverlap(join);
     }
@@ -38987,16 +39557,28 @@
     }
 
     function renderJoinMyLoadingState() {
-      return `<div class="join-my-loading-state" role="status" aria-live="polite" aria-busy="true">
+      return `<div class="join-my-loading-state" role="status" aria-live="polite" aria-busy="true" aria-label="내 예약 정보를 확인하고 있어요">
         ${Array.from({ length: 2 }).map((_, index) => `
           <div class="join-my-loading-card" aria-hidden="true">
-            <div class="join-my-loading-line title skeleton-glass-shimmer"></div>
-            <div class="join-my-loading-line meta skeleton-glass-shimmer" style="width:${index % 2 ? 62 : 48}%;"></div>
-            <div class="join-my-loading-row">
-              ${Array.from({ length: 4 }).map(() => `<div class="join-my-loading-avatar skeleton-glass-shimmer"></div>`).join("")}
+            <div class="join-my-loading-thumb"></div>
+            <div class="join-my-loading-content">
+              <div class="join-my-loading-line title"></div>
+              <div class="join-my-loading-line meta" style="width:${index % 2 ? 62 : 48}%;"></div>
+              <div class="join-my-loading-row">
+                ${Array.from({ length: 4 }).map(() => `<div class="join-my-loading-avatar"></div>`).join("")}
+              </div>
+              <div class="join-my-loading-button"></div>
             </div>
           </div>
         `).join("")}
+        <div class="join-my-loading-common" aria-hidden="true">
+          <div class="join-action-loading-box has-message">
+            <div class="join-action-loading-icon">${joinActionLoadingIcons[1] || joinActionLoadingIcons[0] || ""}</div>
+            <div class="join-action-loading-message">
+              <div class="join-loading-text">내 예약 정보를 확인하고 있어요<div class="join-loading-dots"><div class="join-loading-dot">.</div><div class="join-loading-dot">.</div><div class="join-loading-dot">.</div></div></div>
+            </div>
+          </div>
+        </div>
       </div>`;
     }
 
@@ -39097,7 +39679,7 @@
         }
         window.open(target.toString(), "_blank", "noopener");
       } catch (error) {
-        console.warn("Invalid quote page URL.", error);
+        golfJoinSafeWarn("Invalid quote page URL.", error);
       }
     }
 
@@ -39174,8 +39756,8 @@
     }
 
     function renderJoinMyCards(items = [], tabKey = "") {
+      if (isJoinMyReservationBootstrapLoading(tabKey)) return renderJoinMyLoadingState(tabKey);
       if (!items.length) {
-        if (isJoinMyReservationBootstrapLoading(tabKey)) return renderJoinMyLoadingState(tabKey);
         if (hasJoinMyReservationReadFailed(tabKey)) return renderJoinMyReadFailedState(tabKey);
         return renderJoinMyEmptyState(tabKey);
       }
@@ -39645,7 +40227,7 @@
         if (!looksLikeCorsBlocked || !publicUrl || !(await verifyJoinUploadedImagePublicUrl(publicUrl))) {
           throw error;
         }
-        console.warn("GCS upload response was blocked, but public image URL loaded successfully.", error);
+        golfJoinSafeWarn("GCS upload response was blocked, but public image URL loaded successfully.", error);
       }
       return {
         ...image,
@@ -40864,7 +41446,7 @@
           params.set(key, field.value || field.textContent || "");
         });
       } catch (error) {
-        console.warn("Failed to read Secret Tour member update form.", error);
+        golfJoinSafeWarn("Failed to read Secret Tour member update form.", error);
       }
       return params;
     }
@@ -40936,7 +41518,7 @@
 
     async function updateSecretTourMemberProfile(payload = {}, member = {}) {
       if (!canUseSecretTourMemberApi()) {
-        console.warn("Secret Tour member API skipped outside secret-tour.com.", location.origin);
+        golfJoinSafeWarn("Secret Tour member API skipped outside secret-tour.com.", location.origin);
         return { skipped: true, reason: "non_secret_tour_origin" };
       }
       const mobile = payload.member?.memberMobile || member.memberMobile || member.mobile || "";
@@ -41026,7 +41608,7 @@
       }
       const saveButton = document.getElementById("joinProfileManageSave");
       saveButton?.setAttribute("disabled", "disabled");
-      openJoinActionLoading("프로필을 저장하고 있어요", { minVisibleMs: 450 });
+      const loadingToken = openJoinActionLoading("프로필을 저장하고 있어요", { minVisibleMs: 450 });
       setJoinProfileManageStatus("프로필을 저장하고 있어요");
       try {
         const payload = buildJoinProfileManagePayload(member, null);
@@ -41054,7 +41636,7 @@
             if (error?.code === "DUPLICATE_MOBILE" || ["ERP_UPDATE_FAILED", "ERP_NAME_NOT_UPDATED"].includes(error?.code)) {
               throw error;
             }
-            console.warn("Secret Tour member update failed after profile image save.", error);
+            golfJoinSafeWarn("Secret Tour member update failed after profile image save.", error);
           }
         } else {
           const saveResults = await Promise.allSettled([
@@ -41071,7 +41653,7 @@
             if (["ERP_UPDATE_FAILED", "ERP_NAME_NOT_UPDATED"].includes(saveResults[1].reason?.code)) {
               throw saveResults[1].reason;
             }
-            console.warn("Secret Tour member update failed after profile save.", saveResults[1].reason);
+            golfJoinSafeWarn("Secret Tour member update failed after profile save.", saveResults[1].reason);
           }
         }
         const mergedProfile = normalizeJoinMemberProfileRow({
@@ -41090,7 +41672,7 @@
         updateJoinMyDrawerProfile(updatedMember);
         closeJoinProfileManageModal();
       } catch (error) {
-        console.error("Failed to save join profile.", error);
+        golfJoinSafeError("Failed to save join profile.", error);
         if (error?.code === "DUPLICATE_MOBILE") {
           const duplicateMessage = "\uC774\uBBF8 \uC0AC\uC6A9\uC911\uC774\uAC70\uB098 \uD0C8\uD1F4\uD55C \uD734\uB300\uD3F0 \uBC88\uD638\uC785\uB2C8\uB2E4.";
           alert(duplicateMessage);
@@ -41109,7 +41691,7 @@
           ? "사진 업로드 API 설정이 필요합니다. 관리자에게 문의해 주세요."
           : "프로필 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
-        await closeJoinActionLoading();
+        await closeJoinActionLoading(loadingToken);
         saveButton?.removeAttribute("disabled");
       }
     }
@@ -41188,7 +41770,7 @@
     }
 
     async function handleJoinMyReviewWrite(joinId = "", title = "", summary = {}) {
-      openJoinActionLoading("", { minVisibleMs: 500 });
+      const loadingToken = openJoinActionLoading("", { minVisibleMs: 500 });
       await new Promise((resolve) => requestAnimationFrame(resolve));
       try {
       const overlay = ensureJoinMyReviewModal();
@@ -41225,7 +41807,7 @@
         if (body) body.scrollTop = 0;
       });
       } finally {
-        await closeJoinActionLoading();
+        await closeJoinActionLoading(loadingToken);
       }
     }
 
@@ -41273,7 +41855,7 @@
         submitButton.disabled = true;
       }
       let saveStage = "sheet";
-      openJoinActionLoading("", { minVisibleMs: 300 });
+      const loadingToken = openJoinActionLoading("", { minVisibleMs: 300 });
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       try {
         if (getJoinMyReviewSelectedFiles().length) {
@@ -41295,7 +41877,7 @@
         await saveJoinReviewToGoogleSheet(payload);
         rememberJoinReviewPayload(payload);
       } catch (saveError) {
-        console.warn("Failed to save join review.", { stage: saveStage, error: saveError });
+        golfJoinSafeWarn("Failed to save join review.", { stage: saveStage, error: saveError });
         if (error) {
           error.textContent = saveStage === "image-upload"
             ? (!REVIEW_IMAGE_SIGN_ENDPOINT
@@ -41303,7 +41885,7 @@
               : "사진 업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
             : "후기 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
         }
-        await closeJoinActionLoading();
+        await closeJoinActionLoading(loadingToken);
         if (false && error) {
           error.textContent = getJoinMyReviewSelectedFiles().length && !REVIEW_IMAGE_SIGN_ENDPOINT
             ? "사진 업로드 API 설정이 필요합니다. 관리자에게 문의해 주세요."
@@ -41317,7 +41899,7 @@
       const store = readJoinMyReviewStore();
       store[key] = payload;
       writeJoinMyReviewStore(store);
-      await closeJoinActionLoading();
+      await closeJoinActionLoading(loadingToken);
       if (submitButton) {
         submitButton.disabled = false;
       }
@@ -41527,8 +42109,8 @@
       setJoinMobileBottomNavLayerActive("my");
       setJoinMobileBottomNavVisible(false, { force: true, reason: "my-menu" });
       setWidgetModalOpen(true);
-      renderJoinMyMenu(member);
       joinMyReservationsRefreshing = true;
+      renderJoinMyMenu(member);
       const builderApplicationsRefresh = googleSheetBuilderApplicationsLoading
         ? Promise.resolve([])
         : hydrateBuilderApplicationJoinsFromGoogleSheet({ renderStart: false, renderHome: false });
@@ -41599,7 +42181,7 @@
       setJoinMobileBottomNavVisible(true, { force: true });
       if (isBuilderAlreadyOpen) return;
       Promise.resolve(openBuilderModalFromMain(trigger)).catch((error) => {
-        console.warn("Failed to open builder modal from bottom navigation.", error);
+        golfJoinSafeWarn("Failed to open builder modal from bottom navigation.", error);
       });
     }
 
@@ -42446,7 +43028,7 @@
         return true;
       }
       if (afterLogin === "my-section") {
-        await continueMyHomeJoinDeepLinkAfterLogin({
+        const mySectionParams = {
           joinId,
           scheduleId,
           targetScheduleId,
@@ -42454,7 +43036,17 @@
           applicationId,
           sourceApplicationId,
           golfjoinTab
-        });
+        };
+        const opened = await continueMyHomeJoinDeepLinkAfterLogin(mySectionParams);
+        if (!opened) {
+          const retryParams = new URLSearchParams(location.search);
+          retryParams.set("golfjoinOpen", "my-section");
+          Object.entries(mySectionParams).forEach(([key, value]) => {
+            if (value != null && value !== "") retryParams.set(key, value);
+          });
+          const retryQuery = retryParams.toString();
+          history.replaceState(null, "", `${location.pathname}${retryQuery ? `?${retryQuery}` : ""}${location.hash || ""}`);
+        }
         return true;
       }
       if (afterLogin === "profile-manage") {
@@ -42635,6 +43227,7 @@
     async function openMyHomeJoinDeepLinkTarget(join, filter = "created") {
       if (!join) return false;
       const normalizedFilter = normalizeMyHomeJoinFilter(filter, "created");
+      let targetPageScrollState = null;
       renderJoins({ skipQuickMobileCarousel: true });
       setMyJoinFilter(normalizedFilter);
       const section = document.getElementById("join-section-my");
@@ -42642,14 +43235,18 @@
         const nav = document.getElementById("joinSectionNav");
         const offset = getJoinSectionNavScrollOffset(nav);
         const top = section.getBoundingClientRect().top + window.scrollY - offset;
-        window.scrollTo({ top: Math.max(0, top), behavior: "auto" });
+        targetPageScrollState = {
+          top: Math.max(0, top),
+          left: window.scrollX || 0
+        };
+        restorePageScrollState(targetPageScrollState);
         setJoinSectionNavActive("my");
       }
       setJoinMobileNavActive("");
       setJoinMobileBottomNavLayerActive("");
       closeJoinMyMenu?.();
-      await new Promise((resolve) => requestAnimationFrame(resolve));
-      openDetail(join.id, { allowUnavailable: true });
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      openDetail(join.id, { allowUnavailable: true, pageScrollState: targetPageScrollState });
       return true;
     }
 
@@ -42666,7 +43263,7 @@
       );
     }
 
-    async function resumeJoinExternalDeepLink() {
+    async function resumeJoinExternalDeepLinkOnce() {
       const target = getJoinExternalDeepLinkTarget();
       if (!target) return false;
       if (target === "my-menu") {
@@ -42723,6 +43320,18 @@
         return true;
       }
       return false;
+    }
+
+    let joinExternalDeepLinkResumePromise = null;
+
+    async function resumeJoinExternalDeepLink() {
+      if (joinExternalDeepLinkResumePromise) return joinExternalDeepLinkResumePromise;
+      joinExternalDeepLinkResumePromise = resumeJoinExternalDeepLinkOnce();
+      try {
+        return await joinExternalDeepLinkResumePromise;
+      } finally {
+        joinExternalDeepLinkResumePromise = null;
+      }
     }
 
     async function resumeJoinKakaoProfileAfterLogin() {
@@ -42789,7 +43398,7 @@
           openDetail(target.id);
         }, { message: "10월 월례회 상품을 불러오고 있어요", button: null, minVisibleMs: 300 });
       } catch (error) {
-        console.warn("Failed to open the October monthly recommendation from the hero banner.", error);
+        golfJoinSafeWarn("Failed to open the October monthly recommendation from the hero banner.", error);
         alert(error?.message || "10월 월례회 상품을 불러오지 못했습니다.");
       }
     }
@@ -45978,10 +46587,22 @@
       return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
     }
 
+    function renderCalendarAvailabilityLegend() {
+      return `
+        <div class="calendar-availability-legend" aria-label="초록색 원은 참여가능한 모임이 있는 날짜를 뜻합니다">
+          <div class="calendar-availability-legend-dot" aria-hidden="true"></div>
+          <div>참여가능</div>
+        </div>
+      `;
+    }
+
     function renderCalendarMobileSticky(monthDate) {
       return `
         <div class="calendar-mobile-sticky" id="calendarMobileSticky">
-          <div class="calendar-mobile-month-label" id="calendarMobileMonthLabel">${formatCalendarMonthTitle(monthDate)}</div>
+          <div class="calendar-mobile-month-head">
+            ${renderCalendarAvailabilityLegend()}
+            <div class="calendar-mobile-month-label" id="calendarMobileMonthLabel">${formatCalendarMonthTitle(monthDate)}</div>
+          </div>
           <div class="calendar-grid">${renderCalendarWeekdayLabels()}</div>
         </div>
       `;
@@ -46198,16 +46819,19 @@
       const isPrevDisabled = monthKey <= getMonthKey(startMonth);
       const isNextDisabled = monthKey >= getMonthKey(endMonth);
       return `
-        <div class="calendar-month-title">
-          <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <div class="calendar-month-nav-label">이전 달</div>
-          </button>
-          <div class="calendar-month-label">${year}년 ${month + 1}월</div>
-          <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
-            <div class="calendar-month-nav-label">다음 달</div>
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
+        <div class="calendar-month-title has-availability-legend">
+          ${renderCalendarAvailabilityLegend()}
+          <div class="calendar-month-navigation">
+            <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="calendar-month-nav-label">이전 달</div>
+            </button>
+            <div class="calendar-month-label">${year}년 ${month + 1}월</div>
+            <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
+              <div class="calendar-month-nav-label">다음 달</div>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
         </div>
         <div class="calendar-grid">${renderCalendarWeekdayLabels()}</div>
       `;
@@ -46311,16 +46935,19 @@
       const isNextDisabled = showMonthNav && monthKey >= getMonthKey(options.endMonth);
       const monthTitle = showMonthNav
         ? `
-          <div class="calendar-month-title">
-            <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <div class="calendar-month-nav-label">이전 달</div>
-            </button>
-            <div class="calendar-month-label">${year}년 ${month + 1}월</div>
-            <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
-              <div class="calendar-month-nav-label">다음 달</div>
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
+          <div class="calendar-month-title has-availability-legend">
+            ${renderCalendarAvailabilityLegend()}
+            <div class="calendar-month-navigation">
+              <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="calendar-month-nav-label">이전 달</div>
+              </button>
+              <div class="calendar-month-label">${year}년 ${month + 1}월</div>
+              <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
+                <div class="calendar-month-nav-label">다음 달</div>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
           </div>
         `
         : `<div class="calendar-month-title"><div class="calendar-month-label">${formatCalendarMonthTitle(monthDate)}</div></div>`;
@@ -46642,6 +47269,7 @@
 
     async function showMdPickDetailProduct(product, productGroupKey = currentMdPickProductGroupKey, countryKey = currentMdPickCountryKey, options = {}) {
       if (!product) return;
+      const detailPerformanceGeneration = beginGolfJoinDetailPerformance();
       product = prepareSecretTourInitialFlightScheduleState(product);
       const detailScrollState = options.preserveScroll
         ? (options.scrollState || captureDetailModalScrollState())
@@ -46666,14 +47294,24 @@
       setDetailScheduleConflictState(product);
       document.getElementById("detailModal")?.classList.add("mdpick-recruit-mode");
       document.getElementById("detailModal")?.classList.remove("builder-select-mode", "builder-product-detail-mode");
-      openModal("detailModal");
+      openModal("detailModal", { pageScrollState: options.pageScrollState });
       requestAnimationFrame(() => {
         prepareDetailScheduleHeights({ forceOpen: true });
         if (detailScrollState) restoreDetailModalScrollState(detailScrollState);
         else resetDetailModalScroll();
+        finishGolfJoinDetailPerformance(
+          detailPerformanceGeneration,
+          "golfjoin:detail:visible",
+          "golfjoin:duration:detail-visible"
+        );
       });
       try {
         const detail = await loadSecretTourGoodsDetail(product);
+        finishGolfJoinDetailPerformance(
+          detailPerformanceGeneration,
+          "golfjoin:detail:erp-ready",
+          "golfjoin:duration:detail-erp"
+        );
         const enrichedProduct = { ...mergeSecretTourGoodsDetail(product, detail), secretTourDetailLoaded: true };
         if (Array.isArray(externalGolfJoinProducts)) {
           externalGolfJoinProducts = externalGolfJoinProducts.map((item) => item.id === enrichedProduct.id ? enrichedProduct : item);
@@ -46693,9 +47331,26 @@
           });
         }
         void enrichSecretTourFlightScheduleInBackground(enrichedProduct, detail, enrichedProduct)
-          .catch((error) => console.warn("Failed to update MD PICK flight schedule.", error));
+          .then(() => finishGolfJoinDetailPerformance(
+            detailPerformanceGeneration,
+            "golfjoin:detail:flight-ready",
+            "golfjoin:duration:detail-flight"
+          ))
+          .catch((error) => {
+            finishGolfJoinDetailPerformance(
+              detailPerformanceGeneration,
+              "golfjoin:detail:flight-failed",
+              "golfjoin:duration:detail-flight"
+            );
+            golfJoinSafeWarn("Failed to update MD PICK flight schedule.", error);
+          });
       } catch (error) {
-        console.warn("Failed to enrich MD PICK detail from ERP.", error);
+        finishGolfJoinDetailPerformance(
+          detailPerformanceGeneration,
+          "golfjoin:detail:erp-failed",
+          "golfjoin:duration:detail-erp"
+        );
+        golfJoinSafeWarn("Failed to enrich MD PICK detail from ERP.", error);
       }
     }
 
@@ -48349,7 +49004,7 @@
           const detail = await loadSecretTourGoodsFlightSchedule(selectedProduct, baseDetail);
           Object.assign(selectedProduct, mergeSecretTourGoodsDetail(selectedProduct, detail), { secretTourDetailLoaded: true });
         } catch (error) {
-          console.warn("Failed to load booking option detail.", error);
+          golfJoinSafeWarn("Failed to load booking option detail.", error);
         }
       }
       const selectedProductReference = getSecretTourProductReference(selectedProduct);
@@ -48496,7 +49151,7 @@
 
     async function postGolfJoinSheetPayload(payload, label = "Golfjoin sheet payload") {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) {
-        console.warn("GOLFJOIN_SHEET_API_ENDPOINT is empty. Payload was not sent.", payload);
+        golfJoinSafeWarn("GOLFJOIN_SHEET_API_ENDPOINT is empty. Payload was not sent.", payload);
         return { skipped: true };
       }
       const controller = new AbortController();
@@ -48512,7 +49167,7 @@
           signal: controller.signal
         });
       } catch (error) {
-        console.error(`${label} request failed`, {
+        golfJoinSafeError(`${label} request failed`, {
           name: error?.name || "",
           message: error?.message || "",
           endpoint: GOLFJOIN_SHEET_API_ENDPOINT
@@ -48523,7 +49178,7 @@
       }
       const text = await response.text();
       if (!response.ok) {
-        console.error(`${label} save failed`, {
+        golfJoinSafeError(`${label} save failed`, {
           status: response.status,
           body: text.slice(0, 1000)
         });
@@ -48622,7 +49277,7 @@
           return (targetId && applicationId === targetId) || (targetScheduleId && scheduleId === targetScheduleId);
         });
       } catch (error) {
-        console.warn("Failed to confirm builder apply save from Google Sheet.", error);
+        golfJoinSafeWarn("Failed to confirm builder apply save from Google Sheet.", error);
         return false;
       }
     }
@@ -48638,7 +49293,7 @@
         }, "Join apply confirmation");
         return rows.some((row) => String(row.applicationId || row.joinApplyId || "").trim() === targetId);
       } catch (error) {
-        console.warn("Failed to confirm join apply save from Google Sheet.", error);
+        golfJoinSafeWarn("Failed to confirm join apply save from Google Sheet.", error);
         return false;
       }
     }
@@ -48663,7 +49318,7 @@
         });
         localStorage.setItem("joinMemberProfilePendingSaves", JSON.stringify(next.slice(0, 5)));
       } catch (storageError) {
-        console.warn("Failed to cache pending member profile save.", storageError);
+        golfJoinSafeWarn("Failed to cache pending member profile save.", storageError);
       }
     }
 
@@ -48676,7 +49331,7 @@
         if (next.length) localStorage.setItem("joinMemberProfilePendingSaves", JSON.stringify(next));
         else localStorage.removeItem("joinMemberProfilePendingSaves");
       } catch (storageError) {
-        console.warn("Failed to clear pending member profile save.", storageError);
+        golfJoinSafeWarn("Failed to clear pending member profile save.", storageError);
       }
     }
 
@@ -48724,7 +49379,7 @@
     function saveJoinMemberProfileToGoogleSheetInBackground(payload) {
       const promise = saveJoinMemberProfileToGoogleSheet(payload);
       promise.catch((error) => {
-        console.warn("Member profile background save failed.", error);
+        golfJoinSafeWarn("Member profile background save failed.", error);
         cachePendingJoinMemberProfileSave(payload, error);
       });
       return promise;
@@ -49205,7 +49860,7 @@
         if (options.memberKey !== undefined && String(cached?.memberKey || "") !== String(options.memberKey || "")) return [];
         return rows;
       } catch (error) {
-        console.warn("Failed to read Google Sheet rows cache.", error);
+        golfJoinSafeWarn("Failed to read Google Sheet rows cache.", error);
         return [];
       }
     }
@@ -49217,7 +49872,7 @@
         if (options.memberKey !== undefined && String(cached?.memberKey || "") !== String(options.memberKey || "")) return false;
         return Number.isFinite(fetchedAt) && fetchedAt > 0 && Date.now() - fetchedAt <= GOOGLE_SHEET_READ_CACHE_TTL_MS;
       } catch (error) {
-        console.warn("Failed to inspect Google Sheet rows cache.", error);
+        golfJoinSafeWarn("Failed to inspect Google Sheet rows cache.", error);
         return false;
       }
     }
@@ -49230,7 +49885,7 @@
           rows: Array.isArray(rows) ? rows : []
         }));
       } catch (error) {
-        console.warn("Failed to write Google Sheet rows cache.", error);
+        golfJoinSafeWarn("Failed to write Google Sheet rows cache.", error);
       }
     }
 
@@ -49255,7 +49910,7 @@
           payload
         }));
       } catch (error) {
-        console.warn("Failed to write join json cache.", error);
+        golfJoinSafeWarn("Failed to write join json cache.", error);
       }
     }
 
@@ -49479,7 +50134,7 @@
       try {
         localStorage.removeItem(JOIN_APPLICATIONS_STORAGE_KEY);
       } catch (error) {
-        console.warn("Failed to clear join application cache.", error);
+        golfJoinSafeWarn("Failed to clear join application cache.", error);
       }
     }
 
@@ -49487,7 +50142,7 @@
       try {
         localStorage.removeItem(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY);
       } catch (error) {
-        console.warn("Failed to clear join application sheet cache.", error);
+        golfJoinSafeWarn("Failed to clear join application sheet cache.", error);
       }
     }
 
@@ -49531,7 +50186,7 @@
           .map(normalizeJoinApplyPayload)
           .forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
       } catch (error) {
-        console.warn("Failed to load cached join applications.", error);
+        golfJoinSafeWarn("Failed to load cached join applications.", error);
       }
     }
 
@@ -49542,7 +50197,7 @@
           .map(normalizeJoinReviewPayload)
           .forEach((payload) => rememberJoinReviewPayload(payload));
       } catch (error) {
-        console.warn("Failed to load cached join reviews.", error);
+        golfJoinSafeWarn("Failed to load cached join reviews.", error);
       }
     }
 
@@ -49583,7 +50238,7 @@
         if (!isRequestCurrent()) return [];
         googleSheetJoinApplicationsReadCompleted = true;
         googleSheetJoinApplicationsReadFailed = true;
-        console.warn("Failed to load join applications from Google Sheet. Add matching join_applications reads to the Apps Script doGet endpoint.", error);
+        golfJoinSafeWarn("Failed to load join applications from Google Sheet. Add matching join_applications reads to the Apps Script doGet endpoint.", error);
         return [];
       } finally {
         if (requestGeneration === googleSheetJoinApplicationsRequestGeneration) {
@@ -49621,7 +50276,7 @@
         }
         return rows;
       } catch (error) {
-        console.warn("Failed to load join reviews from Google Sheet. Add matching join_reviews reads to the Apps Script doGet endpoint.", error);
+        golfJoinSafeWarn("Failed to load join reviews from Google Sheet. Add matching join_reviews reads to the Apps Script doGet endpoint.", error);
         return [];
       }
     }
@@ -50172,7 +50827,7 @@
         if (next.length) writeJoinMemberScopedItems(BUILDER_APPLICATIONS_STORAGE_KEY, next);
         else localStorage.removeItem(BUILDER_APPLICATIONS_STORAGE_KEY);
       } catch (error) {
-        console.warn("Failed to prune builder application cache.", error);
+        golfJoinSafeWarn("Failed to prune builder application cache.", error);
       }
     }
 
@@ -50186,7 +50841,7 @@
         }
         localStorage.removeItem(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY);
       } catch (error) {
-        console.warn("Failed to clear builder application cache.", error);
+        golfJoinSafeWarn("Failed to clear builder application cache.", error);
       }
     }
 
@@ -50548,7 +51203,11 @@
       if (join.isBuilderApplicationJoin || join.scheduleId || join.sourceApplicationId) {
         const capacity = getJoinRecruitmentCapacity({ ...join, capacity: summary.capacity || join.capacity }, BUILDER_APPLICATION_MAX_CAPACITY);
         const previewLimit = Math.min(MAX_DETAIL_PARTICIPANT_PREVIEWS, capacity);
-        const existingParticipants = getConfirmedParticipants(join);
+        // participant_summary is authoritative for public preview rows. Keep materialized
+        // creator/member rows, but discard previews from the previous summary before merging
+        // the latest list so a cancelled participant cannot survive as an anonymous icon.
+        const existingParticipants = getConfirmedParticipants(join)
+          .filter((participant) => !isJoinParticipantPreviewSource(participant));
         const summaryPreviews = (Array.isArray(summary.participantsPreview) ? summary.participantsPreview : []).slice(0, previewLimit);
         const creatorPrefixCount = getLightCreatorPreviewPrefixCount(join, summaryPreviews);
         const previewParticipants = summaryPreviews
@@ -50796,7 +51455,7 @@
         refreshOpenCalendarSheetAfterJoinDataChange();
         return visibleRows;
       } catch (error) {
-        console.warn("Failed to load recommended schedules from Google Sheet.", error);
+        golfJoinSafeWarn("Failed to load recommended schedules from Google Sheet.", error);
         return [];
       }
     }
@@ -50816,7 +51475,7 @@
           .map(normalizeBuilderApplicationPayload)
           .forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
       } catch (error) {
-        console.warn("Failed to load cached builder applications.", error);
+        golfJoinSafeWarn("Failed to load cached builder applications.", error);
       }
     }
 
@@ -50848,7 +51507,7 @@
       applyJoinReviewsFromGoogleSheetRows(reviews);
       applyJoinWishesFromGoogleSheetRows(wishes, options.wishMemberKey || "");
       if (Array.isArray(data.warnings) && data.warnings.length) {
-        console.warn("Home bootstrap completed with warnings.", data.warnings);
+        golfJoinSafeWarn("Home bootstrap completed with warnings.", data.warnings);
       }
       renderJoins();
       refreshOpenDetailAfterJoinParticipantsChange();
@@ -50886,7 +51545,7 @@
             ...memberLookupParams,
             limit: "100"
           }, "Member builder applications").catch((error) => {
-            console.warn("Failed to load member builder applications.", error);
+            golfJoinSafeWarn("Failed to load member builder applications.", error);
             return [];
           }) : Promise.resolve([])
         ]);
@@ -50926,7 +51585,7 @@
         if (!isRequestCurrent()) return [];
         googleSheetBuilderApplicationsReadCompleted = true;
         googleSheetBuilderApplicationsReadFailed = true;
-        console.warn("Failed to load builder applications from Google Sheet. Add a doGet endpoint to the Apps Script to enable persisted reads.", error);
+        golfJoinSafeWarn("Failed to load builder applications from Google Sheet. Add a doGet endpoint to the Apps Script to enable persisted reads.", error);
         return [];
       } finally {
         if (requestGeneration === googleSheetBuilderApplicationsRequestGeneration) {
@@ -50957,7 +51616,7 @@
           } catch (error) {
             const confirmed = await confirmBuilderApplySavedToGoogleSheet(payload);
             if (!confirmed) throw error;
-            console.warn("Builder apply save response failed, but the row was confirmed in Google Sheet.", error);
+            golfJoinSafeWarn("Builder apply save response failed, but the row was confirmed in Google Sheet.", error);
           }
           invalidateHomeBootstrapLightCache();
           const join = upsertBuilderApplicationJoin(payload, { persist: true });
@@ -50971,7 +51630,7 @@
         setBuilderStep(4);
         return true;
       } catch (error) {
-        console.error("Failed to save builder apply payload.", error);
+        golfJoinSafeError("Failed to save builder apply payload.", error);
         const rawErrorMessage = error?.serverMessage || error?.message || "";
         const detailMessage = rawErrorMessage ? `\n\n오류: ${rawErrorMessage}` : "";
         openBuilderAlert(`신청 정보 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.${detailMessage}`);
@@ -51217,7 +51876,7 @@
     }
 
     function handleGlobalApplySubmitError(error) {
-      console.error("Failed to prepare join apply submit.", error);
+      golfJoinSafeError("Failed to prepare join apply submit.", error);
       showGlobalApplyRequiredMessage("신청 정보를 확인하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     }
 
@@ -51461,8 +52120,9 @@
     async function continueBuilderAfterLogin(params = {}, options = {}) {
       const builderAction = params.builderAction || "";
       const shouldShowLoading = options.showLoading !== false && !isJoinActionLoadingOpen();
+      let loadingToken = null;
       if (shouldShowLoading) {
-        openJoinActionLoading(builderAction === "mdpick-detail" ? "상품 정보를 확인하고 있어요" : "신청 정보를 확인하고 있어요");
+        loadingToken = openJoinActionLoading(builderAction === "mdpick-detail" ? "상품 정보를 확인하고 있어요" : "신청 정보를 확인하고 있어요");
       }
       try {
         if (builderAction === "mdpick-detail") {
@@ -51475,7 +52135,7 @@
             try {
               await ensureExternalGolfJoinProductsLoaded();
             } catch (error) {
-              console.warn("Failed to load product while restoring detail after login.", error);
+              golfJoinSafeWarn("Failed to load product while restoring detail after login.", error);
             }
             product = findBuilderProductById(productId);
           }
@@ -51532,11 +52192,12 @@
         }
         return openModal("builderModal", { skipProfileCheck: Boolean(options.skipProfileCheck) });
       } finally {
-        if (shouldShowLoading) await closeJoinActionLoading();
+        if (loadingToken) await closeJoinActionLoading(loadingToken);
       }
     }
 
     let detailModalPageScrollState = null;
+    let detailModalPageScrollLockState = null;
 
     function capturePageScrollState() {
       const scrollingElement = document.scrollingElement || document.documentElement;
@@ -51563,6 +52224,52 @@
       });
     }
 
+    function lockDetailModalPageScroll(state = {}) {
+      if (detailModalPageScrollLockState || !document.body) return;
+      const body = document.body;
+      const top = Math.max(0, Number(state.top) || 0);
+      const left = Math.max(0, Number(state.left) || 0);
+      const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+      const bodyPaddingRight = Number.parseFloat(getComputedStyle(body).paddingRight) || 0;
+      const usesFixedBodyLock = Boolean(window.matchMedia?.("(max-width: 640px)")?.matches);
+      detailModalPageScrollLockState = {
+        usesFixedBodyLock,
+        position: body.style.position,
+        top: body.style.top,
+        left: body.style.left,
+        right: body.style.right,
+        width: body.style.width,
+        paddingRight: body.style.paddingRight
+      };
+      if (usesFixedBodyLock) {
+        body.style.position = "fixed";
+        body.style.top = `-${top}px`;
+        body.style.left = `-${left}px`;
+        body.style.right = "0";
+        body.style.width = "100%";
+      }
+      if (scrollbarWidth) body.style.paddingRight = `${bodyPaddingRight + scrollbarWidth}px`;
+      body.classList.add("detail-modal-page-scroll-locked");
+    }
+
+    function unlockDetailModalPageScroll(state = {}) {
+      const lockState = detailModalPageScrollLockState;
+      if (!lockState || !document.body) {
+        restorePageScrollState(state);
+        return;
+      }
+      const body = document.body;
+      body.style.position = lockState.position;
+      body.style.top = lockState.top;
+      body.style.left = lockState.left;
+      body.style.right = lockState.right;
+      body.style.width = lockState.width;
+      body.style.paddingRight = lockState.paddingRight;
+      body.classList.remove("detail-modal-page-scroll-locked");
+      detailModalPageScrollLockState = null;
+      restorePageScrollState(state);
+    }
+
     async function openModal(id, options = {}) {
       if (id === "builderModal" && !requireJoinLogin("builder")) return false;
       if (id === "builderModal" && !options.skipProfileCheck) {
@@ -51570,13 +52277,20 @@
         if (!member) return false;
       }
       const isOpeningMainPageDetail = id === "detailModal"
-        && window.matchMedia?.("(min-width: 641px)")?.matches
         && !document.getElementById("detailModal")?.classList.contains("open")
         && !document.querySelector(
           "#builderModal.open, #joinMyMenuModal.open, #joinMyDrawerOverlay.open, #regionSearchModal.open, #calendarSheet.open, #globalApplyOverlay.open"
         );
       if (isOpeningMainPageDetail) {
-        detailModalPageScrollState = capturePageScrollState();
+        const requestedPageScrollState = options.pageScrollState;
+        detailModalPageScrollState = requestedPageScrollState
+          ? {
+              top: Math.max(0, Number(requestedPageScrollState.top) || 0),
+              left: Math.max(0, Number(requestedPageScrollState.left) || 0)
+            }
+          : capturePageScrollState();
+        restorePageScrollState(detailModalPageScrollState);
+        lockDetailModalPageScroll(detailModalPageScrollState);
       }
       stopQuickMobileCarousel();
       prepareJoinMobileFullscreenModalViewport();
@@ -51596,7 +52310,7 @@
       if (id === "detailModal" || id === "builderModal") {
         setWidgetModalOpen(true);
       }
-      if (id === "detailModal" && detailModalPageScrollState) {
+      if (id === "detailModal" && detailModalPageScrollState && !detailModalPageScrollLockState?.usesFixedBodyLock) {
         restorePageScrollState(detailModalPageScrollState);
       }
       return true;
@@ -51704,6 +52418,7 @@
       const modal = document.getElementById(id);
       const detailReturnContext = id === "detailModal" ? currentDetailReturnContext : null;
       const detailPageScrollState = id === "detailModal" ? detailModalPageScrollState : null;
+      const hadDetailPageScrollLock = id === "detailModal" && Boolean(detailModalPageScrollLockState);
       resetModalRuntimeState(modal);
       modal?.classList.remove("open");
       if ((id === "detailModal" || id === "builderModal") && !document.getElementById("detailModal")?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open") && !document.getElementById("regionSearchModal")?.classList.contains("open")) {
@@ -51726,16 +52441,23 @@
         }
         setDetailDefaultContactActions();
         detailModalPageScrollState = null;
+        if (hadDetailPageScrollLock) unlockDetailModalPageScroll(detailPageScrollState || {});
       }
       if (id === "builderModal") {
         closeBuilderFlexSheet();
         closeBuilderProductDetail();
         resetBuilderApplyForm();
       }
+      if (
+        homeRenderDeferredUntilModalClose
+        && !isHomeRenderBlockedByModalOrInteraction()
+      ) {
+        flushDeferredHomeRenderIfReady();
+      }
       resumeQuickMobileCarouselIfIdle();
       if (detailReturnContext) {
         restoreJoinMyMenuAfterDetail(detailReturnContext);
-      } else if (detailPageScrollState) {
+      } else if (detailPageScrollState && !hadDetailPageScrollLock) {
         restorePageScrollState(detailPageScrollState);
       }
     }
@@ -51748,7 +52470,7 @@
 
     async function openRegionSearchModal(context = "default", options = {}) {
       const shouldShowLoading = options.showLoading === true;
-      if (shouldShowLoading) openJoinActionLoading();
+      const loadingToken = shouldShowLoading ? openJoinActionLoading() : null;
       try {
         await new Promise((resolve) => requestAnimationFrame(resolve));
         if (!golfJoinDestinationSummary) {
@@ -51793,7 +52515,7 @@
           });
         }
       } finally {
-        if (shouldShowLoading) await closeJoinActionLoading();
+        if (loadingToken) await closeJoinActionLoading(loadingToken);
       }
     }
 
@@ -52370,7 +53092,7 @@
             }
             return `
               <button type="button" class="region-subgroup-toggle ${isActive ? "active" : ""}" onclick="toggleMobileRegionCountry(${categoryIndex}, ${actualIndex})">
-                <span>${country.name}</span>${regionCountryHotBadgeHtml(country)}
+                <span class="region-subgroup-label"><span>${country.name}</span>${regionCountryHotBadgeHtml(country)}</span>
               </button>
             `;
           }).join("");
@@ -53258,7 +53980,7 @@
             : "unavailable"
         };
       } catch (error) {
-        console.warn(error);
+        golfJoinSafeWarn(error);
         nextDetail = {
           ...preparedDetail,
           secretTourFlightScheduleState: error?.code === "flight_schedule_timeout" ? "timeout" : "failed"
@@ -53371,11 +54093,27 @@
       });
     }
 
-    async function enrichOpenDetailWithSecretTourData(join, renderOptions = {}) {
+    async function enrichOpenDetailWithSecretTourData(join, renderOptions = {}, detailPerformanceGeneration = 0) {
       const lookupProduct = withSecretTourProductReference(join);
-      if (!lookupProduct.goodSeq || !lookupProduct.eventSeq || join.secretTourDetailLoaded) return join;
+      if (!lookupProduct.goodSeq || !lookupProduct.eventSeq || join.secretTourDetailLoaded) {
+        if (detailPerformanceGeneration) {
+          finishGolfJoinDetailPerformance(
+            detailPerformanceGeneration,
+            "golfjoin:detail:erp-ready",
+            "golfjoin:duration:detail-erp"
+          );
+        }
+        return join;
+      }
       try {
         const detail = await loadSecretTourGoodsDetail(lookupProduct);
+        if (detailPerformanceGeneration) {
+          finishGolfJoinDetailPerformance(
+            detailPerformanceGeneration,
+            "golfjoin:detail:erp-ready",
+            "golfjoin:duration:detail-erp"
+          );
+        }
         const enrichedJoin = mergeSecretTourGoodsDetail(lookupProduct, detail);
         Object.assign(join, enrichedJoin, { secretTourDetailLoaded: true });
         const isSameDetail = currentDetailJoinId === join.id && document.getElementById("detailModal")?.classList.contains("open");
@@ -53390,10 +54128,35 @@
           });
         }
         void enrichSecretTourFlightScheduleInBackground(join, detail, join)
-          .catch((error) => console.warn("Failed to update open detail flight schedule.", error));
+          .then(() => {
+            if (detailPerformanceGeneration) {
+              finishGolfJoinDetailPerformance(
+                detailPerformanceGeneration,
+                "golfjoin:detail:flight-ready",
+                "golfjoin:duration:detail-flight"
+              );
+            }
+          })
+          .catch((error) => {
+            if (detailPerformanceGeneration) {
+              finishGolfJoinDetailPerformance(
+                detailPerformanceGeneration,
+                "golfjoin:detail:flight-failed",
+                "golfjoin:duration:detail-flight"
+              );
+            }
+            golfJoinSafeWarn("Failed to update open detail flight schedule.", error);
+          });
         return join;
       } catch (error) {
-        console.warn("Failed to enrich Secret Tour detail from ERP.", error);
+        if (detailPerformanceGeneration) {
+          finishGolfJoinDetailPerformance(
+            detailPerformanceGeneration,
+            "golfjoin:detail:erp-failed",
+            "golfjoin:duration:detail-erp"
+          );
+        }
+        golfJoinSafeWarn("Failed to enrich Secret Tour detail from ERP.", error);
         return join;
       }
     }
@@ -53515,6 +54278,7 @@
       };
       mdPickListCacheSourceSignature = "";
       mdPickListElementCache.clear();
+      scheduleMdPickSectionRenderWhenDataReady();
       return catalog;
     }
 
@@ -53550,7 +54314,8 @@
           golfJoinProductFamilyCatalog = null;
           golfJoinProductFamilyIdByGoodSeq.clear();
           golfJoinProductFamilyById.clear();
-          console.warn("Product family catalog is unavailable. Individual products will be used.", error);
+          scheduleMdPickSectionRenderWhenDataReady();
+          golfJoinSafeWarn("Product family catalog is unavailable. Individual products will be used.", error);
           return null;
         });
       }
@@ -53596,7 +54361,7 @@
           if (!events.length) return [normalizeSecretTourGoodsItem(item, itemIndex)];
           return events.map((event, eventIndex) => normalizeSecretTourGoodsEventItem(item, event, eventIndex));
         } catch (error) {
-          console.warn(error);
+          golfJoinSafeWarn(error);
           return [normalizeSecretTourGoodsItem(item, itemIndex)];
         }
       });
@@ -53727,7 +54492,7 @@
         golfJoinProductAvailabilityCache.set(goodSeq, products);
         return products;
       }).catch((error) => {
-        console.warn("Failed to load product availability.", { goodSeq, message: error?.message || "" });
+        golfJoinSafeWarn("Failed to load product availability.", { goodSeq, message: error?.message || "" });
         return [];
       }).finally(() => {
         golfJoinProductAvailabilityPromiseCache.delete(goodSeq);
@@ -53812,7 +54577,7 @@
         const productsPromise = loadLocalGolfJoinProductsData().catch((error) => {
           const inlineItems = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items) ? window.SECRET_GOLF_JOIN_PRODUCTS.items : [];
           if (inlineItems.length) return { items: inlineItems };
-          console.warn("Failed to load local golf join products. Falling back to live products.", error);
+          golfJoinSafeWarn("Failed to load local golf join products. Falling back to live products.", error);
           return loadSecretTourGoodsProducts().then((items) => ({ items }));
         });
         externalGolfJoinProductsLoadPromise = Promise.all([
@@ -53823,12 +54588,11 @@
             const items = Array.isArray(payload?.items) ? payload.items : [];
             externalGolfJoinProducts = items.map(normalizeExternalGolfJoinProduct);
             hydrateOverseasJoinsWithSecretProducts();
-            renderJoins();
             return externalGolfJoinProducts;
           })
           .catch((error) => {
             externalGolfJoinProductsLoadFailed = true;
-            console.warn(error);
+            golfJoinSafeWarn(error);
             return [];
           })
           .finally(() => {
@@ -53840,28 +54604,52 @@
             if (document.getElementById("calendarSheet")?.classList.contains("open")) {
               renderCalendarSheet();
             }
-            renderJoins();
+            scheduleHomeRender({ deferWhileModalOpen: true });
           });
-        renderBuilderCalendar();
-        renderJoins();
+        if (document.getElementById("builderModal")?.classList.contains("open")) {
+          renderBuilderCalendar();
+        }
       }
       return externalGolfJoinProductsLoadPromise;
     }
 
-    function ensureHomeGolfJoinProductsLoaded() {
+    function scheduleMdPickSectionRenderWhenDataReady() {
+      const productsSettled = Boolean(homeGolfJoinProducts) || homeGolfJoinProductsLoadFailed;
+      const productFamilySettled = !GOLFJOIN_PRODUCT_FAMILY_ENABLED
+        || Boolean(golfJoinProductFamilyCatalog)
+        || golfJoinProductFamilyLoadFailed;
+      if (!productsSettled || !productFamilySettled) return false;
+      const marked = markGolfJoinPerformanceOnce(
+        "golfjoin:mdpick:data-ready",
+        "golfjoin:duration:mdpick-data",
+        "golfjoin:boot:start"
+      );
+      if (marked) {
+        try {
+          if (!renderMdPickSectionOnly()) scheduleMdPickSectionRender();
+        } catch (error) {
+          golfJoinSafeWarn("Failed to render MD PICK as soon as its data became ready.", error);
+          scheduleMdPickSectionRender();
+        }
+      }
+      return marked;
+    }
+
+    function ensureHomeGolfJoinProductsLoaded(options = {}) {
       if (homeGolfJoinProducts || homeGolfJoinProductsLoadFailed) {
         return Promise.resolve(homeGolfJoinProducts || []);
       }
       if (!homeGolfJoinProductsLoadPromise) {
-        void ensureGolfJoinProductFamilyCatalogLoaded().finally(() => {
-          if (homeGolfJoinProducts) scheduleHomeRender();
+        const homeProductFamilyPromise = ensureGolfJoinProductFamilyCatalogLoaded();
+        void homeProductFamilyPromise.finally(() => {
+          if (homeGolfJoinProducts && options.renderHome !== false) scheduleHomeRender();
         });
         const productsPromise = withGolfJoinHomeProductsReadyTimeout(loadGolfJoinHomeCardsJson()
           .catch((error) => {
-            console.warn("Failed to load compact home cards. Falling back to the full home summary.", error);
+            golfJoinSafeWarn("Failed to load compact home cards. Falling back to the full home summary.", error);
             return loadGolfJoinHomeSummaryJson();
           }));
-        homeGolfJoinProductsLoadPromise = productsPromise
+        const homeGolfJoinProductsReadyPromise = productsPromise
           .then((payload) => {
             applyHomeBootstrapLightFromHomeSummaryPayload(payload, { source: "home-products", render: false });
             const minimumAdvanceDays = Number(payload?.minimumAdvanceDays);
@@ -53871,13 +54659,26 @@
             const items = Array.isArray(payload?.items) ? payload.items : [];
             if (!items.length) throw new Error("Home product cards are empty.");
             homeGolfJoinProducts = items.map(normalizeExternalGolfJoinProduct);
+            markGolfJoinPerformanceOnce(
+              "golfjoin:boot:products-ready",
+              "golfjoin:duration:home-products",
+              "golfjoin:boot:start"
+            );
+            scheduleMdPickSectionRenderWhenDataReady();
             return homeGolfJoinProducts;
           })
           .catch((error) => {
             homeGolfJoinProductsLoadFailed = true;
-            console.warn(error);
+            markGolfJoinPerformanceOnce(
+              "golfjoin:boot:products-failed",
+              "golfjoin:duration:home-products",
+              "golfjoin:boot:start"
+            );
+            golfJoinSafeWarn(error);
+            scheduleMdPickSectionRenderWhenDataReady();
             return [];
-          })
+          });
+        homeGolfJoinProductsLoadPromise = homeGolfJoinProductsReadyPromise
           .finally(() => {
             mdPickListCacheSourceSignature = "";
             mdPickListElementCache?.clear?.();
@@ -53892,9 +54693,9 @@
             try {
               reapplyPendingHomeBootstrapLightData({ render: false });
             } catch (error) {
-              console.warn("Failed to reapply home bootstrap data after loading product cards.", error);
+              golfJoinSafeWarn("Failed to reapply home bootstrap data after loading product cards.", error);
             } finally {
-              scheduleHomeRender();
+              if (options.renderHome !== false) scheduleHomeRender();
             }
           });
       }
@@ -53997,8 +54798,13 @@
         .filter(isGolfJoinBookableProductEvent);
       if (!eligibleProducts.length) return null;
       const avoidActiveScheduleOverlap = options.avoidActiveScheduleOverlap !== false;
-      const nonOverlappingProducts = avoidActiveScheduleOverlap
-        ? eligibleProducts.filter((product) => !isProductExcludedByActiveScheduleOverlap(product))
+      const activeSchedules = avoidActiveScheduleOverlap ? getActiveJoinMySchedules() : [];
+      const nonOverlappingProducts = activeSchedules.length
+        ? eligibleProducts.filter((product) => {
+          const productRange = normalizeJoinScheduleRange(product);
+          if (!productRange) return true;
+          return !activeSchedules.some((active) => doJoinScheduleRangesOverlap(productRange, active.range));
+        })
         : eligibleProducts;
       const candidates = nonOverlappingProducts.length ? nonOverlappingProducts : eligibleProducts;
       return selectGolfJoinProductGroupRepresentative(candidates, { ignoreRepresentativeEvent: true });
@@ -54213,28 +55019,32 @@
       const periodBox = document.querySelector("#detailModal .detail-family-periods");
       periodBox?.classList.add("is-switching");
       periodBox?.querySelectorAll("button").forEach((button) => { button.disabled = true; });
-      openJoinActionLoading("선택한 기간의 상품 정보를 불러오고 있어요");
       try {
-        if (currentDetailMode === "builderProduct") {
-          await showBuilderProductDetailProduct(option.product, {
-            open: false,
-            preserveScroll: true,
-            scrollState: detailScrollState
-          });
-        } else {
-          await showMdPickDetailProduct(
-            option.product,
-            currentMdPickProductGroupKey,
-            currentMdPickCountryKey,
-            { preserveScroll: true, scrollState: detailScrollState }
-          );
-        }
+        await runJoinReadLoading(async () => {
+          if (currentDetailMode === "builderProduct") {
+            await showBuilderProductDetailProduct(option.product, {
+              open: false,
+              preserveScroll: true,
+              scrollState: detailScrollState
+            });
+          } else {
+            await showMdPickDetailProduct(
+              option.product,
+              currentMdPickProductGroupKey,
+              currentMdPickCountryKey,
+              { preserveScroll: true, scrollState: detailScrollState }
+            );
+          }
+        }, {
+          ownerKey: `detail-family-period:${currentDetailMode}:${normalizedGoodSeq}`,
+          getTarget: () => document.querySelector("#detailModal .detail-family-periods"),
+          message: "선택한 기간의 상품 정보를 불러오고 있어요"
+        });
       } finally {
         detailProductFamilyPeriodSwitching = false;
         const activePeriodBox = document.querySelector("#detailModal .detail-family-periods");
         activePeriodBox?.classList.remove("is-switching");
         activePeriodBox?.querySelectorAll("button").forEach((button) => { button.disabled = false; });
-        await closeJoinActionLoading();
       }
     }
 
@@ -54802,9 +55612,9 @@
           });
         }
         void enrichSecretTourFlightScheduleInBackground(enrichedProduct, detail, enrichedProduct)
-          .catch((error) => console.warn("Failed to update builder product flight schedule.", error));
+          .catch((error) => golfJoinSafeWarn("Failed to update builder product flight schedule.", error));
       } catch (error) {
-        console.warn(error);
+        golfJoinSafeWarn(error);
       }
       return true;
     }
@@ -55500,7 +56310,7 @@
       };
       if (result.missingCountries.length || result.missingCities.length || result.missingSearchItems.length) {
         console.groupCollapsed("[GolfJoin] Region master audit");
-        console.log(result);
+        golfJoinSafeLog(result);
         if (result.missingCountries.length) console.table(result.missingCountries);
         if (result.missingCities.length) console.table(result.missingCities);
         if (result.missingSearchItems.length) console.table(result.missingSearchItems);
@@ -56400,7 +57210,7 @@
         try {
           member = await getJoinCurrentMember({ refresh: true });
         } catch (error) {
-          console.warn("Failed to refresh join member profile for apply form; using login fallback.", error);
+          golfJoinSafeWarn("Failed to refresh join member profile for apply form; using login fallback.", error);
           member = getJoinLoginState().member || {};
         }
       }
@@ -56412,7 +57222,7 @@
             rememberJoinMemberProfileLocally(member, sheetProfile);
           }
         } catch (error) {
-          console.warn("Failed to refresh join member profile for apply phone; using current member data.", error);
+          golfJoinSafeWarn("Failed to refresh join member profile for apply phone; using current member data.", error);
         }
       }
       const cached = getRememberedJoinMemberProfile(member || {});
@@ -56562,7 +57372,7 @@
           updateGlobalApplyRemainingSeat();
         })
         .catch((error) => {
-          console.warn("Failed to refresh apply product data in background.", error);
+          golfJoinSafeWarn("Failed to refresh apply product data in background.", error);
         });
     }
 
@@ -56924,7 +57734,7 @@
         try {
           applyMember = await getJoinCurrentMemberDetailOnly() || applyMember;
         } catch (error) {
-          console.warn("Failed to refresh join member detail before apply submit.", error);
+          golfJoinSafeWarn("Failed to refresh join member detail before apply submit.", error);
         }
       }
       const memberProfile = options.confirmed
@@ -57022,7 +57832,7 @@
       if (submitButton) {
         submitButton.disabled = true;
       }
-      openJoinActionLoading("참여 신청을 접수하고 있어요");
+      const loadingToken = openJoinActionLoading("참여 신청을 접수하고 있어요");
       try {
         const applyPayload = buildJoinApplyPayload(applyData);
         validateJoinApplyCanonicalPayload(applyPayload);
@@ -57032,7 +57842,7 @@
           if (isJoinScheduleFullSaveError(error)) throw error;
           const confirmed = await confirmJoinApplySavedToGoogleSheet(applyPayload);
           if (!confirmed) throw error;
-          console.warn("Join apply save response failed, but the row was confirmed in Google Sheet.", error);
+          golfJoinSafeWarn("Join apply save response failed, but the row was confirmed in Google Sheet.", error);
         }
         invalidateHomeBootstrapLightCache();
         applyJoinApplicationPayload(applyPayload, { persist: true });
@@ -57041,15 +57851,15 @@
         }
         showGlobalApplyCompleteState();
       } catch (error) {
-        console.error("Failed to save join apply payload.", error);
+        golfJoinSafeError("Failed to save join apply payload.", error);
         if (isJoinScheduleFullSaveError(error)) {
-          await closeJoinActionLoading();
+          await closeJoinActionLoading(loadingToken);
           openJoinScheduleFullAlert();
         } else {
           alert(error?.userMessage || "참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
       } finally {
-        await closeJoinActionLoading();
+        await closeJoinActionLoading(loadingToken);
         if (submitButton && !document.getElementById("globalApplyPanel")?.classList.contains("is-complete")) {
           submitButton.disabled = false;
           submitButton.textContent = previousText;
@@ -58268,7 +59078,10 @@
               const activeClass = dot.isActive ? " active" : "";
               const dotStyle = `--dot-scale:${dot.scale}; --dot-opacity:${dot.opacity};`;
               if (dotClickHandler) {
-                return `<div class="join-slide-dot-slot"><button type="button" class="join-slide-dot${activeClass}" data-dot-index="${dot.index}" style="${dotStyle}" onclick="${dotClickHandler}(${dot.index}, event)" aria-label="${dot.index + 1}번 보기"></button></div>`;
+                const prefetchAttributes = key === "mdpick-country" || key === "mdpick-theme"
+                  ? ` onmouseenter="prefetchMdPickSlideTarget('${key}', ${dot.index})" onfocus="prefetchMdPickSlideTarget('${key}', ${dot.index})" ontouchstart="prefetchMdPickSlideTarget('${key}', ${dot.index})"`
+                  : "";
+                return `<div class="join-slide-dot-slot"><button type="button" class="join-slide-dot${activeClass}" data-dot-index="${dot.index}" style="${dotStyle}" onclick="${dotClickHandler}(${dot.index}, event)"${prefetchAttributes} aria-label="${dot.index + 1}번 보기"></button></div>`;
               }
               return `<div class="join-slide-dot-slot"><div class="join-slide-dot${activeClass}" data-dot-index="${dot.index}" style="${dotStyle}"></div></div>`;
             }).join("")}
@@ -58383,7 +59196,13 @@
             const distance = Math.abs((rect.left + rect.width / 2) - centerX);
             return !best || distance < best.distance ? { key: group.dataset.mdpickThemeGroup, distance } : best;
           }, null);
-          if (nearest?.key) activeKey = nearest.key;
+          if (nearest?.key) {
+            activeKey = nearest.key;
+            const nearestTheme = themes.find((theme) => theme.key === nearest.key);
+            const nearestGroup = groups.find((group) => group.dataset.mdpickThemeGroup === nearest.key);
+            prefetchMdPickThemeImages(nearest.key);
+            ensureMdPickThemeGroupRendered(nearestGroup, nearestTheme, { eager: true });
+          }
         }
       }
       const activeIndex = Math.max(0, themes.findIndex((theme) => theme.key === activeKey));
@@ -59177,13 +59996,13 @@
     let mdPickSwipeStartX = 0;
     let mdPickSwipeStartY = 0;
     let mdPickSwipeMoved = false;
+    let mdPickSwipePrefetchDirection = 0;
     let mdPickSuppressCardClick = false;
     let mdPickListAnimating = false;
     let mdPickActiveThemeKey = "relax";
     let mdPickThemeAutoTimer = null;
+    let mdPickThemeSectionObserver = null;
     const MD_PICK_THEME_AUTO_INTERVAL_MS = 5000;
-    const mdPickPreloadedImages = new Set();
-    let mdPickImagePreloadScheduled = false;
     const mdPickListElementCache = new Map();
     let mdPickListCacheSourceSignature = "";
     let mdPickListCacheSourceRef = null;
@@ -59191,6 +60010,10 @@
     const mdPickThemeProductsCache = new Map();
     let mdPickThemeRepresentativeCandidatesCache = null;
     let mdPickVisibleThemesCache = null;
+    const MD_PICK_IMAGE_PREFETCH_MAX_CONCURRENCY = 2;
+    const mdPickImagePrefetchQueue = [];
+    const mdPickImagePrefetchUrls = new Set();
+    const mdPickImagePrefetchInFlight = new Map();
     const MD_PICK_COUNTRIES = [
       { key: "thailand", name: "태국", tokens: ["태국", "방콕", "파타야", "치앙마이", "후아힌"] },
       { key: "japan", name: "일본", tokens: ["일본", "후쿠오카", "기타큐슈", "나고야", "가고시마", "오사카", "삿포로", "구마모토", "나리타"] },
@@ -59416,6 +60239,103 @@
       return labelMap[theme.key] || theme.name || "";
     }
 
+    function canPrefetchMdPickImages() {
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (connection?.saveData) return false;
+      return !/^(slow-)?2g$/i.test(String(connection?.effectiveType || ""));
+    }
+
+    function drainMdPickImagePrefetchQueue() {
+      if (!canPrefetchMdPickImages()) {
+        mdPickImagePrefetchQueue.length = 0;
+        return;
+      }
+      while (
+        mdPickImagePrefetchInFlight.size < MD_PICK_IMAGE_PREFETCH_MAX_CONCURRENCY
+        && mdPickImagePrefetchQueue.length
+      ) {
+        const url = mdPickImagePrefetchQueue.shift();
+        if (!url || mdPickImagePrefetchInFlight.has(url)) continue;
+        const image = new Image();
+        const complete = () => {
+          if (!mdPickImagePrefetchInFlight.has(url)) return;
+          mdPickImagePrefetchInFlight.delete(url);
+          image.onload = null;
+          image.onerror = null;
+          drainMdPickImagePrefetchQueue();
+        };
+        image.decoding = "async";
+        image.fetchPriority = "low";
+        image.onload = complete;
+        image.onerror = complete;
+        mdPickImagePrefetchInFlight.set(url, image);
+        image.src = url;
+      }
+    }
+
+    function queueMdPickImagePrefetch(urls = []) {
+      if (!canPrefetchMdPickImages()) return false;
+      let queued = false;
+      (Array.isArray(urls) ? urls : [urls]).forEach((value) => {
+        const url = String(value || "").trim();
+        if (!url || mdPickImagePrefetchUrls.has(url)) return;
+        mdPickImagePrefetchUrls.add(url);
+        mdPickImagePrefetchQueue.push(url);
+        queued = true;
+      });
+      if (queued) drainMdPickImagePrefetchQueue();
+      return queued;
+    }
+
+    function prefetchMdPickCountryImages(countryKey, packType = "") {
+      const country = MD_PICK_COUNTRIES.find((item) => item.key === countryKey);
+      if (!country) return false;
+      const activePack = packType || mdPickPackFilters[country.key] || "golf";
+      return queueMdPickImagePrefetch(
+        getMdPickRepresentativeProducts(country, activePack).map((item) => item.image)
+      );
+    }
+
+    function prefetchMdPickThemeImages(themeKey) {
+      const theme = getVisibleMdPickThemes().find((item) => item.key === themeKey);
+      if (!theme) return false;
+      return queueMdPickImagePrefetch(
+        theme.items.map((product) => product.image || product.thumb || "")
+      );
+    }
+
+    function prefetchMdPickSlideTarget(key, index) {
+      const targetIndex = Math.max(0, Number(index) || 0);
+      if (key === "mdpick-country") {
+        const country = MD_PICK_COUNTRIES[targetIndex];
+        return country ? prefetchMdPickCountryImages(country.key) : false;
+      }
+      if (key === "mdpick-theme") {
+        const theme = getVisibleMdPickThemes()[targetIndex];
+        return theme ? prefetchMdPickThemeImages(theme.key) : false;
+      }
+      return false;
+    }
+
+    window.prefetchMdPickCountryImages = prefetchMdPickCountryImages;
+    window.prefetchMdPickThemeImages = prefetchMdPickThemeImages;
+    window.prefetchMdPickSlideTarget = prefetchMdPickSlideTarget;
+
+    function ensureMdPickThemeGroupRendered(group, theme, options = {}) {
+      if (!group || !theme) return false;
+      const grid = group.querySelector(".join-mdpick-theme-grid");
+      if (!grid) return false;
+      if (!grid.querySelector(".join-mdpick-theme-card")) {
+        grid.innerHTML = theme.items
+          .map((product) => renderMdPickThemeCard(product, theme, { eager: options.eager !== false }))
+          .join("");
+        applyGolfJoinImageFallbacks(grid);
+      }
+      group.classList.add("is-theme-ready");
+      group.removeAttribute("aria-busy");
+      return true;
+    }
+
     function setMdPickTheme(themeKey) {
       if (!MD_PICK_THEMES.some((theme) => theme.key === themeKey)) return;
       mdPickActiveThemeKey = themeKey;
@@ -59424,7 +60344,11 @@
         let activeGroup = null;
         themeSection.querySelectorAll("[data-mdpick-theme-group]").forEach((group) => {
           const active = group.dataset.mdpickThemeGroup === themeKey;
-          if (active) activeGroup = group;
+          if (active) {
+            activeGroup = group;
+            const theme = getVisibleMdPickThemes().find((item) => item.key === themeKey);
+            ensureMdPickThemeGroupRendered(group, theme, { eager: true });
+          }
           group.classList.toggle("active", active);
           group.querySelectorAll(".join-mdpick-theme-tab").forEach((tab) => {
             const target = (tab.getAttribute("onclick") || "").match(/setMdPickTheme\('([^']+)'\)/)?.[1] || "";
@@ -59432,6 +60356,9 @@
             tab.classList.toggle("active", isCurrent);
             tab.setAttribute("aria-selected", isCurrent ? "true" : "false");
           });
+        });
+        activeGroup?.querySelectorAll?.(".join-mdpick-theme-card img").forEach((image) => {
+          image.loading = "eager";
         });
         if (isMobileSlideDotsViewport() && activeGroup) {
           const rail = themeSection.querySelector(".join-mdpick-theme-groups");
@@ -59469,13 +60396,13 @@
     }
     window.setMdPickTheme = setMdPickTheme;
 
-    function renderMdPickThemeCard(product, theme) {
+    function renderMdPickThemeCard(product, theme, options = {}) {
       const groupKey = getProductGroupKey(product);
       const countryKey = getMdPickProductCountryKey(product);
       const image = product.image || product.thumb || "";
       return `
         <button type="button" class="join-mdpick-theme-card" onclick="openMdPickProductDetail('${escapeJsString(groupKey)}', '${escapeJsString(countryKey)}')">
-          <div class="join-mdpick-theme-thumb"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.title || "추천상품")}" loading="lazy" decoding="async"></div>
+          <div class="join-mdpick-theme-thumb"><img src="${escapeHtml(image)}" alt="${escapeHtml(product.title || "추천상품")}" loading="${options.eager ? "eager" : "lazy"}" decoding="async"></div>
           <div class="join-mdpick-theme-meta">
             <div class="join-mdpick-theme-region">${escapeHtml(product.region || product.category || "")}</div>
             <div class="join-mdpick-theme-product">${escapeHtml(product.title || "상품명 없음")}</div>
@@ -59490,8 +60417,10 @@
       if (!themes.length) return "";
       const activeTheme = themes.find((theme) => theme.key === mdPickActiveThemeKey) || themes[0];
       mdPickActiveThemeKey = activeTheme.key;
-      const renderThemeGroup = (theme) => `
-              <div class="join-mdpick-theme-group theme-${escapeHtml(theme.key)}${theme.key === activeTheme.key ? " active" : ""}" data-mdpick-theme-group="${escapeHtml(theme.key)}">
+      const renderThemeGroup = (theme) => {
+        const isActive = theme.key === activeTheme.key;
+        return `
+              <div class="join-mdpick-theme-group theme-${escapeHtml(theme.key)}${isActive ? " active is-theme-ready" : ""}" data-mdpick-theme-group="${escapeHtml(theme.key)}"${isActive ? "" : " aria-busy=\"true\""}>
                 <div class="join-mdpick-theme-head">
                   <div class="join-mdpick-theme-name">${theme.name} ${theme.emoji}</div>
                   <div class="join-mdpick-theme-subcopy">${renderMdPickThemeSubcopy(theme)}</div>
@@ -59501,6 +60430,9 @@
                         type="button"
                         class="join-mdpick-theme-tab${item.key === theme.key ? " active" : ""}"
                         onclick="setMdPickTheme('${escapeJsString(item.key)}')"
+                        onmouseenter="prefetchMdPickThemeImages('${escapeJsString(item.key)}')"
+                        onfocus="prefetchMdPickThemeImages('${escapeJsString(item.key)}')"
+                        ontouchstart="prefetchMdPickThemeImages('${escapeJsString(item.key)}')"
                         role="tab"
                         aria-selected="${item.key === theme.key ? "true" : "false"}"
                       >${item.emoji} ${escapeHtml(getMdPickThemeTabLabel(item))}</button>
@@ -59508,40 +60440,67 @@
                   </div>
                 </div>
                 <div class="join-mdpick-theme-grid">
-                  ${theme.items.map((product) => renderMdPickThemeCard(product, theme)).join("")}
+                  ${isActive ? theme.items.map((product) => renderMdPickThemeCard(product, theme, { eager: true })).join("") : ""}
                 </div>
               </div>
       `;
+      };
       return `
         <div class="join-mdpick-theme-section" id="join-section-mdpick-theme" data-join-section="mdpick-theme">
           <div class="join-mdpick-theme-title">취향맞춤 TOP3</div>
           <div class="join-mdpick-theme-copy">라운드 스타일 따라 떠나는 여행</div>
           <div class="join-mdpick-theme-groups" onscroll="updateMdPickThemeDots()">
             ${themes.map(renderThemeGroup).join("")}
-              <div class="join-mdpick-theme-group legacy-active-hidden theme-${escapeHtml(activeTheme.key)}">
-                <div class="join-mdpick-theme-head">
-                  <div class="join-mdpick-theme-name">${activeTheme.name} ${activeTheme.emoji}</div>
-                  <div class="join-mdpick-theme-subcopy">${escapeHtml(getMdPickThemeSubcopy(activeTheme))}</div>
-                  <div class="join-mdpick-theme-pills" role="tablist" aria-label="취향맞춤 테마 선택">
-                    ${themes.map((theme) => `
-                      <button
-                        type="button"
-                        class="join-mdpick-theme-tab${theme.key === activeTheme.key ? " active" : ""}"
-                        onclick="setMdPickTheme('${escapeJsString(theme.key)}')"
-                        role="tab"
-                        aria-selected="${theme.key === activeTheme.key ? "true" : "false"}"
-                      >${escapeHtml(getMdPickThemeTabLabel(theme))}</button>
-                    `).join("")}
-                  </div>
-                </div>
-                <div class="join-mdpick-theme-grid">
-                  ${activeTheme.items.map((product) => renderMdPickThemeCard(product, activeTheme)).join("")}
-                </div>
-              </div>
           </div>
           ${renderSlideDots("mdpick-theme")}
         </div>
       `;
+    }
+
+    function renderMdPickThemeDeferredPlaceholder() {
+      return `<div class="join-mdpick-theme-deferred" id="join-section-mdpick-theme" data-mdpick-theme-deferred aria-busy="true"></div>`;
+    }
+
+    function renderMdPickThemeSectionInPlace() {
+      const host = document.getElementById("joinMdPickSection");
+      const placeholder = host?.querySelector?.("[data-mdpick-theme-deferred]");
+      if (!placeholder) return false;
+      const html = renderMdPickThemeSection();
+      if (!html) {
+        placeholder.remove();
+        updateMdPickSectionNavVisibility(Boolean(host.querySelector("#join-section-mdpick")));
+        return false;
+      }
+      const wrapper = document.createElement("div");
+      wrapper.innerHTML = html.trim();
+      const section = wrapper.firstElementChild;
+      if (!section) return false;
+      placeholder.replaceWith(section);
+      applyGolfJoinImageFallbacks(section);
+      updateMdPickSectionNavVisibility(true);
+      scheduleHomeSlideDotsRefresh();
+      startMdPickThemeAutoSlide();
+      scheduleJoinSectionNavActiveUpdate();
+      return true;
+    }
+
+    function observeMdPickThemeSection() {
+      const placeholder = document.querySelector("#joinMdPickSection [data-mdpick-theme-deferred]");
+      if (!placeholder) return;
+      mdPickThemeSectionObserver?.disconnect?.();
+      mdPickThemeSectionObserver = null;
+      const render = () => requestAnimationFrame(() => renderMdPickThemeSectionInPlace());
+      if (!("IntersectionObserver" in window)) {
+        render();
+        return;
+      }
+      mdPickThemeSectionObserver = new IntersectionObserver((entries, observer) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        mdPickThemeSectionObserver = null;
+        render();
+      }, { rootMargin: "1200px 0px 1200px 0px" });
+      mdPickThemeSectionObserver.observe(placeholder);
     }
 
     function setMdPickPackFilter(countryKey, packType) {
@@ -59645,36 +60604,37 @@
       return true;
     }
 
-    async function openMdPickProductDetail(productGroupKey, countryKey) {
+    async function openMdPickProductDetail(productGroupKey, countryKey, trigger = null) {
+      const pageScrollState = capturePageScrollState();
       const products = getHomeProductSource().filter((product) => (
         !product.homeReferenceOnly
         && getProductGroupKey(product) === productGroupKey
       ));
-      openJoinActionLoading("출발 가능한 일정을 확인하고 있어요");
-      let product = null;
-      try {
+      return runJoinReadLoading(async () => {
         const hasAvailabilityMetadata = products.some((item) => item.availabilityObjectName || item.availabilityUrl);
         const availabilityProducts = await loadGolfJoinProductGroupAvailability(products);
         const candidates = availabilityProducts.length ? availabilityProducts : products;
-        product = selectGolfJoinBookableProduct(candidates, { avoidActiveScheduleOverlap: true })
+        const product = selectGolfJoinBookableProduct(candidates, { avoidActiveScheduleOverlap: true })
           || (!hasAvailabilityMetadata
             ? selectGolfJoinProductGroupRepresentative(candidates, { ignoreRepresentativeEvent: true })
             : null);
-      } finally {
-        await closeJoinActionLoading();
-      }
-      if (!product) {
-        openBuilderAlert("현재 선택 가능한 출발일이 없습니다. 잠시 후 다시 확인해 주세요.");
-        return;
-      }
-      void ensureExternalGolfJoinProductsLoaded();
-      return showMdPickDetailProduct(product, productGroupKey, countryKey);
+        if (!product) {
+          openBuilderAlert("현재 선택 가능한 출발일이 없습니다. 잠시 후 다시 확인해 주세요.");
+          return;
+        }
+        void ensureExternalGolfJoinProductsLoaded();
+        return showMdPickDetailProduct(product, productGroupKey, countryKey, { pageScrollState });
+      }, {
+        ownerKey: `mdpick-availability:${productGroupKey}`,
+        target: trigger,
+        message: "출발 가능한 일정을 확인하고 있어요"
+      });
     }
 
     function renderMdPickCard(item) {
       return `
-        <button type="button" class="join-mdpick-card" onclick="if (consumeMdPickSwipeClick()) return; openMdPickProductDetail('${escapeJsString(item.key)}', '${escapeJsString(item.countryKey)}')">
-          <div class="join-mdpick-thumb"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async"></div>
+        <button type="button" class="join-mdpick-card" onclick="if (consumeMdPickSwipeClick()) return; openMdPickProductDetail('${escapeJsString(item.key)}', '${escapeJsString(item.countryKey)}', event.currentTarget)">
+          <div class="join-mdpick-thumb"><img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" loading="eager" decoding="async"></div>
           <div class="join-mdpick-info">
             <div class="join-mdpick-region">${escapeHtml(item.region)}</div>
             <div class="join-mdpick-title">${escapeHtml(item.title)}</div>
@@ -59704,7 +60664,6 @@
       if (!MD_PICK_COUNTRIES.some((item) => item.key === countryKey)) return;
       mdPickListAnimating = false;
       mdPickActiveCountryKey = countryKey;
-      preloadMdPickCountryImages(countryKey);
       if (renderMdPickCountryContentInPlace(countryKey)) return;
       renderMdPickCountryInPlace(countryKey);
     }
@@ -59740,6 +60699,9 @@
         const isActive = packType === (mdPickPackFilters[country.key] || "golf");
         button.classList.toggle("active", isActive);
         button.setAttribute("onclick", `setMdPickPackFilter('${country.key}', '${packType}')`);
+        button.setAttribute("onmouseenter", `prefetchMdPickCountryImages('${country.key}', '${packType}')`);
+        button.setAttribute("onfocus", `prefetchMdPickCountryImages('${country.key}', '${packType}')`);
+        button.setAttribute("ontouchstart", `prefetchMdPickCountryImages('${country.key}', '${packType}')`);
       });
       current.querySelector(".join-mdpick-pack-info-button")?.setAttribute("onclick", `toggleMdPickPackTooltip(event, '${country.key}')`);
       const tooltip = current.querySelector(".join-mdpick-pack-tooltip");
@@ -59753,28 +60715,6 @@
       currentList.replaceWith(nextList);
       requestAnimationFrame(updateMdPickCountryDots);
       return true;
-    }
-
-    function preloadMdPickCountryImages(countryKey) {
-      const country = MD_PICK_COUNTRIES.find((item) => item.key === countryKey);
-      if (!country) return;
-      ["golf", "air"].forEach((packType) => getMdPickRepresentativeProducts(country, packType).forEach((item) => {
-        if (!item.image || mdPickPreloadedImages.has(item.image)) return;
-        mdPickPreloadedImages.add(item.image);
-        const image = new Image();
-        image.decoding = "async";
-        image.src = item.image;
-      }));
-    }
-
-    function scheduleMdPickImagePreload() {
-      if (mdPickImagePreloadScheduled || navigator.connection?.saveData) return;
-      mdPickImagePreloadScheduled = true;
-      window.setTimeout(() => {
-        const run = () => preloadMdPickCountryImages(mdPickActiveCountryKey);
-        if ("requestIdleCallback" in window) window.requestIdleCallback(run);
-        else run();
-      }, 8000);
     }
 
     function changeMdPickCountryBySwipe(direction) {
@@ -59830,6 +60770,7 @@
       mdPickSwipeStartX = touch.clientX;
       mdPickSwipeStartY = touch.clientY;
       mdPickSwipeMoved = false;
+      mdPickSwipePrefetchDirection = 0;
     }
 
     function handleMdPickListTouchMove(event) {
@@ -59839,6 +60780,15 @@
       const deltaY = touch.clientY - mdPickSwipeStartY;
       if (Math.abs(deltaX) > 24 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
         mdPickSwipeMoved = true;
+        const direction = deltaX < 0 ? 1 : -1;
+        if (direction !== mdPickSwipePrefetchDirection) {
+          mdPickSwipePrefetchDirection = direction;
+          const nextIndex = Math.min(MD_PICK_COUNTRIES.length - 1, Math.max(0, getMdPickCountryIndex() + direction));
+          const nextCountry = MD_PICK_COUNTRIES[nextIndex];
+          if (nextCountry && nextCountry.key !== mdPickActiveCountryKey) {
+            prefetchMdPickCountryImages(nextCountry.key);
+          }
+        }
       }
     }
 
@@ -59903,11 +60853,11 @@
       const primaryCountry = countryMenuItems[0] || country;
       const optionCountries = countryMenuItems.slice(1);
       const countrySwitcherHtml = `
-        <button type="button" class="join-mdpick-country-trigger${primaryCountry.key === country.key ? " active" : ""}" data-mdpick-country-option="${primaryCountry.key}" onclick="selectMdPickCountry('${primaryCountry.key}', event)" aria-current="${primaryCountry.key === country.key ? "true" : "false"}">
+        <button type="button" class="join-mdpick-country-trigger${primaryCountry.key === country.key ? " active" : ""}" data-mdpick-country-option="${primaryCountry.key}" onclick="selectMdPickCountry('${primaryCountry.key}', event)" onmouseenter="prefetchMdPickCountryImages('${primaryCountry.key}')" onfocus="prefetchMdPickCountryImages('${primaryCountry.key}')" ontouchstart="prefetchMdPickCountryImages('${primaryCountry.key}')" aria-current="${primaryCountry.key === country.key ? "true" : "false"}">
           <i class="join-mdpick-country-current">${renderMdPickCountryName(primaryCountry)}</i>
         </button>
         <div class="join-mdpick-country-options" role="group" aria-label="MD PICK 국가 선택">
-          ${optionCountries.map((item) => `<button type="button" class="join-mdpick-country-option join-mdpick-country-option-alt${item.key === country.key ? " active" : ""}" data-mdpick-country-option="${item.key}" onclick="selectMdPickCountry('${item.key}', event)" aria-current="${item.key === country.key ? "true" : "false"}">${renderMdPickCountryName(item)}</button>`).join("")}
+          ${optionCountries.map((item) => `<button type="button" class="join-mdpick-country-option join-mdpick-country-option-alt${item.key === country.key ? " active" : ""}" data-mdpick-country-option="${item.key}" onclick="selectMdPickCountry('${item.key}', event)" onmouseenter="prefetchMdPickCountryImages('${item.key}')" onfocus="prefetchMdPickCountryImages('${item.key}')" ontouchstart="prefetchMdPickCountryImages('${item.key}')" aria-current="${item.key === country.key ? "true" : "false"}">${renderMdPickCountryName(item)}</button>`).join("")}
         </div>
         <button type="button" class="join-mdpick-country-toggle${mdPickCountryMenuOpen ? " open" : ""}${mdPickCountryMenuNoMotion ? " no-motion" : ""}" onclick="toggleMdPickCountryMenu(event)" aria-expanded="${mdPickCountryMenuOpen ? "true" : "false"}" aria-label="국가 선택 ${mdPickCountryMenuOpen ? "닫기" : "열기"}">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24" class="mrt-web-icons" aria-hidden="true"><path d="M12 15.838a1.2 1.2 0 0 1-.8-.3l-4.625-4.626a1.03 1.03 0 0 1-.312-.788c.008-.308.12-.57.337-.787.217-.216.483-.325.8-.325.317 0 .583.109.8.325l3.8 3.8 3.825-3.825c.217-.216.48-.32.788-.311.308.008.57.12.787.337.217.216.325.483.325.8 0 .316-.108.583-.325.8l-4.6 4.6a1.2 1.2 0 0 1-.8.3Z"></path></svg>
@@ -59932,8 +60882,8 @@
               ${countrySwitcherHtml}
             </div>
             <div class="join-mdpick-pack-chips" aria-label="${country.name} 상품 유형">
-              <button type="button" class="join-mdpick-pack-chip${activePack === "golf" ? " active" : ""}" data-mdpick-pack-filter="golf" onclick="setMdPickPackFilter('${country.key}', 'golf')">골프팩</button>
-              <button type="button" class="join-mdpick-pack-chip${activePack === "air" ? " active" : ""}" data-mdpick-pack-filter="air" onclick="setMdPickPackFilter('${country.key}', 'air')">항공팩</button>
+              <button type="button" class="join-mdpick-pack-chip${activePack === "golf" ? " active" : ""}" data-mdpick-pack-filter="golf" onclick="setMdPickPackFilter('${country.key}', 'golf')" onmouseenter="prefetchMdPickCountryImages('${country.key}', 'golf')" onfocus="prefetchMdPickCountryImages('${country.key}', 'golf')" ontouchstart="prefetchMdPickCountryImages('${country.key}', 'golf')">골프팩</button>
+              <button type="button" class="join-mdpick-pack-chip${activePack === "air" ? " active" : ""}" data-mdpick-pack-filter="air" onclick="setMdPickPackFilter('${country.key}', 'air')" onmouseenter="prefetchMdPickCountryImages('${country.key}', 'air')" onfocus="prefetchMdPickCountryImages('${country.key}', 'air')" ontouchstart="prefetchMdPickCountryImages('${country.key}', 'air')">항공팩</button>
               <button type="button" class="join-mdpick-pack-info-button" onclick="toggleMdPickPackTooltip(event, '${country.key}')" aria-label="상품 유형 안내">
                 <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.3"/>
@@ -59972,11 +60922,13 @@
       requestAnimationFrame(updateMdPickCountryDots);
     }
 
-    function renderMdPickSection() {
+    function renderMdPickSection(options = {}) {
       syncMdPickListCacheWithProductSource();
       const isLoading = isMdPickProductsLoading();
       if (isLoading) return renderMdPickLoadingSection();
-      const themeSectionHtml = renderMdPickThemeSection();
+      const themeSectionHtml = options.deferTheme
+        ? renderMdPickThemeDeferredPlaceholder()
+        : renderMdPickThemeSection();
       const hasProducts = MD_PICK_COUNTRIES.some((country) => getMdPickRepresentativeProducts(country).length);
       if (!hasProducts && !themeSectionHtml) return "";
       return `
@@ -60246,6 +61198,9 @@
     }
 
     function getMyHomeJoinItems() {
+      // Anonymous visitors cannot own or join a member schedule. Avoid walking
+      // every schedule and participant identity only to produce an empty list.
+      if (!getJoinWishMemberKey()) return [];
       return sortByDeparture(joins)
         .filter(isUserCreatedJoinSchedule)
         .filter((join) => getJoinDaysFromToday(join) >= 0)
@@ -60267,10 +61222,16 @@
     }
 
     function getHomeJoinSections() {
-      const scheduleItems = sortByDeparture(joins)
+      const currentMemberKey = getJoinWishMemberKey();
+      const upcomingScheduleItems = sortByDeparture(joins)
         .filter(isUserCreatedJoinSchedule)
-        .filter((join) => getJoinDaysFromToday(join) >= 0)
-        .filter(isHomeJoinScheduleVisibleForCurrentMember);
+        .filter((join) => getJoinDaysFromToday(join) >= 0);
+      // Own/overlapping-schedule exclusion only has meaning for a signed-in
+      // member. The anonymous path used to repeat the full identity scan for
+      // every card even though it could never exclude anything.
+      const scheduleItems = currentMemberKey
+        ? upcomingScheduleItems.filter(isHomeJoinScheduleVisibleForCurrentMember)
+        : upcomingScheduleItems;
       const homeSectionItems = scheduleItems
         .filter(shouldDisplayJoinProduct)
         .filter(isSoonCandidate);
@@ -60319,7 +61280,30 @@
     let quickMobileCarouselSetupPending = false;
     let homeRenderScheduled = false;
     let homeRenderPendingOptions = {};
+    let homeRenderDeferredUntilModalClose = false;
     let homeMdPickRenderScheduled = false;
+
+    function isHomeRenderBlockingInteractionActive() {
+      return [...joinReadLoadingOwners.keys()].some((ownerKey) => (
+        String(ownerKey).startsWith("mdpick-availability:")
+      ));
+    }
+
+    function isHomeRenderBlockedByModalOrInteraction() {
+      return Boolean(
+        isHomeRenderBlockingInteractionActive()
+        || document.getElementById("detailModal")?.classList.contains("open")
+        || document.getElementById("builderModal")?.classList.contains("open")
+        || document.getElementById("regionSearchModal")?.classList.contains("open")
+      );
+    }
+
+    function flushDeferredHomeRenderIfReady() {
+      if (!homeRenderDeferredUntilModalClose || isHomeRenderBlockedByModalOrInteraction()) return false;
+      homeRenderDeferredUntilModalClose = false;
+      scheduleHomeRender();
+      return true;
+    }
 
     function scheduleHomeRender(options = {}) {
       homeRenderPendingOptions = {
@@ -60328,6 +61312,10 @@
         skipQuickMobileCarousel: Boolean(
           homeRenderPendingOptions.skipQuickMobileCarousel
           || options.skipQuickMobileCarousel
+        ),
+        deferWhileModalOpen: Boolean(
+          homeRenderPendingOptions.deferWhileModalOpen
+          || options.deferWhileModalOpen
         )
       };
       if (homeRenderScheduled) return;
@@ -60335,12 +61323,20 @@
       window.setTimeout(() => {
         const run = () => {
           const pendingOptions = homeRenderPendingOptions;
+          if (
+            pendingOptions.deferWhileModalOpen
+            && isHomeRenderBlockedByModalOrInteraction()
+          ) {
+            homeRenderScheduled = false;
+            homeRenderDeferredUntilModalClose = true;
+            return;
+          }
           homeRenderPendingOptions = {};
           homeRenderScheduled = false;
           try {
             renderJoins(pendingOptions);
           } catch (error) {
-            console.warn("Failed to render the deferred golf join home.", error);
+            golfJoinSafeWarn("Failed to render the deferred golf join home.", error);
           }
         };
         if ("requestIdleCallback" in window) {
@@ -60352,23 +61348,43 @@
     }
 
     function renderMdPickSectionOnly() {
-      if (shouldShowHomeInitialLoading()) return;
+      if (shouldShowHomeInitialLoading()) return false;
       const mdPickSection = document.getElementById("joinMdPickSection");
-      if (!mdPickSection) return;
-      const mdPickSectionHtml = renderMdPickSection();
+      if (!mdPickSection) return false;
+      const mdPickDataReady = golfJoinPerformanceOnceMarks.has("golfjoin:mdpick:data-ready");
+      const primaryRenderMarked = mdPickDataReady
+        ? markGolfJoinPerformanceOnce("golfjoin:mdpick:primary-render-start")
+        : false;
+      const mdPickSectionHtml = renderMdPickSection({ deferTheme: true });
       const changed = lastRenderedMdPickSectionHtml !== mdPickSectionHtml;
       if (changed) {
         mdPickSection.innerHTML = mdPickSectionHtml;
         lastRenderedMdPickSectionHtml = mdPickSectionHtml;
         applyGolfJoinImageFallbacks(mdPickSection);
       }
-      updateJoinSectionNavVisibility(getHomeJoinSections(), Boolean(mdPickSectionHtml));
+      const primaryDomMarked = primaryRenderMarked
+        ? markGolfJoinPerformanceOnce(
+          "golfjoin:mdpick:primary-dom-ready",
+          "golfjoin:duration:mdpick-primary-render",
+          "golfjoin:mdpick:primary-render-start"
+        )
+        : false;
+      if (primaryDomMarked) {
+        measureGolfJoinPerformance(
+          "golfjoin:duration:mdpick-data-to-dom",
+          "golfjoin:mdpick:data-ready",
+          "golfjoin:mdpick:primary-dom-ready"
+        );
+      }
+      updateMdPickSectionNavVisibility(Boolean(mdPickSectionHtml));
       if (changed) {
         scheduleHomeSlideDotsRefresh();
         startMdPickThemeAutoSlide();
       }
-      scheduleMdPickImagePreload();
+      if (mdPickDataReady) observeGolfJoinMdPickFirstImageReady(mdPickSection);
+      observeMdPickThemeSection();
       scheduleJoinSectionNavActiveUpdate();
+      return true;
     }
 
     function scheduleMdPickSectionRender() {
@@ -60379,14 +61395,10 @@
         try {
           renderMdPickSectionOnly();
         } catch (error) {
-          console.warn("Failed to render the deferred MD PICK section.", error);
+          golfJoinSafeWarn("Failed to render the deferred MD PICK section.", error);
         }
       };
-      if ("requestIdleCallback" in window) {
-        window.requestIdleCallback(run, { timeout: 1000 });
-      } else {
-        window.setTimeout(run, 16);
-      }
+      requestAnimationFrame(run);
     }
 
     function renderJoins(options = {}) {
@@ -60496,7 +61508,6 @@
       if (myJoinSectionChanged || mdPickSectionChanged || joinSectionListChanged) scheduleHomeSlideDotsRefresh();
       if (mdPickSectionChanged) startMdPickThemeAutoSlide();
       if (deferMdPick) scheduleMdPickSectionRender();
-      else scheduleMdPickImagePreload();
       scheduleJoinSectionNavActiveUpdate();
     }
 
@@ -60689,6 +61700,31 @@
       scheduleJoinSectionNavActiveUpdate();
     }
 
+    function updateMdPickSectionNavVisibility(hasMdPickSection = false) {
+      const buttons = Array.from(document.querySelectorAll(
+        "#joinSectionNav [data-join-section-target='mdpick'], #joinSectionNav [data-join-section-target='mdpick-theme']"
+      ));
+      buttons.forEach((button) => {
+        const key = button.dataset.joinSectionTarget;
+        const shouldHide = !hasMdPickSection || !hasRenderedJoinSectionContent(key);
+        button.hidden = shouldHide;
+        button.style.display = shouldHide ? "none" : "";
+      });
+      const allButtons = Array.from(document.querySelectorAll("#joinSectionNav [data-join-section-target]"));
+      const hasVisibleButton = allButtons.some((button) => !button.hidden && button.style.display !== "none");
+      const nav = document.getElementById("joinSectionNav");
+      const slot = document.getElementById("joinSectionNavSlot");
+      if (nav) {
+        nav.hidden = !hasVisibleButton;
+        nav.style.display = hasVisibleButton ? "" : "none";
+      }
+      if (slot) {
+        slot.hidden = !hasVisibleButton;
+        slot.style.display = hasVisibleButton ? "" : "none";
+      }
+      scheduleJoinSectionNavActiveUpdate();
+    }
+
     function keepJoinSectionNavButtonInView(button) {
       const nav = document.getElementById("joinSectionNav");
       if (!nav || !button || window.innerWidth > 640) return;
@@ -60813,6 +61849,25 @@
           const button = document.querySelector(`#joinSectionNav [data-join-section-target="${key}"]`);
           return !section.hidden && !button?.hidden;
         });
+      const currentScrollY = window.scrollY || 0;
+      if (!joinSectionNavLockedKey && currentScrollY <= 1 && sections.length) {
+        const topKey = sections[0].dataset.joinSection;
+        const nav = document.getElementById("joinSectionNav");
+        const list = document.getElementById("joinSectionList");
+        const slot = document.getElementById("joinSectionNavSlot") || nav?.parentElement;
+        nav?.classList.remove("is-fixed");
+        slot?.classList.remove("is-nav-fixed");
+        list?.classList.remove("is-nav-fixed");
+        joinSectionNavLastScrollY = currentScrollY;
+        const topButton = document.querySelector(`#joinSectionNav [data-join-section-target="${topKey}"]`);
+        if (topButton?.classList.contains("active") && topButton.getAttribute("aria-current") === "true") {
+          joinSectionNavActiveKey = topKey;
+        } else {
+          setJoinSectionNavActive(topKey);
+        }
+        if (topKey === "mdpick") resetJoinSectionNavToStart();
+        return;
+      }
       updateJoinSectionNavFixed();
       if (!sections.length) return;
       const nav = document.getElementById("joinSectionNav");
@@ -61232,7 +62287,7 @@
         try {
           if (wishType === "product") await postDetailGoodsWish(goodSeq || targetKey);
         } catch (error) {
-          console.warn("Secret Tour wish toggle request failed.", error);
+          golfJoinSafeWarn("Secret Tour wish toggle request failed.", error);
         }
         removeJoinWishProduct(targetKey, wishType);
         refreshDetailWishButtons();
@@ -61244,7 +62299,7 @@
       try {
         if (wishType === "product") await postDetailGoodsWish(goodSeq);
       } catch (error) {
-        console.warn("Secret Tour wish request failed.", error);
+        golfJoinSafeWarn("Secret Tour wish request failed.", error);
       }
       alert(wishType === "join_schedule" ? "찜한 조인 일정에 추가되었습니다." : "찜한 상품에 추가되었습니다.");
     }
@@ -61273,7 +62328,7 @@
         const data = await response.json();
         return data?.data?.shortUrl || sourceUrl;
       } catch (error) {
-        console.warn("short url failed", error);
+        golfJoinSafeWarn("short url failed", error);
         return sourceUrl;
       }
     }
@@ -61428,7 +62483,7 @@
       } catch (error) {
         input?.focus();
         input?.select();
-        console.warn("copy failed", error);
+        golfJoinSafeWarn("copy failed", error);
         window.prompt("자동 복사가 제한되어 있습니다. 아래 주소를 복사해 주세요.", url);
       }
     }
@@ -61540,7 +62595,7 @@
           payload = { ...payload, ...enrichedJoin };
           if (currentSharePayload) currentSharePayload = { ...currentSharePayload, ...enrichedJoin };
         } catch (error) {
-          console.warn("Failed to load share images from Secret Tour detail.", error);
+          golfJoinSafeWarn("Failed to load share images from Secret Tour detail.", error);
         }
       }
       let KakaoSdk = window.Kakao;
@@ -61548,7 +62603,7 @@
         try {
           KakaoSdk = await ensureJoinKakaoSdk();
         } catch (error) {
-          console.warn("Kakao share sdk failed", error);
+          golfJoinSafeWarn("Kakao share sdk failed", error);
         }
       }
       if (KakaoSdk && !KakaoSdk.isInitialized?.()) KakaoSdk.init(JOIN_KAKAO_JS_KEY);
@@ -61764,6 +62819,7 @@
     function openDetail(id, options = {}) {
       const join = joins.find((item) => item.id === id);
       if (!join || (!options.allowUnavailable && !shouldDisplayJoinProduct(join))) return;
+      const detailPerformanceGeneration = beginGolfJoinDetailPerformance();
       currentDetailMode = "normal";
       currentDetailJoinId = id;
       currentDetailJoinData = join;
@@ -61784,12 +62840,17 @@
       if (!options.elevateOverBuilder) detailModal?.style.removeProperty("z-index");
       setDetailScheduleConflictState(join);
 
-      openModal("detailModal");
+      openModal("detailModal", { pageScrollState: options.pageScrollState });
       requestAnimationFrame(() => {
         prepareDetailScheduleHeights({ forceOpen: true });
         resetDetailModalScroll();
+        finishGolfJoinDetailPerformance(
+          detailPerformanceGeneration,
+          "golfjoin:detail:visible",
+          "golfjoin:duration:detail-visible"
+        );
       });
-      enrichOpenDetailWithSecretTourData(join, options);
+      enrichOpenDetailWithSecretTourData(join, options, detailPerformanceGeneration);
     }
 
     function openBuilderDetail(id) {
@@ -61828,7 +62889,7 @@
         const countryKey = currentMdPickCountryKey;
         const product = currentDetailJoinData;
         const loginParams = getCurrentBuilderLoginParams("mdpick-recruit");
-        openJoinActionLoading("신청 정보를 확인하고 있어요");
+        const loadingToken = openJoinActionLoading("신청 정보를 확인하고 있어요");
         try {
           const member = await ensureJoinMemberProfileReady("builder", loginParams);
           if (!member) return;
@@ -61839,13 +62900,13 @@
           }
           await openMdPickBuilderWithCurrentDate(groupKey, countryKey, product, { skipProfileCheck: true });
         } finally {
-          await closeJoinActionLoading();
+          await closeJoinActionLoading(loadingToken);
         }
         return;
       }
       if (currentDetailMode === "builderProduct") {
         const loginParams = getCurrentBuilderLoginParams("builder-product");
-        openJoinActionLoading("신청 정보를 확인하고 있어요");
+        const loadingToken = openJoinActionLoading("신청 정보를 확인하고 있어요");
         try {
           const member = await ensureJoinMemberProfileReady("builder", loginParams);
           if (!member) return;
@@ -61856,7 +62917,7 @@
           setBuilderStep(3);
           suppressBuilderNextUntil = Date.now() + 500;
         } finally {
-          await closeJoinActionLoading();
+          await closeJoinActionLoading(loadingToken);
         }
         return;
       }
@@ -62541,7 +63602,9 @@
     }, { capture: true });
 
     async function initializeGolfJoinHome() {
+      markGolfJoinPerformance("golfjoin:boot:start", { once: true });
       openHomeInitialLoading();
+      markGolfJoinPerformance("golfjoin:boot:overlay-open", { once: true });
       const startupParams = new URLSearchParams(location.search);
       const startupAfterLogin = startupParams.get("afterLogin");
       const startupAfterLoginParams = getJoinAfterLoginExtraParams(startupParams);
@@ -62561,10 +63624,22 @@
       homeInitialExternalProductsLoadedOnce = true;
       homeBootstrapLoading = false;
       if (!startupAfterLogin) closeHomeInitialLoading();
-      scheduleHomeRender();
+      // Render the already-hydrated local snapshot before starting the network
+      // loaders. Leaving this on the idle scheduler lets the product catalog
+      // arrive first and turns the lightweight cache paint into another full,
+      // multi-second render. The coordinated network result below still owns
+      // the single authoritative deferred render.
+      markGolfJoinPerformance("golfjoin:home:local-render-start", { once: true });
+      renderJoins({ skipQuickMobileCarousel: true });
+      markGolfJoinPerformanceOnce(
+        "golfjoin:home:local-render-ready",
+        "golfjoin:duration:home-local-render",
+        "golfjoin:home:local-render-start"
+      );
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       scheduleHomeSlideDotsRefresh();
       window.refreshInitialJoinSlideDots?.();
+      await waitForRenderedCookieDataReady();
       scheduleJoinMyMemberPreload();
       const canFastCloseAfterLoginLoading = ["my-menu", "my-drawer", "profile-manage", "return-url"].includes(startupAfterLogin);
       let earlyAfterLoginResumeHandled = false;
@@ -62581,7 +63656,7 @@
             return earlyAfterLoginResumeHandled;
           })
           .catch((error) => {
-            console.warn("Failed to resume join login flow before home bootstrap.", error);
+            golfJoinSafeWarn("Failed to resume join login flow before home bootstrap.", error);
             return false;
           })
         : Promise.resolve(false);
@@ -62597,7 +63672,7 @@
             return true;
           })
           .catch((error) => {
-            console.warn("Failed to check join member profile before after-login resume.", error);
+            golfJoinSafeWarn("Failed to check join member profile before after-login resume.", error);
             return false;
           })
         : Promise.resolve(false);
@@ -62613,13 +63688,13 @@
             }
             return opened;
           });
-      const homeProductsPromise = ensureHomeGolfJoinProductsLoaded().catch((error) => {
-        console.warn("Failed to load compact golf join home products during home init.", error);
+      const homeProductsPromise = ensureHomeGolfJoinProductsLoaded({ renderHome: false }).catch((error) => {
+        golfJoinSafeWarn("Failed to load compact golf join home products during home init.", error);
       }).finally(() => {
         homeInitialExternalProductsLoadedOnce = true;
       });
-      const bootstrapPromise = hydrateHomeBootstrapLightFromGoogleSheet().catch((error) => {
-        console.warn("Failed to load home bootstrap light data. Falling back to the stored home snapshot.", error);
+      const bootstrapPromise = hydrateHomeBootstrapLightFromGoogleSheet({ render: false }).catch((error) => {
+        golfJoinSafeWarn("Failed to load home bootstrap light data. Falling back to the stored home snapshot.", error);
         homeBootstrapSnapshotNeedsRefresh = true;
         return hydrateHomeBootstrapLightFromHomeCardsJson({ render: false }).then((snapshot) => {
           if (snapshot) return snapshot;
@@ -62640,7 +63715,7 @@
         await resumeJoinExternalDeepLink();
         await resumeJoinKakaoProfileAfterLogin();
       }).catch(async (error) => {
-        console.warn("Failed to hydrate join sheet data.", error);
+        golfJoinSafeWarn("Failed to hydrate join sheet data.", error);
         await earlyProfileRequirementPromise;
         await earlyAfterLoginResumePromise;
         if (!earlyAfterLoginResumeHandled) {
@@ -62649,19 +63724,28 @@
         await resumeJoinExternalDeepLink();
         await resumeJoinKakaoProfileAfterLogin();
       }).finally(() => {
+        markGolfJoinPerformanceOnce(
+          "golfjoin:boot:bootstrap-settled",
+          "golfjoin:duration:home-bootstrap",
+          "golfjoin:boot:start"
+        );
         homeBootstrapLoading = false;
         if (startupAfterLogin) closeHomeInitialLoading();
-        scheduleHomeRender();
       });
+      const initialHomeDataRenderPromise = Promise.all([homeProductsPromise, bootstrapPromise])
+        .finally(() => {
+          scheduleHomeRender({ deferWhileModalOpen: true });
+        });
       scheduleHomeSecondaryHydration(bootstrapPromise);
       void bootstrapPromise;
       void homeProductsPromise;
+      void initialHomeDataRenderPromise;
       await resumeJoinExternalDeepLink();
       await startupProfilePromptPromise;
     }
 
     initializeGolfJoinHome().catch((error) => {
-      console.warn("Failed to initialize golf join home.", error);
+      golfJoinSafeWarn("Failed to initialize golf join home.", error);
       homeInitialExternalProductsLoading = false;
       homeInitialExternalProductsLoadedOnce = true;
       homeBootstrapLoading = false;

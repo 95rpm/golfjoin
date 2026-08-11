@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/product-detail-index-v1.schema.json",
+  "title": "GolfJoin product detail release index v1",
+  "type": "object",
+  "required": ["schema", "generatedAt", "detailRevision", "status", "count", "items"],
+  "properties": {
+    "schema": { "const": "secret-golf-join-product-detail-index-v1" },
+    "generatedAt": { "type": "string", "minLength": 1 },
+    "detailRevision": { "type": "string", "pattern": "^gpdi_[a-f0-9]{24}$" },
+    "status": { "enum": ["legacy-on-demand", "partial", "ready"] },
+    "count": { "type": "integer", "minimum": 0 },
+    "items": { "type": "array" }
+  }
+}

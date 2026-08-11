@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "baselineFile": "golfjoin_main.html",
+  "baselineSha256": "B6D09D1AA648D567BBF0BB5CCBF4A98D9EA653E1648C28318C56596080C773FA",
+  "baselineBytes": 2767496,
+  "sourceOrder": [
+    "source/shell/00-preamble.html",
+    "source/styles/10-main.css",
+    "source/markup/20-main.html",
+    "source/scripts/store/30-state-and-presets.js",
+    "source/scripts/performance/31-diagnostics.js",
+    "source/scripts/store/32-runtime-state-and-guards.js",
+    "source/scripts/loading/33-loading-and-modal-layer.js",
+    "source/scripts/member/34-member-auth-profile-wishes.js",
+    "source/scripts/data/35-home-bootstrap.js",
+    "source/scripts/member/36-member-reservations-deeplinks.js",
+    "source/scripts/detail/37-detail-builder-calendar.js",
+    "source/scripts/sections/38-home-sections.js",
+    "source/scripts/detail/39-detail-actions-participants.js",
+    "source/scripts/boot/40-initialize.js",
+    "source/shell/40-suffix.html"
+  ],
+  "fragments": [
+    {
+      "path": "source/shell/00-preamble.html",
+      "bytes": 4791,
+      "sha256": "DEAE43ED335069A61006941726124B1088EDE29742A12D12ECB987A0C0D1B0A2"
+    },
+    {
+      "path": "source/styles/10-main.css",
+      "bytes": 851540,
+      "sha256": "91AB5911D8E945C520A548B963A13BF82921A78C566C3FF6EEE6FEDAC592508B"
+    },
+    {
+      "path": "source/markup/20-main.html",
+      "bytes": 183245,
+      "sha256": "BE9AF3EC055FCAEAA18A8D8A44F786DB509D15EE7C1DB47D74ACA35226FC1EE6"
+    },
+    {
+      "path": "source/scripts/store/30-state-and-presets.js",
+      "bytes": 30429,
+      "sha256": "4D7E9EFE416F5C3FD6EEED23F050773CE8B976AD0B21F0195FAA5137AF608F76"
+    },
+    {
+      "path": "source/scripts/performance/31-diagnostics.js",
+      "bytes": 10849,
+      "sha256": "E642BD2669899974D9CFC04EB58D9BC301690A70387E2B5B45BBA997C08257CC"
+    },
+    {
+      "path": "source/scripts/store/32-runtime-state-and-guards.js",
+      "bytes": 8898,
+      "sha256": "6C023C273E7F44315509A7394BE94DD2A1F6A5BB0F4E70A6625FF0EDB11A219C"
+    },
+    {
+      "path": "source/scripts/loading/33-loading-and-modal-layer.js",
+      "bytes": 29527,
+      "sha256": "C04A9D09ECF5E6246D496BDD144791F93BBBD0FA1072B6EAF1BE2911227AB643"
+    },
+    {
+      "path": "source/scripts/member/34-member-auth-profile-wishes.js",
+      "bytes": 222237,
+      "sha256": "7C323F8596EFCCDEA15D93756CA269408E5165AF8DC7ED74A8054CBC10320613"
+    },
+    {
+      "path": "source/scripts/data/35-home-bootstrap.js",
+      "bytes": 18831,
+      "sha256": "E19F2961853814468060B88773596171662D7C33DC4E2E98E16F385799E3BE6A"
+    },
+    {
+      "path": "source/scripts/member/36-member-reservations-deeplinks.js",
+      "bytes": 293374,
+      "sha256": "106EDFC6D10DF0B826D6E2CA3C8730C71941F4294A2CF558549648C6C46A7916"
+    },
+    {
+      "path": "source/scripts/detail/37-detail-builder-calendar.js",
+      "bytes": 792941,
+      "sha256": "0E88B0E98CA1A479B878BAF1F1FE712256FEAD2E4E01C6B4F645A62910C46874"
+    },
+    {
+      "path": "source/scripts/sections/38-home-sections.js",
+      "bytes": 153809,
+      "sha256": "2CF2BEA6AC7D2C2417C1D3C71E809EEAC6854C54A81B1D2B7AE367F88F02177A"
+    },
+    {
+      "path": "source/scripts/detail/39-detail-actions-participants.js",
+      "bytes": 82919,
+      "sha256": "01E8125D41C5B5748D936D6E93017C8E59F9DEFAB036B522E37E4F5AD15728BC"
+    },
+    {
+      "path": "source/scripts/boot/40-initialize.js",
+      "bytes": 7296,
+      "sha256": "3995D87666135FE7A3E9D2ABE13DACFBCE3FAFA8F4C2D2C6CFC9F11A4FF430F7"
+    },
+    {
+      "path": "source/shell/40-suffix.html",
+      "bytes": 76810,
+      "sha256": "9E94F0B262E63960FD88737BF7722269462E328DF69E356058AAB57BF3AFC861"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "golfjoin-quality-gates",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "home:source:init": "node tools/golfjoin-main/source-bundle.js init",
+    "home:source:migrate-diagnostics": "node tools/golfjoin-main/source-bundle.js migrate-diagnostics",
+    "home:source:migrate-loading": "node tools/golfjoin-main/source-bundle.js migrate-loading",
+    "home:source:migrate-member-home-data": "node tools/golfjoin-main/source-bundle.js migrate-member-home-data",
+    "home:source:migrate-member-reservations": "node tools/golfjoin-main/source-bundle.js migrate-member-reservations",
+    "home:source:migrate-detail-sections-boot": "node tools/golfjoin-main/source-bundle.js migrate-detail-sections-boot",
+    "home:source:migrate-store": "node tools/golfjoin-main/source-bundle.js migrate-store",
+    "home:source:inventory": "node tools/golfjoin-main/inventory.js",
+    "home:source:verify": "node tools/golfjoin-main/source-bundle.js verify",
+    "home:build": "node tools/golfjoin-main/source-bundle.js build",
+    "diagnose:e2e:mobile-scroll": "node tests/e2e/diagnostics/mobile-scroll-restore-diagnostic.js",
+    "diagnose:e2e:product-reads": "node tests/e2e/diagnostics/product-read-observation.js",
+    "diagnose:e2e:three-run-vitals": "node tests/e2e/diagnostics/deployed-three-run-vitals.js",
+    "diagnose:e2e:performance-trace": "node tests/e2e/diagnostics/deployed-performance-trace.js",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:e2e:diagnostics": "playwright test --config=tests/e2e/diagnostics.config.js",
+    "test:e2e:diagnostics:production": "playwright test --config=tests/e2e/production-diagnostics.config.js",
+    "test:e2e:fallback": "playwright test --config=tests/e2e/fallback.config.js",
+    "test:e2e:member": "playwright test --config=tests/e2e/member.config.js",
+    "test:e2e:participant": "playwright test --config=tests/e2e/participation.config.js",
+    "test:e2e:smoke": "playwright test --config=tests/e2e/playwright.config.js",
+    "test:e2e:smoke:headed": "playwright test --config=tests/e2e/playwright.config.js --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

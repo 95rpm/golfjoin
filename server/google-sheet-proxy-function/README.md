@@ -112,6 +112,21 @@ Product family administration (server foundation):
 - Member rows are appended before the master revision. A partial write without the final master row is ignored when the committed state is read.
 - Public product cards do not consume the manifest until the main-page family integration is deployed.
 
+Atomic Release manifest V2 (admin-only, browser OFF):
+
+- `GET ?action=admin_release_v2_status` verifies the active root manifest and all five referenced objects, then returns only revision and verification metadata.
+- `POST ?action=admin_release_v2_publish` reads the current home products, public live member summary, and published product-family catalog. It writes immutable content-hash objects first, verifies their bytes, SHA-256, JSON metadata and shared snapshot stamp, writes an immutable archive manifest, and switches `web/release-manifest-v2.json` last.
+- `POST ?action=admin_release_v2_rollback` requires `{ "targetReleaseRevision": "gjr_..." }`. It verifies the archived target and all referenced objects before switching the root with a GCS generation precondition.
+- All three actions require the existing admin credentials. Publish and rollback also use the product-family distributed lock.
+- The root and archived manifests always contain `browserReadEnabled: false`. The current main HTML has no code that reads this root, so publishing V2 cannot change customer-visible data in this phase.
+- `staticRevision`, `liveRevision`, `familyRevision`, `availabilityRevision`, and `detailRevision` are separate. A live participant update therefore does not force the static home-card or availability revision to change.
+- The current detail index explicitly reports `legacy-on-demand`; it does not claim that legacy product details have already been pre-published. Detail snapshot publication is handled in the later detail phase.
+- Existing `refresh_secret_tour_products`, schedule writes, and background home refreshes do not publish V2 automatically. An administrator must explicitly call the publish action.
+- Safe CLI examples read `ADMIN_READ_TOKEN` from the existing env YAML without printing it:
+  - Status: `node release-admin-cli.js status --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
+  - Publish: `node release-admin-cli.js publish --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
+  - Rollback: `node release-admin-cli.js rollback --target=gjr_... --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
+
 Alimtalk:
 
 - `new_schedule_builder` and `join_apply` writes send Alimtalk after the Google Sheet write succeeds.

@@ -1,0 +1,4544 @@
+{
+  "events": 407009,
+  "mainThread": {
+    "pid": 29796,
+    "tid": 9788
+  },
+  "golfjoinApiTimeline": [
+    {
+      "label": "golfjoin-sheet-api?action=home_bootstrap_light",
+      "method": "POST",
+      "status": 200,
+      "startMs": 1554.725,
+      "responseMs": 1812.058,
+      "finishMs": 1824.067
+    },
+    {
+      "label": "golfjoin-sheet-api?sheet=new_schedule_applications",
+      "method": "GET",
+      "status": 200,
+      "startMs": 10554.457,
+      "responseMs": 11191.794,
+      "finishMs": 11197.862
+    },
+    {
+      "label": "golfjoin-sheet-api?sheet=new_schedule_applications&member=1",
+      "method": "GET",
+      "status": 200,
+      "startMs": 10554.743,
+      "responseMs": 11705.401,
+      "finishMs": 11706.03
+    },
+    {
+      "label": "golfjoin-sheet-api?sheet=join_applications&member=1",
+      "method": "GET",
+      "status": 200,
+      "startMs": 11753.368,
+      "responseMs": 12220.063,
+      "finishMs": 12220.601
+    },
+    {
+      "label": "golfjoin-sheet-api?action=join_wishes_lookup",
+      "method": "POST",
+      "status": 200,
+      "startMs": 12254.632,
+      "responseMs": 12879.357,
+      "finishMs": 12880.096
+    },
+    {
+      "label": "golfjoin-sheet-api?action=home_stats",
+      "method": "POST",
+      "status": 200,
+      "startMs": 12905.704,
+      "responseMs": 13820.587,
+      "finishMs": 13857.09
+    },
+    {
+      "label": "golfjoin-sheet-api?sheet=new_schedule_applications",
+      "method": "GET",
+      "status": 200,
+      "startMs": 41671.932,
+      "responseMs": 42153.37,
+      "finishMs": 42155.978
+    },
+    {
+      "label": "golfjoin-sheet-api?sheet=new_schedule_applications&member=1",
+      "method": "GET",
+      "status": 200,
+      "startMs": 41672.139,
+      "responseMs": 42773.526,
+      "finishMs": 42778.035
+    },
+    {
+      "label": "golfjoin-sheet-api?sheet=join_applications&member=1",
+      "method": "GET",
+      "status": 200,
+      "startMs": 41678.678,
+      "responseMs": 42885.454,
+      "finishMs": 42886.763
+    }
+  ],
+  "apiProcessingGap": null,
+  "longTasks": {
+    "count": 18,
+    "totalDurationMs": 21657.232999999997,
+    "maxDurationMs": 4389.266,
+    "tasks": [
+      {
+        "startMs": 227.998,
+        "durationMs": 66.743,
+        "eventBreakdownMs": {
+          "RunTask": 66.743,
+          "ParseHTML": 66.735,
+          "v8::Debugger::AsyncTaskRun": 65.66600000000001,
+          "EvaluateScript": 65.06500000000001,
+          "ScriptCompiled": 55.851,
+          "v8.run": 55.461,
+          "Layout": 29.022000000000002,
+          "LocalFrameView::performLayout": 28.945,
+          "v8.compile": 9.065000000000001,
+          "UpdateLayoutTree": 2.823,
+          "MinorGC": 1.03,
+          "V8.GCScavenger": 0.995,
+          "V8.GC_SCAVENGER": 0.987,
+          "V8.GC_SCAVENGER_SCAVENGE": 0.976,
+          "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE": 0.728,
+          "StubScriptCatchup": 0.6810000000000002,
+          "V8.StackGuard": 0.43900000000000017,
+          "V8.HandleInterrupts": 0.41300000000000014,
+          "v8.produceCache": 0.24999999999999997,
+          "V8.BytecodeBudgetInterrupt": 0.12300000000000003,
+          "v8.newInstance": 0.07300000000000001,
+          "V8.BytecodeBudgetInterruptWithStackCheck": 0.068,
+          "ScriptCatchup": 0.060000000000000026,
+          "V8.GC_SCAVENGER_SCAVENGE_FINALIZE": 0.06,
+          "v8::Debugger::AsyncTaskScheduled": 0.056000000000000015,
+          "v8::Debugger::AsyncTaskCanceled": 0.055000000000000014,
+          "V8.GC_SCAVENGER_SCAVENGE_ROOTS": 0.054,
+          "EventDispatch": 0.04500000000000001,
+          "V8.GC_SCAVENGER_FREE_REMEMBERED_SET": 0.044,
+          "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES": 0.041
+        },
+        "topFunctionCalls": [],
+        "topEvents": [
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 228,
+            "durationMs": 66.618,
+            "overlapMs": 66.618
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 237.644,
+            "durationMs": 38.342,
+            "overlapMs": 38.342
+          },
+          {
+            "name": "EvaluateScript",
+            "detail": "m.secret-tour.com/asp/js/lib/TweenMax.min.js",
+            "startMs": 237.666,
+            "durationMs": 38.279,
+            "overlapMs": 38.279
+          },
+          {
+            "name": "ScriptCompiled",
+            "detail": "",
+            "startMs": 238.286,
+            "durationMs": 37.659,
+            "overlapMs": 37.659
+          },
+          {
+            "name": "v8.run",
+            "detail": "",
+            "startMs": 238.297,
+            "durationMs": 37.591,
+            "overlapMs": 37.591
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 244.535,
+            "durationMs": 28.981,
+            "overlapMs": 28.981
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 244.589,
+            "durationMs": 28.922,
+            "overlapMs": 28.922
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 280.168,
+            "durationMs": 13.139,
+            "overlapMs": 13.139
+          },
+          {
+            "name": "EvaluateScript",
+            "detail": "m.secret-tour.com/asp/js/lib/ckeditor/ckeditor.js",
+            "startMs": 280.18,
+            "durationMs": 13.081,
+            "overlapMs": 13.081
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 228.142,
+            "durationMs": 9.353,
+            "overlapMs": 9.353
+          },
+          {
+            "name": "EvaluateScript",
+            "detail": "m.secret-tour.com/asp/js/lib/jquery-ui.min.js",
+            "startMs": 228.173,
+            "durationMs": 9.278,
+            "overlapMs": 9.278
+          },
+          {
+            "name": "ScriptCompiled",
+            "detail": "",
+            "startMs": 285.29,
+            "durationMs": 7.971,
+            "overlapMs": 7.971
+          },
+          {
+            "name": "v8.run",
+            "detail": "",
+            "startMs": 285.304,
+            "durationMs": 7.929,
+            "overlapMs": 7.929
+          },
+          {
+            "name": "ScriptCompiled",
+            "detail": "",
+            "startMs": 230.07,
+            "durationMs": 7.381,
+            "overlapMs": 7.381
+          },
+          {
+            "name": "v8.run",
+            "detail": "",
+            "startMs": 230.084,
+            "durationMs": 7.333,
+            "overlapMs": 7.333
+          },
+          {
+            "name": "v8.compile",
+            "detail": "",
+            "startMs": 280.19,
+            "durationMs": 5.096,
+            "overlapMs": 5.096
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 241.784,
+            "durationMs": 2.742,
+            "overlapMs": 2.742
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 277.48,
+            "durationMs": 1.975,
+            "overlapMs": 1.975
+          },
+          {
+            "name": "EvaluateScript",
+            "detail": "m.secret-tour.com/asp/js/lib/mask/jquery.mask.js",
+            "startMs": 277.487,
+            "durationMs": 1.94,
+            "overlapMs": 1.94
+          },
+          {
+            "name": "v8.compile",
+            "detail": "",
+            "startMs": 228.187,
+            "durationMs": 1.879,
+            "overlapMs": 1.879
+          },
+          {
+            "name": "ScriptCompiled",
+            "detail": "",
+            "startMs": 277.746,
+            "durationMs": 1.681,
+            "overlapMs": 1.681
+          },
+          {
+            "name": "v8.run",
+            "detail": "",
+            "startMs": 277.755,
+            "durationMs": 1.644,
+            "overlapMs": 1.644
+          },
+          {
+            "name": "MinorGC",
+            "detail": "",
+            "startMs": 236.112,
+            "durationMs": 1.03,
+            "overlapMs": 1.03
+          },
+          {
+            "name": "V8.GCScavenger",
+            "detail": "",
+            "startMs": 236.116,
+            "durationMs": 0.995,
+            "overlapMs": 0.995
+          },
+          {
+            "name": "V8.GC_SCAVENGER",
+            "detail": "",
+            "startMs": 236.122,
+            "durationMs": 0.987,
+            "overlapMs": 0.987
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE",
+            "detail": "",
+            "startMs": 236.128,
+            "durationMs": 0.976,
+            "overlapMs": 0.976
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+            "detail": "",
+            "startMs": 236.214,
+            "durationMs": 0.728,
+            "overlapMs": 0.728
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 293.729,
+            "durationMs": 0.694,
+            "overlapMs": 0.694
+          },
+          {
+            "name": "EvaluateScript",
+            "detail": "m.secret-tour.com/asp/js/lib/mask/jquery.mask.min.js",
+            "startMs": 293.746,
+            "durationMs": 0.656,
+            "overlapMs": 0.656
+          },
+          {
+            "name": "v8.compile",
+            "detail": "",
+            "startMs": 237.681,
+            "durationMs": 0.603,
+            "overlapMs": 0.603
+          }
+        ]
+      },
+      {
+        "startMs": 1147.37,
+        "durationMs": 70.584,
+        "eventBreakdownMs": {
+          "RunTask": 70.584,
+          "Layout": 49.896,
+          "LocalFrameView::performLayout": 49.887,
+          "Commit": 16.64,
+          "UpdateLayoutTree": 3.202,
+          "Paint": 0.142,
+          "PageAnimator::serviceScriptedAnimations": 0.139,
+          "FireAnimationFrame": 0.129,
+          "v8::Debugger::AsyncTaskRun": 0.121,
+          "v8.callFunction": 0.11,
+          "FunctionCall": 0.088,
+          "PrePaint": 0.08,
+          "BeginRemoteFontLoad": 0.07,
+          "Layerize": 0.044,
+          "PaintImage": 0.033,
+          "ResourceChangePriority": 0.016,
+          "RenderFrameImpl::DidObserveNewFeatureUsage": 0.009000000000000001,
+          "v8::Debugger::AsyncTaskScheduled": 0.004,
+          "UpdateLayer": 0.004,
+          "v8::Debugger::AsyncTaskCanceled": 0.001
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "r",
+            "script": "m.secret-tour.com/asp/js/lib/TweenMax.min.js",
+            "line": 17,
+            "column": 23264,
+            "durationMs": 0.088,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 1150.748,
+            "durationMs": 49.896,
+            "overlapMs": 49.896
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 1150.753,
+            "durationMs": 49.887,
+            "overlapMs": 49.887
+          },
+          {
+            "name": "Commit",
+            "detail": "",
+            "startMs": 1201.226,
+            "durationMs": 16.64,
+            "overlapMs": 16.64
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1147.539,
+            "durationMs": 3.202,
+            "overlapMs": 3.202
+          },
+          {
+            "name": "Paint",
+            "detail": "",
+            "startMs": 1200.822,
+            "durationMs": 0.142,
+            "overlapMs": 0.142
+          },
+          {
+            "name": "PageAnimator::serviceScriptedAnimations",
+            "detail": "",
+            "startMs": 1147.391,
+            "durationMs": 0.139,
+            "overlapMs": 0.139
+          },
+          {
+            "name": "FireAnimationFrame",
+            "detail": "",
+            "startMs": 1147.399,
+            "durationMs": 0.129,
+            "overlapMs": 0.129
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 1147.404,
+            "durationMs": 0.121,
+            "overlapMs": 0.121
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 1147.414,
+            "durationMs": 0.11,
+            "overlapMs": 0.11
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "r@17:23264",
+            "startMs": 1147.415,
+            "durationMs": 0.088,
+            "overlapMs": 0.088
+          },
+          {
+            "name": "PrePaint",
+            "detail": "",
+            "startMs": 1200.717,
+            "durationMs": 0.08,
+            "overlapMs": 0.08
+          },
+          {
+            "name": "BeginRemoteFontLoad",
+            "detail": "",
+            "startMs": 1150.622,
+            "durationMs": 0.07,
+            "overlapMs": 0.07
+          },
+          {
+            "name": "Layerize",
+            "detail": "",
+            "startMs": 1201.054,
+            "durationMs": 0.044,
+            "overlapMs": 0.044
+          },
+          {
+            "name": "PaintImage",
+            "detail": "",
+            "startMs": 1200.918,
+            "durationMs": 0.033,
+            "overlapMs": 0.033
+          },
+          {
+            "name": "ResourceChangePriority",
+            "detail": "",
+            "startMs": 1200.669,
+            "durationMs": 0.012,
+            "overlapMs": 0.012
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskScheduled",
+            "detail": "",
+            "startMs": 1147.472,
+            "durationMs": 0.004,
+            "overlapMs": 0.004
+          },
+          {
+            "name": "RenderFrameImpl::DidObserveNewFeatureUsage",
+            "detail": "",
+            "startMs": 1150.048,
+            "durationMs": 0.004,
+            "overlapMs": 0.004
+          },
+          {
+            "name": "UpdateLayer",
+            "detail": "",
+            "startMs": 1201.235,
+            "durationMs": 0.004,
+            "overlapMs": 0.004
+          },
+          {
+            "name": "ResourceChangePriority",
+            "detail": "",
+            "startMs": 1200.685,
+            "durationMs": 0.003,
+            "overlapMs": 0.003
+          },
+          {
+            "name": "RenderFrameImpl::DidObserveNewFeatureUsage",
+            "detail": "",
+            "startMs": 1150.532,
+            "durationMs": 0.002,
+            "overlapMs": 0.002
+          },
+          {
+            "name": "RenderFrameImpl::DidObserveNewFeatureUsage",
+            "detail": "",
+            "startMs": 1200.699,
+            "durationMs": 0.002,
+            "overlapMs": 0.002
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskCanceled",
+            "detail": "",
+            "startMs": 1147.526,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          },
+          {
+            "name": "RenderFrameImpl::DidObserveNewFeatureUsage",
+            "detail": "",
+            "startMs": 1147.565,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          },
+          {
+            "name": "ResourceChangePriority",
+            "detail": "",
+            "startMs": 1200.696,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          }
+        ]
+      },
+      {
+        "startMs": 1238.077,
+        "durationMs": 122.125,
+        "eventBreakdownMs": {
+          "RunTask": 122.125,
+          "Layout": 95.276,
+          "LocalFrameView::performLayout": 95.197,
+          "UpdateLayoutTree": 23.751,
+          "PrePaint": 1.018,
+          "Paint": 0.9369999999999999,
+          "FrameLoader::CommitDocumentLoader": 0.5700000000000001,
+          "DocumentLoader::CommitNavigation": 0.501,
+          "v8::Debugger::AsyncTaskRun": 0.3870000000000001,
+          "RunMicrotasks": 0.373,
+          "Layerize": 0.214,
+          "Commit": 0.205,
+          "PaintImage": 0.201,
+          "DocumentLoader::StartLoadingResponse": 0.163,
+          "DocumentLoader::FinishedLoading": 0.126,
+          "PageAnimator::serviceScriptedAnimations": 0.106,
+          "DecodedDataDocumentParser::AppendBytes": 0.098,
+          "FireAnimationFrame": 0.091,
+          "IntersectionObserverController::computeIntersections": 0.077,
+          "v8.callFunction": 0.074,
+          "DocumentLoader::InitializeWindow": 0.07,
+          "FunctionCall": 0.054,
+          "ParseHTML": 0.045,
+          "v8::Debugger::AsyncTaskScheduled": 0.042000000000000016,
+          "v8::Debugger::AsyncTaskCanceled": 0.04100000000000002,
+          "DocumentLoader::CreateParserPostCommit": 0.035,
+          "DocumentLoader::DidInstallNewDocument": 0.03,
+          "ScrollLayer": 0.022,
+          "RenderFrameImpl::DidObserveNewFeatureUsage": 0.019000000000000003,
+          "LocalFrame": 0.019
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "r",
+            "script": "m.secret-tour.com/asp/js/lib/TweenMax.min.js",
+            "line": 17,
+            "column": 23264,
+            "durationMs": 0.054,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 1262.047,
+            "durationMs": 95.195,
+            "overlapMs": 95.195
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 1262.069,
+            "durationMs": 95.142,
+            "overlapMs": 95.142
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1238.416,
+            "durationMs": 23.625,
+            "overlapMs": 23.625
+          },
+          {
+            "name": "PrePaint",
+            "detail": "",
+            "startMs": 1357.338,
+            "durationMs": 0.974,
+            "overlapMs": 0.974
+          },
+          {
+            "name": "Paint",
+            "detail": "",
+            "startMs": 1358.436,
+            "durationMs": 0.695,
+            "overlapMs": 0.695
+          },
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 1359.65,
+            "durationMs": 0.373,
+            "overlapMs": 0.373
+          },
+          {
+            "name": "FrameLoader::CommitDocumentLoader",
+            "detail": "",
+            "startMs": 1242.727,
+            "durationMs": 0.318,
+            "overlapMs": 0.318
+          },
+          {
+            "name": "DocumentLoader::CommitNavigation",
+            "detail": "",
+            "startMs": 1242.731,
+            "durationMs": 0.287,
+            "overlapMs": 0.287
+          },
+          {
+            "name": "FrameLoader::CommitDocumentLoader",
+            "detail": "",
+            "startMs": 1244.438,
+            "durationMs": 0.252,
+            "overlapMs": 0.252
+          },
+          {
+            "name": "DocumentLoader::CommitNavigation",
+            "detail": "",
+            "startMs": 1244.441,
+            "durationMs": 0.214,
+            "overlapMs": 0.214
+          },
+          {
+            "name": "Layerize",
+            "detail": "",
+            "startMs": 1359.186,
+            "durationMs": 0.214,
+            "overlapMs": 0.214
+          },
+          {
+            "name": "Commit",
+            "detail": "",
+            "startMs": 1359.43,
+            "durationMs": 0.205,
+            "overlapMs": 0.205
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 1359.656,
+            "durationMs": 0.197,
+            "overlapMs": 0.197
+          },
+          {
+            "name": "Paint",
+            "detail": "",
+            "startMs": 1358.964,
+            "durationMs": 0.128,
+            "overlapMs": 0.128
+          },
+          {
+            "name": "Paint",
+            "detail": "",
+            "startMs": 1358.823,
+            "durationMs": 0.114,
+            "overlapMs": 0.114
+          },
+          {
+            "name": "PageAnimator::serviceScriptedAnimations",
+            "detail": "",
+            "startMs": 1238.098,
+            "durationMs": 0.106,
+            "overlapMs": 0.106
+          },
+          {
+            "name": "DocumentLoader::StartLoadingResponse",
+            "detail": "",
+            "startMs": 1242.917,
+            "durationMs": 0.1,
+            "overlapMs": 0.1
+          },
+          {
+            "name": "FireAnimationFrame",
+            "detail": "",
+            "startMs": 1238.111,
+            "durationMs": 0.091,
+            "overlapMs": 0.091
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 1238.115,
+            "durationMs": 0.084,
+            "overlapMs": 0.084
+          },
+          {
+            "name": "DocumentLoader::FinishedLoading",
+            "detail": "",
+            "startMs": 1242.938,
+            "durationMs": 0.078,
+            "overlapMs": 0.078
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 1238.124,
+            "durationMs": 0.074,
+            "overlapMs": 0.074
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1243.187,
+            "durationMs": 0.074,
+            "overlapMs": 0.074
+          },
+          {
+            "name": "IntersectionObserverController::computeIntersections",
+            "detail": "",
+            "startMs": 1359.501,
+            "durationMs": 0.073,
+            "overlapMs": 0.073
+          },
+          {
+            "name": "DocumentLoader::StartLoadingResponse",
+            "detail": "",
+            "startMs": 1244.59,
+            "durationMs": 0.063,
+            "overlapMs": 0.063
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 1243.288,
+            "durationMs": 0.059,
+            "overlapMs": 0.059
+          },
+          {
+            "name": "DecodedDataDocumentParser::AppendBytes",
+            "detail": "",
+            "startMs": 1243.113,
+            "durationMs": 0.056,
+            "overlapMs": 0.056
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "r@17:23264",
+            "startMs": 1238.125,
+            "durationMs": 0.054,
+            "overlapMs": 0.054
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1244.806,
+            "durationMs": 0.052,
+            "overlapMs": 0.052
+          },
+          {
+            "name": "DocumentLoader::InitializeWindow",
+            "detail": "",
+            "startMs": 1244.441,
+            "durationMs": 0.048,
+            "overlapMs": 0.048
+          },
+          {
+            "name": "DocumentLoader::FinishedLoading",
+            "detail": "",
+            "startMs": 1244.605,
+            "durationMs": 0.048,
+            "overlapMs": 0.048
+          }
+        ]
+      },
+      {
+        "startMs": 1363.652,
+        "durationMs": 66.607,
+        "eventBreakdownMs": {
+          "ParseHTML": 66.836,
+          "v8::Debugger::AsyncTaskRun": 66.75999999999999,
+          "RunTask": 66.607,
+          "EvaluateScript": 66.48,
+          "ScriptCompiled": 39.746,
+          "v8.run": 39.72,
+          "v8.compile": 26.718,
+          "UpdateLayoutTree": 3.609,
+          "StubScriptCatchup": 1.096,
+          "Layout": 0.6709999999999999,
+          "LocalFrameView::performLayout": 0.534,
+          "RunMicrotasks": 0.456,
+          "V8.StackGuard": 0.146,
+          "V8.HandleInterrupts": 0.142,
+          "V8.BytecodeBudgetInterrupt": 0.07500000000000001,
+          "RenderFrameImpl::DidObserveNewFeatureUsage": 0.03700000000000002,
+          "v8.newInstance": 0.031,
+          "v8::Debugger::AsyncTaskScheduled": 0.026000000000000002,
+          "v8::Debugger::AsyncTaskCanceled": 0.009000000000000001,
+          "PrePaint": 0.008,
+          "V8StackTraceImpl::capture": 0.008,
+          "ScriptCatchup": 0.005,
+          "V8.BytecodeBudgetInterruptWithStackCheck": 0.001,
+          "v8.produceCache": 0.001
+        },
+        "topFunctionCalls": [],
+        "topEvents": [
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 1363.654,
+            "durationMs": 66.532,
+            "overlapMs": 66.532
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 1363.676,
+            "durationMs": 66.502,
+            "overlapMs": 66.502
+          },
+          {
+            "name": "EvaluateScript",
+            "detail": "m.secret-tour.com/event/plan_view",
+            "startMs": 1363.681,
+            "durationMs": 66.48,
+            "overlapMs": 66.48
+          },
+          {
+            "name": "ScriptCompiled",
+            "detail": "",
+            "startMs": 1390.415,
+            "durationMs": 39.746,
+            "overlapMs": 39.746
+          },
+          {
+            "name": "v8.run",
+            "detail": "",
+            "startMs": 1390.438,
+            "durationMs": 39.72,
+            "overlapMs": 39.72
+          },
+          {
+            "name": "v8.compile",
+            "detail": "",
+            "startMs": 1363.689,
+            "durationMs": 26.718,
+            "overlapMs": 26.718
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1391.866,
+            "durationMs": 2.436,
+            "overlapMs": 2.436
+          },
+          {
+            "name": "StubScriptCatchup",
+            "detail": "",
+            "startMs": 1387.276,
+            "durationMs": 0.901,
+            "overlapMs": 0.901
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1399.114,
+            "durationMs": 0.522,
+            "overlapMs": 0.522
+          },
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 1429.699,
+            "durationMs": 0.456,
+            "overlapMs": 0.456
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1395.542,
+            "durationMs": 0.332,
+            "overlapMs": 0.332
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1397.858,
+            "durationMs": 0.276,
+            "overlapMs": 0.276
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 1399.64,
+            "durationMs": 0.241,
+            "overlapMs": 0.241
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 1399.675,
+            "durationMs": 0.204,
+            "overlapMs": 0.204
+          },
+          {
+            "name": "StubScriptCatchup",
+            "detail": "",
+            "startMs": 1390.08,
+            "durationMs": 0.195,
+            "overlapMs": 0.195
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 1429.704,
+            "durationMs": 0.193,
+            "overlapMs": 0.193
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 1398.138,
+            "durationMs": 0.173,
+            "overlapMs": 0.173
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 1394.307,
+            "durationMs": 0.156,
+            "overlapMs": 0.156
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 1398.176,
+            "durationMs": 0.134,
+            "overlapMs": 0.134
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 1394.335,
+            "durationMs": 0.126,
+            "overlapMs": 0.126
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 1390.505,
+            "durationMs": 0.121,
+            "overlapMs": 0.121
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 1390.507,
+            "durationMs": 0.118,
+            "overlapMs": 0.118
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 1398.593,
+            "durationMs": 0.101,
+            "overlapMs": 0.101
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 1428.951,
+            "durationMs": 0.089,
+            "overlapMs": 0.089
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 1398.623,
+            "durationMs": 0.07,
+            "overlapMs": 0.07
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 1429.904,
+            "durationMs": 0.065,
+            "overlapMs": 0.065
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 1429.361,
+            "durationMs": 0.06,
+            "overlapMs": 0.06
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 1396.58,
+            "durationMs": 0.056,
+            "overlapMs": 0.056
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1398.547,
+            "durationMs": 0.043,
+            "overlapMs": 0.043
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 1396.854,
+            "durationMs": 0.034,
+            "overlapMs": 0.034
+          }
+        ]
+      },
+      {
+        "startMs": 1677.224,
+        "durationMs": 53.358,
+        "eventBreakdownMs": {
+          "RunTask": 53.358,
+          "Layout": 50.179,
+          "LocalFrameView::performLayout": 50.128,
+          "UpdateLayoutTree": 1.121,
+          "Paint": 0.5710000000000001,
+          "Layerize": 0.415,
+          "Commit": 0.233,
+          "PrePaint": 0.138,
+          "PageAnimator::serviceScriptedAnimations": 0.136,
+          "FireAnimationFrame": 0.087,
+          "v8::Debugger::AsyncTaskRun": 0.081,
+          "v8.callFunction": 0.073,
+          "BeginRemoteFontLoad": 0.067,
+          "FunctionCall": 0.052,
+          "CppGC.IncrementalSweep": 0.027,
+          "IntersectionObserverController::computeIntersections": 0.017,
+          "UpdateLayer": 0.010000000000000002,
+          "V8.BytecodeBudgetInterrupt": 0.003,
+          "v8::Debugger::AsyncTaskScheduled": 0.003,
+          "v8::Debugger::AsyncTaskCanceled": 0.002
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "r",
+            "script": "m.secret-tour.com/asp/js/lib/TweenMax.min.js",
+            "line": 17,
+            "column": 23264,
+            "durationMs": 0.052,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 1678.583,
+            "durationMs": 50.179,
+            "overlapMs": 50.179
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 1678.629,
+            "durationMs": 50.128,
+            "overlapMs": 50.128
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 1677.454,
+            "durationMs": 1.121,
+            "overlapMs": 1.121
+          },
+          {
+            "name": "Paint",
+            "detail": "",
+            "startMs": 1729.193,
+            "durationMs": 0.553,
+            "overlapMs": 0.553
+          },
+          {
+            "name": "Layerize",
+            "detail": "",
+            "startMs": 1729.792,
+            "durationMs": 0.415,
+            "overlapMs": 0.415
+          },
+          {
+            "name": "Commit",
+            "detail": "",
+            "startMs": 1730.285,
+            "durationMs": 0.233,
+            "overlapMs": 0.233
+          },
+          {
+            "name": "PrePaint",
+            "detail": "",
+            "startMs": 1728.806,
+            "durationMs": 0.138,
+            "overlapMs": 0.138
+          },
+          {
+            "name": "PageAnimator::serviceScriptedAnimations",
+            "detail": "",
+            "startMs": 1677.248,
+            "durationMs": 0.136,
+            "overlapMs": 0.136
+          },
+          {
+            "name": "FireAnimationFrame",
+            "detail": "",
+            "startMs": 1677.295,
+            "durationMs": 0.087,
+            "overlapMs": 0.087
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 1677.299,
+            "durationMs": 0.081,
+            "overlapMs": 0.081
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 1677.305,
+            "durationMs": 0.073,
+            "overlapMs": 0.073
+          },
+          {
+            "name": "BeginRemoteFontLoad",
+            "detail": "",
+            "startMs": 1678.371,
+            "durationMs": 0.067,
+            "overlapMs": 0.067
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "r@17:23264",
+            "startMs": 1677.307,
+            "durationMs": 0.052,
+            "overlapMs": 0.052
+          },
+          {
+            "name": "CppGC.IncrementalSweep",
+            "detail": "",
+            "startMs": 1711.943,
+            "durationMs": 0.027,
+            "overlapMs": 0.027
+          },
+          {
+            "name": "Paint",
+            "detail": "",
+            "startMs": 1729.719,
+            "durationMs": 0.018,
+            "overlapMs": 0.018
+          },
+          {
+            "name": "IntersectionObserverController::computeIntersections",
+            "detail": "",
+            "startMs": 1730.497,
+            "durationMs": 0.014,
+            "overlapMs": 0.014
+          },
+          {
+            "name": "UpdateLayer",
+            "detail": "",
+            "startMs": 1730.295,
+            "durationMs": 0.004,
+            "overlapMs": 0.004
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 1677.316,
+            "durationMs": 0.003,
+            "overlapMs": 0.003
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskScheduled",
+            "detail": "",
+            "startMs": 1677.341,
+            "durationMs": 0.003,
+            "overlapMs": 0.003
+          },
+          {
+            "name": "IntersectionObserverController::computeIntersections",
+            "detail": "",
+            "startMs": 1728.945,
+            "durationMs": 0.003,
+            "overlapMs": 0.003
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskCanceled",
+            "detail": "",
+            "startMs": 1677.38,
+            "durationMs": 0.002,
+            "overlapMs": 0.002
+          },
+          {
+            "name": "UpdateLayer",
+            "detail": "",
+            "startMs": 1730.299,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          },
+          {
+            "name": "UpdateLayer",
+            "detail": "",
+            "startMs": 1730.3,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          },
+          {
+            "name": "UpdateLayer",
+            "detail": "",
+            "startMs": 1730.302,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          },
+          {
+            "name": "UpdateLayer",
+            "detail": "",
+            "startMs": 1730.304,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          },
+          {
+            "name": "UpdateLayer",
+            "detail": "",
+            "startMs": 1730.305,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          },
+          {
+            "name": "UpdateLayer",
+            "detail": "",
+            "startMs": 1730.307,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          }
+        ]
+      },
+      {
+        "startMs": 1830.373,
+        "durationMs": 3788.493,
+        "eventBreakdownMs": {
+          "RunTask": 3788.493,
+          "RunMicrotasks": 3788.375,
+          "MinorGC": 2.309,
+          "V8.GCScavenger": 2.189,
+          "V8.GC_SCAVENGER": 2.1270000000000002,
+          "V8.GC_SCAVENGER_SCAVENGE": 2.085,
+          "V8.HandleInterrupts": 1.912,
+          "V8.StackGuard": 1.819,
+          "ParseHTML": 1.813,
+          "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE": 1.395,
+          "V8.GC_SCAVENGER_SCAVENGE_PARALLEL": 0.79,
+          "V8.BytecodeBudgetInterrupt": 0.7520000000000004,
+          "v8::Debugger::AsyncTaskRun": 0.43900000000000006,
+          "v8.callFunction": 0.197,
+          "V8.GC_SCAVENGER_SCAVENGE_FINALIZE": 0.18400000000000002,
+          "V8.GC_SCAVENGER_SCAVENGE_ROOTS": 0.183,
+          "FunctionCall": 0.18,
+          "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES": 0.136,
+          "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY": 0.09,
+          "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS": 0.09,
+          "V8.GC_SCAVENGER_FREE_REMEMBERED_SET": 0.09,
+          "V8.BytecodeBudgetInterruptWithStackCheck": 0.077,
+          "V8.GC_HEAP_EXTERNAL_EPILOGUE": 0.06,
+          "v8::Debugger::AsyncTaskScheduled": 0.056000000000000015,
+          "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL": 0.033,
+          "v8::Debugger::AsyncTaskCanceled": 0.031000000000000017,
+          "V8.GC_MC_COMPLETE_SWEEP_ARRAY_BUFFERS": 0.027,
+          "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL": 0.018000000000000002,
+          "V8.GC_HEAP_EXTERNAL_PROLOGUE": 0.014,
+          "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED": 0.01
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.18,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 1830.378,
+            "durationMs": 3788.375,
+            "overlapMs": 3788.375
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 5613.85,
+            "durationMs": 1.787,
+            "overlapMs": 1.787
+          },
+          {
+            "name": "MinorGC",
+            "detail": "",
+            "startMs": 1875.536,
+            "durationMs": 1.154,
+            "overlapMs": 1.154
+          },
+          {
+            "name": "V8.GCScavenger",
+            "detail": "",
+            "startMs": 1875.54,
+            "durationMs": 1.125,
+            "overlapMs": 1.125
+          },
+          {
+            "name": "V8.GC_SCAVENGER",
+            "detail": "",
+            "startMs": 1875.575,
+            "durationMs": 1.086,
+            "overlapMs": 1.086
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE",
+            "detail": "",
+            "startMs": 1875.583,
+            "durationMs": 1.072,
+            "overlapMs": 1.072
+          },
+          {
+            "name": "MinorGC",
+            "detail": "",
+            "startMs": 3550.925,
+            "durationMs": 0.758,
+            "overlapMs": 0.758
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+            "detail": "",
+            "startMs": 1875.701,
+            "durationMs": 0.745,
+            "overlapMs": 0.745
+          },
+          {
+            "name": "V8.GCScavenger",
+            "detail": "",
+            "startMs": 3550.931,
+            "durationMs": 0.697,
+            "overlapMs": 0.697
+          },
+          {
+            "name": "V8.GC_SCAVENGER",
+            "detail": "",
+            "startMs": 3550.945,
+            "durationMs": 0.681,
+            "overlapMs": 0.681
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE",
+            "detail": "",
+            "startMs": 3550.954,
+            "durationMs": 0.667,
+            "overlapMs": 0.667
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+            "detail": "",
+            "startMs": 3551.037,
+            "durationMs": 0.459,
+            "overlapMs": 0.459
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+            "detail": "",
+            "startMs": 1875.851,
+            "durationMs": 0.397,
+            "overlapMs": 0.397
+          },
+          {
+            "name": "MinorGC",
+            "detail": "",
+            "startMs": 5613.387,
+            "durationMs": 0.397,
+            "overlapMs": 0.397
+          },
+          {
+            "name": "V8.GCScavenger",
+            "detail": "",
+            "startMs": 5613.392,
+            "durationMs": 0.367,
+            "overlapMs": 0.367
+          },
+          {
+            "name": "V8.GC_SCAVENGER",
+            "detail": "",
+            "startMs": 5613.397,
+            "durationMs": 0.36,
+            "overlapMs": 0.36
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE",
+            "detail": "",
+            "startMs": 5613.406,
+            "durationMs": 0.346,
+            "overlapMs": 0.346
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+            "detail": "",
+            "startMs": 3551.181,
+            "durationMs": 0.31,
+            "overlapMs": 0.31
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 5617.92,
+            "durationMs": 0.218,
+            "overlapMs": 0.218
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 5617.939,
+            "durationMs": 0.197,
+            "overlapMs": 0.197
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+            "detail": "",
+            "startMs": 5613.482,
+            "durationMs": 0.191,
+            "overlapMs": 0.191
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@37:811",
+            "startMs": 5617.94,
+            "durationMs": 0.18,
+            "overlapMs": 0.18
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 1879.619,
+            "durationMs": 0.143,
+            "overlapMs": 0.143
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 1942.562,
+            "durationMs": 0.143,
+            "overlapMs": 0.143
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 1879.62,
+            "durationMs": 0.141,
+            "overlapMs": 0.141
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 1942.565,
+            "durationMs": 0.139,
+            "overlapMs": 0.139
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 5224.215,
+            "durationMs": 0.134,
+            "overlapMs": 0.134
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 5224.218,
+            "durationMs": 0.131,
+            "overlapMs": 0.131
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 1879.774,
+            "durationMs": 0.125,
+            "overlapMs": 0.125
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+            "detail": "",
+            "startMs": 3551.045,
+            "durationMs": 0.101,
+            "overlapMs": 0.101
+          }
+        ]
+      },
+      {
+        "startMs": 5717.633,
+        "durationMs": 3795.827,
+        "eventBreakdownMs": {
+          "v8::Debugger::AsyncTaskRun": 3795.914,
+          "RunTask": 3795.827,
+          "v8.callFunction": 3795.796,
+          "FireIdleCallback": 3795.754,
+          "FunctionCall": 3795.545,
+          "V8.StackGuard": 8.833,
+          "V8.HandleInterrupts": 8.761999999999999,
+          "MajorGC": 8.289,
+          "V8.GCFinalizeMC": 8.254,
+          "V8.GC_MARK_COMPACTOR": 8.245,
+          "V8.GC_MC_EVACUATE": 2.889,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS": 2.671,
+          "V8.GC_MC_CLEAR": 2.242,
+          "ParseHTML": 1.987,
+          "CppGC.AtomicWeak": 1.713,
+          "V8.GCIncrementalMarking": 1.581,
+          "V8.GC_MC_CLEAR_JOIN_JOB": 1.567,
+          "V8.GC_MC_INCREMENTAL": 1.5619999999999998,
+          "CppGC.WeakContainerCallbacksProcessing": 1.471,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES": 1.287,
+          "CppGC.IncrementalMark": 1.2289999999999996,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS": 1.205,
+          "CppGC.MarkTransitiveClosureWithDeadline": 1.1829999999999978,
+          "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING": 1.107,
+          "CppGC.MarkTransitiveClosure": 1.1009999999999993,
+          "V8.GCIncrementalMarkingStart": 0.667,
+          "V8.GC_MC_INCREMENTAL_START": 0.655,
+          "V8.GC_HEAP_EMBEDDER_TRACING_EPILOGUE": 0.601,
+          "CppGC.AtomicSweep": 0.597,
+          "MinorGC": 0.566
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "run",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61332,
+            "column": 22,
+            "durationMs": 3795.481,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.064,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 5717.636,
+            "durationMs": 3795.759,
+            "overlapMs": 3795.759
+          },
+          {
+            "name": "FireIdleCallback",
+            "detail": "",
+            "startMs": 5717.641,
+            "durationMs": 3795.754,
+            "overlapMs": 3795.754
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 5717.667,
+            "durationMs": 3795.723,
+            "overlapMs": 3795.723
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "run@61332:22",
+            "startMs": 5717.668,
+            "durationMs": 3795.481,
+            "overlapMs": 3795.481
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 7225.557,
+            "durationMs": 8.444,
+            "overlapMs": 8.444
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 7225.558,
+            "durationMs": 8.443,
+            "overlapMs": 8.443
+          },
+          {
+            "name": "MajorGC",
+            "detail": "",
+            "startMs": 7225.611,
+            "durationMs": 8.289,
+            "overlapMs": 8.289
+          },
+          {
+            "name": "V8.GCFinalizeMC",
+            "detail": "",
+            "startMs": 7225.614,
+            "durationMs": 8.254,
+            "overlapMs": 8.254
+          },
+          {
+            "name": "V8.GC_MARK_COMPACTOR",
+            "detail": "",
+            "startMs": 7225.617,
+            "durationMs": 8.245,
+            "overlapMs": 8.245
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE",
+            "detail": "",
+            "startMs": 7230.229,
+            "durationMs": 2.887,
+            "overlapMs": 2.887
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS",
+            "detail": "",
+            "startMs": 7230.44,
+            "durationMs": 2.671,
+            "overlapMs": 2.671
+          },
+          {
+            "name": "V8.GC_MC_CLEAR",
+            "detail": "",
+            "startMs": 7226.155,
+            "durationMs": 2.242,
+            "overlapMs": 2.242
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 9509.85,
+            "durationMs": 1.969,
+            "overlapMs": 1.969
+          },
+          {
+            "name": "CppGC.AtomicWeak",
+            "detail": "",
+            "startMs": 7228.403,
+            "durationMs": 1.709,
+            "overlapMs": 1.709
+          },
+          {
+            "name": "V8.GC_MC_CLEAR_JOIN_JOB",
+            "detail": "",
+            "startMs": 7226.168,
+            "durationMs": 1.567,
+            "overlapMs": 1.567
+          },
+          {
+            "name": "CppGC.WeakContainerCallbacksProcessing",
+            "detail": "",
+            "startMs": 7228.468,
+            "durationMs": 1.471,
+            "overlapMs": 1.471
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES",
+            "detail": "",
+            "startMs": 7231.815,
+            "durationMs": 1.287,
+            "overlapMs": 1.287
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS",
+            "detail": "",
+            "startMs": 7230.441,
+            "durationMs": 1.205,
+            "overlapMs": 1.205
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 7198.663,
+            "durationMs": 0.707,
+            "overlapMs": 0.707
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL",
+            "detail": "",
+            "startMs": 7198.668,
+            "durationMs": 0.701,
+            "overlapMs": 0.701
+          },
+          {
+            "name": "V8.GCIncrementalMarkingStart",
+            "detail": "",
+            "startMs": 7111.592,
+            "durationMs": 0.667,
+            "overlapMs": 0.667
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL_START",
+            "detail": "",
+            "startMs": 7111.602,
+            "durationMs": 0.655,
+            "overlapMs": 0.655
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 7152.887,
+            "durationMs": 0.627,
+            "overlapMs": 0.627
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL",
+            "detail": "",
+            "startMs": 7152.893,
+            "durationMs": 0.619,
+            "overlapMs": 0.619
+          },
+          {
+            "name": "V8.GC_HEAP_EMBEDDER_TRACING_EPILOGUE",
+            "detail": "",
+            "startMs": 7233.23,
+            "durationMs": 0.601,
+            "overlapMs": 0.601
+          },
+          {
+            "name": "MinorGC",
+            "detail": "",
+            "startMs": 7111.005,
+            "durationMs": 0.566,
+            "overlapMs": 0.566
+          },
+          {
+            "name": "V8.GCScavenger",
+            "detail": "",
+            "startMs": 7111.014,
+            "durationMs": 0.531,
+            "overlapMs": 0.531
+          },
+          {
+            "name": "V8.GC_SCAVENGER",
+            "detail": "",
+            "startMs": 7111.02,
+            "durationMs": 0.523,
+            "overlapMs": 0.523
+          },
+          {
+            "name": "V8.GC_MC_MARK",
+            "detail": "",
+            "startMs": 7225.632,
+            "durationMs": 0.519,
+            "overlapMs": 0.519
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE",
+            "detail": "",
+            "startMs": 7111.028,
+            "durationMs": 0.51,
+            "overlapMs": 0.51
+          }
+        ]
+      },
+      {
+        "startMs": 9561.102,
+        "durationMs": 751.448,
+        "eventBreakdownMs": {
+          "v8::Debugger::AsyncTaskRun": 751.5910000000001,
+          "RunTask": 751.448,
+          "v8.callFunction": 751.366,
+          "FireIdleCallback": 751.365,
+          "FunctionCall": 751.017,
+          "ParseHTML": 0.725,
+          "RunMicrotasks": 0.271,
+          "V8.StackGuard": 0.232,
+          "V8.HandleInterrupts": 0.219,
+          "V8.BytecodeBudgetInterrupt": 0.135,
+          "v8::Debugger::AsyncTaskScheduled": 0.037000000000000005,
+          "v8::Debugger::AsyncTaskCanceled": 0.024000000000000004,
+          "PrePaint": 0.006,
+          "RenderFrameImpl::DidObserveNewFeatureUsage": 0.004,
+          "v8.newInstance": 0.003
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "run",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61373,
+            "column": 20,
+            "durationMs": 750.985,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.032,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 9561.106,
+            "durationMs": 751.374,
+            "overlapMs": 751.374
+          },
+          {
+            "name": "FireIdleCallback",
+            "detail": "",
+            "startMs": 9561.113,
+            "durationMs": 751.365,
+            "overlapMs": 751.365
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 9561.125,
+            "durationMs": 751.324,
+            "overlapMs": 751.324
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "run@61373:20",
+            "startMs": 9561.126,
+            "durationMs": 750.985,
+            "overlapMs": 750.985
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 9565.368,
+            "durationMs": 0.709,
+            "overlapMs": 0.709
+          },
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 10312.176,
+            "durationMs": 0.271,
+            "overlapMs": 0.271
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 9932.085,
+            "durationMs": 0.092,
+            "overlapMs": 0.092
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 9932.091,
+            "durationMs": 0.086,
+            "overlapMs": 0.086
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 10312.181,
+            "durationMs": 0.073,
+            "overlapMs": 0.073
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 9564.47,
+            "durationMs": 0.053,
+            "overlapMs": 0.053
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 9564.471,
+            "durationMs": 0.052,
+            "overlapMs": 0.052
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 10312.396,
+            "durationMs": 0.048,
+            "overlapMs": 0.048
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 10312.401,
+            "durationMs": 0.042,
+            "overlapMs": 0.042
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 9919.185,
+            "durationMs": 0.04,
+            "overlapMs": 0.04
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 10311.666,
+            "durationMs": 0.035,
+            "overlapMs": 0.035
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 9564.112,
+            "durationMs": 0.033,
+            "overlapMs": 0.033
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 10311.667,
+            "durationMs": 0.033,
+            "overlapMs": 0.033
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@37:811",
+            "startMs": 10312.403,
+            "durationMs": 0.032,
+            "overlapMs": 0.032
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 9562.409,
+            "durationMs": 0.029,
+            "overlapMs": 0.029
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 9562.41,
+            "durationMs": 0.028,
+            "overlapMs": 0.028
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 9564.215,
+            "durationMs": 0.023,
+            "overlapMs": 0.023
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 9564.217,
+            "durationMs": 0.02,
+            "overlapMs": 0.02
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 10312.26,
+            "durationMs": 0.017,
+            "overlapMs": 0.017
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 9566.091,
+            "durationMs": 0.016,
+            "overlapMs": 0.016
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 10311.539,
+            "durationMs": 0.015,
+            "overlapMs": 0.015
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 10312.308,
+            "durationMs": 0.011,
+            "overlapMs": 0.011
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 10312.281,
+            "durationMs": 0.01,
+            "overlapMs": 0.01
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 10312.358,
+            "durationMs": 0.01,
+            "overlapMs": 0.01
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 10312.295,
+            "durationMs": 0.009,
+            "overlapMs": 0.009
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 10312.322,
+            "durationMs": 0.009,
+            "overlapMs": 0.009
+          }
+        ]
+      },
+      {
+        "startMs": 12908.553,
+        "durationMs": 891.802,
+        "eventBreakdownMs": {
+          "v8::Debugger::AsyncTaskRun": 891.8530000000001,
+          "RunTask": 891.802,
+          "v8.callFunction": 891.766,
+          "FireIdleCallback": 891.745,
+          "FunctionCall": 891.593,
+          "ParseHTML": 1.781,
+          "V8.StackGuard": 0.443,
+          "V8.HandleInterrupts": 0.419,
+          "V8.BytecodeBudgetInterrupt": 0.16700000000000004,
+          "RunMicrotasks": 0.119,
+          "v8::Debugger::AsyncTaskScheduled": 0.031,
+          "V8.DeoptimizeCode": 0.027,
+          "v8::Debugger::AsyncTaskCanceled": 0.011000000000000003,
+          "RenderFrameImpl::DidObserveNewFeatureUsage": 0.004
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "run",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61332,
+            "column": 22,
+            "durationMs": 891.553,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.04,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 12908.557,
+            "durationMs": 891.756,
+            "overlapMs": 891.756
+          },
+          {
+            "name": "FireIdleCallback",
+            "detail": "",
+            "startMs": 12908.568,
+            "durationMs": 891.745,
+            "overlapMs": 891.745
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 12908.586,
+            "durationMs": 891.721,
+            "overlapMs": 891.721
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "run@61332:22",
+            "startMs": 12908.588,
+            "durationMs": 891.553,
+            "overlapMs": 891.553
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 13579.411,
+            "durationMs": 0.906,
+            "overlapMs": 0.906
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 13797.732,
+            "durationMs": 0.836,
+            "overlapMs": 0.836
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 12915.212,
+            "durationMs": 0.16,
+            "overlapMs": 0.16
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 12915.216,
+            "durationMs": 0.155,
+            "overlapMs": 0.155
+          },
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 13800.188,
+            "durationMs": 0.119,
+            "overlapMs": 0.119
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 13303.134,
+            "durationMs": 0.068,
+            "overlapMs": 0.068
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 13303.137,
+            "durationMs": 0.064,
+            "overlapMs": 0.064
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 13025.436,
+            "durationMs": 0.059,
+            "overlapMs": 0.059
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 13025.439,
+            "durationMs": 0.055,
+            "overlapMs": 0.055
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 13800.235,
+            "durationMs": 0.051,
+            "overlapMs": 0.051
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 13800.24,
+            "durationMs": 0.045,
+            "overlapMs": 0.045
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@37:811",
+            "startMs": 13800.241,
+            "durationMs": 0.04,
+            "overlapMs": 0.04
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 13169.645,
+            "durationMs": 0.033,
+            "overlapMs": 0.033
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 12976.485,
+            "durationMs": 0.031,
+            "overlapMs": 0.031
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 13169.648,
+            "durationMs": 0.03,
+            "overlapMs": 0.03
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 12976.487,
+            "durationMs": 0.029,
+            "overlapMs": 0.029
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 12955.254,
+            "durationMs": 0.028,
+            "overlapMs": 0.028
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 12955.255,
+            "durationMs": 0.027,
+            "overlapMs": 0.027
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 12955.611,
+            "durationMs": 0.027,
+            "overlapMs": 0.027
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 12955.612,
+            "durationMs": 0.025,
+            "overlapMs": 0.025
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 13429.005,
+            "durationMs": 0.024,
+            "overlapMs": 0.024
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 13800.193,
+            "durationMs": 0.023,
+            "overlapMs": 0.023
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 12955.496,
+            "durationMs": 0.022,
+            "overlapMs": 0.022
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 12963.233,
+            "durationMs": 0.022,
+            "overlapMs": 0.022
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 12963.234,
+            "durationMs": 0.02,
+            "overlapMs": 0.02
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 13580.348,
+            "durationMs": 0.02,
+            "overlapMs": 0.02
+          }
+        ]
+      },
+      {
+        "startMs": 13882.308,
+        "durationMs": 180.191,
+        "eventBreakdownMs": {
+          "RunTask": 180.191,
+          "v8::Debugger::AsyncTaskRun": 180.15,
+          "FireIdleCallback": 180.146,
+          "v8.callFunction": 180.125,
+          "FunctionCall": 180.067,
+          "V8.StackGuard": 0.028,
+          "V8.HandleInterrupts": 0.025,
+          "V8.BytecodeBudgetInterrupt": 0.015000000000000001,
+          "v8::Debugger::AsyncTaskScheduled": 0.003,
+          "v8::Debugger::AsyncTaskCanceled": 0.002
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "run",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61373,
+            "column": 20,
+            "durationMs": 180.067,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 13882.311,
+            "durationMs": 180.15,
+            "overlapMs": 180.15
+          },
+          {
+            "name": "FireIdleCallback",
+            "detail": "",
+            "startMs": 13882.314,
+            "durationMs": 180.146,
+            "overlapMs": 180.146
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 13882.326,
+            "durationMs": 180.125,
+            "overlapMs": 180.125
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "run@61373:20",
+            "startMs": 13882.327,
+            "durationMs": 180.067,
+            "overlapMs": 180.067
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 14062.31,
+            "durationMs": 0.028,
+            "overlapMs": 0.028
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 14062.312,
+            "durationMs": 0.025,
+            "overlapMs": 0.025
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 13882.947,
+            "durationMs": 0.005,
+            "overlapMs": 0.005
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 14062.08,
+            "durationMs": 0.004,
+            "overlapMs": 0.004
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 14062.143,
+            "durationMs": 0.003,
+            "overlapMs": 0.003
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskScheduled",
+            "detail": "",
+            "startMs": 14062.386,
+            "durationMs": 0.003,
+            "overlapMs": 0.003
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 14062.355,
+            "durationMs": 0.002,
+            "overlapMs": 0.002
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskCanceled",
+            "detail": "",
+            "startMs": 14062.461,
+            "durationMs": 0.002,
+            "overlapMs": 0.002
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 14062.159,
+            "durationMs": 0.001,
+            "overlapMs": 0.001
+          }
+        ]
+      },
+      {
+        "startMs": 17947.016,
+        "durationMs": 4389.266,
+        "eventBreakdownMs": {
+          "RunTask": 4389.266,
+          "RunMicrotasks": 4389.156,
+          "V8.StackGuard": 9.96,
+          "V8.HandleInterrupts": 9.869,
+          "MajorGC": 7.212,
+          "V8.GCFinalizeMC": 7.179,
+          "V8.GC_MARK_COMPACTOR": 7.17,
+          "ParseHTML": 4.399999999999999,
+          "V8.GC_MC_EVACUATE": 3.183,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS": 2.652,
+          "UpdateLayoutTree": 2.43,
+          "V8.GCIncrementalMarking": 2.138,
+          "V8.GC_MC_INCREMENTAL": 2.0980000000000003,
+          "V8.GC_MC_CLEAR": 1.955,
+          "CppGC.IncrementalMark": 1.8759999999999997,
+          "CppGC.MarkTransitiveClosureWithDeadline": 1.8169999999999997,
+          "V8.GC_MC_CLEAR_JOIN_JOB": 1.693,
+          "Layout": 1.682,
+          "CppGC.MarkTransitiveClosure": 1.676,
+          "LocalFrameView::performLayout": 1.585,
+          "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING": 1.558,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES": 1.304,
+          "V8.GCPhantomHandleProcessingCallback": 1.194,
+          "V8.GC_HEAP_EXTERNAL_SECOND_PASS_CALLBACKS": 1.191,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS": 1.138,
+          "MinorGC": 1.023,
+          "V8.GCScavenger": 0.985,
+          "CppGC.AtomicWeak": 0.966,
+          "V8.GC_SCAVENGER": 0.763,
+          "CppGC.WeakContainerCallbacksProcessing": 0.727
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "scheduleJoinFullscreenModalCoverStateUpdate",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 32600,
+            "column": 58,
+            "durationMs": 0.383,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.08399999999999999,
+            "calls": 2
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 17947.02,
+            "durationMs": 4389.156,
+            "overlapMs": 4389.156
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 19692.422,
+            "durationMs": 8.491,
+            "overlapMs": 8.491
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 19692.423,
+            "durationMs": 8.489,
+            "overlapMs": 8.489
+          },
+          {
+            "name": "MajorGC",
+            "detail": "",
+            "startMs": 19692.481,
+            "durationMs": 7.212,
+            "overlapMs": 7.212
+          },
+          {
+            "name": "V8.GCFinalizeMC",
+            "detail": "",
+            "startMs": 19692.486,
+            "durationMs": 7.179,
+            "overlapMs": 7.179
+          },
+          {
+            "name": "V8.GC_MARK_COMPACTOR",
+            "detail": "",
+            "startMs": 19692.49,
+            "durationMs": 7.17,
+            "overlapMs": 7.17
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE",
+            "detail": "",
+            "startMs": 19696.053,
+            "durationMs": 3.181,
+            "overlapMs": 3.181
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS",
+            "detail": "",
+            "startMs": 19696.524,
+            "durationMs": 2.652,
+            "overlapMs": 2.652
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 22321.269,
+            "durationMs": 2.114,
+            "overlapMs": 2.114
+          },
+          {
+            "name": "V8.GC_MC_CLEAR",
+            "detail": "",
+            "startMs": 19693.081,
+            "durationMs": 1.955,
+            "overlapMs": 1.955
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 22306.059,
+            "durationMs": 1.884,
+            "overlapMs": 1.884
+          },
+          {
+            "name": "V8.GC_MC_CLEAR_JOIN_JOB",
+            "detail": "",
+            "startMs": 19693.093,
+            "durationMs": 1.693,
+            "overlapMs": 1.693
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 22323.393,
+            "durationMs": 1.682,
+            "overlapMs": 1.682
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 22323.487,
+            "durationMs": 1.585,
+            "overlapMs": 1.585
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES",
+            "detail": "",
+            "startMs": 19697.864,
+            "durationMs": 1.304,
+            "overlapMs": 1.304
+          },
+          {
+            "name": "V8.GCPhantomHandleProcessingCallback",
+            "detail": "",
+            "startMs": 19699.716,
+            "durationMs": 1.194,
+            "overlapMs": 1.194
+          },
+          {
+            "name": "V8.GC_HEAP_EXTERNAL_SECOND_PASS_CALLBACKS",
+            "detail": "",
+            "startMs": 19699.717,
+            "durationMs": 1.191,
+            "overlapMs": 1.191
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS",
+            "detail": "",
+            "startMs": 19696.525,
+            "durationMs": 1.138,
+            "overlapMs": 1.138
+          },
+          {
+            "name": "MinorGC",
+            "detail": "",
+            "startMs": 18971.998,
+            "durationMs": 1.023,
+            "overlapMs": 1.023
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 20744.335,
+            "durationMs": 0.992,
+            "overlapMs": 0.992
+          },
+          {
+            "name": "V8.GCScavenger",
+            "detail": "",
+            "startMs": 18972.003,
+            "durationMs": 0.985,
+            "overlapMs": 0.985
+          },
+          {
+            "name": "CppGC.AtomicWeak",
+            "detail": "",
+            "startMs": 19695.045,
+            "durationMs": 0.963,
+            "overlapMs": 0.963
+          },
+          {
+            "name": "V8.GC_SCAVENGER",
+            "detail": "",
+            "startMs": 18972.223,
+            "durationMs": 0.763,
+            "overlapMs": 0.763
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 19532.144,
+            "durationMs": 0.761,
+            "overlapMs": 0.761
+          },
+          {
+            "name": "CppGC.WeakContainerCallbacksProcessing",
+            "detail": "",
+            "startMs": 19695.109,
+            "durationMs": 0.727,
+            "overlapMs": 0.727
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE",
+            "detail": "",
+            "startMs": 18972.257,
+            "durationMs": 0.722,
+            "overlapMs": 0.722
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 19595.103,
+            "durationMs": 0.677,
+            "overlapMs": 0.677
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL",
+            "detail": "",
+            "startMs": 19595.107,
+            "durationMs": 0.672,
+            "overlapMs": 0.672
+          },
+          {
+            "name": "V8.GCIncrementalMarkingStart",
+            "detail": "",
+            "startMs": 19530.718,
+            "durationMs": 0.608,
+            "overlapMs": 0.608
+          },
+          {
+            "name": "V8.GC_MC_MARK",
+            "detail": "",
+            "startMs": 19692.507,
+            "durationMs": 0.569,
+            "overlapMs": 0.569
+          }
+        ]
+      },
+      {
+        "startMs": 22336.562,
+        "durationMs": 84.287,
+        "eventBreakdownMs": {
+          "RunTask": 84.287,
+          "WidgetBaseInputHandler::OnHandleInputEvent": 54.921,
+          "WebFrameWidgetImpl::HandleInputEvent": 54.905,
+          "Layout": 32.278999999999996,
+          "LocalFrameView::performLayout": 32.157,
+          "Commit": 22.494,
+          "UpdateLayoutTree": 21.573,
+          "PageAnimator::serviceScriptedAnimations": 4.01,
+          "v8.callFunction": 3.95,
+          "v8::Debugger::AsyncTaskRun": 3.9390000000000005,
+          "FireAnimationFrame": 3.868,
+          "V8.GCIncrementalMarkingStart": 3.832,
+          "FunctionCall": 3.828,
+          "V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED": 3.008,
+          "CppGC.IncrementalSweep": 2.785,
+          "CppGC.SweepFinish": 2.745,
+          "CppGC.IncrementalMark": 2.633,
+          "PrePaint": 2.353,
+          "CppGC.MarkTransitiveClosureWithDeadline": 2.237999999999999,
+          "V8.GCIncrementalMarking": 2.235,
+          "V8.GC_MC_INCREMENTAL": 2.1509999999999994,
+          "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING": 1.8189999999999997,
+          "CppGC.MarkTransitiveClosure": 1.7609999999999988,
+          "Paint": 1.5759999999999998,
+          "V8.GC_MC_INCREMENTAL_START": 0.806,
+          "CppGC.MarkOnAllocation": 0.532,
+          "Layerize": 0.486,
+          "v8::Debugger::AsyncTaskCanceled": 0.4070000000000003,
+          "V8.GC_MC_MARK_EMBEDDER_PROLOGUE": 0.295,
+          "CppGC.MarkIncrementalStart": 0.287
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 59462,
+            "column": 58,
+            "durationMs": 1.492,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 47610,
+            "column": 30,
+            "durationMs": 0.925,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 43235,
+            "column": 32,
+            "durationMs": 0.414,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 32605,
+            "column": 75,
+            "durationMs": 0.404,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61866,
+            "column": 58,
+            "durationMs": 0.216,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 43134,
+            "column": 62,
+            "durationMs": 0.203,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 52501,
+            "column": 30,
+            "durationMs": 0.068,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 63302,
+            "column": 44,
+            "durationMs": 0.036,
+            "calls": 1
+          },
+          {
+            "functionName": "window.addEventListener.passive",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 43232,
+            "column": 42,
+            "durationMs": 0.03,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.018,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 63341,
+            "column": 46,
+            "durationMs": 0.009,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 63295,
+            "column": 45,
+            "durationMs": 0.009,
+            "calls": 1
+          },
+          {
+            "functionName": "scheduleJoinSectionNavActiveUpdate",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61864,
+            "column": 49,
+            "durationMs": 0.004,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "WidgetBaseInputHandler::OnHandleInputEvent",
+            "detail": "",
+            "startMs": 22336.577,
+            "durationMs": 54.921,
+            "overlapMs": 54.921
+          },
+          {
+            "name": "WebFrameWidgetImpl::HandleInputEvent",
+            "detail": "",
+            "startMs": 22336.581,
+            "durationMs": 54.905,
+            "overlapMs": 54.905
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 22357.253,
+            "durationMs": 31.869,
+            "overlapMs": 31.869
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 22357.325,
+            "durationMs": 31.796,
+            "overlapMs": 31.796
+          },
+          {
+            "name": "Commit",
+            "detail": "",
+            "startMs": 22398.304,
+            "durationMs": 22.494,
+            "overlapMs": 22.494
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 22336.596,
+            "durationMs": 20.649,
+            "overlapMs": 20.649
+          },
+          {
+            "name": "PageAnimator::serviceScriptedAnimations",
+            "detail": "",
+            "startMs": 22391.545,
+            "durationMs": 4.01,
+            "overlapMs": 4.01
+          },
+          {
+            "name": "V8.GCIncrementalMarkingStart",
+            "detail": "",
+            "startMs": 22342.545,
+            "durationMs": 3.832,
+            "overlapMs": 3.832
+          },
+          {
+            "name": "V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED",
+            "detail": "",
+            "startMs": 22342.554,
+            "durationMs": 3.008,
+            "overlapMs": 3.008
+          },
+          {
+            "name": "CppGC.IncrementalSweep",
+            "detail": "",
+            "startMs": 22342.722,
+            "durationMs": 2.748,
+            "overlapMs": 2.748
+          },
+          {
+            "name": "CppGC.SweepFinish",
+            "detail": "",
+            "startMs": 22342.723,
+            "durationMs": 2.745,
+            "overlapMs": 2.745
+          },
+          {
+            "name": "PrePaint",
+            "detail": "",
+            "startMs": 22389.246,
+            "durationMs": 1.985,
+            "overlapMs": 1.985
+          },
+          {
+            "name": "FireAnimationFrame",
+            "detail": "",
+            "startMs": 22391.916,
+            "durationMs": 1.547,
+            "overlapMs": 1.547
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 22391.92,
+            "durationMs": 1.542,
+            "overlapMs": 1.542
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 22391.923,
+            "durationMs": 1.538,
+            "overlapMs": 1.538
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@59462:58",
+            "startMs": 22391.924,
+            "durationMs": 1.492,
+            "overlapMs": 1.492
+          },
+          {
+            "name": "Paint",
+            "detail": "",
+            "startMs": 22396.294,
+            "durationMs": 1.366,
+            "overlapMs": 1.366
+          },
+          {
+            "name": "FireAnimationFrame",
+            "detail": "",
+            "startMs": 22393.764,
+            "durationMs": 0.942,
+            "overlapMs": 0.942
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 22393.766,
+            "durationMs": 0.937,
+            "overlapMs": 0.937
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 22393.769,
+            "durationMs": 0.933,
+            "overlapMs": 0.933
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@47610:30",
+            "startMs": 22393.77,
+            "durationMs": 0.925,
+            "overlapMs": 0.925
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL_START",
+            "detail": "",
+            "startMs": 22345.569,
+            "durationMs": 0.806,
+            "overlapMs": 0.806
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 22383.914,
+            "durationMs": 0.587,
+            "overlapMs": 0.587
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL",
+            "detail": "",
+            "startMs": 22383.917,
+            "durationMs": 0.584,
+            "overlapMs": 0.584
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 22349.454,
+            "durationMs": 0.498,
+            "overlapMs": 0.498
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL",
+            "detail": "",
+            "startMs": 22349.461,
+            "durationMs": 0.49,
+            "overlapMs": 0.49
+          },
+          {
+            "name": "Layerize",
+            "detail": "",
+            "startMs": 22397.715,
+            "durationMs": 0.486,
+            "overlapMs": 0.486
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+            "detail": "",
+            "startMs": 22349.464,
+            "durationMs": 0.48,
+            "overlapMs": 0.48
+          },
+          {
+            "name": "CppGC.IncrementalMark",
+            "detail": "",
+            "startMs": 22349.465,
+            "durationMs": 0.477,
+            "overlapMs": 0.477
+          },
+          {
+            "name": "CppGC.MarkTransitiveClosureWithDeadline",
+            "detail": "",
+            "startMs": 22349.466,
+            "durationMs": 0.475,
+            "overlapMs": 0.475
+          }
+        ]
+      },
+      {
+        "startMs": 22425.047,
+        "durationMs": 1622.045,
+        "eventBreakdownMs": {
+          "RunTask": 1622.045,
+          "TimerFire": 1621.992,
+          "v8::Debugger::AsyncTaskRun": 1621.972,
+          "v8.callFunction": 1621.958,
+          "FunctionCall": 1621.831,
+          "V8.StackGuard": 8.690999999999999,
+          "V8.HandleInterrupts": 8.677000000000001,
+          "MajorGC": 8.092,
+          "V8.GCFinalizeMC": 8.053,
+          "V8.GC_MARK_COMPACTOR": 8.043,
+          "V8.GC_MC_EVACUATE": 3.9829999999999997,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS": 3.267,
+          "V8.GC_MC_CLEAR": 1.892,
+          "V8.GC_MC_CLEAR_JOIN_JOB": 1.733,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES": 1.539,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS": 1.467,
+          "CppGC.AtomicWeak": 1.249,
+          "CppGC.WeakContainerCallbacksProcessing": 0.789,
+          "V8.GC_MC_EVACUATE_COPY": 0.567,
+          "V8.GC_MC_MARK": 0.542,
+          "CppGC.CustomCallbacksProcessing": 0.379,
+          "V8.GC_MC_CLEAR_SWEEP_EXTERNAL_POINTER_TABLE": 0.364,
+          "V8.GC_MC_CLEAR_WEAK_COLLECTIONS": 0.29,
+          "V8.GC_MC_CLEAR_STRING_TABLE": 0.246,
+          "V8.GCIncrementalMarking": 0.24,
+          "V8.GC_MC_INCREMENTAL": 0.233,
+          "V8.GC_MC_SWEEP": 0.221,
+          "V8.GC_MC_EVACUATE_COPY_PARALLEL": 0.219,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_SLOTS_MAIN": 0.204,
+          "CppGC.MarkTransitiveClosureWithDeadline": 0.198
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61952,
+            "column": 26,
+            "durationMs": 1621.831,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "TimerFire",
+            "detail": "",
+            "startMs": 22425.05,
+            "durationMs": 1621.992,
+            "overlapMs": 1621.992
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 22425.059,
+            "durationMs": 1621.972,
+            "overlapMs": 1621.972
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 22425.067,
+            "durationMs": 1621.958,
+            "overlapMs": 1621.958
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@61952:26",
+            "startMs": 22425.068,
+            "durationMs": 1621.831,
+            "overlapMs": 1621.831
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 22426.029,
+            "durationMs": 8.219,
+            "overlapMs": 8.219
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 22426.03,
+            "durationMs": 8.217,
+            "overlapMs": 8.217
+          },
+          {
+            "name": "MajorGC",
+            "detail": "",
+            "startMs": 22426.125,
+            "durationMs": 8.092,
+            "overlapMs": 8.092
+          },
+          {
+            "name": "V8.GCFinalizeMC",
+            "detail": "",
+            "startMs": 22426.135,
+            "durationMs": 8.053,
+            "overlapMs": 8.053
+          },
+          {
+            "name": "V8.GC_MARK_COMPACTOR",
+            "detail": "",
+            "startMs": 22426.14,
+            "durationMs": 8.043,
+            "overlapMs": 8.043
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE",
+            "detail": "",
+            "startMs": 22429.927,
+            "durationMs": 3.981,
+            "overlapMs": 3.981
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS",
+            "detail": "",
+            "startMs": 22430.516,
+            "durationMs": 3.267,
+            "overlapMs": 3.267
+          },
+          {
+            "name": "V8.GC_MC_CLEAR",
+            "detail": "",
+            "startMs": 22426.711,
+            "durationMs": 1.892,
+            "overlapMs": 1.892
+          },
+          {
+            "name": "V8.GC_MC_CLEAR_JOIN_JOB",
+            "detail": "",
+            "startMs": 22426.732,
+            "durationMs": 1.733,
+            "overlapMs": 1.733
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES",
+            "detail": "",
+            "startMs": 22432.233,
+            "durationMs": 1.539,
+            "overlapMs": 1.539
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS",
+            "detail": "",
+            "startMs": 22430.518,
+            "durationMs": 1.467,
+            "overlapMs": 1.467
+          },
+          {
+            "name": "CppGC.AtomicWeak",
+            "detail": "",
+            "startMs": 22428.613,
+            "durationMs": 1.243,
+            "overlapMs": 1.243
+          },
+          {
+            "name": "CppGC.WeakContainerCallbacksProcessing",
+            "detail": "",
+            "startMs": 22428.678,
+            "durationMs": 0.789,
+            "overlapMs": 0.789
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_COPY",
+            "detail": "",
+            "startMs": 22429.948,
+            "durationMs": 0.567,
+            "overlapMs": 0.567
+          },
+          {
+            "name": "V8.GC_MC_MARK",
+            "detail": "",
+            "startMs": 22426.16,
+            "durationMs": 0.542,
+            "overlapMs": 0.542
+          },
+          {
+            "name": "CppGC.CustomCallbacksProcessing",
+            "detail": "",
+            "startMs": 22429.47,
+            "durationMs": 0.379,
+            "overlapMs": 0.379
+          },
+          {
+            "name": "V8.GC_MC_CLEAR_SWEEP_EXTERNAL_POINTER_TABLE",
+            "detail": "",
+            "startMs": 22427.296,
+            "durationMs": 0.364,
+            "overlapMs": 0.364
+          },
+          {
+            "name": "V8.GC_MC_CLEAR_WEAK_COLLECTIONS",
+            "detail": "",
+            "startMs": 22426.747,
+            "durationMs": 0.29,
+            "overlapMs": 0.29
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 22434.81,
+            "durationMs": 0.241,
+            "overlapMs": 0.241
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 22434.812,
+            "durationMs": 0.238,
+            "overlapMs": 0.238
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_COPY_PARALLEL",
+            "detail": "",
+            "startMs": 22430.054,
+            "durationMs": 0.219,
+            "overlapMs": 0.219
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 22425.565,
+            "durationMs": 0.204,
+            "overlapMs": 0.204
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_SLOTS_MAIN",
+            "detail": "",
+            "startMs": 22431.994,
+            "durationMs": 0.204,
+            "overlapMs": 0.204
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL",
+            "detail": "",
+            "startMs": 22425.569,
+            "durationMs": 0.199,
+            "overlapMs": 0.199
+          },
+          {
+            "name": "V8.GC_MC_MARK_FULL_CLOSURE_PARALLEL",
+            "detail": "",
+            "startMs": 22426.436,
+            "durationMs": 0.191,
+            "overlapMs": 0.191
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 24046.013,
+            "durationMs": 0.183,
+            "overlapMs": 0.183
+          }
+        ]
+      },
+      {
+        "startMs": 24055.134,
+        "durationMs": 195.435,
+        "eventBreakdownMs": {
+          "v8::Debugger::AsyncTaskRun": 195.63100000000003,
+          "RunTask": 195.435,
+          "v8.callFunction": 195.419,
+          "FireIdleCallback": 195.383,
+          "FunctionCall": 195.017,
+          "ParseHTML": 1.049,
+          "RunMicrotasks": 0.328,
+          "UpdateLayoutTree": 0.254,
+          "V8.StackGuard": 0.131,
+          "V8.HandleInterrupts": 0.127,
+          "v8::Debugger::AsyncTaskScheduled": 0.05400000000000002,
+          "v8::Debugger::AsyncTaskCanceled": 0.04700000000000002,
+          "V8.BytecodeBudgetInterrupt": 0.032,
+          "EventDispatch": 0.022,
+          "CppGC.IncrementalSweep": 0.019
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "run",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61373,
+            "column": 20,
+            "durationMs": 194.981,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.036,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24055.135,
+            "durationMs": 195.386,
+            "overlapMs": 195.386
+          },
+          {
+            "name": "FireIdleCallback",
+            "detail": "",
+            "startMs": 24055.138,
+            "durationMs": 195.383,
+            "overlapMs": 195.383
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 24055.144,
+            "durationMs": 195.371,
+            "overlapMs": 195.371
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "run@61373:20",
+            "startMs": 24055.145,
+            "durationMs": 194.981,
+            "overlapMs": 194.981
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 24056.572,
+            "durationMs": 1.028,
+            "overlapMs": 1.028
+          },
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 24250.185,
+            "durationMs": 0.328,
+            "overlapMs": 0.328
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 24057.703,
+            "durationMs": 0.254,
+            "overlapMs": 0.254
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 24249.981,
+            "durationMs": 0.072,
+            "overlapMs": 0.072
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 24249.981,
+            "durationMs": 0.072,
+            "overlapMs": 0.072
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.19,
+            "durationMs": 0.055,
+            "overlapMs": 0.055
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.458,
+            "durationMs": 0.053,
+            "overlapMs": 0.053
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 24250.463,
+            "durationMs": 0.048,
+            "overlapMs": 0.048
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@37:811",
+            "startMs": 24250.465,
+            "durationMs": 0.036,
+            "overlapMs": 0.036
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 24056.428,
+            "durationMs": 0.032,
+            "overlapMs": 0.032
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.271,
+            "durationMs": 0.032,
+            "overlapMs": 0.032
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 24056.429,
+            "durationMs": 0.03,
+            "overlapMs": 0.03
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 24055.654,
+            "durationMs": 0.027,
+            "overlapMs": 0.027
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 24055.655,
+            "durationMs": 0.025,
+            "overlapMs": 0.025
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 24057.615,
+            "durationMs": 0.021,
+            "overlapMs": 0.021
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskCanceled",
+            "detail": "",
+            "startMs": 24250.246,
+            "durationMs": 0.02,
+            "overlapMs": 0.02
+          },
+          {
+            "name": "CppGC.IncrementalSweep",
+            "detail": "",
+            "startMs": 24057.92,
+            "durationMs": 0.019,
+            "overlapMs": 0.019
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.307,
+            "durationMs": 0.011,
+            "overlapMs": 0.011
+          },
+          {
+            "name": "EventDispatch",
+            "detail": "blur",
+            "startMs": 24057.658,
+            "durationMs": 0.009,
+            "overlapMs": 0.009
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.365,
+            "durationMs": 0.009,
+            "overlapMs": 0.009
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.399,
+            "durationMs": 0.009,
+            "overlapMs": 0.009
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 24056.32,
+            "durationMs": 0.008,
+            "overlapMs": 0.008
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.322,
+            "durationMs": 0.008,
+            "overlapMs": 0.008
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.333,
+            "durationMs": 0.008,
+            "overlapMs": 0.008
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.344,
+            "durationMs": 0.008,
+            "overlapMs": 0.008
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 24250.378,
+            "durationMs": 0.008,
+            "overlapMs": 0.008
+          }
+        ]
+      },
+      {
+        "startMs": 24354.285,
+        "durationMs": 1648.987,
+        "eventBreakdownMs": {
+          "RunTask": 1648.987,
+          "RunMicrotasks": 1648.722,
+          "Layout": 12.501,
+          "LocalFrameView::performLayout": 12.266,
+          "UpdateLayoutTree": 7.174000000000002,
+          "ParseHTML": 2.725999999999999,
+          "v8::Debugger::AsyncTaskRun": 1.147,
+          "V8.StackGuard": 0.5810000000000001,
+          "V8.HandleInterrupts": 0.5469999999999999,
+          "v8.callFunction": 0.522,
+          "FunctionCall": 0.508,
+          "V8.BytecodeBudgetInterrupt": 0.20900000000000005,
+          "CppGC.IncrementalSweep": 0.17100000000000004,
+          "EventDispatch": 0.05199999999999999,
+          "v8::Debugger::AsyncTaskScheduled": 0.04700000000000003,
+          "v8::Debugger::AsyncTaskCanceled": 0.035000000000000024,
+          "RenderFrameImpl::DidObserveNewFeatureUsage": 0.015000000000000001,
+          "V8StackTraceImpl::capture": 0.013,
+          "V8.DeoptimizeCode": 0.008,
+          "HTMLDocumentParser::DocumentElementAvailable": 0.005,
+          "toFramesVector": 0.005
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "scheduleJoinFullscreenModalCoverStateUpdate",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 32600,
+            "column": 58,
+            "durationMs": 0.466,
+            "calls": 1
+          },
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.042,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 24354.304,
+            "durationMs": 1648.722,
+            "overlapMs": 1648.722
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 25977.867,
+            "durationMs": 12.258,
+            "overlapMs": 12.258
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 25978.025,
+            "durationMs": 12.096,
+            "overlapMs": 12.096
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25972.098,
+            "durationMs": 5.753,
+            "overlapMs": 5.753
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 24354.537,
+            "durationMs": 1.236,
+            "overlapMs": 1.236
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 25957.33,
+            "durationMs": 1.167,
+            "overlapMs": 1.167
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 26000.512,
+            "durationMs": 0.485,
+            "overlapMs": 0.485
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 26000.519,
+            "durationMs": 0.477,
+            "overlapMs": 0.477
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "scheduleJoinFullscreenModalCoverStateUpdate@32600:58",
+            "startMs": 26000.521,
+            "durationMs": 0.466,
+            "overlapMs": 0.466
+          },
+          {
+            "name": "Layout",
+            "detail": "",
+            "startMs": 25991.616,
+            "durationMs": 0.243,
+            "overlapMs": 0.243
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25990.554,
+            "durationMs": 0.221,
+            "overlapMs": 0.221
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25991.42,
+            "durationMs": 0.192,
+            "overlapMs": 0.192
+          },
+          {
+            "name": "LocalFrameView::performLayout",
+            "detail": "",
+            "startMs": 25991.688,
+            "durationMs": 0.17,
+            "overlapMs": 0.17
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 26001.055,
+            "durationMs": 0.159,
+            "overlapMs": 0.159
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 24356.014,
+            "durationMs": 0.158,
+            "overlapMs": 0.158
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 24356.015,
+            "durationMs": 0.156,
+            "overlapMs": 0.156
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 24880.552,
+            "durationMs": 0.154,
+            "overlapMs": 0.154
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25992.172,
+            "durationMs": 0.148,
+            "overlapMs": 0.148
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 24880.557,
+            "durationMs": 0.147,
+            "overlapMs": 0.147
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25991.223,
+            "durationMs": 0.139,
+            "overlapMs": 0.139
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25990.939,
+            "durationMs": 0.137,
+            "overlapMs": 0.137
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 25992.948,
+            "durationMs": 0.131,
+            "overlapMs": 0.131
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 24362.115,
+            "durationMs": 0.123,
+            "overlapMs": 0.123
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25992.378,
+            "durationMs": 0.112,
+            "overlapMs": 0.112
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 24428.296,
+            "durationMs": 0.085,
+            "overlapMs": 0.085
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25990.8,
+            "durationMs": 0.085,
+            "overlapMs": 0.085
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25991.101,
+            "durationMs": 0.083,
+            "overlapMs": 0.083
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 26001.642,
+            "durationMs": 0.077,
+            "overlapMs": 0.077
+          },
+          {
+            "name": "UpdateLayoutTree",
+            "detail": "",
+            "startMs": 25990.43,
+            "durationMs": 0.073,
+            "overlapMs": 0.073
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 24428.307,
+            "durationMs": 0.072,
+            "overlapMs": 0.072
+          }
+        ]
+      },
+      {
+        "startMs": 26019.619,
+        "durationMs": 2010.19,
+        "eventBreakdownMs": {
+          "RunTask": 2010.19,
+          "RunMicrotasks": 2010.132,
+          "MinorGC": 2.453,
+          "V8.GCScavenger": 2.386,
+          "ParseHTML": 2.264,
+          "V8.GC_SCAVENGER": 2.183,
+          "V8.GC_SCAVENGER_SCAVENGE": 2.158,
+          "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE": 1.6219999999999999,
+          "V8.HandleInterrupts": 1.3149999999999997,
+          "V8.GC_SCAVENGER_SCAVENGE_PARALLEL": 1.153,
+          "V8.StackGuard": 1.0640000000000003,
+          "V8.BytecodeBudgetInterrupt": 0.3090000000000001,
+          "v8::Debugger::AsyncTaskRun": 0.23500000000000004,
+          "V8.GC_SCAVENGER_SCAVENGE_ROOTS": 0.21500000000000002,
+          "V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED": 0.182,
+          "V8.GC_SCAVENGER_SCAVENGE_FINALIZE": 0.177,
+          "v8.callFunction": 0.119,
+          "FunctionCall": 0.104,
+          "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_IDENTIFY": 0.087,
+          "V8.GC_SCAVENGER_SCAVENGE_COLLECT_OLD_TO_NEW_PAGES": 0.08199999999999999,
+          "V8.GC_SCAVENGER_SCAVENGE_WEAK_GLOBAL_HANDLES_PROCESS": 0.056999999999999995,
+          "v8::Debugger::AsyncTaskScheduled": 0.05600000000000001,
+          "V8.GC_SCAVENGER_TRACED_HANDLES_COMPUTE_WEAKNESS_PARALLEL": 0.045,
+          "V8.GC_SCAVENGER_TRACED_HANDLES_RESET_PARALLEL": 0.033,
+          "V8.GC_HEAP_EXTERNAL_EPILOGUE": 0.032,
+          "CppGC.IncrementalSweep": 0.032,
+          "v8::Debugger::AsyncTaskCanceled": 0.029000000000000005,
+          "V8.GC_SCAVENGER_FREE_REMEMBERED_SET": 0.026000000000000002,
+          "V8.GC_SCAVENGER_SCAVENGE_RESTORE_AND_QUARANTINE_PINNED": 0.016,
+          "V8.GC_HEAP_EXTERNAL_PROLOGUE": 0.01
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "(anonymous)",
+            "script": "connect.facebook.net/signals/config/820910713012283",
+            "line": 37,
+            "column": 811,
+            "durationMs": 0.104,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "RunMicrotasks",
+            "detail": "",
+            "startMs": 26019.623,
+            "durationMs": 2010.132,
+            "overlapMs": 2010.132
+          },
+          {
+            "name": "MinorGC",
+            "detail": "",
+            "startMs": 26086.602,
+            "durationMs": 1.325,
+            "overlapMs": 1.325
+          },
+          {
+            "name": "V8.GCScavenger",
+            "detail": "",
+            "startMs": 26086.606,
+            "durationMs": 1.295,
+            "overlapMs": 1.295
+          },
+          {
+            "name": "V8.GC_SCAVENGER",
+            "detail": "",
+            "startMs": 26086.612,
+            "durationMs": 1.288,
+            "overlapMs": 1.288
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE",
+            "detail": "",
+            "startMs": 26086.618,
+            "durationMs": 1.277,
+            "overlapMs": 1.277
+          },
+          {
+            "name": "MinorGC",
+            "detail": "",
+            "startMs": 26048.106,
+            "durationMs": 1.128,
+            "overlapMs": 1.128
+          },
+          {
+            "name": "V8.GCScavenger",
+            "detail": "",
+            "startMs": 26048.114,
+            "durationMs": 1.091,
+            "overlapMs": 1.091
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 27048.822,
+            "durationMs": 1.055,
+            "overlapMs": 1.055
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+            "detail": "",
+            "startMs": 26086.708,
+            "durationMs": 1.04,
+            "overlapMs": 1.04
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 28027.57,
+            "durationMs": 1.04,
+            "overlapMs": 1.04
+          },
+          {
+            "name": "V8.GC_SCAVENGER",
+            "detail": "",
+            "startMs": 26048.308,
+            "durationMs": 0.895,
+            "overlapMs": 0.895
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE",
+            "detail": "",
+            "startMs": 26048.316,
+            "durationMs": 0.881,
+            "overlapMs": 0.881
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL_PHASE",
+            "detail": "",
+            "startMs": 26048.452,
+            "durationMs": 0.582,
+            "overlapMs": 0.582
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+            "detail": "",
+            "startMs": 26086.979,
+            "durationMs": 0.554,
+            "overlapMs": 0.554
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+            "detail": "",
+            "startMs": 26048.57,
+            "durationMs": 0.414,
+            "overlapMs": 0.414
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 26028.335,
+            "durationMs": 0.202,
+            "overlapMs": 0.202
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 26028.338,
+            "durationMs": 0.198,
+            "overlapMs": 0.198
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 26049.261,
+            "durationMs": 0.189,
+            "overlapMs": 0.189
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_PARALLEL",
+            "detail": "",
+            "startMs": 26087.536,
+            "durationMs": 0.185,
+            "overlapMs": 0.185
+          },
+          {
+            "name": "V8.GC_HEAP_ENSURE_SWEEPING_COMPLETED",
+            "detail": "",
+            "startMs": 26048.117,
+            "durationMs": 0.182,
+            "overlapMs": 0.182
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_ROOTS",
+            "detail": "",
+            "startMs": 26086.716,
+            "durationMs": 0.135,
+            "overlapMs": 0.135
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 28029.564,
+            "durationMs": 0.127,
+            "overlapMs": 0.127
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 28029.57,
+            "durationMs": 0.119,
+            "overlapMs": 0.119
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@37:811",
+            "startMs": 28029.572,
+            "durationMs": 0.104,
+            "overlapMs": 0.104
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 26084.086,
+            "durationMs": 0.103,
+            "overlapMs": 0.103
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 26066.021,
+            "durationMs": 0.098,
+            "overlapMs": 0.098
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 26066.023,
+            "durationMs": 0.095,
+            "overlapMs": 0.095
+          },
+          {
+            "name": "V8.GC_SCAVENGER_SCAVENGE_FINALIZE",
+            "detail": "",
+            "startMs": 26087.761,
+            "durationMs": 0.095,
+            "overlapMs": 0.095
+          },
+          {
+            "name": "ParseHTML",
+            "detail": "",
+            "startMs": 27049.903,
+            "durationMs": 0.088,
+            "overlapMs": 0.088
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 26025.678,
+            "durationMs": 0.083,
+            "overlapMs": 0.083
+          }
+        ]
+      },
+      {
+        "startMs": 28065.101,
+        "durationMs": 1715.884,
+        "eventBreakdownMs": {
+          "RunTask": 1715.884,
+          "TimerFire": 1715.82,
+          "v8::Debugger::AsyncTaskRun": 1715.802,
+          "v8.callFunction": 1715.787,
+          "FunctionCall": 1715.608,
+          "V8.StackGuard": 8.57,
+          "V8.HandleInterrupts": 8.569,
+          "MajorGC": 8.458,
+          "V8.GCFinalizeMC": 8.423,
+          "V8.GC_MARK_COMPACTOR": 8.414,
+          "V8.GC_MC_EVACUATE": 4.361,
+          "V8.GCIncrementalMarking": 3.180999999999998,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS": 3.129,
+          "V8.GC_MC_INCREMENTAL": 2.954999999999999,
+          "V8.GC_MC_CLEAR": 1.956,
+          "V8.GC_MC_CLEAR_JOIN_JOB": 1.793,
+          "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING": 1.598,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS": 1.466,
+          "CppGC.IncrementalMark": 1.463,
+          "CppGC.MarkTransitiveClosureWithDeadline": 1.4329999999999996,
+          "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES": 1.399,
+          "CppGC.MarkTransitiveClosure": 1.2019999999999997,
+          "V8.GC_MC_EVACUATE_COPY": 1.17,
+          "CppGC.AtomicWeak": 1.105,
+          "V8.GC_MC_EVACUATE_COPY_PARALLEL": 0.877,
+          "CppGC.WeakContainerCallbacksProcessing": 0.695,
+          "V8.GC_MC_CLEAR_SWEEP_JS_DISPATCH_TABLE": 0.689,
+          "V8.GC_MC_MARK": 0.566,
+          "CppGC.CustomCallbacksProcessing": 0.339,
+          "V8.GC_MC_SWEEP": 0.279
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "(anonymous)",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61952,
+            "column": 26,
+            "durationMs": 1715.608,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "TimerFire",
+            "detail": "",
+            "startMs": 28065.103,
+            "durationMs": 1715.82,
+            "overlapMs": 1715.82
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 28065.106,
+            "durationMs": 1715.802,
+            "overlapMs": 1715.802
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 28065.111,
+            "durationMs": 1715.787,
+            "overlapMs": 1715.787
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "(anonymous)@61952:26",
+            "startMs": 28065.111,
+            "durationMs": 1715.608,
+            "overlapMs": 1715.608
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 28246.274,
+            "durationMs": 8.57,
+            "overlapMs": 8.57
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 28246.274,
+            "durationMs": 8.569,
+            "overlapMs": 8.569
+          },
+          {
+            "name": "MajorGC",
+            "detail": "",
+            "startMs": 28246.338,
+            "durationMs": 8.458,
+            "overlapMs": 8.458
+          },
+          {
+            "name": "V8.GCFinalizeMC",
+            "detail": "",
+            "startMs": 28246.343,
+            "durationMs": 8.423,
+            "overlapMs": 8.423
+          },
+          {
+            "name": "V8.GC_MARK_COMPACTOR",
+            "detail": "",
+            "startMs": 28246.346,
+            "durationMs": 8.414,
+            "overlapMs": 8.414
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE",
+            "detail": "",
+            "startMs": 28250.041,
+            "durationMs": 4.359,
+            "overlapMs": 4.359
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS",
+            "detail": "",
+            "startMs": 28251.233,
+            "durationMs": 3.129,
+            "overlapMs": 3.129
+          },
+          {
+            "name": "V8.GC_MC_CLEAR",
+            "detail": "",
+            "startMs": 28246.932,
+            "durationMs": 1.956,
+            "overlapMs": 1.956
+          },
+          {
+            "name": "V8.GC_MC_CLEAR_JOIN_JOB",
+            "detail": "",
+            "startMs": 28246.946,
+            "durationMs": 1.793,
+            "overlapMs": 1.793
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_TO_NEW_ROOTS",
+            "detail": "",
+            "startMs": 28251.236,
+            "durationMs": 1.466,
+            "overlapMs": 1.466
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_UPDATE_POINTERS_POINTER_TABLES",
+            "detail": "",
+            "startMs": 28252.953,
+            "durationMs": 1.399,
+            "overlapMs": 1.399
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_COPY",
+            "detail": "",
+            "startMs": 28250.061,
+            "durationMs": 1.17,
+            "overlapMs": 1.17
+          },
+          {
+            "name": "CppGC.AtomicWeak",
+            "detail": "",
+            "startMs": 28248.895,
+            "durationMs": 1.101,
+            "overlapMs": 1.101
+          },
+          {
+            "name": "V8.GC_MC_EVACUATE_COPY_PARALLEL",
+            "detail": "",
+            "startMs": 28250.101,
+            "durationMs": 0.877,
+            "overlapMs": 0.877
+          },
+          {
+            "name": "CppGC.WeakContainerCallbacksProcessing",
+            "detail": "",
+            "startMs": 28248.954,
+            "durationMs": 0.695,
+            "overlapMs": 0.695
+          },
+          {
+            "name": "V8.GC_MC_CLEAR_SWEEP_JS_DISPATCH_TABLE",
+            "detail": "",
+            "startMs": 28247.194,
+            "durationMs": 0.689,
+            "overlapMs": 0.689
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 28083.35,
+            "durationMs": 0.61,
+            "overlapMs": 0.61
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL",
+            "detail": "",
+            "startMs": 28083.351,
+            "durationMs": 0.608,
+            "overlapMs": 0.608
+          },
+          {
+            "name": "V8.GC_MC_MARK",
+            "detail": "",
+            "startMs": 28246.362,
+            "durationMs": 0.566,
+            "overlapMs": 0.566
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 28065.397,
+            "durationMs": 0.473,
+            "overlapMs": 0.473
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL",
+            "detail": "",
+            "startMs": 28065.399,
+            "durationMs": 0.47,
+            "overlapMs": 0.47
+          },
+          {
+            "name": "V8.GC_MC_INCREMENTAL_EMBEDDER_TRACING",
+            "detail": "",
+            "startMs": 28065.401,
+            "durationMs": 0.463,
+            "overlapMs": 0.463
+          },
+          {
+            "name": "CppGC.IncrementalMark",
+            "detail": "",
+            "startMs": 28065.402,
+            "durationMs": 0.46,
+            "overlapMs": 0.46
+          },
+          {
+            "name": "CppGC.MarkTransitiveClosureWithDeadline",
+            "detail": "",
+            "startMs": 28065.403,
+            "durationMs": 0.458,
+            "overlapMs": 0.458
+          },
+          {
+            "name": "CppGC.MarkTransitiveClosure",
+            "detail": "",
+            "startMs": 28065.404,
+            "durationMs": 0.441,
+            "overlapMs": 0.441
+          },
+          {
+            "name": "V8.GCIncrementalMarking",
+            "detail": "",
+            "startMs": 28084.809,
+            "durationMs": 0.438,
+            "overlapMs": 0.438
+          }
+        ]
+      },
+      {
+        "startMs": 29797.405,
+        "durationMs": 203.961,
+        "eventBreakdownMs": {
+          "RunTask": 203.961,
+          "v8::Debugger::AsyncTaskRun": 203.89,
+          "FireIdleCallback": 203.886,
+          "v8.callFunction": 203.868,
+          "FunctionCall": 203.797,
+          "V8.StackGuard": 0.092,
+          "V8.HandleInterrupts": 0.079,
+          "V8.BytecodeBudgetInterrupt": 0.048999999999999995,
+          "v8::Debugger::AsyncTaskScheduled": 0.004,
+          "v8::Debugger::AsyncTaskCanceled": 0.003
+        },
+        "topFunctionCalls": [
+          {
+            "functionName": "run",
+            "script": "m.secret-tour.com/event/plan_view",
+            "line": 61373,
+            "column": 20,
+            "durationMs": 203.797,
+            "calls": 1
+          }
+        ],
+        "topEvents": [
+          {
+            "name": "v8::Debugger::AsyncTaskRun",
+            "detail": "",
+            "startMs": 29797.407,
+            "durationMs": 203.89,
+            "overlapMs": 203.89
+          },
+          {
+            "name": "FireIdleCallback",
+            "detail": "",
+            "startMs": 29797.41,
+            "durationMs": 203.886,
+            "overlapMs": 203.886
+          },
+          {
+            "name": "v8.callFunction",
+            "detail": "",
+            "startMs": 29797.418,
+            "durationMs": 203.868,
+            "overlapMs": 203.868
+          },
+          {
+            "name": "FunctionCall",
+            "detail": "run@61373:20",
+            "startMs": 29797.419,
+            "durationMs": 203.797,
+            "overlapMs": 203.797
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 29798.446,
+            "durationMs": 0.053,
+            "overlapMs": 0.053
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 29798.454,
+            "durationMs": 0.044,
+            "overlapMs": 0.044
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 29802.016,
+            "durationMs": 0.044,
+            "overlapMs": 0.044
+          },
+          {
+            "name": "V8.StackGuard",
+            "detail": "",
+            "startMs": 29808.265,
+            "durationMs": 0.039,
+            "overlapMs": 0.039
+          },
+          {
+            "name": "V8.HandleInterrupts",
+            "detail": "",
+            "startMs": 29808.268,
+            "durationMs": 0.035,
+            "overlapMs": 0.035
+          },
+          {
+            "name": "V8.BytecodeBudgetInterrupt",
+            "detail": "",
+            "startMs": 29798.003,
+            "durationMs": 0.005,
+            "overlapMs": 0.005
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskScheduled",
+            "detail": "",
+            "startMs": 30001.205,
+            "durationMs": 0.004,
+            "overlapMs": 0.004
+          },
+          {
+            "name": "v8::Debugger::AsyncTaskCanceled",
+            "detail": "",
+            "startMs": 30001.299,
+            "durationMs": 0.003,
+            "overlapMs": 0.003
+          }
+        ]
+      }
+    ]
+  },
+  "recordingLongTasks": {
+    "count": 24,
+    "totalDurationMs": 25278.156999999996,
+    "maxDurationMs": 4389.266,
+    "afterInitial30s": [
+      {
+        "startMs": 30014.098,
+        "durationMs": 1614.074
+      },
+      {
+        "startMs": 43173.027,
+        "durationMs": 851.782
+      },
+      {
+        "startMs": 41365.235,
+        "durationMs": 577.194
+      },
+      {
+        "startMs": 42886.799,
+        "durationMs": 286.215
+      },
+      {
+        "startMs": 44069.896,
+        "durationMs": 185.075
+      },
+      {
+        "startMs": 42778.137,
+        "durationMs": 106.584
+      }
+    ]
+  },
+  "webVitalsApproximation": {
+    "lcpMs": 1372.751,
+    "lcpSize": 80032,
+    "cls": 0.28052083777255366,
+    "note": "Trace-derived approximation; INP requires an interaction trace."
+  },
+  "webVitalsTrace": {
+    "lcpMs": 1372.751,
+    "lcpSize": 80032,
+    "lcpType": "image",
+    "lcpNodeName": "IMG",
+    "cls": 0.2054659925647228,
+    "clsEligibleShiftCount": 9,
+    "clsSessionWindows": [
+      {
+        "startMs": 1511.856,
+        "endMs": 1511.856,
+        "score": 0.2054659925647228,
+        "shifts": 1
+      },
+      {
+        "startMs": 5658.739,
+        "endMs": 5658.739,
+        "score": 0.002804862457372614,
+        "shifts": 1
+      },
+      {
+        "startMs": 13812.746,
+        "endMs": 13812.746,
+        "score": 0.06349111481903781,
+        "shifts": 1
+      },
+      {
+        "startMs": 16186.499,
+        "endMs": 16264.29,
+        "score": 0.0023878207218889723,
+        "shifts": 5
+      },
+      {
+        "startMs": 24259.521,
+        "endMs": 24259.521,
+        "score": 0.006371047209531488,
+        "shifts": 1
+      }
+    ],
+    "inpCandidateMs": 607.656,
+    "inpInteractionCount": 5,
+    "inpCandidateType": "pointerup",
+    "inpCandidateStartMs": 41365.077,
+    "interactions": [
+      {
+        "interactionId": 3674,
+        "durationMs": 607.656,
+        "type": "pointerup",
+        "startMs": 41365.077
+      },
+      {
+        "interactionId": 3667,
+        "durationMs": 67.876,
+        "type": "pointerup",
+        "startMs": 39888.208
+      },
+      {
+        "interactionId": 3681,
+        "durationMs": 50.865,
+        "type": "pointerup",
+        "startMs": 50155.192
+      },
+      {
+        "interactionId": 3653,
+        "durationMs": 48.526,
+        "type": "pointerup",
+        "startMs": 17890.881
+      },
+      {
+        "interactionId": 3660,
+        "durationMs": 47.882,
+        "type": "pointerup",
+        "startMs": 32508.181
+      }
+    ],
+    "note": "Chrome Performance trace lab metrics. INP candidate is null when the trace has no interactionId-bearing EventTiming event; field Core Web Vitals p75 requires real-user monitoring."
+  }
+}

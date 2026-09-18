@@ -4,12 +4,22 @@ const path = require("path");
 const inputPath = path.join(__dirname, "golfjoin_local_data.json");
 const outputPath = path.join(__dirname, "golfjoin_home_summary.json");
 const prettyOutputPath = path.join(__dirname, "golfjoin_home_summary.pretty.json");
+const homeCardsOutputPath = path.join(__dirname, "golfjoin_home_cards.json");
+const homeCardsPrettyOutputPath = path.join(__dirname, "golfjoin_home_cards.pretty.json");
 const today = new Date();
 const defaultStart = new Date(today);
 defaultStart.setDate(defaultStart.getDate() + 7);
-const startDate = process.argv[2] || defaultStart.toISOString().slice(0, 10);
-const rangeDays = Number(process.argv[3] || 240);
+const positionalArgs = process.argv.slice(2).filter((value) => !value.startsWith("--"));
+const startDate = positionalArgs[0] || defaultStart.toISOString().slice(0, 10);
+const rangeDays = Number(positionalArgs[1] || 240);
 const writePretty = process.argv.includes("--pretty");
+const cardsFromSummary = process.argv.includes("--cards-from-summary");
+const homeCardsStartDate = String(
+  process.argv.find((value) => value.startsWith("--cards-start="))?.split("=")[1]
+  || defaultStart.toISOString().slice(0, 10)
+);
+const HOME_CARD_PRODUCT_DATE_LIMIT = 4;
+const HOME_CARD_PRODUCT_DATE_GAP_DAYS = 7;
 const end = new Date(`${startDate}T00:00:00`);
 end.setDate(end.getDate() + Math.max(1, rangeDays));
 const endDate = end.toISOString().slice(0, 10);
@@ -62,6 +72,82 @@ function compactItem(item) {
       .map((key) => [key, item[key]])
       .filter(([, value]) => value !== undefined && value !== "" && !(Array.isArray(value) && !value.length))
   );
+}
+
+function normalizePublicImageUrl(value = "") {
+  const image = String(value || "").trim();
+  if (!image) return "";
+  if (image.startsWith("//")) return `https:${image}`;
+  if (/^https?:\/\//i.test(image)) return image;
+  return `https://www.secret-tour.com${image.startsWith("/") ? image : `/${image}`}`;
+}
+
+function collectDisplayRuleProductReferences(value, references = new Set(), parentKey = "") {
+  if (Array.isArray(value)) {
+    value.forEach((item) => collectDisplayRuleProductReferences(item, references, parentKey));
+    return references;
+  }
+  if (!value || typeof value !== "object") return references;
+  Object.entries(value).forEach(([key, item]) => {
+    if (item && typeof item === "object") {
+      collectDisplayRuleProductReferences(item, references, key);
+      return;
+    }
+    if (!/(?:good|event|product|schedule)(?:seq|id|key)/i.test(key || parentKey)) return;
+    const normalized = String(item || "").trim();
+    if (normalized) references.add(normalized);
+  });
+  return references;
+}
+
+function buildHomeCardItems(items = [], displayRules = [], minDepartureDate = "") {
+  const sortedItems = items.filter((item) => (
+    !item.departureDate || !minDepartureDate || item.departureDate >= minDepartureDate
+  )).sort((a, b) => {
+    const dateCompare = String(a.departureDate || "9999-12-31").localeCompare(String(b.departureDate || "9999-12-31"));
+    if (dateCompare) return dateCompare;
+    return (Number(a.price) || Number.MAX_SAFE_INTEGER) - (Number(b.price) || Number.MAX_SAFE_INTEGER);
+  });
+  const productGroups = new Map();
+  sortedItems.forEach((item, index) => {
+    const key = String(item.goodSeq || item.productId || item.id || `item-${index}`).trim();
+    if (!productGroups.has(key)) productGroups.set(key, []);
+    productGroups.get(key).push(item);
+  });
+  const representatives = [...productGroups.values()].flatMap((groupItems) => {
+    const selected = [];
+    const selectedDates = new Set();
+    let lastSelectedTime = NaN;
+    groupItems.forEach((item) => {
+      if (selected.length >= HOME_CARD_PRODUCT_DATE_LIMIT) return;
+      const departureDate = String(item.departureDate || "").trim();
+      if (!departureDate || selectedDates.has(departureDate)) return;
+      const departureTime = new Date(`${departureDate}T00:00:00Z`).getTime();
+      const hasEnoughGap = !Number.isFinite(lastSelectedTime)
+        || !Number.isFinite(departureTime)
+        || departureTime - lastSelectedTime >= HOME_CARD_PRODUCT_DATE_GAP_DAYS * 24 * 60 * 60 * 1000;
+      if (!hasEnoughGap) return;
+      selected.push(item);
+      selectedDates.add(departureDate);
+      lastSelectedTime = departureTime;
+    });
+    if (!selected.length && groupItems[0]) selected.push(groupItems[0]);
+    return selected;
+  });
+
+  const referencedValues = collectDisplayRuleProductReferences(displayRules);
+  const referencedItems = sortedItems.filter((item) => [
+    item.id,
+    item.eventSeq,
+    item.scheduleId
+  ].some((value) => referencedValues.has(String(value || "").trim())));
+
+  const result = new Map();
+  [...representatives, ...referencedItems].forEach((item) => {
+    const key = [item.id, item.goodSeq, item.eventSeq].filter(Boolean).join(":");
+    if (key) result.set(key, item);
+  });
+  return [...result.values()];
 }
 
 const knownCountries = [
@@ -170,13 +256,23 @@ function buildDestinationSummary(items = []) {
   };
 }
 
-const source = JSON.parse(fs.readFileSync(inputPath, "utf8"));
+const source = JSON.parse(fs.readFileSync(cardsFromSummary ? outputPath : inputPath, "utf8"));
 const sourceItems = Array.isArray(source.items) ? source.items : [];
-const items = sourceItems
-  .filter((item) => !item.departureDate || (item.departureDate >= startDate && item.departureDate <= endDate))
-  .map(compactItem);
+const productMetaByGoodSeq = source.productMetaByGoodSeq || {};
+const compactAndEnrichItem = (item) => {
+  const compact = compactItem(item);
+  const goodSeq = String(item.goodSeq || item.erpProductId || "").trim();
+  const savedImage = normalizePublicImageUrl(productMetaByGoodSeq?.[goodSeq]?.image);
+  if (!compact.image && savedImage) compact.image = savedImage;
+  return compact;
+};
+const items = cardsFromSummary
+  ? sourceItems.map(compactAndEnrichItem)
+  : sourceItems
+    .filter((item) => !item.departureDate || (item.departureDate >= startDate && item.departureDate <= endDate))
+    .map(compactAndEnrichItem);
 
-const payload = {
+const payload = cardsFromSummary ? source : {
   schema: "secret-golf-join-home-summary-v1",
   generatedAt: new Date().toISOString(),
   sourceGeneratedAt: source.generatedAt || "",
@@ -184,18 +280,40 @@ const payload = {
   sourceCount: sourceItems.length,
   count: items.length,
   items,
+  ...(Object.keys(productMetaByGoodSeq).length ? { productMetaByGoodSeq } : {}),
   destinations: buildDestinationSummary(items)
 };
 
-fs.writeFileSync(outputPath, JSON.stringify(payload));
+const homeCardItems = buildHomeCardItems(items, payload.homeBootstrapLight?.displayRules || [], homeCardsStartDate);
+const homeCardImageCount = homeCardItems.filter((item) => String(item.image || "").trim()).length;
+const homeCardsPayload = {
+  schema: "secret-golf-join-home-cards-v1",
+  generatedAt: new Date().toISOString(),
+  sourceGeneratedAt: payload.generatedAt || payload.sourceGeneratedAt || "",
+  range: { ...payload.range, startDate: homeCardsStartDate },
+  sourceCount: payload.count,
+  count: homeCardItems.length,
+  items: homeCardItems,
+  destinations: payload.destinations,
+  ...(payload.productMetaByGoodSeq ? { productMetaByGoodSeq: payload.productMetaByGoodSeq } : {}),
+  ...(payload.homeBootstrapLight ? { homeBootstrapLight: payload.homeBootstrapLight } : {})
+};
+
+if (!cardsFromSummary) fs.writeFileSync(outputPath, JSON.stringify(payload));
+fs.writeFileSync(homeCardsOutputPath, JSON.stringify(homeCardsPayload));
 if (writePretty) {
   fs.writeFileSync(prettyOutputPath, `${JSON.stringify(payload, null, 2)}\n`);
+  fs.writeFileSync(homeCardsPrettyOutputPath, `${JSON.stringify(homeCardsPayload, null, 2)}\n`);
 }
 console.log(JSON.stringify({
   output: path.relative(process.cwd(), outputPath),
+  homeCardsOutput: path.relative(process.cwd(), homeCardsOutputPath),
   prettyOutput: writePretty ? path.relative(process.cwd(), prettyOutputPath) : "",
   sourceCount: sourceItems.length,
   count: items.length,
   bytes: fs.statSync(outputPath).size,
+  homeCardsCount: homeCardItems.length,
+  homeCardsImageCount: homeCardImageCount,
+  homeCardsBytes: fs.statSync(homeCardsOutputPath).size,
   range: payload.range
 }, null, 2));

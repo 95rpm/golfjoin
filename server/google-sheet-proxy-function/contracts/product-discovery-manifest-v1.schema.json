@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/product-discovery-manifest-v1.schema.json",
+  "title": "GolfJoin product discovery root manifest v1",
+  "type": "object",
+  "required": ["schema", "generatedAt", "sourceGeneratedAt", "discoveryRevision", "browserReadEnabled", "range", "eventCount", "monthCount", "regionCount", "index", "lookup"],
+  "properties": {
+    "schema": { "const": "secret-golf-join-product-discovery-manifest-v1" },
+    "generatedAt": { "type": "string", "minLength": 1 },
+    "sourceGeneratedAt": { "type": "string", "minLength": 1 },
+    "discoveryRevision": { "type": "string", "pattern": "^gpd_[a-f0-9]{24}$" },
+    "browserReadEnabled": { "type": "boolean" },
+    "range": { "$ref": "#/$defs/range" },
+    "eventCount": { "type": "integer", "minimum": 1 },
+    "monthCount": { "type": "integer", "minimum": 1 },
+    "regionCount": { "type": "integer", "minimum": 0 },
+    "index": { "$ref": "#/$defs/reference" },
+    "lookup": { "$ref": "#/$defs/reference" }
+  },
+  "$defs": {
+    "range": {
+      "type": "object",
+      "required": ["startDate", "endDate"],
+      "properties": {
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" }
+      }
+    },
+    "reference": {
+      "type": "object",
+      "required": ["objectName", "url", "sha256", "rawBytes"],
+      "properties": {
+        "objectName": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "rawBytes": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

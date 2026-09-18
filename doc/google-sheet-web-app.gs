@@ -287,7 +287,10 @@ const SHEET_HEADERS = {
     "displayEndAt",
     "tripSummary",
     "adminMemo",
-    "updatedAt"
+    "updatedAt",
+    "productFamilyId",
+    "familyDepartureDate",
+    "familyOptionsJson"
   ]
 };
 
@@ -343,6 +346,9 @@ const KNOWN_COUNTRY_NAMES = [
 
 function doPost(e) {
   const payload = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+  if (String(payload.action || "").toLowerCase() === "admin_email_send") {
+    return handleGolfjoinAdminEmailSend_(payload);
+  }
   setupGolfJoinSheets();
 
   if (String(payload.action || "").toLowerCase() === "admin_status_update") {
@@ -361,6 +367,9 @@ function doPost(e) {
           : source === "product_display_rule" || source === "recommended_schedule"
             ? SHEET_NAMES.PRODUCT_DISPLAY_RULES
           : SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS;
+  if (sheetName === SHEET_NAMES.JOIN_APPLICATIONS) {
+    enrichJoinApplicationTravelFields_(payload);
+  }
   const headers = SHEET_HEADERS[sheetName];
   const row = headers.map(function (header) {
     return getPayloadColumnValue_(payload, header, sheetName);
@@ -369,11 +378,15 @@ function doPost(e) {
   LockService.getScriptLock().waitLock(30000);
   let writeResult = { action: "append" };
   let capacityError = null;
+  let recommendationConflictError = null;
   try {
     if (sheetName === SHEET_NAMES.JOIN_APPLICATIONS) {
       capacityError = getJoinApplicationCapacityError_(payload, row);
     }
-    if (!capacityError) {
+    if (sheetName === SHEET_NAMES.PRODUCT_DISPLAY_RULES) {
+      recommendationConflictError = getRecommendedScheduleConflictError_(payload);
+    }
+    if (!capacityError && !recommendationConflictError) {
       writeResult = writeSheetRow_(sheetName, headers, row, payload);
       if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS || sheetName === SHEET_NAMES.PRODUCT_DISPLAY_RULES || value_(payload, "targetType") === "new_schedule" || value_(payload, "targetType") === "recommended_schedule") {
         refreshScheduleParticipantSummary_();
@@ -384,6 +397,7 @@ function doPost(e) {
   }
 
   if (capacityError) return jsonOutput_(capacityError);
+  if (recommendationConflictError) return jsonOutput_(recommendationConflictError);
 
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true, sheet: sheetName, write: writeResult.action, row: writeResult.row }))
@@ -896,7 +910,12 @@ function getProductDisplayRuleValue_(payload, header) {
     displayEndAt: formatDateCellAsISODate_(payload.displayEndAt || value_(payload, "product.returnDate") || payload.displayStartAt || value_(payload, "product.departureDate") || ""),
     tripSummary: payload.tripSummary || value_(payload, "product.tripSummary") || "",
     adminMemo: payload.adminMemo || "",
-    updatedAt: updatedAt
+    updatedAt: updatedAt,
+    productFamilyId: String(payload.productFamilyId || "").trim(),
+    familyDepartureDate: formatDateCellAsISODate_(payload.familyDepartureDate || payload.displayStartAt || ""),
+    familyOptionsJson: Array.isArray(payload.familyOptionsJson)
+      ? JSON.stringify(payload.familyOptionsJson)
+      : String(payload.familyOptionsJson || "")
   };
   return values[header] !== undefined ? values[header] : "";
 }
@@ -906,6 +925,45 @@ function isActiveRecommendedScheduleRule_(rule) {
   const visible = String(rule.isVisible === undefined || rule.isVisible === "" ? "true" : rule.isVisible).toLowerCase();
   const status = String(rule.status || "").toLowerCase();
   return section === "available_schedule" && visible !== "false" && visible !== "0" && visible !== "no" && status !== "cancelled" && status !== "hidden";
+}
+
+function getRecommendedScheduleOptionKeys_(rule) {
+  let familyOptions = [];
+  if (String(rule && rule.productFamilyId || "").trim()) {
+    try {
+      familyOptions = Array.isArray(rule.familyOptionsJson) ? rule.familyOptionsJson : JSON.parse(String(rule.familyOptionsJson || "[]"));
+    } catch (error) {
+      familyOptions = [];
+    }
+  }
+  const familyKeys = (Array.isArray(familyOptions) ? familyOptions : []).map(function (option) {
+    const goodSeq = String(option && (option.goodSeq || option.erpProductId) || "").trim();
+    const eventSeq = String(option && (option.eventSeq || option.erpEventSeq) || "").trim();
+    return /^\d+$/.test(goodSeq) && /^\d+$/.test(eventSeq) ? goodSeq + ":" + eventSeq : "";
+  }).filter(Boolean);
+  if (familyKeys.length) return familyKeys.filter(function (key, index, list) { return list.indexOf(key) === index; });
+  const goodSeq = String(rule && (rule.erpProductId || rule.goodSeq) || "").trim();
+  const eventSeq = String(rule && (rule.erpEventSeq || rule.eventSeq) || "").trim();
+  return /^\d+$/.test(goodSeq) && /^\d+$/.test(eventSeq) ? [goodSeq + ":" + eventSeq] : [];
+}
+
+function getRecommendedScheduleConflictError_(payload) {
+  const requestedId = String(payload.recommendedScheduleId || payload.displayRuleId || "").trim();
+  const requestedKeys = getRecommendedScheduleOptionKeys_(payload);
+  if (!requestedKeys.length) return null;
+  const requestedMap = {};
+  requestedKeys.forEach(function (key) { requestedMap[key] = true; });
+  const conflict = readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES).find(function (rule) {
+    if (!isActiveRecommendedScheduleRule_(rule)) return false;
+    if (String(rule.recommendedScheduleId || rule.displayRuleId || "").trim() === requestedId) return false;
+    return getRecommendedScheduleOptionKeys_(rule).some(function (key) { return requestedMap[key]; });
+  });
+  return conflict ? {
+    ok: false,
+    error: "recommended_schedule_option_conflict",
+    message: "선택한 기간은 이미 다른 추천일정에 등록되어 있습니다.",
+    conflictingRecommendedScheduleId: String(conflict.recommendedScheduleId || conflict.displayRuleId || "")
+  } : null;
 }
 
 function buildRecommendedScheduleId_(rule) {
@@ -923,6 +981,9 @@ function buildRecommendedScheduleSummarySource_(rule) {
     productName: rule.overrideTitle || rule.productName || rule.erpProductId || "Recommended schedule",
     country: rule.country || "",
     region: rule.region || "",
+    airline: rule.airline || "",
+    departureAirport: rule.departureAirport || "",
+    arrivalAirport: rule.arrivalAirport || "",
     departureDateFrom: formatDateCellAsISODate_(rule.displayStartAt || ""),
     departureDateTo: formatDateCellAsISODate_(rule.displayStartAt || ""),
     returnDateFrom: formatDateCellAsISODate_(rule.displayEndAt || rule.displayStartAt || ""),
@@ -1004,6 +1065,180 @@ function findJoinApplicationTargetSchedule_(joinRow, newSchedules, recommendedRo
     || null;
 }
 
+const SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_ = ["인천", "김포", "부산", "김해", "대구", "청주", "무안", "제주", "양양"];
+
+function isSecretTourIndividualAirlineName_(value) {
+  return /(개별\s*항공|개별\s*발권)/.test(String(value || "").trim());
+}
+
+function isSecretTourAirlineName_(value) {
+  const text = String(value || "").trim();
+  return isSecretTourIndividualAirlineName_(text)
+    || /(대한항공|아시아나항공?|제주항공|진에어|티웨이항공?|에어서울|에어부산|이스타항공|에어프레미아|에어로케이|가루다\s*인도네시아(?:항공)?|사천항공|산동항공|베트남항공|비엣젯항공|타이항공|싱가포르항공|캐세이퍼시픽|중화항공|에바항공|중국동방항공|중국남방항공|중국국제항공|상하이항공|말레이시아항공|필리핀항공|세부퍼시픽|스쿠트항공|[가-힣A-Za-z]+항공(?:사)?|Airlines?|항공사)/i.test(text);
+}
+
+function normalizeSecretTourAirlineName_() {
+  for (let index = 0; index < arguments.length; index += 1) {
+    const value = String(arguments[index] || "").trim();
+    if (isSecretTourAirlineName_(value) && !isSecretTourIndividualAirlineName_(value)) return value;
+  }
+  return "";
+}
+
+function extractSecretTourAirportName_(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  for (let index = 0; index < SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_.length; index += 1) {
+    const airport = SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_[index];
+    if (new RegExp("(^|[^가-힣])" + airport + "(?:(?:국제)?공항)?(?=$|[^가-힣]|출발)").test(text)) return airport;
+  }
+  return "";
+}
+
+function normalizeSecretTourAirportName_() {
+  for (let index = 0; index < arguments.length; index += 1) {
+    const airport = extractSecretTourAirportName_(arguments[index]);
+    if (airport) return airport;
+  }
+  return "";
+}
+
+function getSecretTourFirstDayScheduleText_(value) {
+  let schedule = value;
+  if (typeof schedule === "string") {
+    try {
+      schedule = JSON.parse(schedule);
+    } catch (error) {
+      return schedule.trim();
+    }
+  }
+  if (schedule && !Array.isArray(schedule) && Array.isArray(schedule.schedule)) schedule = schedule.schedule;
+  const firstDay = Array.isArray(schedule) ? schedule[0] : schedule;
+  if (!firstDay) return "";
+  if (typeof firstDay === "string") return firstDay.trim();
+  return [
+    firstDay.rawText,
+    firstDay.content,
+    firstDay.text,
+    firstDay.description,
+    firstDay.route,
+    firstDay.departureAirport,
+    firstDay.fromCity
+  ].filter(Boolean).join(" ").trim();
+}
+
+function inferSecretTourDepartureAirportFromSchedule_() {
+  for (let valueIndex = 0; valueIndex < arguments.length; valueIndex += 1) {
+    const text = getSecretTourFirstDayScheduleText_(arguments[valueIndex]);
+    if (!text) continue;
+    const departurePattern = /출발/g;
+    let departureMatch;
+    while ((departureMatch = departurePattern.exec(text)) !== null) {
+      const departureIndex = departureMatch.index || 0;
+      const before = text.slice(Math.max(0, departureIndex - 80), departureIndex);
+      let beforeAirport = "";
+      let beforeAirportIndex = -1;
+      for (let airportIndex = 0; airportIndex < SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_.length; airportIndex += 1) {
+        const airport = SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_[airportIndex];
+        const currentIndex = before.lastIndexOf(airport);
+        if (currentIndex > beforeAirportIndex) {
+          beforeAirport = airport;
+          beforeAirportIndex = currentIndex;
+        }
+      }
+      if (beforeAirportIndex >= 0) return beforeAirport;
+      const after = text.slice(departureIndex + departureMatch[0].length, departureIndex + departureMatch[0].length + 40);
+      let afterAirport = "";
+      let afterAirportIndex = Number.MAX_SAFE_INTEGER;
+      for (let airportIndex = 0; airportIndex < SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_.length; airportIndex += 1) {
+        const airport = SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_[airportIndex];
+        const currentIndex = after.indexOf(airport);
+        if (currentIndex >= 0 && currentIndex < afterAirportIndex) {
+          afterAirport = airport;
+          afterAirportIndex = currentIndex;
+        }
+      }
+      if (afterAirport) return afterAirport;
+    }
+    const firstDayAirport = normalizeSecretTourAirportName_(text);
+    if (firstDayAirport) return firstDayAirport;
+  }
+  return "";
+}
+
+function isSecretTourGolfPack_(packType, packTypeName) {
+  return String(packType || "").toLowerCase() === "golf" || String(packTypeName || "").indexOf("골프") >= 0;
+}
+
+function inferSecretTourDepartureAirportFromTitle_() {
+  for (let index = 0; index < arguments.length; index += 1) {
+    const text = String(arguments[index] || "").trim();
+    if (!text) continue;
+    const tagMatch = /^\s*\[([^\]]+)\]/.exec(text);
+    const leadingTag = tagMatch ? tagMatch[1] : "";
+    for (let airportIndex = 0; airportIndex < SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_.length; airportIndex += 1) {
+      const airport = SECRET_TOUR_DEPARTURE_AIRPORT_NAMES_[airportIndex];
+      if (leadingTag.indexOf(airport) >= 0 || new RegExp(airport + "(?:(?:국제)?공항)?\\s*출발").test(text)) return airport;
+    }
+  }
+  return "";
+}
+
+function enrichJoinApplicationTravelFields_(payload) {
+  const payloadScheduleAirport = inferSecretTourDepartureAirportFromSchedule_(value_(payload, "product.schedule"), payload.schedule);
+  const currentDepartureAirport = normalizeSecretTourAirportName_(
+    value_(payload, "product.departureAirport"),
+    payload.departureAirport,
+    value_(payload, "product.depAirport"),
+    value_(payload, "product.airport"),
+    value_(payload, "product.airportName")
+  ) || inferSecretTourDepartureAirportFromTitle_(value_(payload, "product.productName"), payload.productName);
+  let departureAirport = payloadScheduleAirport
+    || currentDepartureAirport;
+  let packType = value_(payload, "product.packType") || payload.packType || "";
+  let packTypeName = value_(payload, "product.packTypeName") || payload.packTypeName || "";
+  const currentAirline = value_(payload, "product.airline")
+    || value_(payload, "product.airlineName")
+    || value_(payload, "product.airlineNm")
+    || value_(payload, "product.air2Nm")
+    || value_(payload, "product.air2CdNm")
+    || "";
+  const joinRow = {
+    targetType: payload.targetType || value_(payload, "target.type") || "erp_product",
+    targetScheduleId: payload.targetScheduleId || value_(payload, "target.scheduleId") || "",
+    targetApplicationId: payload.targetApplicationId || value_(payload, "target.applicationId") || "",
+    erpProductId: payload.erpProductId || value_(payload, "product.erpProductId") || value_(payload, "product.productId") || "",
+    erpEventSeq: payload.erpEventSeq || value_(payload, "product.erpEventSeq") || value_(payload, "product.eventSeq") || "",
+    departureDate: value_(payload, "product.departureDate") || payload.departureDate || ""
+  };
+  const targetSchedule = findJoinApplicationTargetSchedule_(
+    joinRow,
+    readSheetObjects_(SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS),
+    readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES)
+  );
+  if (targetSchedule) {
+    departureAirport = payloadScheduleAirport
+      || inferSecretTourDepartureAirportFromSchedule_(targetSchedule.schedule)
+      || normalizeSecretTourAirportName_(targetSchedule.departureAirport, targetSchedule.depAirport, targetSchedule.airport, targetSchedule.airportName)
+      || inferSecretTourDepartureAirportFromTitle_(targetSchedule.productName, targetSchedule.title, targetSchedule.overrideTitle)
+      || currentDepartureAirport;
+    packType = targetSchedule.packType || packType || "";
+    packTypeName = targetSchedule.packTypeName || targetSchedule.productType || packTypeName || "";
+  }
+  if (!payload.product || typeof payload.product !== "object") payload.product = {};
+  const isGolfPack = isSecretTourGolfPack_(packType, packTypeName) || ((!packType && !packTypeName) && isSecretTourIndividualAirlineName_(currentAirline));
+  const airline = isGolfPack
+    ? "개별항공"
+    : normalizeSecretTourAirlineName_(targetSchedule && targetSchedule.airline, targetSchedule && targetSchedule.airlineName, targetSchedule && targetSchedule.airlineNm, currentAirline);
+  if (packType) payload.product.packType = packType;
+  if (packTypeName) payload.product.packTypeName = packTypeName;
+  if (airline) payload.product.airline = airline;
+  if (departureAirport) {
+    payload.product.departureAirport = departureAirport;
+    payload.departureAirport = departureAirport;
+  }
+}
+
 function buildJoinCapacitySummary_(schedule, joinRows) {
   const relatedJoins = joinRows.filter(function (join) {
     return isJoinApplicationForSchedule_(join, schedule);
@@ -1063,8 +1298,17 @@ function getNewScheduleApplicationValue_(payload, header) {
   const scheduleId = payload.scheduleId || buildId_("sch", applicationId);
   const packTypeValue = value_(payload, "trip.packType") || payload.packType;
   const packTypeNameValue = value_(payload, "trip.packTypeName") || payload.packTypeName;
-  const rawAirlineValue = value_(payload, "trip.airline") || value_(payload, "product.airline") || value_(payload, "product.airlineName") || value_(payload, "product.airlineNm") || value_(payload, "product.air2Nm") || value_(payload, "product.air2CdNm");
-  const rawDepartureAirportValue = value_(payload, "trip.departureAirport") || value_(payload, "product.departureAirport") || value_(payload, "product.airport");
+  const productNameValue = value_(payload, "trip.productName") || value_(payload, "product.productName") || payload.productName || "";
+  const rawAirlineValue = normalizeSecretTourAirlineName_(value_(payload, "trip.airline"), value_(payload, "product.airline"), value_(payload, "product.airlineName"), value_(payload, "product.airlineNm"), value_(payload, "product.air2Nm"), value_(payload, "product.air2CdNm"));
+  const rawDepartureAirportValue = inferSecretTourDepartureAirportFromSchedule_(value_(payload, "trip.schedule"), value_(payload, "product.schedule"), payload.schedule)
+    || normalizeSecretTourAirportName_(
+      value_(payload, "trip.departureAirport"),
+      value_(payload, "product.departureAirport"),
+      value_(payload, "product.depAirport"),
+      value_(payload, "product.airport"),
+      value_(payload, "product.airportName")
+    )
+    || inferSecretTourDepartureAirportFromTitle_(productNameValue);
   const isGolfPack = String(packTypeValue || "").toLowerCase() === "golf" || String(packTypeNameValue || "").indexOf("골프팩") >= 0;
   const values = {
     applicationId: applicationId,
@@ -1072,12 +1316,12 @@ function getNewScheduleApplicationValue_(payload, header) {
     createdAt: createdAt,
     source: payload.source || "new_schedule_builder",
     pageUrl: payload.pageUrl || "",
-    memberSeq: value_(payload, "member.memberSeq"),
-    memberId: value_(payload, "member.memberId"),
-    memberName: value_(payload, "member.memberName"),
+    memberSeq: value_(payload, "member.memberSeq") || payload.memberSeq,
+    memberId: value_(payload, "member.memberId") || payload.memberId,
+    memberName: value_(payload, "member.memberName") || payload.memberName || value_(payload, "applicant.name"),
     memberChannel: value_(payload, "member.memberChannel"),
-    memberMobile: value_(payload, "member.memberMobile"),
-    memberEmail: value_(payload, "member.memberEmail"),
+    memberMobile: value_(payload, "member.memberMobile") || payload.memberMobile || value_(payload, "applicant.phone"),
+    memberEmail: value_(payload, "member.memberEmail") || payload.memberEmail || value_(payload, "applicant.email"),
     applicantName: value_(payload, "applicant.name"),
     applicantGender: value_(payload, "applicant.gender"),
     applicantBirthYear: value_(payload, "applicant.birthYear"),
@@ -1097,12 +1341,12 @@ function getNewScheduleApplicationValue_(payload, header) {
     singleRoomSurchargeStatus: value_(payload, "applicant.singleRoomSurchargeStatus"),
     country: value_(payload, "trip.country") || normalizeCountryName_(value_(payload, "trip.region")) || normalizeCountryList_(value_(payload, "trip.regions")),
     region: normalizeRegionName_(value_(payload, "trip.region")),
-    airline: isGolfPack ? (rawAirlineValue || "개별항공") : rawAirlineValue,
-    departureAirport: isGolfPack ? "" : rawDepartureAirportValue,
+    airline: isGolfPack ? "개별항공" : rawAirlineValue,
+    departureAirport: rawDepartureAirportValue,
     arrivalAirport: value_(payload, "trip.arrivalAirport") || value_(payload, "product.arrivalAirport") || value_(payload, "product.region"),
     erpProductId: value_(payload, "trip.erpProductId") || value_(payload, "trip.productId"),
     erpEventSeq: value_(payload, "trip.erpEventSeq") || value_(payload, "trip.eventSeq"),
-    productName: value_(payload, "trip.productName"),
+    productName: productNameValue,
     productPrice: normalizePriceCell_(value_(payload, "trip.productPrice") || payload.productPrice || payload.price),
     packType: packTypeValue,
     packTypeName: packTypeNameValue,
@@ -1136,29 +1380,50 @@ function getJoinApplicationValue_(payload, header) {
   const erpEventSeq = payload.erpEventSeq || value_(payload, "product.erpEventSeq") || value_(payload, "product.eventSeq");
   const targetJoinId = payload.targetJoinId || value_(payload, "target.joinId") || value_(payload, "join.id");
   const targetProductKey = payload.targetProductKey || value_(payload, "target.productKey") || (erpProductId && erpEventSeq ? "erp:" + erpProductId + ":" + erpEventSeq : "");
+  const productNameValue = value_(payload, "product.productName") || payload.productName || "";
+  const departureAirportValue = inferSecretTourDepartureAirportFromSchedule_(value_(payload, "product.schedule"), payload.schedule)
+    || normalizeSecretTourAirportName_(
+      value_(payload, "product.departureAirport"),
+      payload.departureAirport,
+      value_(payload, "product.depAirport"),
+      value_(payload, "product.airport"),
+      value_(payload, "product.airportName")
+    )
+    || inferSecretTourDepartureAirportFromTitle_(productNameValue);
+  const packTypeValue = value_(payload, "product.packType") || payload.packType || "";
+  const packTypeNameValue = value_(payload, "product.packTypeName") || payload.packTypeName || "";
+  const rawJoinAirlineValue = value_(payload, "product.airline")
+    || value_(payload, "product.airlineName")
+    || value_(payload, "product.airlineNm")
+    || value_(payload, "product.air2Nm")
+    || value_(payload, "product.air2CdNm")
+    || "";
+  const airlineValue = (isSecretTourGolfPack_(packTypeValue, packTypeNameValue) || ((!packTypeValue && !packTypeNameValue) && isSecretTourIndividualAirlineName_(rawJoinAirlineValue)))
+    ? "개별항공"
+    : normalizeSecretTourAirlineName_(rawJoinAirlineValue);
   const values = {
     applicationId: applicationId,
     createdAt: createdAt,
     source: payload.source || "join_apply",
     pageUrl: payload.pageUrl || "",
-    memberSeq: value_(payload, "member.memberSeq"),
-    memberId: value_(payload, "member.memberId"),
-    memberName: value_(payload, "member.memberName"),
+    memberSeq: value_(payload, "member.memberSeq") || payload.memberSeq,
+    memberId: value_(payload, "member.memberId") || payload.memberId,
+    memberName: value_(payload, "member.memberName") || payload.memberName || value_(payload, "applicant.name"),
     memberChannel: value_(payload, "member.memberChannel"),
-    memberMobile: value_(payload, "member.memberMobile"),
-    memberEmail: value_(payload, "member.memberEmail"),
+    memberMobile: value_(payload, "member.memberMobile") || payload.memberMobile || value_(payload, "applicant.phone"),
+    memberEmail: value_(payload, "member.memberEmail") || payload.memberEmail || value_(payload, "applicant.email"),
     targetType: payload.targetType || value_(payload, "target.type") || "erp_product",
     targetScheduleId: payload.targetScheduleId || value_(payload, "target.scheduleId"),
     targetApplicationId: payload.targetApplicationId || value_(payload, "target.applicationId"),
     erpProductId: erpProductId,
     erpEventSeq: erpEventSeq,
-    productName: value_(payload, "product.productName") || payload.productName,
+    productName: productNameValue,
     departureDate: value_(payload, "product.departureDate") || payload.departureDate,
     returnDate: value_(payload, "product.returnDate") || payload.returnDate,
     country: value_(payload, "product.country") || payload.country || normalizeCountryName_(value_(payload, "product.countryRegion") || value_(payload, "join.countryRegion") || value_(payload, "product.region") || payload.region),
     region: normalizeRegionName_(value_(payload, "product.region") || payload.region),
-    airline: value_(payload, "product.airline") || value_(payload, "product.airlineName") || value_(payload, "product.airlineNm") || value_(payload, "product.air2Nm") || value_(payload, "product.air2CdNm"),
-    departureAirport: value_(payload, "product.departureAirport") || payload.departureAirport,
+    airline: airlineValue,
+    departureAirport: departureAirportValue,
     arrivalAirport: value_(payload, "product.arrivalAirport") || payload.arrivalAirport || value_(payload, "product.region"),
     applicantName: value_(payload, "applicant.name"),
     applicantGender: value_(payload, "applicant.gender"),
@@ -1362,7 +1627,7 @@ function refreshScheduleParticipantSummary_() {
       creatorPhone: schedule.applicantMobile || schedule.creatorPhone,
       capacity: capacity,
       creatorPeople: normalizedCreatorPeople,
-      joinedPeople: normalizedJoinedPeople,
+      joinedPeople: confirmedPeople,
       confirmedPeople: confirmedPeople,
       pendingPeople: pendingJoins.reduce(function (sum, join) { return sum + parsePeople_(join.applicantPeople || join.people); }, 0),
       cancelledPeople: cancelledJoins.reduce(function (sum, join) { return sum + parsePeople_(join.applicantPeople || join.people); }, 0),
@@ -1493,8 +1758,8 @@ function getPayloadMemberKey_(payload) {
     memberKey: payload.memberKey || value_(payload, "member.memberKey"),
     memberSeq: value_(payload, "member.memberSeq") || payload.memberSeq,
     memberId: value_(payload, "member.memberId") || payload.memberId,
-    memberMobile: value_(payload, "member.memberMobile") || payload.memberMobile,
-    memberEmail: value_(payload, "member.memberEmail") || payload.memberEmail,
+    memberMobile: value_(payload, "member.memberMobile") || payload.memberMobile || value_(payload, "applicant.phone"),
+    memberEmail: value_(payload, "member.memberEmail") || payload.memberEmail || value_(payload, "applicant.email"),
     kakaoId: value_(payload, "member.kakaoId") || value_(payload, "kakao.kakaoId") || payload.kakaoId
   });
 }
@@ -1926,6 +2191,73 @@ function getParticipantSummarySchedule_(row, newSchedules, displayRules) {
   return matches.length === 1 ? { row: matches[0], recommended: false } : null;
 }
 
+function getRecommendedFamilyOptions_(rule) {
+  if (!String(rule && rule.productFamilyId || "").trim()) return [];
+  var parsed;
+  try {
+    parsed = Array.isArray(rule.familyOptionsJson) ? rule.familyOptionsJson : JSON.parse(String(rule.familyOptionsJson || "[]"));
+  } catch (error) {
+    return [];
+  }
+  if (!Array.isArray(parsed) || parsed.length < 2) return [];
+  var options = parsed.map(function (option) {
+    return {
+      goodSeq: String(option.goodSeq || option.erpProductId || "").trim(),
+      eventSeq: String(option.eventSeq || option.erpEventSeq || "").trim(),
+      departureDate: formatDateCellAsISODate_(option.departureDate || rule.familyDepartureDate || rule.displayStartAt),
+      returnDate: formatDateCellAsISODate_(option.returnDate || option.departureDate || rule.displayEndAt),
+      durationLabel: String(option.durationLabel || "").trim(),
+      capacity: Math.max(0, parsePositiveInteger_(option.capacity) || 0)
+    };
+  }).filter(function (option) { return /^\d+$/.test(option.goodSeq) && /^\d+$/.test(option.eventSeq); });
+  if (options.length < 2) return [];
+  var totalCapacity = Math.max(options.length, parsePositiveInteger_(rule.capacity || rule.maxPeople) || 4);
+  var explicitTotal = options.reduce(function (sum, option) { return sum + option.capacity; }, 0);
+  var useExplicit = options.every(function (option) { return option.capacity > 0; }) && explicitTotal === totalCapacity;
+  if (useExplicit) return options;
+  var baseCapacity = Math.floor(totalCapacity / options.length);
+  var remainder = totalCapacity % options.length;
+  return options.map(function (option, index) {
+    option.capacity = baseCapacity + (index < remainder ? 1 : 0);
+    return option;
+  });
+}
+
+function buildRecommendedFamilyOptionSummaries_(rows, target, aggregateKey) {
+  var options = target && target.recommended ? getRecommendedFamilyOptions_(target.row) : [];
+  return options.map(function (option) {
+    var optionRows = rows.filter(function (row) {
+      return !isCancelledJoinApplication_(row)
+        && getParticipantSummaryKey_(row) === aggregateKey
+        && String(row.erpProductId || row.goodSeq || "").trim() === option.goodSeq
+        && String(row.erpEventSeq || row.eventSeq || "").trim() === option.eventSeq;
+    });
+    var requestedCount = optionRows.reduce(function (sum, row) {
+      return sum + Math.max(1, parsePeople_(row.applicantPeople || row.people || "1"));
+    }, 0);
+    var confirmedCount = Math.min(option.capacity, requestedCount);
+    var previews = [];
+    optionRows.forEach(function (row) {
+      previews = previews.concat(buildParticipantPreviewList_(row, Math.max(1, parsePeople_(row.applicantPeople || row.people || "1"))));
+    });
+    return {
+      goodSeq: option.goodSeq,
+      eventSeq: option.eventSeq,
+      departureDate: option.departureDate,
+      returnDate: option.returnDate,
+      durationLabel: option.durationLabel,
+      capacity: option.capacity,
+      confirmedCount: confirmedCount,
+      remainingSlots: Math.max(0, option.capacity - confirmedCount),
+      participantsPreview: previews.slice(0, Math.min(40, option.capacity)),
+      lastAppliedAt: optionRows.reduce(function (latest, row) {
+        var appliedAt = String(row.updatedAt || row.createdAt || row.submittedAt || "");
+        return appliedAt > latest ? appliedAt : latest;
+      }, "")
+    };
+  });
+}
+
 function buildParticipantSummaries_(rows, newSchedules, displayRules) {
   const groups = {};
   rows.filter(function (row) { return !isCancelledJoinApplication_(row); }).forEach(function (row) {
@@ -1957,7 +2289,13 @@ function buildParticipantSummaries_(rows, newSchedules, displayRules) {
     const appliedAt = String(row.updatedAt || row.createdAt || "");
     if (appliedAt > String(groups[key].lastAppliedAt || "")) groups[key].lastAppliedAt = appliedAt;
   });
-  return Object.keys(groups).map(function (key) { return groups[key]; });
+  return Object.keys(groups).map(function (key) {
+    var group = groups[key];
+    var target = getParticipantSummarySchedule_(group, newSchedules || [], displayRules || []);
+    var familyOptionSummaries = buildRecommendedFamilyOptionSummaries_(rows, target, key);
+    if (familyOptionSummaries.length >= 2) group.familyOptionSummaries = familyOptionSummaries;
+    return group;
+  });
 }
 
 function buildDisplayRuleSummary_(row) {
@@ -1995,6 +2333,9 @@ function buildDisplayRuleSummary_(row) {
     displayStartAt: formatDateCellAsISODate_(row.displayStartAt),
     displayEndAt: formatDateCellAsISODate_(row.displayEndAt),
     tripSummary: row.tripSummary || "",
+    productFamilyId: row.productFamilyId || "",
+    familyDepartureDate: formatDateCellAsISODate_(row.familyDepartureDate),
+    familyOptionsJson: row.familyOptionsJson || "",
     updatedAt: row.updatedAt || ""
   };
 }
@@ -2102,4 +2443,221 @@ function parsePositiveInteger_(value) {
 function stringifyCompanions_(value) {
   if (!value) return "";
   return JSON.stringify(Array.isArray(value) ? value : [value]);
+}
+
+/**
+ * Cloud Function에서 서명된 신규 신청 메일만 받아 발송한다.
+ * 웹앱은 반드시 "나로 실행"하고 접근 권한은 "모든 사용자"로 배포한다.
+ * Script Properties에 GOLFJOIN_EMAIL_RELAY_SECRET(32자 이상)을 등록해야 한다.
+ */
+function handleGolfjoinAdminEmailSend_(payload) {
+  const request = payload || {};
+  const secret = String(PropertiesService.getScriptProperties().getProperty("GOLFJOIN_EMAIL_RELAY_SECRET") || "");
+  if (secret.length < 32) {
+    return jsonOutput_({ ok: false, error: "apps_script_not_configured" });
+  }
+  if (String(request.action || "") !== "admin_email_send" || Number(request.version || 0) !== 1) {
+    return jsonOutput_({ ok: false, error: "apps_script_request_invalid" });
+  }
+
+  const timestamp = Number(request.timestamp || 0);
+  const nonce = String(request.nonce || "");
+  const idempotencyKey = String(request.idempotencyKey || "");
+  const recipient = String(request.to || "").trim().toLowerCase();
+  const subject = String(request.subject || "").trim();
+  const plainText = String(request.plainText || "");
+  const html = String(request.html || "");
+  const fromName = String(request.fromName || "시크릿투어 골프조인").trim().slice(0, 80);
+  const signature = String(request.signature || "").toLowerCase();
+
+  if (!Number.isFinite(timestamp) || Math.abs(Date.now() - timestamp) > 5 * 60 * 1000) {
+    return jsonOutput_({ ok: false, error: "apps_script_request_expired" });
+  }
+  if (!/^[a-f0-9]{32}$/.test(nonce) || !idempotencyKey || idempotencyKey.length > 120) {
+    return jsonOutput_({ ok: false, error: "apps_script_request_invalid" });
+  }
+  if (!golfjoinAdminEmailIsValidAddress_(recipient) || !subject || subject.length > 120 || !plainText || plainText.length > 30000 || html.length > 100000) {
+    return jsonOutput_({ ok: false, error: "email_message_invalid" });
+  }
+
+  const canonical = golfjoinAdminEmailSignaturePayload_({
+    action: "admin_email_send",
+    version: 1,
+    timestamp: timestamp,
+    nonce: nonce,
+    idempotencyKey: idempotencyKey,
+    to: recipient,
+    subject: subject,
+    plainText: plainText,
+    html: html,
+    fromName: fromName
+  });
+  const expectedSignature = golfjoinAdminEmailHmacHex_(canonical, secret);
+  if (!golfjoinAdminEmailSafeEqual_(signature, expectedSignature)) {
+    return jsonOutput_({ ok: false, error: "apps_script_signature_invalid" });
+  }
+
+  const cache = CacheService.getScriptCache();
+  const cacheKey = "gjaem_" + golfjoinAdminEmailSha256Hex_(idempotencyKey);
+  if (cache.get(cacheKey) === "sent") {
+    return jsonOutput_({ ok: true, duplicate: true, quotaRemaining: MailApp.getRemainingDailyQuota() });
+  }
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return jsonOutput_({ ok: false, error: "apps_script_busy" });
+  }
+  try {
+    if (cache.get(cacheKey) === "sent" || golfjoinAdminEmailWasSent_(idempotencyKey)) {
+      cache.put(cacheKey, "sent", 21600);
+      return jsonOutput_({ ok: true, duplicate: true, quotaRemaining: MailApp.getRemainingDailyQuota() });
+    }
+    const quotaRemaining = Number(MailApp.getRemainingDailyQuota() || 0);
+    if (quotaRemaining < 1) {
+      return jsonOutput_({ ok: false, error: "apps_script_quota_exceeded", quotaRemaining: 0 });
+    }
+    MailApp.sendEmail({
+      to: recipient,
+      subject: subject,
+      body: plainText,
+      htmlBody: html,
+      name: fromName
+    });
+    cache.put(cacheKey, "sent", 21600);
+    try {
+      golfjoinAdminEmailRememberSent_(idempotencyKey);
+    } catch (ledgerError) {
+      console.warn("golfjoin_admin_email_ledger_write_failed", {
+        name: ledgerError && ledgerError.name ? String(ledgerError.name) : "Error"
+      });
+    }
+    return jsonOutput_({
+      ok: true,
+      duplicate: false,
+      messageId: "gas_" + golfjoinAdminEmailSha256Hex_(idempotencyKey).slice(0, 24),
+      quotaRemaining: Math.max(0, quotaRemaining - 1)
+    });
+  } catch (error) {
+    console.error("golfjoin_admin_email_send_failed", {
+      name: error && error.name ? String(error.name) : "Error",
+      message: golfjoinAdminEmailSafeErrorCode_(error)
+    });
+    return jsonOutput_({ ok: false, error: golfjoinAdminEmailSafeErrorCode_(error) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function golfjoinAdminEmailSignaturePayload_(payload) {
+  return [
+    String(payload.action || ""),
+    String(payload.version || ""),
+    String(payload.timestamp || ""),
+    String(payload.nonce || ""),
+    String(payload.idempotencyKey || ""),
+    String(payload.to || "").trim().toLowerCase(),
+    golfjoinAdminEmailSha256Hex_(payload.subject),
+    golfjoinAdminEmailSha256Hex_(payload.plainText),
+    golfjoinAdminEmailSha256Hex_(payload.html),
+    String(payload.fromName || "")
+  ].join("\n");
+}
+
+function golfjoinAdminEmailSha256Hex_(value) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    String(value || ""),
+    Utilities.Charset.UTF_8
+  );
+  return golfjoinAdminEmailBytesToHex_(bytes);
+}
+
+function golfjoinAdminEmailHmacHex_(value, secret) {
+  const bytes = Utilities.computeHmacSha256Signature(
+    String(value || ""),
+    String(secret || ""),
+    Utilities.Charset.UTF_8
+  );
+  return golfjoinAdminEmailBytesToHex_(bytes);
+}
+
+function golfjoinAdminEmailBytesToHex_(bytes) {
+  return bytes.map(function (byte) {
+    const normalized = byte < 0 ? byte + 256 : byte;
+    return ("0" + normalized.toString(16)).slice(-2);
+  }).join("");
+}
+
+function golfjoinAdminEmailSafeEqual_(left, right) {
+  const a = String(left || "");
+  const b = String(right || "");
+  if (!a || a.length !== b.length) return false;
+  let difference = 0;
+  for (let index = 0; index < a.length; index += 1) {
+    difference |= a.charCodeAt(index) ^ b.charCodeAt(index);
+  }
+  return difference === 0;
+}
+
+function golfjoinAdminEmailIsValidAddress_(value) {
+  const email = String(value || "").trim().toLowerCase();
+  return email.length <= 120 && /^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(email);
+}
+
+function golfjoinAdminEmailSafeErrorCode_(error) {
+  const text = String(error && error.message ? error.message : "").toLowerCase();
+  if (text.indexOf("quota") !== -1 || text.indexOf("daily") !== -1) return "apps_script_quota_exceeded";
+  if (text.indexOf("service invoked too many times") !== -1 || text.indexOf("too many") !== -1) return "apps_script_rate_limited";
+  return "apps_script_temporary_error";
+}
+
+function golfjoinAdminEmailWasSent_(idempotencyKey) {
+  const ledger = golfjoinAdminEmailReadLedger_();
+  return Boolean(ledger[golfjoinAdminEmailLedgerKey_(idempotencyKey)]);
+}
+
+function golfjoinAdminEmailRememberSent_(idempotencyKey) {
+  const propertyName = "GOLFJOIN_EMAIL_SENT_KEYS_V1";
+  const now = Date.now();
+  const cutoff = now - 7 * 24 * 60 * 60 * 1000;
+  const ledger = golfjoinAdminEmailReadLedger_();
+  const compact = {};
+  Object.keys(ledger).forEach(function (key) {
+    const sentAt = Number(ledger[key] || 0);
+    if (sentAt >= cutoff) compact[key] = sentAt;
+  });
+  compact[golfjoinAdminEmailLedgerKey_(idempotencyKey)] = now;
+  const entries = Object.keys(compact).map(function (key) {
+    return [key, compact[key]];
+  }).sort(function (left, right) {
+    return right[1] - left[1];
+  }).slice(0, 2000);
+  const bounded = {};
+  entries.forEach(function (entry) { bounded[entry[0]] = entry[1]; });
+  PropertiesService.getScriptProperties().setProperty(propertyName, JSON.stringify(bounded));
+}
+
+function golfjoinAdminEmailReadLedger_() {
+  const raw = String(PropertiesService.getScriptProperties().getProperty("GOLFJOIN_EMAIL_SENT_KEYS_V1") || "{}");
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function golfjoinAdminEmailLedgerKey_(idempotencyKey) {
+  return golfjoinAdminEmailSha256Hex_(String(idempotencyKey || "")).slice(0, 32);
+}
+
+function checkGolfjoinAdminEmailRelaySetup() {
+  const secret = String(PropertiesService.getScriptProperties().getProperty("GOLFJOIN_EMAIL_RELAY_SECRET") || "");
+  const result = {
+    ok: secret.length >= 32,
+    secretConfigured: secret.length >= 32,
+    quotaRemaining: MailApp.getRemainingDailyQuota()
+  };
+  console.log(JSON.stringify(result));
+  return result;
 }

@@ -1,0 +1,503 @@
+{
+  "log": {
+    "version": "1.2",
+    "creator": {
+      "name": "WebInspector",
+      "version": "537.36"
+    },
+    "pages": [
+      {
+        "startedDateTime": "2026-08-06T03:42:19.929Z",
+        "id": "page_19",
+        "title": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+        "pageTimings": {
+          "onContentLoad": 723.5949999994773,
+          "onLoad": 4396.221999999398
+        }
+      }
+    ],
+    "entries": [
+      {
+        "_initiator": {
+          "type": "script",
+          "stack": {
+            "callFrames": [
+              {
+                "functionName": "fetchGolfJoinHomeJson",
+                "scriptId": "41539",
+                "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                "lineNumber": 37818,
+                "columnNumber": 13
+              },
+              {
+                "functionName": "",
+                "scriptId": "41539",
+                "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                "lineNumber": 37873,
+                "columnNumber": 34
+              },
+              {
+                "functionName": "r",
+                "scriptId": "41524",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                "lineNumber": 30,
+                "columnNumber": 18763
+              },
+              {
+                "functionName": "",
+                "scriptId": "41524",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                "lineNumber": 30,
+                "columnNumber": 6958
+              },
+              {
+                "functionName": "",
+                "scriptId": "41524",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                "lineNumber": 30,
+                "columnNumber": 7761
+              },
+              {
+                "functionName": "",
+                "scriptId": "41524",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                "lineNumber": 30,
+                "columnNumber": 8269
+              },
+              {
+                "functionName": "c",
+                "scriptId": "41524",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                "lineNumber": 29,
+                "columnNumber": 1331
+              },
+              {
+                "functionName": "s",
+                "scriptId": "41524",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                "lineNumber": 29,
+                "columnNumber": 1217
+              },
+              {
+                "functionName": "",
+                "scriptId": "41524",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                "lineNumber": 29,
+                "columnNumber": 2232
+              },
+              {
+                "functionName": "",
+                "scriptId": "41524",
+                "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                "lineNumber": 29,
+                "columnNumber": 959
+              }
+            ],
+            "parent": {
+              "description": "Promise.then",
+              "callFrames": [
+                {
+                  "functionName": "r",
+                  "scriptId": "41524",
+                  "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                  "lineNumber": 30,
+                  "columnNumber": 15223
+                },
+                {
+                  "functionName": "",
+                  "scriptId": "41524",
+                  "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                  "lineNumber": 29,
+                  "columnNumber": 2392
+                },
+                {
+                  "functionName": "a",
+                  "scriptId": "41524",
+                  "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                  "lineNumber": 29,
+                  "columnNumber": 1171
+                },
+                {
+                  "functionName": "",
+                  "scriptId": "41524",
+                  "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                  "lineNumber": 30,
+                  "columnNumber": 8853
+                },
+                {
+                  "functionName": "",
+                  "scriptId": "41524",
+                  "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                  "lineNumber": 30,
+                  "columnNumber": 5694
+                },
+                {
+                  "functionName": "i",
+                  "scriptId": "41524",
+                  "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                  "lineNumber": 30,
+                  "columnNumber": 18339
+                }
+              ],
+              "parent": {
+                "description": "Promise.then",
+                "callFrames": [
+                  {
+                    "functionName": "r",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 30,
+                    "columnNumber": 18763
+                  },
+                  {
+                    "functionName": "s",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 30,
+                    "columnNumber": 18525
+                  },
+                  {
+                    "functionName": "r",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 30,
+                    "columnNumber": 18133
+                  },
+                  {
+                    "functionName": "",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 30,
+                    "columnNumber": 5651
+                  },
+                  {
+                    "functionName": "",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 30,
+                    "columnNumber": 7113
+                  },
+                  {
+                    "functionName": "",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 30,
+                    "columnNumber": 7761
+                  },
+                  {
+                    "functionName": "",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 30,
+                    "columnNumber": 8269
+                  },
+                  {
+                    "functionName": "c",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 29,
+                    "columnNumber": 1331
+                  },
+                  {
+                    "functionName": "s",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 29,
+                    "columnNumber": 1217
+                  },
+                  {
+                    "functionName": "",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 29,
+                    "columnNumber": 2232
+                  },
+                  {
+                    "functionName": "",
+                    "scriptId": "41524",
+                    "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                    "lineNumber": 29,
+                    "columnNumber": 959
+                  }
+                ],
+                "parent": {
+                  "description": "Promise.then",
+                  "callFrames": [
+                    {
+                      "functionName": "r",
+                      "scriptId": "41524",
+                      "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                      "lineNumber": 30,
+                      "columnNumber": 15223
+                    },
+                    {
+                      "functionName": "",
+                      "scriptId": "41524",
+                      "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                      "lineNumber": 29,
+                      "columnNumber": 2392
+                    },
+                    {
+                      "functionName": "i",
+                      "scriptId": "41524",
+                      "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                      "lineNumber": 29,
+                      "columnNumber": 1109
+                    },
+                    {
+                      "functionName": "",
+                      "scriptId": "41524",
+                      "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                      "lineNumber": 30,
+                      "columnNumber": 2808
+                    },
+                    {
+                      "functionName": "",
+                      "scriptId": "41524",
+                      "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                      "lineNumber": 30,
+                      "columnNumber": 681
+                    },
+                    {
+                      "functionName": "",
+                      "scriptId": "41524",
+                      "url": "https://cdnjs.cloudflare.com/ajax/libs/bluebird/3.7.2/bluebird.core.min.js",
+                      "lineNumber": 30,
+                      "columnNumber": 333
+                    },
+                    {
+                      "functionName": "",
+                      "scriptId": "41539",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 54477,
+                      "columnNumber": 56
+                    },
+                    {
+                      "functionName": "loadFirstGolfJoinProductFamilyJson",
+                      "scriptId": "41539",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 54477,
+                      "columnNumber": 18
+                    },
+                    {
+                      "functionName": "ensureGolfJoinProductFamilyCatalogLoaded",
+                      "scriptId": "41539",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 54525,
+                      "columnNumber": 43
+                    },
+                    {
+                      "functionName": "ensureHomeGolfJoinProductsLoaded",
+                      "scriptId": "41539",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 54850,
+                      "columnNumber": 13
+                    },
+                    {
+                      "functionName": "getHomeProductSource",
+                      "scriptId": "41539",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 54900,
+                      "columnNumber": 13
+                    },
+                    {
+                      "functionName": "syncMdPickListCacheWithProductSource",
+                      "scriptId": "41539",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 60211,
+                      "columnNumber": 28
+                    },
+                    {
+                      "functionName": "getVisibleMdPickThemes",
+                      "scriptId": "41539",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 59358,
+                      "columnNumber": 6
+                    },
+                    {
+                      "functionName": "updateMdPickThemeDots",
+                      "scriptId": "41539",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 59367,
+                      "columnNumber": 21
+                    },
+                    {
+                      "functionName": "onscroll",
+                      "scriptId": "41540",
+                      "url": "https://m.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1",
+                      "lineNumber": 29992,
+                      "columnNumber": 83
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "_priority": "High",
+        "_resourceType": "fetch",
+        "cache": {},
+        "connection": "443",
+        "request": {
+          "method": "GET",
+          "url": "https://storage.googleapis.com/golfjoin-bucket/web/home-cards/ghc_ae528dd46cf2061fe653d927.json",
+          "httpVersion": "h3",
+          "headers": [
+            {
+              "name": "sec-ch-ua-platform",
+              "value": "\"Android\""
+            },
+            {
+              "name": "Referer",
+              "value": "https://m.secret-tour.com/"
+            },
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Mobile Safari/537.36"
+            },
+            {
+              "name": "sec-ch-ua",
+              "value": "\"Not=A?Brand\";v=\"99\", \"Google Chrome\";v=\"151\", \"Chromium\";v=\"151\""
+            },
+            {
+              "name": "sec-ch-ua-mobile",
+              "value": "?1"
+            }
+          ],
+          "queryString": [],
+          "cookies": [],
+          "headersSize": -1,
+          "bodySize": 0
+        },
+        "response": {
+          "status": 200,
+          "statusText": "",
+          "httpVersion": "h3",
+          "headers": [
+            {
+              "name": "x-goog-metageneration",
+              "value": "1"
+            },
+            {
+              "name": "access-control-expose-headers",
+              "value": "Cache-Control, Content-Length, Content-Type, Date, Server, Transfer-Encoding, X-GUploader-UploadID, X-Google-Trace"
+            },
+            {
+              "name": "x-goog-hash",
+              "value": "crc32c=ZhBC9Q==, md5=pUWFd8rTSdVPwrWBJn6Xag=="
+            },
+            {
+              "name": "etag",
+              "value": "\"a5458577cad349d54fc2b581267e976a\""
+            },
+            {
+              "name": "age",
+              "value": "1606"
+            },
+            {
+              "name": "x-goog-stored-content-encoding",
+              "value": "identity"
+            },
+            {
+              "name": "expires",
+              "value": "Fri, 06 Aug 2027 02:52:54 GMT"
+            },
+            {
+              "name": "alt-svc",
+              "value": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+            },
+            {
+              "name": "x-goog-stored-content-length",
+              "value": "219125"
+            },
+            {
+              "name": "date",
+              "value": "Thu, 06 Aug 2026 02:52:54 GMT"
+            },
+            {
+              "name": "last-modified",
+              "value": "Wed, 05 Aug 2026 06:56:31 GMT"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "name": "vary",
+              "value": "Origin"
+            },
+            {
+              "name": "x-guploader-uploadid",
+              "value": "AKhXX7I0cZl9HF8Qw-ACgFzqsesgCUtkHYZi_PxUfBiiWRiLC3r_jNeVaJVWYlkn_CFGR-1DRmr9e7c"
+            },
+            {
+              "name": "cache-control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "name": "x-goog-storage-class",
+              "value": "STANDARD"
+            },
+            {
+              "name": "accept-ranges",
+              "value": "bytes"
+            },
+            {
+              "name": "access-control-allow-origin",
+              "value": "https://m.secret-tour.com"
+            },
+            {
+              "name": "x-goog-generation",
+              "value": "1785912991525188"
+            },
+            {
+              "name": "content-length",
+              "value": "219125"
+            },
+            {
+              "name": "server",
+              "value": "UploadServer"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "size": 219125,
+            "mimeType": "application/json",
+            "_sanitizedTextRemoved": true
+          },
+          "redirectURL": "",
+          "headersSize": -1,
+          "bodySize": 0,
+          "_transferSize": 0,
+          "_error": null,
+          "_fetchedViaServiceWorker": false
+        },
+        "serverIPAddress": "34.128.9.187",
+        "startedDateTime": "2026-08-06T03:42:20.623Z",
+        "time": 3.6300000010669464,
+        "timings": {
+          "blocked": 1.232999999849242,
+          "dns": -1,
+          "ssl": -1,
+          "connect": -1,
+          "send": 0,
+          "wait": 0.2620000005826587,
+          "receive": 2.1350000006350456,
+          "_blocked_queueing": 0.5099999998492422,
+          "_workerStart": -1,
+          "_workerReady": -1,
+          "_workerFetchStart": -1,
+          "_workerRespondWithSettled": -1
+        },
+        "_fromCache": "disk",
+        "pageref": "page_19"
+      }
+    ],
+    "_sanitized": {
+      "createdAt": "2026-09-07T08:56:27.678Z",
+      "responseBodiesRemoved": true,
+      "requestBodiesRemoved": true,
+      "sensitiveQueryAndHeadersRedacted": true
+    }
+  }
+}

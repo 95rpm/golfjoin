@@ -1,0 +1,85 @@
+﻿<!DOCTYPE html>
+<html lang="ko" style="--join-mobile-visual-bottom: 0px;"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>골프 조인 게시판</title>
+  <script>
+    (function normalizeEmbeddedBoardShellBeforeFirstPaint() {
+      var host = document.currentScript && document.currentScript.closest(".read_contens");
+      if (!host) return;
+      host.classList.add("sgj-board-host");
+      var board = host.closest(".boardread_type1");
+      var page = host.closest(".middle_wrap");
+      if (board) board.classList.add("sgj-board-root");
+      if (page) page.classList.add("sgj-board-page");
+    })();
+    window.updateMdPickThemeDots = window.updateMdPickThemeDots || function() {};
+    window.updateCustomSectionControls = window.updateCustomSectionControls || function() {};
+    window.updateQuickSectionControls = window.updateQuickSectionControls || function() {};
+    window.updateBestSectionControls = window.updateBestSectionControls || function() {};
+    window.refreshInitialJoinSlideDots = function() {
+      var getState = function(active, total) {
+        var visibleCount = 5;
+        var dotSpacing = 14;
+        var viewportCount = Math.min(total, visibleCount);
+        var half = Math.floor(visibleCount / 2);
+        var start = total <= visibleCount ? 0 : Math.max(0, Math.min(total - visibleCount, active - half));
+        var hasMoreLeft = start > 0;
+        var hasMoreRight = start + visibleCount < total;
+        var states = Array.from({ length: total }, function(_, index) {
+          var isInside = index >= start && index < start + viewportCount;
+          if (!isInside) return { index: index, scale: 0, opacity: 0, isActive: false };
+          if (index === active) return { index: index, scale: 1, opacity: 1, isActive: true };
+          var isLeftEdge = index === start;
+          var isRightEdge = index === start + viewportCount - 1;
+          var isLeftSecond = index === start + 1;
+          var isRightSecond = index === start + viewportCount - 2;
+          var scale = .65;
+          if (isLeftEdge && hasMoreLeft) scale = .4;
+          else if (isRightEdge && hasMoreRight) scale = .4;
+          else if (isLeftSecond && hasMoreLeft) scale = .75;
+          else if (isRightSecond && hasMoreRight) scale = .75;
+          return { index: index, scale: scale, opacity: .5, isActive: false };
+        });
+        return {
+          states: states,
+          start: start,
+          translation: -start * dotSpacing,
+          viewportWidth: viewportCount * dotSpacing,
+          dotSpacing: dotSpacing
+        };
+      };
+      var renderDotState = function(state) {
+        return '<div class="join-slide-dots-viewport" style="width:' + state.viewportWidth + 'px; --join-slide-dot-spacing:' + state.dotSpacing + 'px;">'
+          + '<div class="join-slide-dots-track" style="transform:translateX(' + state.translation + 'px);">'
+          + state.states.map(function(dot) {
+            return '<div class="join-slide-dot-slot"><div class="join-slide-dot' + (dot.isActive ? ' active' : '') + '" data-dot-index="' + dot.index + '" style="--dot-scale:' + dot.scale + '; --dot-opacity:' + dot.opacity + ';"></div></div>';
+          }).join("")
+          + '</div></div>';
+      };
+      var getCount = function(key, dots) {
+        if (key === "mdpick-country") return document.querySelectorAll("[data-mdpick-country-option]").length || 1;
+        if (key === "mdpick-theme") return document.querySelectorAll("[data-mdpick-theme-group]").length || 1;
+        if (key === "custom") {
+          return dots.closest("[data-join-section]")?.querySelectorAll(".join-custom-panel.active .join-card:not([data-quick-carousel-clone='true'])").length || 1;
+        }
+        return dots.closest("[data-join-section]")?.querySelectorAll(".join-grid .join-card:not([data-quick-carousel-clone='true'])").length || 1;
+      };
+      document.querySelectorAll("[data-slide-dots]").forEach(function(dots) {
+        var key = dots.getAttribute("data-slide-dots") || "";
+        var total = getCount(key, dots);
+        if (total <= 1) return;
+        var active = Math.min(total - 1, Math.max(0, Number(dots.dataset.activeIndex || 0) || 0));
+        var state = getState(active, total);
+        dots.classList.add("is-visible");
+        dots.dataset.activeIndex = String(active);
+        dots.dataset.dotStart = String(state.start);
+        dots.dataset.dotTotal = String(total);
+        dots.innerHTML = renderDotState(state);
+      });
+    };
+    window.addEventListener("DOMContentLoaded", function() {
+      setTimeout(window.refreshInitialJoinSlideDots, 0);
+    });
+  </script>
+  <style>

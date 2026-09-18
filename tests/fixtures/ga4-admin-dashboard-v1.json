@@ -1,0 +1,60 @@
+{
+  "ok": true,
+  "schema": "golfjoin-ga4-admin-dashboard-v1",
+  "propertyId": "552152254",
+  "generatedAt": "2026-09-01T01:35:58.087Z",
+  "dateRange": { "startDate": "6daysAgo", "endDate": "today", "days": 7 },
+  "summary": {
+    "visitors": 111,
+    "detailUsers": 39,
+    "detailRate": 35.1,
+    "applyStartUsers": 2,
+    "applyStartRate": 5.1,
+    "applyCompleteUsers": 1,
+    "applyCompleteRate": 50,
+    "createStartUsers": 4,
+    "createCompleteUsers": 2,
+    "createCompleteRate": 50
+  },
+  "events": [],
+  "sections": [
+    { "sectionName": "mdpick", "sectionViewUsers": 52, "itemSelectionUsers": 18, "detailViewUsers": 15, "eventCount": 91, "selectionRate": 34.6, "detailRate": 28.8 },
+    { "sectionName": "soon", "sectionViewUsers": 42, "itemSelectionUsers": 11, "detailViewUsers": 9, "eventCount": 68, "selectionRate": 26.2, "detailRate": 21.4 },
+    { "sectionName": "new_schedule", "sectionViewUsers": 31, "itemSelectionUsers": 8, "detailViewUsers": 7, "eventCount": 48, "selectionRate": 25.8, "detailRate": 22.6 },
+    { "sectionName": "my", "sectionViewUsers": 21, "itemSelectionUsers": 9, "detailViewUsers": 8, "eventCount": 39, "selectionRate": 42.9, "detailRate": 38.1 },
+    { "sectionName": "mdpick-theme", "sectionViewUsers": 18, "itemSelectionUsers": 5, "detailViewUsers": 4, "eventCount": 29, "selectionRate": 27.8, "detailRate": 22.2 },
+    { "sectionName": "overseas_best", "sectionViewUsers": 14, "itemSelectionUsers": 4, "detailViewUsers": 3, "eventCount": 22, "selectionRate": 28.6, "detailRate": 21.4 }
+  ],
+  "devices": [
+    { "key": "mobile", "visitors": 72, "detailUsers": 21, "detailRate": 29.2, "applyStartUsers": 1, "applyStartRate": 4.8, "applyCompleteUsers": 0, "applyCompleteRate": 0, "createStartUsers": 3, "createCompleteUsers": 1, "createCompleteRate": 33.3 },
+    { "key": "desktop", "visitors": 34, "detailUsers": 17, "detailRate": 50, "applyStartUsers": 1, "applyStartRate": 5.9, "applyCompleteUsers": 1, "applyCompleteRate": 100, "createStartUsers": 1, "createCompleteUsers": 1, "createCompleteRate": 100 },
+    { "key": "tablet", "visitors": 5, "detailUsers": 1, "detailRate": 20, "applyStartUsers": 0, "applyStartRate": null, "applyCompleteUsers": 0, "applyCompleteRate": null, "createStartUsers": 0, "createCompleteUsers": 0, "createCompleteRate": null }
+  ],
+  "members": [
+    { "key": "guest", "visitors": 53, "detailUsers": 13, "detailRate": 24.5, "applyStartUsers": 0, "applyStartRate": 0, "applyCompleteUsers": 0, "applyCompleteRate": null, "createStartUsers": 0, "createCompleteUsers": 0, "createCompleteRate": null },
+    { "key": "homepage", "visitors": 24, "detailUsers": 10, "detailRate": 41.7, "applyStartUsers": 1, "applyStartRate": 10, "applyCompleteUsers": 0, "applyCompleteRate": 0, "createStartUsers": 2, "createCompleteUsers": 1, "createCompleteRate": 50 },
+    { "key": "kakao", "visitors": 29, "detailUsers": 15, "detailRate": 51.7, "applyStartUsers": 1, "applyStartRate": 6.7, "applyCompleteUsers": 1, "applyCompleteRate": 100, "createStartUsers": 2, "createCompleteUsers": 1, "createCompleteRate": 50 },
+    { "key": "unknown", "visitors": 5, "detailUsers": 1, "detailRate": 20, "applyStartUsers": 0, "applyStartRate": null, "applyCompleteUsers": 0, "applyCompleteRate": null, "createStartUsers": 0, "createCompleteUsers": 0, "createCompleteRate": null }
+  ],
+  "trend": [
+    { "date": "2026-08-26", "visitors": 12, "detailUsers": 4, "applyStartUsers": 0, "applyCompleteUsers": 0 },
+    { "date": "2026-08-27", "visitors": 14, "detailUsers": 5, "applyStartUsers": 0, "applyCompleteUsers": 0 },
+    { "date": "2026-08-28", "visitors": 17, "detailUsers": 6, "applyStartUsers": 1, "applyCompleteUsers": 0 },
+    { "date": "2026-08-29", "visitors": 13, "detailUsers": 4, "applyStartUsers": 0, "applyCompleteUsers": 0 },
+    { "date": "2026-08-30", "visitors": 15, "detailUsers": 5, "applyStartUsers": 0, "applyCompleteUsers": 0 },
+    { "date": "2026-08-31", "visitors": 19, "detailUsers": 7, "applyStartUsers": 1, "applyCompleteUsers": 1 },
+    { "date": "2026-09-01", "visitors": 21, "detailUsers": 8, "applyStartUsers": 0, "applyCompleteUsers": 0 }
+  ],
+  "acquisition": [
+    { "sourceMedium": "(direct) / (none)", "campaign": "(not set)", "activeUsers": 62, "sessions": 78 },
+    { "sourceMedium": "google / organic", "campaign": "(organic)", "activeUsers": 28, "sessions": 36 },
+    { "sourceMedium": "kakao / referral", "campaign": "golfjoin_open", "activeUsers": 14, "sessions": 18 },
+    { "sourceMedium": "naver / organic", "campaign": "(organic)", "activeUsers": 7, "sessions": 9 }
+  ],
+  "quality": {
+    "overview": { "dataLossFromOtherRow": false, "rowCount": 13, "thresholdingApplied": false },
+    "reports": {},
+    "partial": false
+  },
+  "cache": { "status": "hit", "ageMs": 22405, "updatedAt": "2026-09-01T01:35:58.087Z" }
+}

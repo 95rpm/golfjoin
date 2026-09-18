@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/product-family-manifest-v1.schema.json",
+  "title": "GolfJoin product family manifest v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "activePublicationRevision",
+    "activeCatalogObjectName",
+    "activeCatalogUrl",
+    "familyCount",
+    "memberCount"
+  ],
+  "properties": {
+    "schema": { "const": "golfjoin-product-family-manifest-v1" },
+    "activePublicationRevision": { "type": "string", "pattern": "^pfc_[a-f0-9]{24}$" },
+    "previousPublicationRevision": { "type": "string" },
+    "activeCatalogObjectName": { "type": "string", "minLength": 1 },
+    "activeCatalogUrl": { "type": "string", "pattern": "^https://" },
+    "familyCount": { "type": "integer", "minimum": 0 },
+    "memberCount": { "type": "integer", "minimum": 0 },
+    "publishedAt": { "type": "string" }
+  }
+}

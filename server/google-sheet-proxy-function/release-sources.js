@@ -1,6 +1,10 @@
 "use strict";
 
-const { buildGolfJoinHomeArtifacts, HOME_PRODUCT_MINIMUM_ADVANCE_DAYS } = require("./home-products");
+const {
+  buildGolfJoinHomeArtifacts,
+  buildAvailabilityRevision,
+  HOME_PRODUCT_MINIMUM_ADVANCE_DAYS
+} = require("./home-products");
 const { assertDataContract } = require("./data-contracts");
 const { serializeJson, sha256 } = require("./release-publisher");
 
@@ -44,6 +48,103 @@ function buildLegacyDetailIndex(source = {}, generatedAt = "") {
   };
 }
 
+function buildProductDetailIndex(summaryPayload = {}, options = {}) {
+  const bucketName = text(options.bucketName);
+  const prefix = text(options.prefix || "web");
+  const generatedAt = text(options.generatedAt || summaryPayload.generatedAt);
+  const expectedGoodSeqs = new Set((Array.isArray(summaryPayload.items) ? summaryPayload.items : [])
+    .map((item) => text(item?.goodSeq || item?.erpProductId))
+    .filter(Boolean));
+  const items = Object.entries(summaryPayload.productMetaByGoodSeq || {}).map(([goodSeqValue, meta]) => {
+    const goodSeq = text(goodSeqValue);
+    const detailRevision = text(meta?.detailRevision);
+    const objectName = text(meta?.detailObjectName);
+    const eventSeq = text(meta?.detailEventSeq);
+    const expectedSuffix = `/product-detail/${detailRevision}/${goodSeq}.json`;
+    if (
+      !expectedGoodSeqs.has(goodSeq)
+      || meta?.detailStatus !== "ready"
+      || !/^gpd_[a-f0-9]{24}$/.test(detailRevision)
+      || !/^\d+$/.test(eventSeq)
+      || objectName !== `${prefix}/product-detail/${detailRevision}/${goodSeq}.json`
+    ) return null;
+    return {
+      goodSeq,
+      eventSeq,
+      detailRevision,
+      detailStatus: "ready",
+      objectName,
+      url: `https://storage.googleapis.com/${encodeURIComponent(bucketName)}/${objectName.split("/").map(encodeURIComponent).join("/")}`
+    };
+  }).filter(Boolean).sort((left, right) => left.goodSeq.localeCompare(right.goodSeq));
+  if (!items.length) {
+    return buildLegacyDetailIndex({
+      staticRevision: text(options.staticRevision),
+      familyRevision: text(options.familyRevision),
+      availabilityRevision: text(options.availabilityRevision)
+    }, generatedAt);
+  }
+  const status = expectedGoodSeqs.size > 0 && items.length === expectedGoodSeqs.size ? "ready" : "partial";
+  const basis = { status, items };
+  return {
+    schema: "secret-golf-join-product-detail-index-v1",
+    generatedAt,
+    detailRevision: stableRevision("gpdi", basis),
+    status,
+    count: items.length,
+    items
+  };
+}
+
+function normalizeReleaseHomeCards(payload = {}) {
+  return {
+    ...payload,
+    items: (Array.isArray(payload.items) ? payload.items : []).map((item) => (
+      item?.homeProductSummary === true && !text(item.status)
+        ? { ...item, status: "available" }
+        : item
+    ))
+  };
+}
+
+function buildReleaseHomeCardsPayload(homeCardsPayload = {}, familyCatalog = {}) {
+  const normalizedHomeCards = normalizeReleaseHomeCards(homeCardsPayload);
+  const familyRevision = text(familyCatalog.publicationRevision);
+  const availabilityReferences = (Array.isArray(normalizedHomeCards.items) ? normalizedHomeCards.items : [])
+    .map((item) => ({
+      goodSeq: text(item?.goodSeq),
+      availabilityObjectName: text(item?.availabilityObjectName)
+    }))
+    .filter((item) => item.goodSeq && item.availabilityObjectName)
+    .sort((left, right) => left.goodSeq.localeCompare(right.goodSeq));
+  const publicationRevision = stableRevision("ghc", {
+    homeCardsRevision: text(normalizedHomeCards.publicationRevision),
+    familyRevision,
+    availabilityReferences
+  });
+  return {
+    ...normalizedHomeCards,
+    publicationRevision,
+    productFamilyCatalog: familyCatalog
+  };
+}
+
+function assertReleaseHomeAvailabilityReferences(payload = {}) {
+  const availabilityRevision = text(payload.availabilityRevision);
+  const summaries = (Array.isArray(payload.items) ? payload.items : [])
+    .filter((item) => item?.homeProductSummary === true);
+  summaries.forEach((item, index) => {
+    const goodSeq = text(item.goodSeq);
+    const objectName = text(item.availabilityObjectName);
+    const expectedSuffix = `/product-availability/${availabilityRevision}/${goodSeq}.json`;
+    if (!goodSeq || !availabilityRevision || !objectName.endsWith(expectedSuffix)) {
+      const error = new Error(`Release home availability shard reference is invalid: ${index}`);
+      error.code = "release_home_availability_shard_invalid";
+      throw error;
+    }
+  });
+}
+
 function buildReleasePublishInput(options = {}) {
   const bucketName = text(options.bucketName);
   const prefix = text(options.prefix || "web");
@@ -55,9 +156,14 @@ function buildReleasePublishInput(options = {}) {
   const staticSummaryPayload = { ...summaryPayload };
   delete staticSummaryPayload.homeBootstrapLight;
   delete staticSummaryPayload.homeBootstrapLightUpdatedAt;
+  const availabilityRevision = buildAvailabilityRevision(staticSummaryPayload);
+  const availabilityObjectPrefix = `${prefix}/product-availability/${availabilityRevision}`;
   const homeArtifacts = buildGolfJoinHomeArtifacts(staticSummaryPayload, {
-    minimumAdvanceDays: HOME_PRODUCT_MINIMUM_ADVANCE_DAYS
+    minimumAdvanceDays: HOME_PRODUCT_MINIMUM_ADVANCE_DAYS,
+    availabilityRevision,
+    availabilityObjectPrefix
   });
+  const homeCardsPayload = buildReleaseHomeCardsPayload(homeArtifacts.homeCardsPayload, familyCatalog);
   const liveHome = {
     schema: "secret-golf-join-home-live-v1",
     ...homeBootstrapLight
@@ -65,22 +171,26 @@ function buildReleasePublishInput(options = {}) {
   const liveRevision = stableRevision("ghl", liveHome);
   liveHome.liveRevision = liveRevision;
   const availabilityIndex = buildAvailabilityIndex(homeArtifacts, generatedAt);
-  const detailIndex = buildLegacyDetailIndex({
-    staticRevision: homeArtifacts.publicationRevision,
+  const detailIndex = buildProductDetailIndex(staticSummaryPayload, {
+    bucketName,
+    prefix,
+    generatedAt,
+    staticRevision: homeCardsPayload.publicationRevision,
     familyRevision: familyCatalog.publicationRevision,
     availabilityRevision: homeArtifacts.availabilityRevision
-  }, generatedAt);
+  });
   const sourceSnapshot = {
     productsGeneratedAt: text(summaryPayload.sourceGeneratedAt || summaryPayload.generatedAt),
     liveUpdatedAt: text(homeBootstrapLight.updatedAt || homeBootstrapLight.serverTime),
     familyRevision: text(familyCatalog.publicationRevision),
-    staticRevision: homeArtifacts.publicationRevision,
+    staticRevision: homeCardsPayload.publicationRevision,
     availabilityRevision: homeArtifacts.availabilityRevision,
     detailRevision: detailIndex.detailRevision
   };
   const sourceSnapshotWatermark = stableRevision("gjs", sourceSnapshot);
 
-  assertDataContract("homeCardsV2", homeArtifacts.homeCardsPayload);
+  assertReleaseHomeAvailabilityReferences(homeCardsPayload);
+  assertDataContract("homeCardsV2", homeCardsPayload);
   assertDataContract("homeBootstrapLightV1", liveHome);
   assertDataContract("productFamilyCatalogV1", familyCatalog);
   assertDataContract("productAvailabilityIndexV1", availabilityIndex);
@@ -94,8 +204,8 @@ function buildReleasePublishInput(options = {}) {
     sourceSnapshotWatermark,
     objects: {
       homeCards: {
-        revision: homeArtifacts.publicationRevision,
-        payload: homeArtifacts.homeCardsPayload
+        revision: homeCardsPayload.publicationRevision,
+        payload: homeCardsPayload
       },
       liveHome: {
         revision: liveRevision,
@@ -122,5 +232,9 @@ module.exports = {
   stableRevision,
   buildAvailabilityIndex,
   buildLegacyDetailIndex,
+  buildProductDetailIndex,
+  normalizeReleaseHomeCards,
+  buildReleaseHomeCardsPayload,
+  assertReleaseHomeAvailabilityReferences,
   buildReleasePublishInput
 };

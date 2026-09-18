@@ -6,6 +6,7 @@ const path = require("node:path");
 
 const HOME_URL = process.env.GOLFJOIN_E2E_URL
   || "https://www.secret-tour.com/event/plan_view?eventPlanSeq=3&page=1";
+const USE_LOCAL_MAIN_HTML = process.env.GOLFJOIN_E2E_USE_LOCAL_HTML === "1";
 const LOCAL_MAIN_HTML = fs.readFileSync(path.resolve(__dirname, "../../../golfjoin_main.html"), "utf8");
 const OLD_PARTICIPANT_RECONCILIATION = "const existingParticipants = getConfirmedParticipants(join);";
 const NEW_PARTICIPANT_RECONCILIATION = `const existingParticipants = getConfirmedParticipants(join)
@@ -13,6 +14,17 @@ const NEW_PARTICIPANT_RECONCILIATION = `const existingParticipants = getConfirme
 
 if (!LOCAL_MAIN_HTML.includes(NEW_PARTICIPANT_RECONCILIATION)) {
   throw new Error("local_participant_reconciliation_fix_not_found");
+}
+
+function replaceEmbeddedGolfJoinHtml(shellHtml) {
+  const marker = "<title>골프 조인 게시판</title>";
+  const markerIndex = shellHtml.indexOf(marker);
+  const startIndex = shellHtml.lastIndexOf("<!DOCTYPE html>", markerIndex);
+  const closingIndex = shellHtml.indexOf("</html>", markerIndex);
+  if (markerIndex < 0 || startIndex < 0 || closingIndex < 0) {
+    throw new Error("participant_e2e_shell_boundary_not_found");
+  }
+  return `${shellHtml.slice(0, startIndex)}${LOCAL_MAIN_HTML}${shellHtml.slice(closingIndex + 7)}`;
 }
 
 const SCHEDULE_ID = "sch_e2e_ab_participants";
@@ -381,6 +393,7 @@ async function installParticipantEnvironment(page, options = {}) {
   ), async (route) => {
     const response = await route.fetch();
     let html = await response.text();
+    if (USE_LOCAL_MAIN_HTML) html = replaceEmbeddedGolfJoinHtml(html);
     const initializeNeedle = "initializeGolfJoinHome().catch";
     if (!html.includes(initializeNeedle) || !html.includes("</body>")) {
       throw new Error("e2e_home_injection_point_not_found");

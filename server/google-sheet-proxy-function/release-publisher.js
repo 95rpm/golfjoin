@@ -382,6 +382,36 @@ async function publishRelease(bucket, input = {}) {
   return { ok: true, bundle, uploads, root };
 }
 
+async function setReleaseBrowserGate(bucket, enabled, options = {}) {
+  if (typeof enabled !== "boolean") {
+    throw releaseError("release_browser_gate_invalid", "Browser gate must be an explicit boolean", 400);
+  }
+  const prefix = normalizePrefix(options.prefix || "web");
+  const current = await readRootManifest(bucket, prefix);
+  if (!current.exists) throw releaseError("release_manifest_missing", "Root release manifest does not exist", 404);
+  const expectedReleaseRevision = text(options.expectedReleaseRevision);
+  if (enabled && !expectedReleaseRevision) {
+    throw releaseError("release_browser_gate_target_required", "Enabling the browser gate requires an expected release revision", 400);
+  }
+  if (expectedReleaseRevision && current.payload.releaseRevision !== expectedReleaseRevision) {
+    throw releaseError("release_browser_gate_target_mismatch", "Root release does not match the expected release revision", 409);
+  }
+  await verifyRemoteRelease(bucket, current.payload);
+  if (current.payload.browserReadEnabled === enabled) {
+    return { ok: true, unchanged: true, root: current };
+  }
+  const updatedAt = text(options.updatedAt || new Date().toISOString());
+  const nextManifest = {
+    ...current.payload,
+    browserReadEnabled: enabled,
+    browserGateUpdatedAt: updatedAt,
+    browserGatePreviousEnabled: current.payload.browserReadEnabled === true
+  };
+  assertDataContract("releaseManifestV2", nextManifest);
+  const root = await switchRootManifest(bucket, nextManifest, current, prefix);
+  return { ok: true, unchanged: false, root };
+}
+
 async function rollbackRelease(bucket, targetReleaseRevision, options = {}) {
   const prefix = normalizePrefix(options.prefix || "web");
   const targetRevision = text(targetReleaseRevision);
@@ -435,5 +465,6 @@ module.exports = {
   uploadReleaseBundle,
   switchRootManifest,
   publishRelease,
+  setReleaseBrowserGate,
   rollbackRelease
 };

@@ -88,6 +88,20 @@ function normalizeParticipantProfiles(items) {
   })).sort((left, right) => stableStringify(left).localeCompare(stableStringify(right)));
 }
 
+function normalizeFamilyMembers(items) {
+  return (Array.isArray(items) ? items : []).map((item = {}) => ({
+    goodSeq: digits(item.goodSeq || item.erpProductId),
+    representativeEventSeq: digits(item.representativeEventSeq || item.eventSeq || item.erpEventSeq),
+    lowestPrice: number(item.lowestPrice ?? item.price),
+    earliestDepartureDate: date(item.earliestDepartureDate || item.departureDate),
+    durationNights: number(item.durationNights),
+    durationDays: number(item.durationDays)
+  })).sort((left, right) => (
+    left.goodSeq.localeCompare(right.goodSeq)
+    || stableStringify(left).localeCompare(stableStringify(right))
+  ));
+}
+
 function compareFields(identity, current, candidate, fields, issues) {
   fields.forEach(({ name, currentValue, candidateValue, normalize = text }) => {
     const left = normalize(currentValue(current));
@@ -152,7 +166,7 @@ const LIVE_FIELDS = [
 ];
 
 function getLiveKey(item = {}) {
-  return text(item.scheduleId || item.targetScheduleId);
+  return text(item.scheduleId || item.targetScheduleId || item.applicationId || item.targetApplicationId);
 }
 
 function compareLiveScheduleCollections(currentRows, candidateRows) {
@@ -160,6 +174,24 @@ function compareLiveScheduleCollections(currentRows, candidateRows) {
     collectionName: "liveSchedules",
     key: getLiveKey,
     fields: LIVE_FIELDS
+  });
+}
+
+const FAMILY_FIELDS = [
+  { name: "familyId", currentValue: (item) => item.familyId, normalize: text },
+  { name: "representativeGoodSeq", currentValue: (item) => item.representativeGoodSeq, normalize: digits },
+  { name: "members", currentValue: (item) => item.members, normalize: normalizeFamilyMembers }
+];
+
+function getFamilyKey(item = {}) {
+  return text(item.familyId);
+}
+
+function compareProductFamilyCollections(currentRows, candidateRows) {
+  return compareCollections(currentRows, candidateRows, {
+    collectionName: "productFamilies",
+    key: getFamilyKey,
+    fields: FAMILY_FIELDS
   });
 }
 
@@ -192,6 +224,7 @@ function compareProductDetailCore(current = {}, candidate = {}) {
 module.exports = {
   compareHomeProductCollections,
   compareLiveScheduleCollections,
+  compareProductFamilyCollections,
   compareProductDetailCore,
   identityHash
 };

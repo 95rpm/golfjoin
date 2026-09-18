@@ -8,8 +8,11 @@ const {
   parseDeparturePatternFromTitle,
   analyzeGolfHoleLine,
   buildGolfSummaryFromSchedule,
+  normalizeGolfSummary,
+  inferPackType,
   buildProductCatalog,
   buildProductMaterialSignature,
+  getSafeCandidateKeyRepair,
   buildAnalysisRevision,
   buildCandidateAnalysis,
   hydrateFamilyState,
@@ -19,6 +22,25 @@ const {
   buildPublishedFamilyCatalog,
   buildProductFamilyManifest
 } = require("./product-family");
+
+test("상품업데이트가 사용하는 골프 요약 정규화 함수를 외부에 제공한다", () => {
+  assert.equal(typeof normalizeGolfSummary, "function");
+  assert.deepEqual(normalizeGolfSummary({
+    golfDays: 2,
+    minTotalHoles: 36,
+    maxTotalHoles: 45,
+    label: "골프 2일 · 총 36~45홀",
+    status: "resolved",
+    dayBreakdown: []
+  }), {
+    golfDays: 2,
+    minTotalHoles: 36,
+    maxTotalHoles: 45,
+    label: "골프 2일 · 총 36~45홀",
+    status: "resolved",
+    dayBreakdown: []
+  });
+});
 
 test("상품명 기간 뒤 출발 문구로 지정요일과 매일출발을 구분한다", () => {
   assert.deepEqual(parseDeparturePatternFromTitle("태국 방콕 3박5일 일/월/화/수출발 골프"), {
@@ -52,6 +74,27 @@ test("조건부 홀수와 보너스 홀수를 최소 최대 범위로 계산한�
     maxHoles: 36,
     condition: "optional_bonus"
   });
+  assert.deepEqual(analyzeGolfHoleLine("바탐 아일랜드 골프장 오전36홀 라운딩\n[관광옵션]\n18홀 라운드 후 관광"), {
+    minHoles: 36,
+    maxHoles: 36,
+    condition: "fixed"
+  });
+});
+
+test("관광옵션의 단축 라운드는 기본 라운드에 추가 합산하지 않는다", () => {
+  const fourDay = buildGolfSummaryFromSchedule([
+    { points: ["오전36홀 라운딩"] },
+    { points: ["오전36홀 라운딩"] },
+    { points: ["오전36홀 라운딩\n[관광옵션]\n18홀 라운드 후 관광"] },
+    { points: ["오전36홀 라운딩"] }
+  ]);
+  const sevenDay = buildGolfSummaryFromSchedule([
+    ...Array.from({ length: 2 }, () => ({ points: ["오전36홀 라운딩"] })),
+    { points: ["오전36홀 라운딩\n[관광옵션]\n18홀 라운드 후 관광"] },
+    ...Array.from({ length: 4 }, () => ({ points: ["오전36홀 라운딩"] }))
+  ]);
+  assert.deepEqual([fourDay.golfDays, fourDay.minTotalHoles, fourDay.maxTotalHoles, fourDay.label], [4, 144, 144, "골프 4일 · 총 144홀"]);
+  assert.deepEqual([sevenDay.golfDays, sevenDay.minTotalHoles, sevenDay.maxTotalHoles, sevenDay.label], [7, 252, 252, "골프 7일 · 총 252홀"]);
 });
 
 test("골프 횟수는 라운딩 수가 아닌 골프 일정이 있는 일차 수로 계산한다", () => {
@@ -105,6 +148,41 @@ function makeItems() {
   ];
 }
 
+function makeJanuaryBatamItems() {
+  return [
+    {
+      goodSeq: "30001287",
+      eventSeq: "30286551",
+      title: "[1월 월례회] 인도네시아 바탐 3색 4박6일 아스톤",
+      sourceProductTitle: "[1월 월례회] 인도네시아 바탐 3색 4박6일 아스톤",
+      country: "인도네시아",
+      region: "바탐",
+      duration: "4박 6일",
+      departureDate: "2027-01-16",
+      returnDate: "2027-01-21",
+      price: 1290000,
+      airline: "제주항공",
+      air2Cd: "7C",
+      goodTransportSeq: "3586"
+    },
+    {
+      goodSeq: "30001288",
+      eventSeq: "30286552",
+      title: "[1월 월례회] 인도네시아 바탐 3색 7박9일 아스톤",
+      sourceProductTitle: "[1월 월례회] 인도네시아 바탐 3색 7박9일 아스톤",
+      country: "인도네시아",
+      region: "바탐",
+      duration: "7박 9일",
+      departureDate: "2027-01-16",
+      returnDate: "2027-01-24",
+      price: 1540000,
+      airline: "제주항공",
+      air2Cd: "7C",
+      goodTransportSeq: "3585"
+    }
+  ];
+}
+
 function makeApprovedFamily(catalog, overrides = {}) {
   return {
     familyId: "pf_test",
@@ -142,6 +220,45 @@ test("카탈로그는 goodSeq별 출발 가능한 최저가 행사를 대표 스
   assert.equal(catalog[0].durationLabel, "3박 5일");
   assert.equal(catalog[0].candidateKey, catalog[1].candidateKey);
   assert.match(buildAnalysisRevision(catalog, "2026-07-29T00:00:00+09:00"), /^pfa_[a-f0-9]{24}$/);
+});
+
+test("상품군 서버는 추천 일정과 동일하게 명시값·항공사·항공코드·운송편을 판정한다", () => {
+  assert.equal(inferPackType({ packType: "air", title: "일반 제목" }), "air");
+  assert.equal(inferPackType({ packType: "golf", airline: "제주항공" }), "golf");
+  assert.equal(inferPackType({ airline: "개별항공", air2Cd: "XX" }), "golf");
+  assert.equal(inferPackType({ airline: "제주항공" }), "air");
+  assert.equal(inferPackType({ air2Cd: "7C" }), "air");
+  assert.equal(inferPackType({ goodTransportSeq: "3586" }), "air");
+  assert.equal(inferPackType({ flightScheduleItems: [{ airline: "7C" }] }), "air");
+  assert.equal(inferPackType({ airProductYn: "N", airline: "제주항공" }), "air");
+  assert.equal(inferPackType({ title: "항공권 불포함 골프텔", airline: "제주항공" }), "golf");
+  assert.equal(inferPackType({ title: "태국 방콕 3박5일 골프" }), "golf");
+});
+
+test("1월 월례회 두 ERP 상품을 항공팩 한 후보로 재분석한다", () => {
+  const catalog = buildProductCatalog(makeJanuaryBatamItems(), { today: "2026-09-15" });
+  assert.deepEqual(catalog.map((product) => product.goodSeq), ["30001287", "30001288"]);
+  assert.ok(catalog.every((product) => product.packType === "air"));
+  assert.deepEqual(
+    [...new Set(catalog.map((product) => product.candidateKey))],
+    ["air|인도네시아|바탐|1월월례회인도네시아바탐3색"]
+  );
+});
+
+test("카탈로그는 상품업데이트에서 미리 계산한 골프 요약을 우선 사용한다", () => {
+  const items = makeItems().map((item) => item.goodSeq === "30001001" ? {
+    ...item,
+    golfSummary: {
+      golfDays: 3,
+      minTotalHoles: 54,
+      maxTotalHoles: 72,
+      label: "골프 3일 · 총 54~72홀",
+      status: "resolved",
+      dayBreakdown: []
+    }
+  } : item);
+  const catalog = buildProductCatalog(items, { today: "2026-08-01" });
+  assert.equal(catalog[0].golfSummary.label, "골프 3일 · 총 54~72홀");
 });
 
 test("서로 다른 기간의 동일 후보 상품군을 승인하고 최저가 대표를 계산한다", () => {
@@ -209,6 +326,76 @@ test("상품 데이터가 동일하면 승인 상품군을 새 버전으로 만�
   assert.equal(reconciliation.changed, false);
   assert.equal(reconciliation.requiresReview, false);
   assert.equal(reconciliation.family.status, "approved");
+});
+
+test("기존 1월 월례회 상품군은 ID·구성·대표를 유지하고 golf 후보 키만 air로 보정한다", () => {
+  const airCatalog = buildProductCatalog(makeJanuaryBatamItems(), { today: "2026-09-15" });
+  const legacyCatalog = airCatalog.map((product) => ({
+    ...product,
+    packType: "golf",
+    candidateKey: product.candidateKey.replace(/^air\|/, "golf|")
+  }));
+  const family = makeApprovedFamily(legacyCatalog, {
+    familyId: "pf_january_batam",
+    representativeMode: REPRESENTATIVE_MODE.MANUAL,
+    preferredGoodSeq: "30001288",
+    resolvedRepresentativeGoodSeq: "30001288"
+  });
+  const beforeMembers = family.members.map((member) => member.goodSeq);
+  const repair = getSafeCandidateKeyRepair(family, airCatalog);
+  const reconciliation = reconcileFamilyWithCatalog(family, airCatalog);
+
+  assert.equal(repair.applied, true);
+  assert.equal(repair.fromCandidateKey, "golf|인도네시아|바탐|1월월례회인도네시아바탐3색");
+  assert.equal(repair.toCandidateKey, "air|인도네시아|바탐|1월월례회인도네시아바탐3색");
+  assert.equal(reconciliation.changed, true);
+  assert.equal(reconciliation.requiresReview, false);
+  assert.deepEqual(reconciliation.reasons, []);
+  assert.equal(reconciliation.family.status, "approved");
+  assert.equal(reconciliation.family.familyId, "pf_january_batam");
+  assert.equal(reconciliation.family.preferredGoodSeq, "30001288");
+  assert.equal(reconciliation.family.resolvedRepresentativeGoodSeq, "30001288");
+  assert.deepEqual(reconciliation.family.members.map((member) => member.goodSeq), beforeMembers);
+  assert.equal(reconciliation.family.candidateKeySnapshot, repair.toCandidateKey);
+
+  const published = buildPublishedFamilyCatalog([reconciliation.family], airCatalog, {
+    catalogRevision: "catalog-air",
+    analysisRevision: "analysis-air"
+  });
+  assert.equal(published.familyCount, 1);
+  assert.equal(published.families[0].familyId, "pf_january_batam");
+  assert.equal(published.families[0].candidateKey, repair.toCandidateKey);
+  assert.deepEqual(published.families[0].members.map((member) => member.goodSeq), beforeMembers);
+});
+
+test("후보 키의 지역·상품명이 달라진 상품군은 자동 보정하지 않고 재검토한다", () => {
+  const airCatalog = buildProductCatalog(makeJanuaryBatamItems(), { today: "2026-09-15" });
+  const legacyCatalog = airCatalog.map((product) => ({
+    ...product,
+    packType: "golf",
+    candidateKey: product.candidateKey.replace(/^air\|인도네시아\|바탐\|/, "golf|인도네시아|발리|")
+  }));
+  const family = makeApprovedFamily(legacyCatalog, {
+    familyId: "pf_unrelated_changed_key",
+    candidateKeySnapshot: "golf|인도네시아|발리|1월월례회인도네시아바탐3색"
+  });
+  const reconciliation = reconcileFamilyWithCatalog(family, airCatalog);
+  assert.equal(reconciliation.candidateKeyRepair, null);
+  assert.equal(reconciliation.requiresReview, true);
+  assert.equal(reconciliation.family.status, "review_required");
+  assert.equal(reconciliation.family.candidateKeySnapshot, family.candidateKeySnapshot);
+  assert.ok(reconciliation.reasons.includes("candidate_key_changed"));
+});
+
+test("다른 기존 골프팩 상품군은 항공팩 보정의 영향을 받지 않는다", () => {
+  const catalog = buildProductCatalog(makeItems(), { today: "2026-08-01" });
+  const family = makeApprovedFamily(catalog, { familyId: "pf_other_golf" });
+  const reconciliation = reconcileFamilyWithCatalog(family, catalog);
+  assert.equal(reconciliation.changed, false);
+  assert.equal(reconciliation.candidateKeyRepair, null);
+  assert.equal(reconciliation.family.familyId, "pf_other_golf");
+  assert.deepEqual(reconciliation.family.members.map((member) => member.goodSeq), ["30001001", "30001002"]);
+  assert.match(reconciliation.family.candidateKeySnapshot, /^golf\|/);
 });
 
 test("승인 구성원의 핵심 내용이 변경되면 상품군을 재검토 상태로 전환한다", () => {

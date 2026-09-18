@@ -1,4 +1,5 @@
     async function handleJoinMyWishClick(trigger = null) {
+      trackGolfJoinGa4Event("golfjoin_wish_list_view", { source_area: "my_menu" });
       const returnToDrawer = shouldReturnJoinMyMenuToDrawer(trigger);
       setJoinMyDrawerActiveMenu("wish");
       closeJoinMyDrawer();
@@ -19,7 +20,61 @@
       }
     }
 
-    function openJoinWishProduct(targetKey, wishType = "product") {
+    async function resolveJoinWishProductDetail(wish = {}, targetKey = "") {
+      const goodSeq = String(targetKey || getJoinWishTargetKey(wish) || "").trim();
+      if (!/^\d+$/.test(goodSeq)) return null;
+      const wishedEventSeq = String(wish.eventSeq || wish.erpEventSeq || "").trim();
+
+      await Promise.allSettled([
+        ensureHomeGolfJoinProductsLoaded({ renderHome: false }),
+        ensureGolfJoinProductFamilyCatalogLoaded()
+      ]);
+
+      const homeProducts = getHomeProductSource().filter(Boolean);
+      const familyId = String(golfJoinProductFamilyIdByGoodSeq.get(goodSeq) || "").trim();
+      const productGroupKey = familyId ? `family-${familyId}` : `good-${goodSeq}`;
+      const groupSummaries = homeProducts.filter((product) => (
+        getProductGroupKey(product) === productGroupKey
+        || (!familyId && getGolfJoinProductGoodSeq(product) === goodSeq)
+      ));
+      const availabilityProducts = groupSummaries.length
+        ? await loadGolfJoinProductGroupAvailability(groupSummaries)
+        : [];
+      const candidates = mergeGolfJoinProductSources(
+        availabilityProducts,
+        getCachedGolfJoinAvailabilityProducts(),
+        groupSummaries,
+        getBuilderProductSource()
+      ).filter((product) => getGolfJoinProductGoodSeq(product) === goodSeq);
+      const exactEventProduct = wishedEventSeq
+        ? candidates.find((product) => getGolfJoinProductEventSeq(product) === wishedEventSeq)
+        : null;
+      const product = exactEventProduct
+        || selectGolfJoinBookableProduct(candidates, { avoidActiveScheduleOverlap: false })
+        || selectGolfJoinProductGroupRepresentative(candidates, { ignoreRepresentativeEvent: false })
+        || normalizeExternalGolfJoinProduct({
+          ...wish,
+          id: wish.id || (wishedEventSeq ? `secret-tour-${goodSeq}-${wishedEventSeq}` : `secret-tour-${goodSeq}`),
+          goodSeq,
+          eventSeq: wishedEventSeq,
+          erpProductId: goodSeq,
+          erpEventSeq: wishedEventSeq,
+          title: wish.title || "골프여행 상품",
+          image: wish.image || wish.imageUrl || "",
+          generalPrice: Number(wish.price || 0),
+          price: Number(wish.price || 0),
+          homeProductSummary: false,
+          homeReferenceOnly: false
+        }, 0);
+      if (!product) return null;
+      return {
+        product,
+        productGroupKey: familyId ? productGroupKey : getProductGroupKey(product),
+        countryKey: getMdPickProductCountryKey(product) || getMdPickProductCountryKey(wish)
+      };
+    }
+
+    async function openJoinWishProduct(targetKey, wishType = "product") {
       const key = String(targetKey || "").trim();
       const type = String(wishType || "product");
       if (!key) return;
@@ -34,15 +89,25 @@
         return;
       }
       const wish = getJoinWishProducts().find((item) => item.wishType === "product" && getJoinWishTargetKey(item) === key) || {};
-      const join = joins.find((item) => getJoinProductGoodSeq(item) === key || String(item.goodSeq || "") === key);
-      if (join) {
+      const pageScrollState = capturePageScrollState();
+      return runJoinReadLoading(async () => {
+        const resolved = await resolveJoinWishProductDetail(wish, key);
+        if (!resolved?.product) {
+          alert("해당 상품 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+          return;
+        }
         closeJoinMyMenu();
-        openDetail(join.id, { returnToJoinMy: { menu: "wish", tab: "wish-products" } });
-        return;
-      }
-      const params = new URLSearchParams({ goodSeq: key });
-      if (wish.eventSeq) params.set("eventSeq", wish.eventSeq);
-      location.href = `/goods/goods_view?${params.toString()}`;
+        currentDetailReturnContext = { menu: "wish", tab: "wish-products" };
+        await showMdPickDetailProduct(
+          resolved.product,
+          resolved.productGroupKey,
+          resolved.countryKey,
+          { pageScrollState }
+        );
+      }, {
+        ownerKey: `wish-product-detail:${key}`,
+        message: "찜한 상품 정보를 불러오고 있어요"
+      });
     }
 
     function handleJoinWishRemove(targetKey, wishType = "product") {
@@ -58,6 +123,11 @@
       const type = wishType === "join_schedule" ? "join_schedule" : "product";
       await runJoinActionLoading(async () => {
         removeJoinWishProduct(key, type);
+        trackGolfJoinGa4Event("golfjoin_wish_remove", {
+          item_id: key,
+          item_type: type,
+          source_area: "wish_list"
+        });
         if (isJoinMyMenuViewOpen("wish")) {
           switchJoinMyTab(type === "join_schedule" ? "wish-joins" : "wish-products");
         }
@@ -71,13 +141,19 @@
 
     async function handleJoinMyTripClick(trigger = null) {
       if (joinMyReservationOpening) return;
+      trackGolfJoinGa4Event("golfjoin_reservation_view", { source_area: "my_menu" });
       joinMyReservationOpening = true;
+      const loadingToken = openJoinActionLoading("예약정보를 불러오고 있어요", { minVisibleMs: 300 });
       try {
         const returnToDrawer = shouldReturnJoinMyMenuToDrawer(trigger);
         setJoinMyDrawerActiveMenu("reservation");
         closeJoinMyDrawer();
-        await openJoinMyMenu({ returnToDrawer });
+        await openJoinMyMenu({
+          returnToDrawer,
+          beforePendingRosterPrompt: () => closeJoinActionLoading(loadingToken)
+        });
       } finally {
+        await closeJoinActionLoading(loadingToken);
         joinMyReservationOpening = false;
       }
     }
@@ -108,6 +184,8 @@
       }
       try {
         setJoinLogoutMarker();
+        clearJoinMemberAuthPendingLogin();
+        void revokeJoinMemberAuthSession();
         sessionStorage.removeItem(JOIN_TEMP_ADMIN_LOGIN_KEY);
         sessionStorage.removeItem(JOIN_SESSION_MEMBER_KEY);
         clearJoinMemberProfileCompletion();
@@ -216,11 +294,10 @@
       const join = joinOrId && typeof joinOrId === "object"
         ? joinOrId
         : joins.find((item) => String(item.id || "") === String(joinOrId || ""));
-      if (
-        join
-        && (participant?.isHost || participant?.isCreator)
-        && !isCurrentMemberCreatedJoinSchedule(join)
-      ) return false;
+      if (join && isCurrentMemberCreatedJoinSchedule(join)) {
+        return Boolean(participant?.isHost || participant?.isCreator);
+      }
+      if (join && (participant?.isHost || participant?.isCreator)) return false;
       return isJoinParticipantForCurrentMember(participant);
     }
 
@@ -250,8 +327,7 @@
         idRecordMatch?.[1],
         participant.previewSeed,
         participant.iconSeed,
-        participant.seed,
-        participant.companionGroup
+        participant.seed
       ].map(normalizeJoinParticipantApplicationMarker).filter(isUsableJoinParticipantApplicationMarker);
     }
 
@@ -421,10 +497,26 @@
       );
     }
 
+    function getJoinFinalQuoteUnitPrice(join = {}) {
+      const sheetApplication = join.sheetApplication || {};
+      const values = [
+        join.quoteUnitPrice,
+        getNestedValue(join, "quote.unitPrice"),
+        sheetApplication.quoteUnitPrice,
+        getNestedValue(sheetApplication, "quote.unitPrice")
+      ];
+      for (const value of values) {
+        const price = parseBuilderApplicationPrice(value);
+        if (price > 0) return price;
+      }
+      return 0;
+    }
+
     function buildJoinMyCreatedReservationItem(join = {}) {
       const seed = getJoinMyReservationProductSeed(join.id);
       const productReference = getSecretTourProductReference(seed.join?.id ? seed.join : join);
       const sheetApplication = join.sheetApplication || {};
+      const quoteUnitPrice = getJoinFinalQuoteUnitPrice(join);
       return {
         joinId: join.id || "",
         id: join.id || "",
@@ -441,7 +533,7 @@
         departureDate: join.departureDate || "",
         returnDate: join.returnDate || "",
         region: join.region || seed.regionText,
-        image: join.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg",
+        image: join.image || "",
         status: "모집중",
         statusClass: "green",
         scheduleGroup: "created",
@@ -449,7 +541,9 @@
         targetCount: seed.targetCount,
         flightPack: seed.hasFlight,
         flightInfo: seed.flightInfo,
-        price: join.price ? `${formatPrice(join.price)}원~` : "",
+        price: quoteUnitPrice
+          ? `${formatPrice(quoteUnitPrice)}원`
+          : (join.price ? `${formatPrice(join.price)}원~` : ""),
         golfCourse: join.golfCourse || join.title || "",
         hotel: seed.hotelText,
         quoteId: sheetApplication.quoteId || "",
@@ -459,6 +553,7 @@
         quotePageUrl: sheetApplication.quotePageUrl || sheetApplication.quoteUrl || "",
         quotePdfUrl: sheetApplication.quotePdfUrl || "",
         quoteGeneratedAt: sheetApplication.quoteGeneratedAt || "",
+        quoteUnitPrice,
         actions: [
           { label: "상세정보 열기", action: "accordion", placement: "head" }
         ]
@@ -482,6 +577,7 @@
       const join = linkedJoin || seed.join || {};
       const productReference = getSecretTourProductReference(join.id ? join : applicationProduct || applicationJoin || {});
       const normalizedApplication = normalizeJoinApplyPayload(application);
+      const quoteUnitPrice = getJoinFinalQuoteUnitPrice(normalizedApplication);
       const applicationRecordId = normalizedApplication.joinApplyId || buildGoogleSheetRecordId("ja", normalizedApplication.submittedAt, getNestedValue(normalizedApplication, "member.memberSeq") || getNestedValue(normalizedApplication, "member.memberId") || getNestedValue(normalizedApplication, "applicant.name") || "member", joinId);
       const confirmedParticipants = Array.isArray(join.participants) ? getConfirmedParticipants(join) : [];
       const hostParticipant = confirmedParticipants.find((participant) => participant?.isHost || participant?.isCreator)
@@ -505,7 +601,7 @@
         departureDate: join.departureDate || getNestedValue(application, "join.departureDate") || getNestedValue(application, "product.departureDate") || application.departureDate || "",
         returnDate: join.returnDate || getNestedValue(application, "join.returnDate") || getNestedValue(application, "product.returnDate") || application.returnDate || "",
         region: join.region || seed.regionText || getNestedValue(application, "join.region") || getNestedValue(application, "product.region") || application.region || "",
-        image: join.image || getNestedValue(application, "product.image") || getNestedValue(application, "product.imageUrl") || application.image || application.imageUrl || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg",
+        image: join.image || getNestedValue(application, "product.image") || getNestedValue(application, "product.imageUrl") || application.image || application.imageUrl || "",
         status: "참여중",
         statusClass: "",
         scheduleGroup: "joined",
@@ -519,7 +615,9 @@
         targetCount: seed.targetCount || Number(application.targetCount || 0),
         flightPack: seed.hasFlight,
         flightInfo: seed.flightInfo || application.flightInfo || "",
-        price: join.price ? `${formatPrice(join.price)}원~` : (application.price ? `${formatPrice(application.price)}원~` : ""),
+        price: quoteUnitPrice
+          ? `${formatPrice(quoteUnitPrice)}원`
+          : (join.price ? `${formatPrice(join.price)}원~` : (application.price ? `${formatPrice(application.price)}원~` : "")),
         quoteId: application.quoteId || "",
         quoteNo: application.quoteNo || "",
         quoteStatus: application.quoteStatus || "",
@@ -527,6 +625,7 @@
         quotePageUrl: application.quotePageUrl || application.quoteUrl || "",
         quotePdfUrl: application.quotePdfUrl || "",
         quoteGeneratedAt: application.quoteGeneratedAt || "",
+        quoteUnitPrice,
         actions: [
           { label: "상세정보 열기", action: "accordion", placement: "head" }
         ]
@@ -737,21 +836,22 @@
       };
     }
 
-    function getJoinMyCompletedReservations(member = {}) {
-      const today = new Date();
+    function isJoinMyDeparturePast(item = {}, referenceDate = new Date()) {
+      const departureTime = getDateOnlyTime(item.departureDate);
+      const today = new Date(referenceDate);
       today.setHours(0, 0, 0, 0);
-      return Array.from(joinApplicationPayloadMemory.values())
-        .map(normalizeJoinApplyPayload)
-        .filter((application) => isJoinMyJoinApplicationForMember(application, member))
-        .map((application) => {
-          const joinId = getNestedValue(application, "join.id") || "";
-          const join = joins.find((item) => item.id === joinId) || getNestedValue(application, "join") || {};
-          return buildJoinMyCompletedReservationItem({ ...join, joinId });
-        })
-        .filter((item) => {
-          const endDate = new Date(`${item.returnDate || item.departureDate}T00:00:00`);
-          return !Number.isNaN(endDate.getTime()) && endDate < today;
-        });
+      return Number.isFinite(departureTime) && departureTime < today.getTime();
+    }
+
+    function isJoinMyCompletedAfterDeparture(item = {}, referenceDate = new Date()) {
+      if (!isJoinMyDeparturePast(item, referenceDate)) return false;
+      return getJoinMyScheduleBadge(item)?.className === "complete";
+    }
+
+    function getJoinMyCompletedReservations(items = [], referenceDate = new Date()) {
+      return (Array.isArray(items) ? items : [])
+        .filter((item) => isJoinMyCompletedAfterDeparture(item, referenceDate))
+        .map(buildJoinMyCompletedReservationItem);
     }
 
     function getJoinMyScheduleSheetStatus(item = {}) {
@@ -873,6 +973,15 @@
 
     function getJoinMyJoinedApplicationKey(application = {}) {
       const target = getJoinApplicationTargetRow(application);
+      const scheduleKey = String(
+        target.targetScheduleId
+        || target.targetApplicationId
+        || target.targetJoinId
+        || getNestedValue(application, "join.scheduleId")
+        || getNestedValue(application, "join.sourceApplicationId")
+        || ""
+      ).trim();
+      if (scheduleKey) return `schedule:${scheduleKey}`;
       const explicitId = String(application.joinApplyId || application.applicationId || "").trim();
       if (explicitId) return explicitId;
       return [
@@ -883,6 +992,40 @@
         getNestedValue(application, "member.memberSeq") || getNestedValue(application, "member.memberId") || getNestedValue(application, "member.memberMobile") || getNestedValue(application, "member.memberEmail") || "",
         application.submittedAt || application.createdAt || ""
       ].map((value) => String(value || "").trim()).filter(Boolean).join("|");
+    }
+
+    function isJoinMyNewScheduleApplication(application = {}) {
+      const target = getJoinApplicationTargetRow(application);
+      return Boolean(
+        String(application.targetType || getNestedValue(application, "target.type") || "").trim() === "new_schedule"
+        || String(target.targetScheduleId || "").startsWith("sch_nsa_")
+        || String(target.targetApplicationId || "").startsWith("nsa_")
+        || String(target.targetJoinId || "").startsWith(BUILDER_APPLICATION_JOIN_PREFIX)
+      );
+    }
+
+    function getJoinMyTargetScheduleCreatorSeq(application = {}) {
+      const target = getJoinApplicationTargetRow(application);
+      const scheduleId = String(target.targetScheduleId || target.targetJoinId || "").trim();
+      const match = scheduleId.match(/-seq-(\d+)(?:$|[^0-9])/i);
+      return match ? match[1] : "";
+    }
+
+    function shouldIncludeJoinMyJoinedApplication(application = {}, member = {}) {
+      const linkedJoin = findJoinForJoinApplicationPayload(application);
+      if (linkedJoin) return !isJoinMyCreatedScheduleForMember(linkedJoin, member);
+      if (!isJoinMyNewScheduleApplication(application)) return true;
+
+      const memberIdentity = getJoinMyMemberIdentity(member);
+      const targetCreatorSeq = getJoinMyTargetScheduleCreatorSeq(application);
+      if (memberIdentity.seq && targetCreatorSeq && memberIdentity.seq === targetCreatorSeq) return false;
+
+      // A join application can arrive before its new_schedule row during startup.
+      // Do not classify the schedule as "joined" until ownership can be resolved.
+      return Boolean(
+        googleSheetBuilderApplicationsReadCompleted
+        && !googleSheetBuilderApplicationsLoading
+      );
     }
 
     function getJoinMyReservationGroups(member = {}) {
@@ -933,16 +1076,13 @@
           const key = getJoinMyJoinedApplicationKey(application);
           return !key || list.findIndex((item) => getJoinMyJoinedApplicationKey(item) === key) === index;
         })
-        .filter((application) => {
-          const join = findJoinForJoinApplicationPayload(application);
-          return !join || !isJoinMyCreatedScheduleForMember(join, member);
-        })
+        .filter((application) => shouldIncludeJoinMyJoinedApplication(application, member))
         .sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")))
         .map(buildJoinMyJoinedReservationItem);
       return {
-        created: createdItems,
-        joined: joinedItems,
-        completed: getJoinMyCompletedReservations(member)
+        created: createdItems.filter((item) => !isJoinMyCompletedAfterDeparture(item)),
+        joined: joinedItems.filter((item) => !isJoinMyCompletedAfterDeparture(item)),
+        completed: getJoinMyCompletedReservations([...createdItems, ...joinedItems])
       };
     }
 
@@ -999,6 +1139,46 @@
     function doJoinScheduleRangesOverlap(a = {}, b = {}) {
       if (!a || !b) return false;
       return a.startTime <= b.endTime && b.startTime <= a.endTime;
+    }
+
+    function findActiveJoinScheduleOverlappingDateRange(startDate = "", endDate = startDate) {
+      const range = normalizeJoinScheduleRange({
+        departureDate: startDate,
+        returnDate: endDate || startDate
+      });
+      if (!range) return null;
+      return getActiveJoinMySchedules().find((active) => (
+        active.range && doJoinScheduleRangesOverlap(range, active.range)
+      )) || null;
+    }
+
+    function isJoinDateRangeBlockedByActiveSchedule(startDate = "", endDate = startDate) {
+      return Boolean(findActiveJoinScheduleOverlappingDateRange(startDate, endDate));
+    }
+
+    function isJoinDepartureBlockedByActiveScheduleLeadTime(departureDate = "", minimumTripNights = 2) {
+      const departureTime = getDateOnlyTime(departureDate);
+      if (!Number.isFinite(departureTime)) return false;
+      const leadTime = Math.max(0, Number(minimumTripNights) || 0) * 24 * 60 * 60 * 1000;
+      return getActiveJoinMySchedules().some((active) => (
+        active.range
+        && departureTime >= active.range.startTime - leadTime
+        && departureTime <= active.range.endTime
+      ));
+    }
+
+    function isJoinProductBlockedForNewSchedule(product = {}, activeSchedules = null) {
+      const range = normalizeJoinScheduleRange(product);
+      if (!range) return false;
+      const schedules = Array.isArray(activeSchedules) ? activeSchedules : getActiveJoinMySchedules();
+      const minimumTripLeadTime = 2 * 24 * 60 * 60 * 1000;
+      return schedules.some((active) => active.range && (
+        (
+          range.startTime >= active.range.startTime - minimumTripLeadTime
+          && range.startTime <= active.range.endTime
+        )
+        || doJoinScheduleRangesOverlap(range, active.range)
+      ));
     }
 
     function getJoinScheduleMatchKey(item = {}) {
@@ -1473,7 +1653,9 @@
           index += 1;
         }
         renderedGroups.push(renderJoinMyParticipantGroup(groupedParticipants, joinId, {
-          isMe: showMeBadge && isJoinMyParticipantMe(groupedParticipants[0], groupStartIndex, item),
+          isMe: showMeBadge && groupedParticipants.some((groupParticipant, groupIndex) => (
+            isJoinMyParticipantMe(groupParticipant, groupStartIndex + groupIndex, item)
+          )),
           isHost: isJoinMyParticipantHost(groupedParticipants[0], groupStartIndex, item)
         }));
       }
@@ -1721,7 +1903,10 @@
     async function openJoinMyEmptyRecommendRegion(region = "") {
       return runJoinActionLoading(async () => {
         closeJoinMyMenu();
-        await ensureExternalGolfJoinProductsLoaded();
+        await loadGolfJoinProductDiscoveryRegion(region, {
+          consumer: "empty-recommendation",
+          reason: "join-my-empty-region"
+        });
         selectedRegionSearchName = region;
         await openRegionSearchModal("default", { showLoading: false });
         if (region) {
@@ -1819,7 +2004,7 @@
       if (actionKey === "product") return `handleJoinMyReservationProduct('${escapeJsString(item.joinId || "")}', '${escapeJsString(item.title || "")}', ${item.detailHideParticipants || action.hideParticipants ? "true" : "false"})`;
       if (actionKey === "review") {
         const linkedJoin = getJoinMyLinkedJoin(item);
-        const summaryImage = item.image || linkedJoin?.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg";
+        const summaryImage = item.image || linkedJoin?.image || "";
         const summaryRegion = item.countryRegion || item.region || linkedJoin?.region || "";
         const summaryPeriod = formatJoinMyDateRange(item);
         return `handleJoinMyReviewWrite('${escapeJsString(item.joinId || "")}', '${escapeJsString(item.title || "")}', { image: '${escapeJsString(summaryImage)}', region: '${escapeJsString(summaryRegion)}', period: '${escapeJsString(summaryPeriod)}' })`;
@@ -1922,7 +2107,7 @@
       const locationValue = locationParts.filter(Boolean).join("");
       const periodValue = renderJoinMyPeriodSummaryValue(item);
       const linkedJoin = getJoinMyLinkedJoin(item);
-      const summaryImage = item.image || linkedJoin?.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg";
+      const summaryImage = item.image || linkedJoin?.image || "";
       const summaryBadge = item.region || item.countryRegion || linkedJoin?.region || "";
       const isBrowseCard = Boolean(item.wishOpenTargetKey || item.recentOpenTargetKey);
       const browseCardOnclick = isBrowseCard ? getJoinMyBrowseCardOnclick(item) : "";
@@ -1930,7 +2115,7 @@
         <article class="join-my-card join-my-card-accordion${isBrowseCard ? " is-browse-card" : ""}"${browseCardOnclick ? ` onclick="${browseCardOnclick}"` : ""}>
           <div class="join-my-card-summary">
             <div class="join-my-card-thumb join-my-card-summary-thumb">
-              <img src="${escapeHtml(summaryImage)}" alt="${escapeHtml(item.title || "")}" loading="lazy" decoding="async">
+              <img${summaryImage ? ` src="${escapeHtml(summaryImage)}"` : ""} alt="${escapeHtml(item.title || "")}" loading="lazy" decoding="async">
               ${summaryBadge ? `<div class="join-my-card-thumb-badge">${escapeHtml(summaryBadge)}</div>` : ""}
             </div>
             <div class="join-my-card-summary-info">
@@ -1988,7 +2173,7 @@
         return `
         <article class="join-my-card${item.hideImage ? " no-image" : ""}${headAction?.action === "accordion" ? " is-accordion-collapsed" : ""}">
           ${item.hideImage ? "" : `<div class="join-my-card-thumb">
-            <img src="${escapeHtml(item.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg")}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async">
+            <img${item.image ? ` src="${escapeHtml(item.image)}"` : ""} alt="${escapeHtml(item.title)}" loading="lazy" decoding="async">
             <div class="join-my-card-thumb-badge">${escapeHtml(item.region || "골프여행")}</div>
           </div>`}
           <div class="join-my-card-content">
@@ -2502,7 +2687,6 @@
     }
 
     let joinProfileManageSelectedFile = null;
-    let joinProfileManageScrollLockY = 0;
 
     function getJoinProfileInitial(member = {}) {
       const name = String(member.memberName || member.name || "회원").trim();
@@ -2536,6 +2720,157 @@
       const initial = getJoinProfileInitial(member);
       if (target.textContent === initial && !target.querySelector("img")) return;
       target.textContent = initial;
+    }
+
+    function getJoinProfileManageBirthPart(select) {
+      return String(select?.id || "").replace("joinProfileManageBirth", "").toLowerCase();
+    }
+
+    function closeJoinProfileManageBirthDropdowns(except = null) {
+      document.querySelectorAll("#joinProfileManageForm .join-profile-birth-dropdown.is-open").forEach((dropdown) => {
+        if (except && dropdown === except) return;
+        dropdown.classList.remove("is-open");
+        const trigger = dropdown.querySelector(".join-profile-birth-trigger");
+        const menu = dropdown.querySelector(".join-profile-birth-menu");
+        if (trigger) trigger.setAttribute("aria-expanded", "false");
+        if (menu) menu.hidden = true;
+      });
+      if (!document.querySelector("#joinProfileManageForm .join-profile-birth-dropdown.is-open")) {
+        document.querySelector("#joinProfileManageForm .join-profile-info-row.is-birth-dropdown-open")?.classList.remove("is-birth-dropdown-open");
+      }
+    }
+
+    function syncJoinProfileManageBirthDropdown(select) {
+      if (!select) return;
+      const dropdown = select.closest(".join-profile-birth-dropdown");
+      const trigger = dropdown?.querySelector(".join-profile-birth-trigger");
+      const label = trigger?.querySelector(".join-profile-birth-trigger-label");
+      const menu = dropdown?.querySelector(".join-profile-birth-menu");
+      if (!dropdown || !trigger || !label || !menu) return;
+      const selectedOption = select.options[select.selectedIndex] || select.options[0];
+      label.textContent = selectedOption?.textContent || "";
+      trigger.disabled = select.disabled;
+      const signature = Array.from(select.options).map((option) => `${option.value}:${option.textContent}`).join("|");
+      if (menu.dataset.optionsSignature !== signature) {
+        menu.replaceChildren();
+        Array.from(select.options).filter((option) => option.value).forEach((option) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "join-profile-birth-option";
+          button.setAttribute("role", "option");
+          button.dataset.value = option.value;
+          button.textContent = option.textContent;
+          button.addEventListener("click", () => {
+            select.value = option.value;
+            handleJoinProfileManageBirthDateInput(select);
+            syncJoinProfileManageBirthDropdowns();
+            closeJoinProfileManageBirthDropdowns();
+            trigger.focus({ preventScroll: true });
+          });
+          button.addEventListener("keydown", (event) => {
+            const options = Array.from(menu.querySelectorAll(".join-profile-birth-option"));
+            const index = options.indexOf(button);
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              event.preventDefault();
+              const direction = event.key === "ArrowDown" ? 1 : -1;
+              options[(index + direction + options.length) % options.length]?.focus({ preventScroll: true });
+            } else if (event.key === "Home" || event.key === "End") {
+              event.preventDefault();
+              options[event.key === "Home" ? 0 : options.length - 1]?.focus({ preventScroll: true });
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              closeJoinProfileManageBirthDropdowns();
+              trigger.focus({ preventScroll: true });
+            }
+          });
+          menu.appendChild(button);
+        });
+        menu.dataset.optionsSignature = signature;
+      }
+      menu.querySelectorAll(".join-profile-birth-option").forEach((button) => {
+        const selected = button.dataset.value === select.value;
+        button.classList.toggle("is-selected", selected);
+        button.setAttribute("aria-selected", selected ? "true" : "false");
+      });
+    }
+
+    function syncJoinProfileManageBirthDropdowns() {
+      document.querySelectorAll("#joinProfileManageForm .join-profile-birth-native").forEach(syncJoinProfileManageBirthDropdown);
+    }
+
+    function setJoinProfileManageBirthSelectDisabled(select, disabled) {
+      if (!select) return;
+      select.toggleAttribute("disabled", Boolean(disabled));
+      const dropdown = select.closest(".join-profile-birth-dropdown");
+      const trigger = dropdown?.querySelector(".join-profile-birth-trigger");
+      if (trigger) trigger.disabled = Boolean(disabled);
+      if (disabled && dropdown?.classList.contains("is-open")) closeJoinProfileManageBirthDropdowns();
+    }
+
+    function toggleJoinProfileManageBirthDropdown(trigger, event) {
+      event?.preventDefault?.();
+      event?.stopPropagation?.();
+      if (!trigger || trigger.disabled) return;
+      const dropdown = trigger.closest(".join-profile-birth-dropdown");
+      const menu = dropdown?.querySelector(".join-profile-birth-menu");
+      if (!dropdown || !menu) return;
+      const shouldOpen = !dropdown.classList.contains("is-open");
+      closeJoinProfileManageBirthDropdowns(shouldOpen ? dropdown : null);
+      dropdown.classList.toggle("is-open", shouldOpen);
+      trigger.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+      menu.hidden = !shouldOpen;
+      dropdown.closest(".join-profile-info-row")?.classList.toggle("is-birth-dropdown-open", shouldOpen);
+      if (shouldOpen) {
+        requestAnimationFrame(() => {
+          const selected = menu.querySelector('.join-profile-birth-option[aria-selected="true"]')
+            || menu.querySelector(".join-profile-birth-option");
+          selected?.scrollIntoView({ block: "nearest" });
+        });
+      }
+    }
+
+    function handleJoinProfileManageBirthTriggerKeydown(trigger, event) {
+      if (!trigger || trigger.disabled) return;
+      if (["ArrowDown", "ArrowUp"].includes(event.key)) {
+        event.preventDefault();
+        if (trigger.getAttribute("aria-expanded") !== "true") toggleJoinProfileManageBirthDropdown(trigger, event);
+        const menu = trigger.closest(".join-profile-birth-dropdown")?.querySelector(".join-profile-birth-menu");
+        const selected = menu?.querySelector('.join-profile-birth-option[aria-selected="true"]');
+        (selected || menu?.querySelector(".join-profile-birth-option"))?.focus({ preventScroll: true });
+      } else if (event.key === "Escape") {
+        closeJoinProfileManageBirthDropdowns();
+      }
+    }
+
+    function upgradeJoinProfileManageBirthDropdowns(scope = document) {
+      const group = scope.querySelector(".join-profile-birth-selects");
+      if (!group || group.dataset.customDropdownReady === "true") return;
+      group.dataset.customDropdownReady = "true";
+      Array.from(group.querySelectorAll("select.join-profile-birth-select")).forEach((select) => {
+        const part = getJoinProfileManageBirthPart(select);
+        const dropdown = document.createElement("div");
+        dropdown.className = `join-profile-birth-dropdown join-profile-birth-dropdown-${part}`;
+        const trigger = document.createElement("button");
+        trigger.type = "button";
+        trigger.className = "join-profile-birth-trigger";
+        trigger.disabled = true;
+        trigger.setAttribute("aria-haspopup", "listbox");
+        trigger.setAttribute("aria-expanded", "false");
+        trigger.setAttribute("aria-label", select.getAttribute("aria-label") || "생년월일 선택");
+        trigger.innerHTML = '<span class="join-profile-birth-trigger-label"></span><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
+        trigger.addEventListener("click", (event) => toggleJoinProfileManageBirthDropdown(trigger, event));
+        trigger.addEventListener("keydown", (event) => handleJoinProfileManageBirthTriggerKeydown(trigger, event));
+        const menu = document.createElement("div");
+        menu.className = "join-profile-birth-menu";
+        menu.id = `joinProfileManageBirth${part[0]?.toUpperCase() || ""}${part.slice(1)}Menu`;
+        menu.setAttribute("role", "listbox");
+        menu.setAttribute("aria-label", select.getAttribute("aria-label") || "생년월일 선택");
+        menu.hidden = true;
+        select.classList.add("join-profile-birth-native");
+        select.parentNode.insertBefore(dropdown, select);
+        dropdown.append(select, trigger, menu);
+      });
+      syncJoinProfileManageBirthDropdowns();
     }
 
     function ensureJoinProfileManageModal() {
@@ -2580,8 +2915,8 @@
                 <input class="join-profile-manage-input" id="joinProfileManageEmail" type="email" autocomplete="email">
               </label>
               <label class="join-profile-manage-field">
-                <span class="join-profile-manage-label">출생년도</span>
-                <input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" oninput="handleJoinProfileManageBirthYearInput(this)">
+                <span class="join-profile-manage-label">생년월일</span>
+                <input type="hidden" id="joinProfileManageBirthDate"><div class="join-profile-birth-selects" role="group" aria-label="생년월일 선택"><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthYear" aria-label="출생 연도" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">연도</option></select><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthMonth" aria-label="출생 월" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">월</option></select><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthDay" aria-label="출생 일" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">일</option></select></div>
               </label>
               <label class="join-profile-manage-field">
                 <span class="join-profile-manage-label">성별</span>
@@ -2659,8 +2994,8 @@
                 <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageGender')">변경</button>
               </div>
               <div class="join-profile-info-row">
-                <div class="join-profile-manage-label">출생년도</div>
-                <input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" oninput="handleJoinProfileManageBirthYearInput(this)">
+                <div class="join-profile-manage-label">생년월일</div>
+                <input type="hidden" id="joinProfileManageBirthDate"><div class="join-profile-birth-selects" role="group" aria-label="생년월일 선택"><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthYear" aria-label="출생 연도" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">연도</option></select><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthMonth" aria-label="출생 월" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">월</option></select><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthDay" aria-label="출생 일" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">일</option></select></div>
                 <button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')">변경</button>
               </div>
               <div class="join-profile-info-row">
@@ -2712,7 +3047,7 @@
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageMobile" inputmode="tel" autocomplete="tel" maxlength="11" oninput="handleJoinProfileManageMobileInput(this)"><div class="join-profile-info-error" id="joinProfileManageMobileError"></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageMobile')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageEmail" type="email" autocomplete="email" oninput="setJoinProfileManageFieldError('joinProfileManageEmail', '')"><div class="join-profile-info-error" id="joinProfileManageEmailError"></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageEmail')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><div class="join-profile-gender-control"><input class="join-profile-manage-input" id="joinProfileManageGender" readonly onchange="syncJoinProfileManageSummary()"><div class="join-profile-gender-radios" role="radiogroup"><div class="join-profile-gender-option" role="radio" tabindex="0" data-gender-value="\uB0A8\uC131" onclick="selectJoinProfileManageGender(this.dataset.genderValue)" onkeydown="if(event.key === 'Enter' || event.key === ' '){event.preventDefault(); selectJoinProfileManageGender(this.dataset.genderValue)}"><input type="radio" name="joinProfileManageGenderRadio" value="\uB0A8\uC131" tabindex="-1" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="male"></div></div><div class="join-profile-gender-option" role="radio" tabindex="0" data-gender-value="\uC5EC\uC131" onclick="selectJoinProfileManageGender(this.dataset.genderValue)" onkeydown="if(event.key === 'Enter' || event.key === ' '){event.preventDefault(); selectJoinProfileManageGender(this.dataset.genderValue)}"><input type="radio" name="joinProfileManageGenderRadio" value="\uC5EC\uC131" tabindex="-1" onchange="selectJoinProfileManageGender(this.value)"><div class="join-profile-gender-option-text" data-gender-label="female"></div></div></div></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageGender')"></button></div>
-              <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageBirthYear" inputmode="numeric" maxlength="4" oninput="handleJoinProfileManageBirthYearInput(this)"></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')"></button></div>
+              <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input type="hidden" id="joinProfileManageBirthDate"><div class="join-profile-birth-selects" role="group" aria-label="생년월일 선택"><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthYear" aria-label="출생 연도" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">연도</option></select><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthMonth" aria-label="출생 월" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">월</option></select><select class="join-profile-manage-select join-profile-birth-select" id="joinProfileManageBirthDay" aria-label="출생 일" onchange="handleJoinProfileManageBirthDateInput(this)"><option value="">일</option></select></div></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageBirthYear')"></button></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageLevel" readonly></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageLevel')"></button><div class="join-profile-inline-picker" id="joinProfileManageLevelPicker"></div></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageProfession" oninput="syncJoinProfileManagePickerActiveStates()"></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageProfession')"></button><div class="join-profile-inline-picker" id="joinProfileManageProfessionPicker"></div></div>
               <div class="join-profile-info-row"><div class="join-profile-info-main"><div class="join-profile-manage-label"></div><input class="join-profile-manage-input" id="joinProfileManageTravelStyles"></div><button type="button" class="join-profile-info-change" onclick="focusJoinProfileManageField('joinProfileManageTravelStyles')"></button><div class="join-profile-inline-picker" id="joinProfileManageTravelStylesPicker"></div></div>
@@ -2754,7 +3089,7 @@
       setText(".join-profile-info-row:nth-child(2) .join-profile-manage-label", "\uD734\uB300\uD3F0\uBC88\uD638");
       setText(".join-profile-info-row:nth-child(3) .join-profile-manage-label", "\uC774\uBA54\uC77C");
       setText(".join-profile-info-row:nth-child(4) .join-profile-manage-label", "\uC131\uBCC4");
-      setText(".join-profile-info-row:nth-child(5) .join-profile-manage-label", "\uCD9C\uC0DD\uB144\uB3C4");
+      setText(".join-profile-info-row:nth-child(5) .join-profile-manage-label", "\uC0DD\uB144\uC6D4\uC77C");
       setText(".join-profile-info-row:nth-child(6) .join-profile-manage-label", "\uD578\uB514");
       setText(".join-profile-info-row:nth-child(7) .join-profile-manage-label", "\uC9C1\uC5C5");
       setHtml(".join-profile-info-row:nth-child(8) .join-profile-manage-label", "\uC120\uD638\uD558\uB294<br>\uC2A4\uD0C0\uC77C");
@@ -2785,6 +3120,7 @@
       }
       const styles = overlay.querySelector("#joinProfileManageTravelStyles");
       if (styles) styles.placeholder = "\uC608: \uC870\uC6A9\uD55C \uC77C\uC815, \uCE5C\uBAA9, \uD504\uB9AC\uBBF8\uC5C4 \uB9AC\uC870\uD2B8";
+      upgradeJoinProfileManageBirthDropdowns(overlay);
       renderJoinProfileManagePickers();
     }
 
@@ -2803,15 +3139,43 @@
       }
     }
 
-    function renderJoinProfileBirthYearOptions() {
-      const currentYear = new Date().getFullYear();
-      const startYear = Math.max(1900, currentYear - 100);
-      const endYear = Math.max(startYear, currentYear - 18);
-      const options = ['<option value="">선택</option>'];
-      for (let year = endYear; year >= startYear; year -= 1) {
-        options.push(`<option value="${year}">${year}</option>`);
+    function populateJoinProfileManageBirthSelects() {
+      const yearSelect = document.getElementById("joinProfileManageBirthYear");
+      const monthSelect = document.getElementById("joinProfileManageBirthMonth");
+      if (!yearSelect || !monthSelect) return;
+      if (yearSelect.dataset.ready === "true") {
+        syncJoinProfileManageBirthDropdowns();
+        return;
       }
-      return options.join("");
+      const latestYear = new Date().getFullYear() - 18;
+      yearSelect.innerHTML = '<option value="">연도</option>';
+      for (let year = latestYear; year >= 1930; year -= 1) {
+        yearSelect.insertAdjacentHTML("beforeend", `<option value="${year}">${year}년</option>`);
+      }
+      monthSelect.innerHTML = '<option value="">월</option>';
+      for (let month = 1; month <= 12; month += 1) {
+        const value = String(month).padStart(2, "0");
+        monthSelect.insertAdjacentHTML("beforeend", `<option value="${value}">${month}월</option>`);
+      }
+      yearSelect.dataset.ready = "true";
+      populateJoinProfileManageBirthDays();
+      syncJoinProfileManageBirthDropdowns();
+    }
+
+    function populateJoinProfileManageBirthDays() {
+      const year = Number(document.getElementById("joinProfileManageBirthYear")?.value || 0);
+      const month = Number(document.getElementById("joinProfileManageBirthMonth")?.value || 0);
+      const daySelect = document.getElementById("joinProfileManageBirthDay");
+      if (!daySelect) return;
+      const selectedDay = daySelect.value;
+      const dayCount = year && month ? new Date(year, month, 0).getDate() : 31;
+      daySelect.innerHTML = '<option value="">일</option>';
+      for (let day = 1; day <= dayCount; day += 1) {
+        const value = String(day).padStart(2, "0");
+        daySelect.insertAdjacentHTML("beforeend", `<option value="${value}">${day}일</option>`);
+      }
+      if ([...daySelect.options].some((option) => option.value === selectedDay)) daySelect.value = selectedDay;
+      syncJoinProfileManageBirthDropdowns();
     }
 
     function completeJoinProfileManageField(field) {
@@ -2860,6 +3224,42 @@
       if (digits.length === 4) {
         setTimeout(() => completeJoinProfileManageField(input), 0);
       }
+    }
+
+    function handleJoinProfileManageBirthDateInput(input) {
+      if (["joinProfileManageBirthYear", "joinProfileManageBirthMonth"].includes(input?.id)) {
+        populateJoinProfileManageBirthDays();
+      }
+      const birthDate = getJoinProfileManageBirthDate();
+      const birthDateInput = document.getElementById("joinProfileManageBirthDate");
+      if (birthDateInput) birthDateInput.value = birthDate;
+      syncJoinProfileManageSummary();
+      syncJoinProfileManageBirthDropdowns();
+      if (birthDate) setTimeout(() => completeJoinProfileManageField(input), 0);
+    }
+
+    function getJoinProfileManageBirthDate() {
+      const year = String(document.getElementById("joinProfileManageBirthYear")?.value || "");
+      const month = String(document.getElementById("joinProfileManageBirthMonth")?.value || "");
+      const day = String(document.getElementById("joinProfileManageBirthDay")?.value || "");
+      const birthDate = normalizeJoinMemberBirthDate(`${year}${month}${day}`);
+      return isJoinMemberAdultBirthDate(birthDate) ? birthDate : "";
+    }
+
+    function setJoinProfileManageBirthDate(value = "") {
+      const birthDate = normalizeJoinMemberBirthDate(value);
+      const legacyYear = /^\d{4}$/.test(String(value || "").trim()) ? String(value).trim() : "";
+      populateJoinProfileManageBirthSelects();
+      const yearSelect = document.getElementById("joinProfileManageBirthYear");
+      const monthSelect = document.getElementById("joinProfileManageBirthMonth");
+      const daySelect = document.getElementById("joinProfileManageBirthDay");
+      const birthDateInput = document.getElementById("joinProfileManageBirthDate");
+      if (yearSelect) yearSelect.value = birthDate.slice(0, 4) || legacyYear;
+      if (monthSelect) monthSelect.value = birthDate.slice(4, 6);
+      populateJoinProfileManageBirthDays();
+      if (daySelect) daySelect.value = birthDate.slice(6, 8);
+      if (birthDateInput) birthDateInput.value = birthDate;
+      syncJoinProfileManageBirthDropdowns();
     }
 
     function getJoinProfileManageAgeBandFromInput() {
@@ -2997,6 +3397,12 @@
 
     function closeJoinProfileManagePicker(field) {
       field?.closest(".join-profile-info-row")?.classList.remove("is-picker-open", "is-editing");
+      const birthSelects = field?.closest(".join-profile-birth-selects")?.querySelectorAll("select") || [];
+      if (birthSelects.length) {
+        birthSelects.forEach((select) => setJoinProfileManageBirthSelectDisabled(select, true));
+        closeJoinProfileManageBirthDropdowns();
+        return;
+      }
       if (field?.tagName === "SELECT") {
         field.setAttribute("disabled", "disabled");
       } else {
@@ -3194,7 +3600,7 @@
         field.closest(".join-profile-info-row")?.classList.remove("is-editing", "is-picker-open");
         field.style.cursor = "";
         if (field.tagName === "SELECT") {
-          field.setAttribute("disabled", "disabled");
+          setJoinProfileManageBirthSelectDisabled(field, true);
         } else {
           field.setAttribute("readonly", "readonly");
         }
@@ -3209,8 +3615,14 @@
       field.closest(".join-profile-info-row")?.classList.remove("is-editing", "is-picker-open");
       field.style.cursor = "";
       field.blur?.();
+      const birthSelects = field.closest(".join-profile-birth-selects")?.querySelectorAll("select") || [];
+      birthSelects.forEach((select) => {
+        select.style.cursor = "";
+        setJoinProfileManageBirthSelectDisabled(select, true);
+        select.blur?.();
+      });
       if (field.tagName === "SELECT") {
-        field.setAttribute("disabled", "disabled");
+        setJoinProfileManageBirthSelectDisabled(field, true);
       } else {
         field.setAttribute("readonly", "readonly");
       }
@@ -3256,6 +3668,11 @@
       setJoinProfileManageStatus(message);
       const row = field.closest(".join-profile-info-row");
       row?.classList.add("is-editing");
+      const birthSelects = field.closest(".join-profile-birth-selects")?.querySelectorAll("select") || [];
+      birthSelects.forEach((select) => {
+        setJoinProfileManageBirthSelectDisabled(select, false);
+        select.style.cursor = "pointer";
+      });
       field.removeAttribute("readonly");
       field.removeAttribute("disabled");
       if (shouldFocus) {
@@ -3300,6 +3717,11 @@
         return true;
       }
       row?.classList.add("is-editing");
+      const birthSelects = field.closest(".join-profile-birth-selects")?.querySelectorAll("select") || [];
+      birthSelects.forEach((select) => {
+        setJoinProfileManageBirthSelectDisabled(select, false);
+        select.style.cursor = "pointer";
+      });
       field.removeAttribute("readonly");
       field.removeAttribute("disabled");
       if (field.tagName === "SELECT") field.style.cursor = "pointer";
@@ -3319,6 +3741,12 @@
       if (["joinProfileManageLevel", "joinProfileManageProfession", "joinProfileManageTravelStyles"].includes(id)) {
         field.closest(".join-profile-info-row")?.scrollIntoView({ block: "center", behavior: "smooth" });
         field.closest(".join-profile-info-row")?.querySelector(".join-profile-inline-picker button, .join-profile-inline-picker [role='button']")?.focus({ preventScroll: true });
+        return;
+      }
+      const birthTrigger = field.closest(".join-profile-birth-dropdown")?.querySelector(".join-profile-birth-trigger");
+      if (birthTrigger) {
+        birthTrigger.focus({ preventScroll: true });
+        field.closest(".join-profile-info-row")?.scrollIntoView({ block: "center", behavior: "smooth" });
         return;
       }
       if (id === "joinProfileManageGender") {
@@ -3341,7 +3769,7 @@
       const isChangeButton = event.target.closest(".join-profile-info-change");
       const isEditingControl = Boolean(
         targetRow?.classList.contains("is-editing")
-        && event.target.closest(".join-profile-manage-input, .join-profile-manage-select, .join-profile-manage-textarea, .join-profile-inline-picker, .join-profile-gender-radios")
+        && event.target.closest(".join-profile-manage-input, .join-profile-manage-select, .join-profile-manage-textarea, .join-profile-inline-picker, .join-profile-gender-radios, .join-profile-birth-trigger, .join-profile-birth-menu")
       );
       if (isChangeButton || isEditingControl) return;
       if (!validateJoinProfileManageContactFieldsBeforeExit()) {
@@ -3368,6 +3796,7 @@
         const node = document.getElementById(id);
         if (node) node.value = value || "";
       });
+      setJoinProfileManageBirthDate(getJoinMemberBirthDate(member) || getJoinMemberBirthYear(member));
       const nameField = document.getElementById("joinProfileManageName");
       if (nameField) {
         nameField.setAttribute("readonly", "readonly");
@@ -3387,24 +3816,6 @@
       setJoinProfileManageStatus("");
     }
 
-    function lockJoinProfileManagePageScroll() {
-      if (document.body.classList.contains("join-profile-scroll-locked")) return;
-      const isOpenedFromMyLayer = document.getElementById("joinMyMenuModal")?.classList.contains("open")
-        || document.getElementById("joinMyDrawerOverlay")?.classList.contains("open");
-      if (isOpenedFromMyLayer) return;
-      joinProfileManageScrollLockY = window.scrollY || document.documentElement.scrollTop || 0;
-      document.body.style.top = `-${joinProfileManageScrollLockY}px`;
-      document.body.classList.add("join-profile-scroll-locked");
-    }
-
-    function unlockJoinProfileManagePageScroll() {
-      if (!document.body.classList.contains("join-profile-scroll-locked")) return;
-      document.body.classList.remove("join-profile-scroll-locked");
-      document.body.style.top = "";
-      window.scrollTo(0, joinProfileManageScrollLockY || 0);
-      joinProfileManageScrollLockY = 0;
-    }
-
     async function openJoinProfileManageModal() {
       const cached = getJoinCachedCurrentMember();
       if (!cached) {
@@ -3422,7 +3833,6 @@
       setWidgetModalOpen(true);
       document.documentElement.classList.add("modal-open");
       document.body.classList.add("modal-open");
-      lockJoinProfileManagePageScroll();
       refreshJoinMemberInBackground((member) => {
         if (
           document.getElementById("joinProfileManageOverlay")?.classList.contains("open")
@@ -3445,7 +3855,6 @@
         document.documentElement.classList.remove("modal-open");
         document.body.classList.remove("modal-open");
       }
-      unlockJoinProfileManagePageScroll();
     }
 
     function handleJoinProfilePhotoChange(event) {
@@ -3529,7 +3938,8 @@
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinProfileManageMobile")?.value || member.memberMobile || "");
       const name = String(member.memberName || member.name || "").trim();
       const email = document.getElementById("joinProfileManageEmail")?.value.trim() || member.memberEmail || "";
-      const birthYear = document.getElementById("joinProfileManageBirthYear")?.value.trim() || "";
+      const birthDate = getJoinProfileManageBirthDate();
+      const birthYear = birthDate.slice(0, 4);
       const profileId = getStableJoinMemberProfileId({
         ...member,
         memberMobile: mobile,
@@ -3556,6 +3966,7 @@
         memberMobile: mobile,
         memberEmail: email,
         birthYear,
+        birthDate,
         gender: document.getElementById("joinProfileManageGender")?.value || "",
         profession: document.getElementById("joinProfileManageProfession")?.value.trim() || "",
         level: document.getElementById("joinProfileManageLevel")?.value || "",
@@ -3573,6 +3984,7 @@
         },
         profile: {
           birthYear,
+          birthDate,
           gender: document.getElementById("joinProfileManageGender")?.value || "",
           profession: document.getElementById("joinProfileManageProfession")?.value.trim() || "",
           level: document.getElementById("joinProfileManageLevel")?.value || "",
@@ -3594,10 +4006,10 @@
     function validateJoinProfileManageForm() {
       const name = document.getElementById("joinProfileManageName")?.value.trim() || "";
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinProfileManageMobile")?.value || "");
-      const birthYear = document.getElementById("joinProfileManageBirthYear")?.value.trim() || "";
+      const birthDate = getJoinProfileManageBirthDate();
       if (name.length < 2) return "이름을 2자 이상 입력해 주세요.";
       if (mobile && !/^01\d{8,9}$/.test(mobile)) return "휴대폰 번호를 다시 확인해 주세요.";
-      if (birthYear && !/^(19\d{2}|20\d{2})$/.test(birthYear)) return "출생년도 4자리를 입력해 주세요.";
+      if (!birthDate) return "생년월일을 입력해 주세요.";
       return "";
     }
 
@@ -3670,7 +4082,7 @@
       const parts = splitJoinMemberMobileParts(mobile);
       const name = String(payload.member?.memberName || payload.memberName || member.memberName || member.name || "").trim();
       const email = payload.member?.memberEmail || member.memberEmail || member.email || "";
-      const birthday = String(payload.profile?.birthday || payload.profile?.birthYear || member.birthday || "").trim();
+      const birthday = String(payload.profile?.birthDate || payload.profile?.birthday || payload.profile?.birthYear || member.birthDate || member.birthday || "").trim();
       const mobileChanged = isSecretTourMemberMobileChanged(payload, member);
       const currentEmail = String(member.memberEmail || member.email || "").trim();
       const emailChanged = Boolean(email && currentEmail && email !== currentEmail);
@@ -3784,7 +4196,7 @@
       const name = document.getElementById("joinProfileManageName")?.value.trim() || "";
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinProfileManageMobile")?.value || "");
       const email = document.getElementById("joinProfileManageEmail")?.value.trim() || "";
-      const birthYear = document.getElementById("joinProfileManageBirthYear")?.value.trim() || "";
+      const birthDate = getJoinProfileManageBirthDate();
       clearJoinProfileManageFieldErrors();
       if (name.length < 2) {
         return { fieldId: "joinProfileManageName", message: "\uC774\uB984\uC744 2\uC790 \uC774\uC0C1 \uC785\uB825\uD574 \uC8FC\uC138\uC694." };
@@ -3799,8 +4211,8 @@
         setJoinProfileManageFieldError("joinProfileManageEmail", message);
         return { fieldId: "joinProfileManageEmail", message };
       }
-      if (birthYear && !/^(19\d{2}|20\d{2})$/.test(birthYear)) {
-        return { fieldId: "joinProfileManageBirthYear", message: "\uCD9C\uC0DD\uB144\uB3C4 4\uC790\uB9AC\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694." };
+      if (!birthDate) {
+        return { fieldId: "joinProfileManageBirthDate", message: "\uC0DD\uB144\uC6D4\uC77C\uC744 \uC785\uB825\uD574 \uC8FC\uC138\uC694." };
       }
       return null;
     }
@@ -3993,9 +4405,14 @@
       document.getElementById("joinMyReviewTitle") && (document.getElementById("joinMyReviewTitle").textContent = existing ? "후기 수정" : "후기 작성");
       document.getElementById("joinMyReviewTripTitle") && (document.getElementById("joinMyReviewTripTitle").textContent = title || "다녀온 일정");
       const tripImage = document.getElementById("joinMyReviewTripImage");
-      const tripImageSrc = summary.image || reviewJoin.image || "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg";
+      const tripImageSrc = summary.image || reviewJoin.image || "";
       if (tripImage) {
-        tripImage.src = tripImageSrc;
+        if (tripImageSrc) {
+          tripImage.src = tripImageSrc;
+        } else {
+          tripImage.removeAttribute("src");
+          markGolfJoinImageFallback(tripImage);
+        }
         tripImage.alt = title || reviewJoin.title || "지난 일정";
       }
       document.getElementById("joinMyReviewTripRegion") && (document.getElementById("joinMyReviewTripRegion").textContent = summary.region || reviewJoin.countryRegion || reviewJoin.region || "");
@@ -4308,6 +4725,12 @@
         }
       }
       member = getJoinMemberWithCachedProfile(member);
+      if (!options.skipPendingRosterCheck) {
+        await promptJoinPendingRosterCandidates({
+          source: "my-reservations",
+          beforePromptOpen: options.beforePendingRosterPrompt
+        });
+      }
       preloadJoinProfileImage(member);
       const viewGeneration = beginJoinMyMenuView("reservation");
       document.getElementById("joinMyMenuTitle") && (document.getElementById("joinMyMenuTitle").textContent = "내 예약");
@@ -4325,10 +4748,13 @@
       setWidgetModalOpen(true);
       joinMyReservationsRefreshing = true;
       renderJoinMyMenu(member);
+      const memberCacheOptions = { memberKey: getJoinWishMemberKey(member) };
       const builderApplicationsRefresh = googleSheetBuilderApplicationsLoading
+        || hasFreshGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, memberCacheOptions)
         ? Promise.resolve([])
         : hydrateBuilderApplicationJoinsFromGoogleSheet({ renderStart: false, renderHome: false });
       const joinApplicationsRefresh = googleSheetJoinApplicationsLoading
+        || hasFreshGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, memberCacheOptions)
         ? Promise.resolve([])
         : hydrateJoinApplicationsFromGoogleSheet({ renderStart: false, renderHome: false });
       Promise.allSettled([builderApplicationsRefresh, joinApplicationsRefresh]).then(() => {
@@ -4336,7 +4762,7 @@
         if (isJoinMyMenuRequestCurrent("reservation", viewGeneration)) {
           renderJoinMyMenu(member);
         }
-        requestAnimationFrame(renderJoins);
+        requestAnimationFrame(() => renderMyJoinSectionInPlace());
       });
       refreshJoinMemberInBackground((freshMember) => {
         const refreshedMember = getJoinMemberWithCachedProfile(freshMember);
@@ -5176,7 +5602,9 @@
       const productId = params.get("productId") || "";
       const goodSeq = params.get("goodSeq") || "";
       const eventSeq = params.get("eventSeq") || "";
+      const productFamilyId = params.get("productFamilyId") || "";
       const builderAction = params.get("builderAction") || "";
+      const builderRegion = params.get("builderRegion") || "";
       const builderProductId = params.get("builderProductId") || "";
       const productGroupKey = params.get("productGroupKey") || "";
       const countryKey = params.get("countryKey") || "";
@@ -5197,7 +5625,9 @@
       params.delete("productId");
       params.delete("goodSeq");
       params.delete("eventSeq");
+      params.delete("productFamilyId");
       params.delete("builderAction");
+      params.delete("builderRegion");
       params.delete("builderProductId");
       params.delete("productGroupKey");
       params.delete("countryKey");
@@ -5219,9 +5649,11 @@
           applicationId,
           sourceApplicationId,
           productId,
-          goodSeq,
-          eventSeq,
+           goodSeq,
+           eventSeq,
+           productFamilyId,
           builderAction,
+          builderRegion,
           builderProductId,
           productGroupKey,
           countryKey,
@@ -5230,16 +5662,17 @@
         if (!readyMember) return true;
       }
       if (afterLogin === "return-url" && returnUrl) {
+        trackJoinLoginReturnComplete(afterLogin);
         location.href = returnUrl;
         return true;
       }
       if (afterLogin === "detail-wish") {
-        await continueDetailWishAfterLogin(wishJoinId ? { wishJoinId } : {});
-        return true;
+        const resumed = await continueDetailWishAfterLogin(wishJoinId ? { wishJoinId } : {});
+        return trackJoinLoginReturnComplete(afterLogin, resumed);
       }
       if (afterLogin === "detail") {
-        await continueJoinExternalDetailAfterLogin({ joinId, scheduleId, productId, goodSeq, eventSeq });
-        return true;
+        const resumed = await continueJoinExternalDetailAfterLogin({ joinId, scheduleId, productId, goodSeq, eventSeq });
+        return trackJoinLoginReturnComplete(afterLogin, resumed);
       }
       if (afterLogin === "my-section") {
         const mySectionParams = {
@@ -5261,28 +5694,31 @@
           const retryQuery = retryParams.toString();
           history.replaceState(null, "", `${location.pathname}${retryQuery ? `?${retryQuery}` : ""}${location.hash || ""}`);
         }
+        trackJoinLoginReturnComplete(afterLogin, opened);
         return true;
       }
       if (afterLogin === "profile-manage") {
-        await openJoinProfileManageModal();
-        return true;
+        const resumed = await openJoinProfileManageModal();
+        return trackJoinLoginReturnComplete(afterLogin, resumed);
       }
       if (afterLogin === "builder") {
-        await continueBuilderAfterLogin({ builderAction, builderProductId, productGroupKey, countryKey });
-        return true;
+        const resumed = await continueBuilderAfterLogin({ builderAction, builderRegion, builderProductId, productGroupKey, countryKey });
+        return trackJoinLoginReturnComplete(afterLogin, resumed);
       }
       if (afterLogin === "apply") {
-        if (applyJoinId) currentDetailJoinId = applyJoinId;
-        openGlobalApply();
-        return true;
+        const resumed = await openGlobalApply({
+          resumeParams: { applyJoinId, goodSeq, eventSeq, productFamilyId },
+          skipProfileCheck: true
+        });
+        return trackJoinLoginReturnComplete(afterLogin, resumed);
       }
       if (afterLogin === "my-menu") {
         setJoinMobileNavActive("my");
-        await openJoinMyMenu({ tab: golfjoinTab });
-        return true;
+        const resumed = await openJoinMyMenu({ tab: golfjoinTab });
+        return trackJoinLoginReturnComplete(afterLogin, resumed);
       }
-      handleJoinMyButtonClick();
-      return true;
+      const resumed = await handleJoinMyButtonClick();
+      return trackJoinLoginReturnComplete(afterLogin, resumed);
     }
 
     function getJoinExternalDeepLinkTarget() {
@@ -5318,6 +5754,7 @@
       params.delete("productId");
       params.delete("goodSeq");
       params.delete("eventSeq");
+      params.delete("productFamilyId");
       params.delete("golfjoinTab");
       const hashTarget = decodeURIComponent((location.hash || "").replace(/^#/, "")).trim().toLowerCase();
       const shouldClearHash = ["golfjoin-my", "golfjoin-my-menu", "golfjoin-my-reservation", "golfjoin-my-reservations"].includes(hashTarget);
@@ -5341,6 +5778,7 @@
         "productId",
         "goodSeq",
         "eventSeq",
+        "productFamilyId",
         "golfjoinTab",
         "afterLogin",
         "applyJoinId",
@@ -5377,6 +5815,7 @@
       const sources = [
         ...joins,
         ...(homeGolfJoinProducts || []),
+        ...getCachedGolfJoinProductDiscoveryProducts(),
         ...(externalGolfJoinProducts || [])
       ];
       const joinId = String(getJoinDeepLinkParam(params, "joinId") || getJoinDeepLinkParam(params, "scheduleId") || "").trim();
@@ -5418,8 +5857,18 @@
         join = findJoinExternalDeepLinkDetailTarget(params);
       }
       if (!join) {
-        await ensureExternalGolfJoinProductsLoaded();
-        join = findJoinExternalDeepLinkDetailTarget(params);
+        const productId = String(getJoinDeepLinkParam(params, "productId") || getJoinDeepLinkParam(params, "goodSeq") || "").trim();
+        const eventSeq = String(getJoinDeepLinkParam(params, "eventSeq") || "").trim();
+        const reference = parseSecretTourProductReference(productId, eventSeq);
+        if (reference.goodSeq && reference.eventSeq) {
+          join = await loadGolfJoinProductDiscoveryDirect(reference.goodSeq, reference.eventSeq, {
+            consumer: "login-detail-restore",
+            reason: "external-detail"
+          });
+        } else {
+          await ensureExternalGolfJoinProductsLoaded();
+          join = findJoinExternalDeepLinkDetailTarget(params);
+        }
       }
       if (!join) return false;
       return openJoinExternalDeepLinkDetailTarget(join);
@@ -5438,9 +5887,17 @@
       return getMyHomeJoinItems().find((join) => getJoinDeepLinkIdentityValues(join).includes(targetId)) || null;
     }
 
+    function resolveMyHomeJoinDeepLinkFilter(join = {}, requestedFilter = "created") {
+      if (isJoinFullyBooked(join)) return "complete";
+      const relationship = getMyHomeJoinRelationship(join);
+      if (relationship.isCreated) return "created";
+      if (relationship.isJoined) return "joined";
+      return normalizeMyHomeJoinFilter(requestedFilter, "created");
+    }
+
     async function openMyHomeJoinDeepLinkTarget(join, filter = "created") {
       if (!join) return false;
-      const normalizedFilter = normalizeMyHomeJoinFilter(filter, "created");
+      const normalizedFilter = resolveMyHomeJoinDeepLinkFilter(join, filter);
       let targetPageScrollState = null;
       renderJoins({ skipQuickMobileCarousel: true });
       setMyJoinFilter(normalizedFilter);
@@ -5465,11 +5922,12 @@
     }
 
     async function continueMyHomeJoinDeepLinkAfterLogin(params = {}) {
-      let join = findMyHomeJoinDeepLinkTarget(params);
-      if (!join) {
-        await ensureHomeGolfJoinProductsLoaded();
-        join = findMyHomeJoinDeepLinkTarget(params);
-      }
+      await ensureHomeGolfJoinProductsLoaded();
+      // Ownership must be known before applying a same-account "member add" row.
+      // Otherwise the first added companion can temporarily inherit the creator identity.
+      await hydrateBuilderApplicationJoinsFromGoogleSheet({ renderStart: false, renderHome: false });
+      await hydrateJoinApplicationsFromGoogleSheet({ renderStart: false, renderHome: false });
+      const join = findMyHomeJoinDeepLinkTarget(params);
       if (!join) return false;
       return openMyHomeJoinDeepLinkTarget(
         join,
@@ -5492,27 +5950,29 @@
         return true;
       }
       if (target === "detail") {
-        if (!getJoinLoginState().isLogin) {
-          const params = new URLSearchParams(location.search);
-          const loginParams = {
-            joinId: params.get("joinId") || "",
-            scheduleId: params.get("scheduleId") || "",
-            productId: params.get("productId") || "",
-            goodSeq: params.get("goodSeq") || "",
-            eventSeq: params.get("eventSeq") || ""
-          };
-          clearJoinExternalDeepLinkTarget();
-          requireJoinLogin("detail", loginParams);
-          return true;
-        }
+        // Product detail is public content. Advertising and shared links must
+        // open it for signed-out visitors as well; authentication belongs to
+        // protected actions inside the detail (apply, wish, my page), not to
+        // the detail deep link itself.
         let join = findJoinExternalDeepLinkDetailTarget();
         if (!join) {
           await ensureHomeGolfJoinProductsLoaded();
           join = findJoinExternalDeepLinkDetailTarget();
         }
         if (!join) {
-          await ensureExternalGolfJoinProductsLoaded();
-          join = findJoinExternalDeepLinkDetailTarget();
+          const params = new URLSearchParams(location.search);
+          const productId = String(params.get("productId") || params.get("goodSeq") || "").trim();
+          const eventSeq = String(params.get("eventSeq") || "").trim();
+          const reference = parseSecretTourProductReference(productId, eventSeq);
+          if (reference.goodSeq && reference.eventSeq) {
+            join = await loadGolfJoinProductDiscoveryDirect(reference.goodSeq, reference.eventSeq, {
+              consumer: "initial-detail-deeplink",
+              reason: "external-detail"
+            });
+          } else {
+            await ensureExternalGolfJoinProductsLoaded();
+            join = findJoinExternalDeepLinkDetailTarget();
+          }
         }
         if (!join) return false;
         clearJoinExternalDeepLinkTarget();

@@ -7,6 +7,7 @@ const {
   createReleaseBundle,
   assertReleaseBundle,
   publishRelease,
+  setReleaseBrowserGate,
   rollbackRelease,
   verifyRemoteRelease,
   rootManifestObjectName
@@ -139,7 +140,7 @@ function fixtureInput(seed = "one", overrides = {}) {
   };
 }
 
-test("release-manifest-v2는 다섯 리비전, 절대 URL, hash와 브라우저 OFF를 강제한다", () => {
+test("release-manifest-v2는 다섯 리비전, 절대 URL, hash와 발행 기본 브라우저 OFF를 강제한다", () => {
   const bundle = createReleaseBundle(fixtureInput());
   const contract = validateDataContract("releaseManifestV2", bundle.manifest);
   assert.equal(contract.valid, true, JSON.stringify(contract.issues));
@@ -152,6 +153,48 @@ test("release-manifest-v2는 다섯 리비전, 절대 URL, hash와 브라우저 
     assert.ok(reference.bytes > 0);
     assert.ok(reference.objectName.includes(`/releases/${bundle.releaseRevision}/`));
   });
+});
+
+test("현재 release를 명시한 관리자만 브라우저 gate를 켤 수 있고 객체와 archive는 바꾸지 않는다", async () => {
+  const bucket = new FakeBucket();
+  const published = await publishRelease(bucket, fixtureInput());
+  const beforeNames = [...bucket.objects.keys()];
+  const result = await setReleaseBrowserGate(bucket, true, {
+    prefix: "web",
+    expectedReleaseRevision: published.bundle.releaseRevision,
+    updatedAt: "2026-08-11T16:00:00+09:00"
+  });
+  assert.equal(result.unchanged, false);
+  assert.equal(result.root.payload.releaseRevision, published.bundle.releaseRevision);
+  assert.equal(result.root.payload.browserReadEnabled, true);
+  assert.equal(result.root.payload.browserGatePreviousEnabled, false);
+  assert.equal(result.root.payload.browserGateUpdatedAt, "2026-08-11T16:00:00+09:00");
+  assert.deepEqual([...bucket.objects.keys()].sort(), beforeNames.sort());
+  assert.equal((await verifyRemoteRelease(bucket, result.root.payload)).objectCount, 5);
+});
+
+test("브라우저 gate ON은 대상 release 누락·불일치를 차단하고 OFF는 즉시 적용한다", async () => {
+  const bucket = new FakeBucket();
+  const published = await publishRelease(bucket, fixtureInput());
+  await assert.rejects(
+    () => setReleaseBrowserGate(bucket, true, { prefix: "web" }),
+    (error) => error.code === "release_browser_gate_target_required"
+  );
+  await assert.rejects(
+    () => setReleaseBrowserGate(bucket, true, {
+      prefix: "web",
+      expectedReleaseRevision: "gjr_ffffffffffffffffffffffff"
+    }),
+    (error) => error.code === "release_browser_gate_target_mismatch"
+  );
+  const enabled = await setReleaseBrowserGate(bucket, true, {
+    prefix: "web",
+    expectedReleaseRevision: published.bundle.releaseRevision
+  });
+  const disabled = await setReleaseBrowserGate(bucket, false, { prefix: "web" });
+  assert.equal(enabled.root.payload.browserReadEnabled, true);
+  assert.equal(disabled.root.payload.browserReadEnabled, false);
+  assert.equal(disabled.root.payload.browserGatePreviousEnabled, true);
 });
 
 test("모든 객체에 같은 release ID와 snapshot watermark를 기록한다", () => {

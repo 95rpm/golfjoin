@@ -15,6 +15,7 @@ test("deployed slow reads use delayed local loading without a global lock", asyn
     if (window.top !== window) return;
     localStorage.clear();
     sessionStorage.clear();
+    localStorage.setItem("golfjoin_home_data_v2_rollout_bucket_v1", "9999");
   });
   await page.route(/\/goods\/(?:goods_view|add\/flight_schedule)(?:\?|$)/, async (route) => {
     const isFlight = route.request().url().includes("flight_schedule");
@@ -31,6 +32,13 @@ test("deployed slow reads use delayed local loading without a global lock", asyn
     timeout: 60_000
   }).toBeGreaterThan(0);
   await expect(page.locator("#homeInitialLoadingOverlay")).not.toHaveClass(/\bopen\b/);
+  await expect.poll(() => page.evaluate(() => ({
+    homeRenderScheduled: Boolean(homeRenderScheduled),
+    mdPickRenderScheduled: Boolean(homeMdPickRenderScheduled)
+  })), { timeout: 30_000 }).toEqual({
+    homeRenderScheduled: false,
+    mdPickRenderScheduled: false
+  });
 
   await page.evaluate(() => {
     const original = loadGolfJoinProductGroupAvailability;
@@ -58,7 +66,10 @@ test("deployed slow reads use delayed local loading without a global lock", asyn
   });
 
   const firstCard = page.locator("#joinMdPickSection .join-mdpick-card").first();
-  await firstCard.scrollIntoViewIfNeeded();
+  await expect(async () => {
+    await firstCard.scrollIntoViewIfNeeded();
+    await expect(firstCard).toBeVisible();
+  }).toPass({ timeout: 30_000 });
   const pageScrollBeforeRead = await page.evaluate(() => window.scrollY);
   await firstCard.click();
   await expect(firstCard).toHaveAttribute("aria-busy", "true");
@@ -66,8 +77,18 @@ test("deployed slow reads use delayed local loading without a global lock", asyn
   await expect(firstCard.locator(":scope > .join-read-loading-indicator")).toBeVisible({ timeout: 1_500 });
   await expect.poll(() => page.evaluate(() => window.__productionCardReadIndicatorDelay)).toBeGreaterThanOrEqual(140);
 
-  await page.evaluate(() => window.scrollBy(0, 100));
-  await expect.poll(() => page.evaluate((before) => window.scrollY > before, pageScrollBeforeRead)).toBe(true);
+  const pageScrollTarget = await page.evaluate(() => {
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const target = window.scrollY < maxScroll - 1
+      ? Math.min(maxScroll, window.scrollY + 100)
+      : Math.max(0, window.scrollY - 100);
+    window.scrollTo(0, target);
+    return target;
+  });
+  expect(pageScrollTarget).not.toBe(pageScrollBeforeRead);
+  await expect.poll(() => page.evaluate((target) => (
+    Math.abs(window.scrollY - target) <= 1
+  ), pageScrollTarget)).toBe(true);
 
   await page.evaluate(() => window.__releaseProductionAvailability?.());
   const detailModal = page.locator("#detailModal");

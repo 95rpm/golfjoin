@@ -3,6 +3,8 @@
       const member = getJoinCachedCurrentMember();
       const memberKey = getJoinWishMemberKey(member);
       const memberLookupParams = getJoinSheetMemberLookupParams(member);
+      googleSheetBuilderApplicationsReadMemberKey = "";
+      googleSheetJoinApplicationsReadMemberKey = "";
       googleSheetBuilderApplicationsLoading = true;
       googleSheetJoinApplicationsLoading = true;
       googleSheetJoinWishesLoading = Boolean(getJoinWishMemberKey(member));
@@ -245,6 +247,39 @@
       return /^https:\/\//i.test(imageUrl) ? imageUrl : "";
     }
 
+    function normalizeGolfJoinPublicDetailMeta(goodSeq = "", meta = {}) {
+      const normalizedGoodSeq = String(goodSeq || "").trim();
+      const detailRevision = String(meta.detailRevision || "").trim();
+      const detailObjectName = String(meta.detailObjectName || "").replace(/^\/+/, "").trim();
+      const detailUrl = String(meta.detailUrl || "").trim();
+      const expectedSuffix = `/product-detail/${detailRevision}/${normalizedGoodSeq}.json`;
+      const validObjectName = detailObjectName.endsWith(expectedSuffix);
+      let validUrl = false;
+      try {
+        const parsedUrl = new URL(detailUrl);
+        validUrl = parsedUrl.protocol === "https:"
+          && parsedUrl.hostname === "storage.googleapis.com"
+          && parsedUrl.pathname.startsWith("/golfjoin-bucket/")
+          && decodeURIComponent(parsedUrl.pathname).endsWith(expectedSuffix);
+      } catch {
+        validUrl = false;
+      }
+      if (
+        !/^gpd_[a-f0-9]{24}$/.test(detailRevision)
+        || meta.detailStatus !== "ready"
+        || (!validObjectName && !validUrl)
+      ) return {};
+      return {
+        detailRevision,
+        detailStatus: "ready",
+        detailObjectName: validObjectName ? detailObjectName : "",
+        detailUrl: validUrl ? detailUrl : "",
+        detailEventSeq: /^\d+$/.test(String(meta.detailEventSeq || "").trim())
+          ? String(meta.detailEventSeq).trim()
+          : ""
+      };
+    }
+
     function hydrateBuilderJoinImagesFromProductMeta() {
       let updatedCount = 0;
       joins.forEach((join) => {
@@ -277,7 +312,8 @@
           golfJoinProductMetaByGoodSeq.set(normalizedGoodSeq, {
             detailTitleCopy: String(meta.detailTitleCopy || "").trim(),
             image: normalizeGolfJoinProductImageUrl(meta.image),
-            departureAirport: normalizeSecretTourAirportName(meta.departureAirport)
+            departureAirport: normalizeSecretTourAirportName(meta.departureAirport),
+            ...normalizeGolfJoinPublicDetailMeta(normalizedGoodSeq, meta)
           });
         });
         if (hydrateBuilderJoinImagesFromProductMeta() > 0) applied = true;
@@ -321,15 +357,22 @@
 
     async function hydrateHomeBootstrapLightFromGoogleSheet(options = {}) {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return { ok: false };
-      googleSheetBuilderApplicationsLoading = true;
-      googleSheetJoinApplicationsLoading = true;
-      googleSheetBuilderApplicationsReadFailed = false;
-      googleSheetJoinApplicationsReadFailed = false;
+      const requestGeneration = ++homeBootstrapLightRequestGeneration;
+      const hasMemberScope = Boolean(getJoinWishMemberKey(getJoinCachedCurrentMember()));
+      if (!hasMemberScope) {
+        googleSheetBuilderApplicationsLoading = true;
+        googleSheetJoinApplicationsLoading = true;
+        googleSheetBuilderApplicationsReadFailed = false;
+        googleSheetJoinApplicationsReadFailed = false;
+      }
       try {
         const data = await postGolfJoinSheetAction("home_bootstrap_light", {
           newScheduleLimit: 100,
           joinApplicationLimit: 100
         }, "Home bootstrap light");
+        if (requestGeneration !== homeBootstrapLightRequestGeneration) {
+          return { ok: false, stale: true, data };
+        }
         const isSnapshotFallback = data?.cache?.status === "snapshot";
         homeBootstrapSnapshotNeedsRefresh = isSnapshotFallback;
         writeJoinJsonCache(HOME_BOOTSTRAP_LIGHT_CACHE_KEY, data || {});
@@ -339,12 +382,17 @@
         });
         return { ok: true, data };
       } catch (error) {
-        googleSheetBuilderApplicationsLoading = false;
-        googleSheetJoinApplicationsLoading = false;
-        googleSheetBuilderApplicationsReadCompleted = true;
-        googleSheetJoinApplicationsReadCompleted = true;
-        googleSheetBuilderApplicationsReadFailed = true;
-        googleSheetJoinApplicationsReadFailed = true;
+        if (requestGeneration !== homeBootstrapLightRequestGeneration) {
+          return { ok: false, stale: true, error };
+        }
+        if (!hasMemberScope) {
+          googleSheetBuilderApplicationsLoading = false;
+          googleSheetJoinApplicationsLoading = false;
+          googleSheetBuilderApplicationsReadCompleted = true;
+          googleSheetJoinApplicationsReadCompleted = true;
+          googleSheetBuilderApplicationsReadFailed = true;
+          googleSheetJoinApplicationsReadFailed = true;
+        }
         throw error;
       }
     }
@@ -377,23 +425,32 @@
       const memberKey = getJoinWishMemberKey(member);
       if (memberKey) {
         markGolfJoinPerformanceOnce("golfjoin:private:start");
-        const memberCacheOptions = { memberKey };
         try {
+          const privateRefreshes = [];
           if (
             !googleSheetBuilderApplicationsLoading
-            && !hasFreshGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, memberCacheOptions)
+            && (
+              !googleSheetBuilderApplicationsReadCompleted
+              || googleSheetBuilderApplicationsReadFailed
+              || googleSheetBuilderApplicationsReadMemberKey !== memberKey
+            )
           ) {
-            await hydrateBuilderApplicationJoinsFromGoogleSheet({ renderStart: false, renderHome: false });
+            privateRefreshes.push(hydrateBuilderApplicationJoinsFromGoogleSheet({ renderStart: false, renderHome: false }));
           }
           if (
             !googleSheetJoinApplicationsLoading
-            && !hasFreshGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, memberCacheOptions)
+            && (
+              !googleSheetJoinApplicationsReadCompleted
+              || googleSheetJoinApplicationsReadFailed
+              || googleSheetJoinApplicationsReadMemberKey !== memberKey
+            )
           ) {
-            await hydrateJoinApplicationsFromGoogleSheet({ renderStart: false, renderHome: false });
+            privateRefreshes.push(hydrateJoinApplicationsFromGoogleSheet({ renderStart: false, renderHome: false }));
           }
           if (!googleSheetJoinWishesLoading) {
-            await hydrateJoinWishesFromGoogleSheet();
+            privateRefreshes.push(hydrateJoinWishesFromGoogleSheet());
           }
+          await Promise.allSettled(privateRefreshes);
           scheduleHomeRender();
           refreshDetailWishButtons();
           refreshOpenJoinMyMenu();
@@ -426,4 +483,3 @@
         }
       }, HOME_SECONDARY_HYDRATION_DELAY_MS);
     }
-

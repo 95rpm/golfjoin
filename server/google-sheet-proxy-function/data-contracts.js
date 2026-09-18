@@ -3,6 +3,7 @@
 const HOME_MANIFEST_V1 = require("./contracts/home-manifest-v1.schema.json");
 const HOME_CARDS_V2 = require("./contracts/home-cards-v2.schema.json");
 const PRODUCT_AVAILABILITY_V1 = require("./contracts/product-availability-v1.schema.json");
+const FAMILY_AVAILABILITY_V1 = require("./contracts/family-availability-v1.schema.json");
 const PRODUCT_FAMILY_CATALOG_V1 = require("./contracts/product-family-catalog-v1.schema.json");
 const PRODUCT_FAMILY_MANIFEST_V1 = require("./contracts/product-family-manifest-v1.schema.json");
 const HOME_BOOTSTRAP_LIGHT_V1 = require("./contracts/home-bootstrap-light-v1.schema.json");
@@ -11,11 +12,16 @@ const PRODUCT_DETAIL_SNAPSHOT_V1 = require("./contracts/product-detail-snapshot-
 const RELEASE_MANIFEST_V2 = require("./contracts/release-manifest-v2.schema.json");
 const PRODUCT_AVAILABILITY_INDEX_V1 = require("./contracts/product-availability-index-v1.schema.json");
 const PRODUCT_DETAIL_INDEX_V1 = require("./contracts/product-detail-index-v1.schema.json");
+const PRODUCT_DISCOVERY_MANIFEST_V1 = require("./contracts/product-discovery-manifest-v1.schema.json");
+const PRODUCT_DISCOVERY_INDEX_V1 = require("./contracts/product-discovery-index-v1.schema.json");
+const PRODUCT_DISCOVERY_LOOKUP_V1 = require("./contracts/product-discovery-lookup-v1.schema.json");
+const PRODUCT_DISCOVERY_MONTH_V1 = require("./contracts/product-discovery-month-v1.schema.json");
 
 const DATA_CONTRACTS = Object.freeze({
   homeManifestV1: HOME_MANIFEST_V1,
   homeCardsV2: HOME_CARDS_V2,
   productAvailabilityV1: PRODUCT_AVAILABILITY_V1,
+  familyAvailabilityV1: FAMILY_AVAILABILITY_V1,
   productFamilyCatalogV1: PRODUCT_FAMILY_CATALOG_V1,
   productFamilyManifestV1: PRODUCT_FAMILY_MANIFEST_V1,
   homeBootstrapLightV1: HOME_BOOTSTRAP_LIGHT_V1,
@@ -23,7 +29,11 @@ const DATA_CONTRACTS = Object.freeze({
   productDetailSnapshotV1: PRODUCT_DETAIL_SNAPSHOT_V1,
   releaseManifestV2: RELEASE_MANIFEST_V2,
   productAvailabilityIndexV1: PRODUCT_AVAILABILITY_INDEX_V1,
-  productDetailIndexV1: PRODUCT_DETAIL_INDEX_V1
+  productDetailIndexV1: PRODUCT_DETAIL_INDEX_V1,
+  productDiscoveryManifestV1: PRODUCT_DISCOVERY_MANIFEST_V1,
+  productDiscoveryIndexV1: PRODUCT_DISCOVERY_INDEX_V1,
+  productDiscoveryLookupV1: PRODUCT_DISCOVERY_LOOKUP_V1,
+  productDiscoveryMonthV1: PRODUCT_DISCOVERY_MONTH_V1
 });
 
 function valueType(value) {
@@ -151,6 +161,16 @@ function validateHomeCards(payload, issues) {
       addIssue(issues, `$.items[${itemIndex}].availabilityObjectName`, "good_seq_path_mismatch");
     }
   });
+  if (payload?.productFamilyCatalog !== undefined) {
+    validateSchemaNode(
+      DATA_CONTRACTS.productFamilyCatalogV1,
+      payload.productFamilyCatalog,
+      "$.productFamilyCatalog",
+      issues,
+      DATA_CONTRACTS.productFamilyCatalogV1
+    );
+    validateProductFamilyCatalog(payload.productFamilyCatalog, issues, "$.productFamilyCatalog");
+  }
 }
 
 function validateProductAvailability(payload, issues) {
@@ -166,31 +186,58 @@ function validateProductAvailability(payload, issues) {
   });
 }
 
-function validateProductFamilyCatalog(payload, issues) {
+function validateFamilyAvailability(payload, issues) {
+  const products = Array.isArray(payload?.products) ? payload.products : [];
+  const goodSeqs = Array.isArray(payload?.goodSeqs) ? payload.goodSeqs.map(String) : [];
+  if (Number(payload?.productCount) !== products.length) addIssue(issues, "$.productCount", "count_mismatch");
+  if (goodSeqs.length !== products.length) addIssue(issues, "$.goodSeqs", "count_mismatch");
+  const seenGoodSeqs = new Set();
+  let eventCount = 0;
+  products.forEach((product, productIndex) => {
+    const goodSeq = String(product?.goodSeq || "");
+    const events = Array.isArray(product?.events) ? product.events : [];
+    if (seenGoodSeqs.has(goodSeq)) addIssue(issues, `$.products[${productIndex}].goodSeq`, "duplicate_good_seq");
+    if (goodSeq) seenGoodSeqs.add(goodSeq);
+    if (!goodSeqs.includes(goodSeq)) addIssue(issues, `$.products[${productIndex}].goodSeq`, "family_member_mismatch");
+    if (Number(product?.count) !== events.length) addIssue(issues, `$.products[${productIndex}].count`, "count_mismatch");
+    eventCount += events.length;
+    events.forEach((event, eventIndex) => {
+      if (String(event?.goodSeq || "") !== goodSeq) {
+        addIssue(issues, `$.products[${productIndex}].events[${eventIndex}].goodSeq`, "good_seq_mismatch");
+      }
+      if (event?.departureDate && event?.returnDate && event.returnDate < event.departureDate) {
+        addIssue(issues, `$.products[${productIndex}].events[${eventIndex}].returnDate`, "return_before_departure");
+      }
+    });
+  });
+  if (Number(payload?.count) !== eventCount) addIssue(issues, "$.count", "count_mismatch");
+}
+
+function validateProductFamilyCatalog(payload, issues, rootPath = "$") {
   const families = Array.isArray(payload?.families) ? payload.families : [];
   const mapping = payload?.familyIdByGoodSeq && typeof payload.familyIdByGoodSeq === "object"
     ? payload.familyIdByGoodSeq
     : {};
-  if (Number(payload?.familyCount) !== families.length) addIssue(issues, "$.familyCount", "count_mismatch");
-  if (Number(payload?.memberCount) !== Object.keys(mapping).length) addIssue(issues, "$.memberCount", "count_mismatch");
+  if (Number(payload?.familyCount) !== families.length) addIssue(issues, `${rootPath}.familyCount`, "count_mismatch");
+  if (Number(payload?.memberCount) !== Object.keys(mapping).length) addIssue(issues, `${rootPath}.memberCount`, "count_mismatch");
   const seenGoodSeqs = new Set();
   families.forEach((family, familyIndex) => {
     const members = Array.isArray(family?.members) ? family.members : [];
     const memberGoodSeqs = new Set(members.map((member) => String(member?.goodSeq || "")));
     if (!memberGoodSeqs.has(String(family?.representativeGoodSeq || ""))) {
-      addIssue(issues, `$.families[${familyIndex}].representativeGoodSeq`, "representative_not_member");
+      addIssue(issues, `${rootPath}.families[${familyIndex}].representativeGoodSeq`, "representative_not_member");
     }
     if (String(family?.representative?.goodSeq || "") !== String(family?.representativeGoodSeq || "")) {
-      addIssue(issues, `$.families[${familyIndex}].representative.goodSeq`, "representative_mismatch");
+      addIssue(issues, `${rootPath}.families[${familyIndex}].representative.goodSeq`, "representative_mismatch");
     }
     members.forEach((member, memberIndex) => {
       const goodSeq = String(member?.goodSeq || "");
       if (seenGoodSeqs.has(goodSeq)) {
-        addIssue(issues, `$.families[${familyIndex}].members[${memberIndex}].goodSeq`, "duplicate_family_member");
+        addIssue(issues, `${rootPath}.families[${familyIndex}].members[${memberIndex}].goodSeq`, "duplicate_family_member");
       }
       seenGoodSeqs.add(goodSeq);
       if (mapping[goodSeq] !== family.familyId) {
-        addIssue(issues, `$.familyIdByGoodSeq.${goodSeq}`, "family_mapping_mismatch");
+        addIssue(issues, `${rootPath}.familyIdByGoodSeq.${goodSeq}`, "family_mapping_mismatch");
       }
     });
   });
@@ -271,6 +318,143 @@ function validateProductDetailIndex(payload, issues) {
   if (Number(payload?.count) !== items.length) addIssue(issues, "$.count", "count_mismatch");
   if (payload?.status === "legacy-on-demand" && items.length > 0) {
     addIssue(issues, "$.status", "legacy_detail_index_has_items");
+  }
+  if (payload?.status === "ready" && items.length === 0) addIssue(issues, "$.status", "ready_detail_index_empty");
+  const seenGoodSeqs = new Set();
+  items.forEach((item, index) => {
+    const goodSeq = String(item?.goodSeq || "");
+    if (seenGoodSeqs.has(goodSeq)) addIssue(issues, `$.items[${index}].goodSeq`, "duplicate_good_seq");
+    if (goodSeq) seenGoodSeqs.add(goodSeq);
+    const expectedSuffix = `/product-detail/${item?.detailRevision || ""}/${goodSeq}.json`;
+    if (!String(item?.objectName || "").endsWith(expectedSuffix)) {
+      addIssue(issues, `$.items[${index}].objectName`, "detail_object_reference_mismatch");
+    }
+    let decodedUrl = "";
+    try {
+      decodedUrl = decodeURIComponent(String(item?.url || ""));
+    } catch {
+      decodedUrl = "";
+    }
+    if (!decodedUrl.endsWith(expectedSuffix)) {
+      addIssue(issues, `$.items[${index}].url`, "detail_url_reference_mismatch");
+    }
+  });
+}
+
+function validateDiscoveryRange(range = {}, path, issues) {
+  if (range.startDate && range.endDate && range.endDate < range.startDate) {
+    addIssue(issues, `${path}.endDate`, "range_end_before_start");
+  }
+}
+
+function validateDiscoveryReference(reference = {}, role, revision, path, issues) {
+  const expectedSuffix = `/product-discovery/${revision}/${role}.json`;
+  if (!String(reference.objectName || "").endsWith(expectedSuffix)) {
+    addIssue(issues, `${path}.objectName`, "discovery_object_reference_mismatch");
+  }
+  let decodedUrl = "";
+  try {
+    decodedUrl = decodeURIComponent(String(reference.url || ""));
+  } catch {
+    decodedUrl = "";
+  }
+  if (!decodedUrl.endsWith(expectedSuffix)) {
+    addIssue(issues, `${path}.url`, "discovery_url_reference_mismatch");
+  }
+}
+
+function validateProductDiscoveryManifest(payload, issues) {
+  const revision = String(payload?.discoveryRevision || "");
+  validateDiscoveryRange(payload?.range, "$.range", issues);
+  validateDiscoveryReference(payload?.index, "index", revision, "$.index", issues);
+  validateDiscoveryReference(payload?.lookup, "lookup", revision, "$.lookup", issues);
+}
+
+function validateProductDiscoveryIndex(payload, issues) {
+  const months = Array.isArray(payload?.months) ? payload.months : [];
+  const regions = Array.isArray(payload?.regions) ? payload.regions : [];
+  if (Number(payload?.monthCount) !== months.length) addIssue(issues, "$.monthCount", "count_mismatch");
+  if (Number(payload?.regionCount) !== regions.length) addIssue(issues, "$.regionCount", "count_mismatch");
+  if (Number(payload?.eventCount) !== months.reduce((sum, item) => sum + Number(item?.count || 0), 0)) {
+    addIssue(issues, "$.eventCount", "count_mismatch");
+  }
+  validateDiscoveryRange(payload?.range, "$.range", issues);
+  const revision = String(payload?.discoveryRevision || "");
+  const seenMonths = new Set();
+  months.forEach((entry, index) => {
+    const month = String(entry?.month || "");
+    if (seenMonths.has(month)) addIssue(issues, `$.months[${index}].month`, "duplicate_month");
+    if (month) seenMonths.add(month);
+    validateDiscoveryRange(entry?.range, `$.months[${index}].range`, issues);
+    if (entry?.range?.startDate && !String(entry.range.startDate).startsWith(`${month}-`)) {
+      addIssue(issues, `$.months[${index}].range.startDate`, "month_range_mismatch");
+    }
+    if (entry?.range?.endDate && !String(entry.range.endDate).startsWith(`${month}-`)) {
+      addIssue(issues, `$.months[${index}].range.endDate`, "month_range_mismatch");
+    }
+    const expectedSuffix = `/product-discovery/${revision}/months/${month}.json`;
+    if (!String(entry?.objectName || "").endsWith(expectedSuffix)) {
+      addIssue(issues, `$.months[${index}].objectName`, "discovery_month_reference_mismatch");
+    }
+    let decodedUrl = "";
+    try {
+      decodedUrl = decodeURIComponent(String(entry?.url || ""));
+    } catch {
+      decodedUrl = "";
+    }
+    if (!decodedUrl.endsWith(expectedSuffix)) {
+      addIssue(issues, `$.months[${index}].url`, "discovery_month_reference_mismatch");
+    }
+  });
+  const seenRegions = new Set();
+  regions.forEach((entry, index) => {
+    const name = String(entry?.name || "");
+    if (seenRegions.has(name)) addIssue(issues, `$.regions[${index}].name`, "duplicate_region");
+    if (name) seenRegions.add(name);
+    const regionMonths = Array.isArray(entry?.months) ? entry.months : [];
+    if (new Set(regionMonths).size !== regionMonths.length) {
+      addIssue(issues, `$.regions[${index}].months`, "duplicate_month");
+    }
+    regionMonths.forEach((month, monthIndex) => {
+      if (!seenMonths.has(String(month))) {
+        addIssue(issues, `$.regions[${index}].months[${monthIndex}]`, "unknown_month");
+      }
+    });
+  });
+}
+
+function validateProductDiscoveryLookup(payload, issues) {
+  const items = Array.isArray(payload?.items) ? payload.items : [];
+  if (Number(payload?.count) !== items.length) addIssue(issues, "$.count", "count_mismatch");
+  const seenKeys = new Set();
+  items.forEach((entry, index) => {
+    const expectedKey = `${entry?.goodSeq || ""}:${entry?.eventSeq || ""}`;
+    if (entry?.key !== expectedKey) addIssue(issues, `$.items[${index}].key`, "product_identity_mismatch");
+    if (seenKeys.has(expectedKey)) addIssue(issues, `$.items[${index}].key`, "duplicate_product_event");
+    seenKeys.add(expectedKey);
+  });
+}
+
+function validateProductDiscoveryMonth(payload, issues) {
+  const items = Array.isArray(payload?.items) ? payload.items : [];
+  if (Number(payload?.count) !== items.length) addIssue(issues, "$.count", "count_mismatch");
+  validateDiscoveryRange(payload?.range, "$.range", issues);
+  const month = String(payload?.month || "");
+  const seenKeys = new Set();
+  items.forEach((entry, index) => {
+    const key = `${entry?.goodSeq || ""}:${entry?.eventSeq || ""}`;
+    if (seenKeys.has(key)) addIssue(issues, `$.items[${index}]`, "duplicate_product_event");
+    seenKeys.add(key);
+    if (!String(entry?.departureDate || "").startsWith(`${month}-`)) {
+      addIssue(issues, `$.items[${index}].departureDate`, "month_partition_mismatch");
+    }
+    if (entry?.departureDate && entry?.returnDate && entry.returnDate < entry.departureDate) {
+      addIssue(issues, `$.items[${index}].returnDate`, "return_before_departure");
+    }
+  });
+  if (items.length) {
+    if (payload?.range?.startDate !== items[0]?.departureDate) addIssue(issues, "$.range.startDate", "range_item_mismatch");
+    if (payload?.range?.endDate !== items[items.length - 1]?.departureDate) addIssue(issues, "$.range.endDate", "range_item_mismatch");
   }
 }
 
@@ -506,6 +690,9 @@ function validateProductDetailSnapshot(payload, issues) {
     const label = String(day?.day || "").trim();
     if (label && seenDays.has(label)) addIssue(issues, `$.schedule[${index}].day`, "duplicate_schedule_day");
     if (label) seenDays.add(label);
+    if (Array.isArray(day?.points)) {
+      validateUniqueStrings(day.points, `$.schedule[${index}].points`, issues);
+    }
   });
 
   const flight = payload?.flight || {};
@@ -533,6 +720,7 @@ const INVARIANT_VALIDATORS = Object.freeze({
   homeManifestV1: validateHomeManifest,
   homeCardsV2: validateHomeCards,
   productAvailabilityV1: validateProductAvailability,
+  familyAvailabilityV1: validateFamilyAvailability,
   productFamilyCatalogV1: validateProductFamilyCatalog,
   productFamilyManifestV1: validateProductFamilyManifest,
   homeBootstrapLightV1: validateHomeBootstrapLight,
@@ -540,7 +728,11 @@ const INVARIANT_VALIDATORS = Object.freeze({
   productDetailSnapshotV1: validateProductDetailSnapshot,
   releaseManifestV2: validateReleaseManifest,
   productAvailabilityIndexV1: validateProductAvailabilityIndex,
-  productDetailIndexV1: validateProductDetailIndex
+  productDetailIndexV1: validateProductDetailIndex,
+  productDiscoveryManifestV1: validateProductDiscoveryManifest,
+  productDiscoveryIndexV1: validateProductDiscoveryIndex,
+  productDiscoveryLookupV1: validateProductDiscoveryLookup,
+  productDiscoveryMonthV1: validateProductDiscoveryMonth
 });
 
 function validateDataContract(contractName, payload) {

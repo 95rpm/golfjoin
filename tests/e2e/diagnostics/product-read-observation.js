@@ -176,8 +176,8 @@ async function observeProject(browser, project, options = {}) {
       const entry = {
         goodSeq,
         urls: getGolfJoinProductAvailabilityUrls(product),
-        cacheBefore: golfJoinProductAvailabilityCache.has(goodSeq),
-        promiseBefore: golfJoinProductAvailabilityPromiseCache.has(goodSeq),
+        cacheBefore: golfJoinProductAvailabilityCache.has(getGolfJoinProductAvailabilityCacheKey(product, goodSeq)),
+        promiseBefore: golfJoinProductAvailabilityPromiseCache.has(getGolfJoinProductAvailabilityCacheKey(product, goodSeq)),
         durationMs: null,
         eventCount: null,
         status: "pending"
@@ -420,7 +420,8 @@ async function observeProject(browser, project, options = {}) {
       )).length,
       renderAfterCloseCount: observation.timeline.filter((item) => (
         item.name === "render-joins" && item.startedAt > modalClosedAt
-      )).length
+      )).length,
+      ensureExternalCallCount: observation.timeline.filter((item) => item.name === "ensure-external-return").length
     };
   });
   await context.close();
@@ -461,6 +462,7 @@ async function main() {
         renderDuringOpenCount: result.renderDuringOpenCount,
         renderDuringInteractionCount: result.renderDuringInteractionCount,
         renderAfterCloseCount: result.renderAfterCloseCount,
+        ensureExternalCallCount: result.ensureExternalCallCount,
         detailNetworkRequestCount: result.detailNetworkRequestCount,
         detailNetworkDuplicateCount: result.detailNetworkDuplicateCount,
         hotspots: result.hotspots

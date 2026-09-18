@@ -112,19 +112,27 @@ Product family administration (server foundation):
 - Member rows are appended before the master revision. A partial write without the final master row is ignored when the committed state is read.
 - Public product cards do not consume the manifest until the main-page family integration is deployed.
 
-Atomic Release manifest V2 (admin-only, browser OFF):
+Atomic Release manifest V2 (admin-only publication and browser gate):
 
 - `GET ?action=admin_release_v2_status` verifies the active root manifest and all five referenced objects, then returns only revision and verification metadata.
+- `POST ?action=admin_release_v2_shadow_compare` rebuilds the legacy and V2 candidate views from the same source snapshot and compares home products, all availability events, public schedules, participant summaries, and product families without publishing anything.
 - `POST ?action=admin_release_v2_publish` reads the current home products, public live member summary, and published product-family catalog. It writes immutable content-hash objects first, verifies their bytes, SHA-256, JSON metadata and shared snapshot stamp, writes an immutable archive manifest, and switches `web/release-manifest-v2.json` last.
 - `POST ?action=admin_release_v2_rollback` requires `{ "targetReleaseRevision": "gjr_..." }`. It verifies the archived target and all referenced objects before switching the root with a GCS generation precondition.
-- All three actions require the existing admin credentials. Publish and rollback also use the product-family distributed lock.
-- The root and archived manifests always contain `browserReadEnabled: false`. The current main HTML has no code that reads this root, so publishing V2 cannot change customer-visible data in this phase.
+- `POST ?action=admin_release_v2_browser_gate` accepts an explicit boolean `browserReadEnabled`. Enabling also requires the exact current `expectedReleaseRevision`; disabling intentionally does not require a target so an operator can stop browser reads immediately.
+- All actions require the existing admin credentials. Publish, rollback, and browser-gate changes also use the product-family distributed lock.
+- Publish runs the same server-side shadow comparison before it calls the object publisher. Any field mismatch, missing item, or unexpected item returns `release_shadow_mismatch` and leaves the root manifest untouched.
+- Shadow reports contain counts, field paths, error codes, and hashed identities only. They never include raw product, event, schedule, member identifiers, participant names, mobile numbers, or email addresses.
+- Normal publish and rollback always write `browserReadEnabled: false`. A separate generation-guarded gate command may change only the active root flag after all five referenced objects have been verified. Immutable objects and the archive manifest remain unchanged.
+- The main HTML applies V2 only when the browser is anonymous, its persistent non-personal rollout bucket is inside the configured percentage, and the active root has `browserReadEnabled: true`.
 - `staticRevision`, `liveRevision`, `familyRevision`, `availabilityRevision`, and `detailRevision` are separate. A live participant update therefore does not force the static home-card or availability revision to change.
 - The current detail index explicitly reports `legacy-on-demand`; it does not claim that legacy product details have already been pre-published. Detail snapshot publication is handled in the later detail phase.
 - Existing `refresh_secret_tour_products`, schedule writes, and background home refreshes do not publish V2 automatically. An administrator must explicitly call the publish action.
 - Safe CLI examples read `ADMIN_READ_TOKEN` from the existing env YAML without printing it:
   - Status: `node release-admin-cli.js status --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
+  - Shadow compare only: `node release-admin-cli.js shadow --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
   - Publish: `node release-admin-cli.js publish --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
+  - Enable the exact current release: `node release-admin-cli.js gate-on --target=gjr_... --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
+  - Emergency browser OFF: `node release-admin-cli.js gate-off --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
   - Rollback: `node release-admin-cli.js rollback --target=gjr_... --env-file=/home/llno95ll/golfjoin-sheet-api.env.yaml`
 
 Alimtalk:
@@ -145,6 +153,26 @@ Alimtalk:
   - Application writes enqueue through Cloud Tasks only. Missing queue or service configuration is recorded as a delivery failure instead of falling back to an in-process background send or synchronous service call.
   - A send attempt times out after 15 seconds. Timeout, network, and HTTP 5xx failures retry after 5, 20, and 60 seconds. Explicit provider rejection is not retried.
   - `alimtalk_delivery_log` is created automatically and keeps one current row per notification id for duplicate prevention and final failure review.
+
+Admin application email:
+
+- `new_schedule_builder` and `join_apply` writes enqueue a dedicated admin-email Cloud Task independently from the Alimtalk task.
+- Set `GOLFJOIN_ADMIN_EMAIL_SERVICE_URL` on the main API to the current `golfjoin-sheet-api` Cloud Run service URL. Do not point it at `golfjoin-aligo-api`.
+- The dedicated internal action is `send_admin_application_email`. The main API executes it with the existing internal token; the Aligo worker does not execute email delivery.
+- Keep `GOLFJOIN_ADMIN_EMAIL_ENABLED=Y`, the Apps Script provider settings, both email secrets, and `GOLFJOIN_EMAIL_REQUEST_TIMEOUT_MS` on the main API only.
+- A failure to enqueue Alimtalk no longer suppresses the email task, and an email queue failure no longer blocks the customer application write.
+- Task ids and `admin_email_delivery_log` notification ids are deterministic, so retries do not send a second copy to a recipient that already completed successfully.
+
+Member SMS authentication:
+
+- Public lifecycle actions are `member_auth_start`, `member_auth_verify`, `member_auth_refresh`, and `member_auth_logout`. The main API rechecks the general-login member against ERP before it asks the private Aligo service to send an OTP.
+- `send_member_sms_otp` is an internal-only action. It requires the existing internal service token and is not a browser endpoint.
+- Required production env vars are `GOLFJOIN_MEMBER_AUTH_SECRET` (a unique secret of at least 32 bytes) and `GOLFJOIN_MEMBER_AUTH_BUCKET` (a private bucket used only by the runtime service account).
+- Safe initial rollout values are `GOLFJOIN_MEMBER_AUTH_ENABLED=N` and `GOLFJOIN_MEMBER_AUTH_GATE=off`. Never enable `enforce` until Kakao members also receive a trusted member token.
+- The browser feature is independently disabled unless a lightweight page sets `window.GOLFJOIN_MEMBER_SMS_AUTH_ENABLED = true` before loading the main JavaScript. A comma-delimited string or array in `window.GOLFJOIN_MEMBER_SMS_AUTH_MEMBER_SEQS` limits the UI to selected general-login member sequences.
+- Browser access and refresh tokens live in `sessionStorage`, so they are scoped to the current tab and are cleared when the tab session ends. OTP plaintext is never stored there.
+- If OTP startup fails after Secret Tour accepted the password, the page calls `/member/logout.json` and clears the partial local member state instead of leaving an unverified ERP login behind.
+- See `docs/home-optimization/STAGE15_SMS_MEMBER_AUTH_PLAN.md` for the private-bucket requirements, staged rollout, tests, and emergency recovery order.
 
 Write security:
 

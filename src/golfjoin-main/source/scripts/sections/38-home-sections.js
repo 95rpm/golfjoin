@@ -6,6 +6,10 @@
       return key === "my" || key === "overseas" || key === "domestic";
     }
 
+    function isHomeJoinCardRailKey(key) {
+      return key === "soon" || isBestJoinSectionKey(key);
+    }
+
     function getMyHomeJoinRelationship(join = {}) {
       const activeSchedule = findOwnActiveJoinSchedule(join);
       const isCreated = isCurrentMemberCreatedJoinSchedule(join) || activeSchedule?.scheduleGroup === "created";
@@ -39,6 +43,20 @@
     function isMyHomeJoinSchedule(join = {}) {
       const relationship = getMyHomeJoinRelationship(join);
       return relationship.isCreated || relationship.isJoined;
+    }
+
+    function isMyHomeJoinClassificationReady() {
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) return true;
+      const memberKey = getJoinWishMemberKey(getJoinCachedCurrentMember());
+      if (!memberKey) return false;
+      return Boolean(
+        googleSheetBuilderApplicationsReadCompleted
+        && googleSheetJoinApplicationsReadCompleted
+        && !googleSheetBuilderApplicationsLoading
+        && !googleSheetJoinApplicationsLoading
+        && googleSheetBuilderApplicationsReadMemberKey === memberKey
+        && googleSheetJoinApplicationsReadMemberKey === memberKey
+      );
     }
 
     function getMyHomeJoinGroups(items = []) {
@@ -328,7 +346,7 @@
         scrollHomeDotContainerToIndex(key, getActiveCustomJoinPanel(), index, updateCustomSectionControls);
         return;
       }
-      if (isBestJoinSectionKey(key)) {
+      if (isHomeJoinCardRailKey(key)) {
         const grid = document.querySelector(`#join-section-${key} .join-grid`);
         scrollHomeDotContainerToIndex(key, grid, index, () => updateBestSectionControls(key));
       }
@@ -414,7 +432,7 @@
     }
 
     function updateBestSectionControls(key) {
-      if (!isBestJoinSectionKey(key)) return;
+      if (!isHomeJoinCardRailKey(key)) return;
       const section = document.getElementById(`join-section-${key}`);
       const grid = key === "my"
         ? section?.querySelector("[data-my-join-panel]:not([hidden]) .join-grid")
@@ -436,6 +454,7 @@
     }
 
     function updateBestSectionControlsAll() {
+      updateBestSectionControls("soon");
       updateBestSectionControls("my");
       updateBestSectionControls("overseas");
       updateBestSectionControls("domestic");
@@ -448,11 +467,16 @@
     function scheduleHomeSlideDotsRefresh() {
       if (homeSlideDotsRefreshFrame) return;
       homeSlideDotsRefreshFrame = requestAnimationFrame(() => {
-        homeSlideDotsRefreshFrame = 0;
-        updateQuickSectionControls();
-        updateCustomSectionControls();
-        updateBestSectionControlsAll();
-        updateMdPickSlideDots();
+        // Wait through one complete paint before reading scrollWidth,
+        // clientWidth and card geometry from newly rendered home sections.
+        // This keeps layout reads out of the DOM mutation frame.
+        homeSlideDotsRefreshFrame = requestAnimationFrame(() => {
+          homeSlideDotsRefreshFrame = 0;
+          updateQuickSectionControls();
+          updateCustomSectionControls();
+          updateBestSectionControlsAll();
+          updateMdPickSlideDots();
+        });
       });
     }
 
@@ -685,15 +709,46 @@
     function renderJoinParticipantCopy(join) {
       const confirmed = getConfirmedParticipants(join);
       if (!confirmed.length) return "";
-      const ageText = [...new Set(confirmed.map((participant) => participant.age).filter(Boolean))].slice(0, 3).join("·");
-      const styleText = confirmed
-        .flatMap((participant) => participant.preferences || [])
-        .find((item) => item.includes("매너") || item.includes("친목") || item.includes("실력")) || "매너형";
-      const summary = `${ageText ? `${ageText} ` : ""}${styleText} 참여자 구성`;
+      const confirmedCount = getJoinAuthoritativeConfirmedCount(join);
+      const capacity = getJoinRecruitmentCapacity(join, JOIN_MAX_CAPACITY);
+      const emptySlotsText = String(join?.emptySlots ?? "").trim();
+      const remainingSlots = emptySlotsText && Number.isFinite(Number(emptySlotsText))
+        ? Math.max(0, Math.min(capacity, Number(emptySlotsText)))
+        : Math.max(0, capacity - confirmedCount);
+      const ageDecadeCounts = new Map();
+      const reportedAgeDecadeCounts = join?.participantSummary?.ageDecadeCounts
+        || join?.lightSummary?.ageDecadeCounts
+        || {};
+      Object.entries(reportedAgeDecadeCounts).forEach(([key, value]) => {
+        const decade = Number(key);
+        const count = Math.max(0, Math.round(Number(value) || 0));
+        if (!Number.isFinite(decade) || !count) return;
+        ageDecadeCounts.set(decade, count);
+      });
+      if (!ageDecadeCounts.size) {
+        confirmed.forEach((participant) => {
+          const matched = String(participant?.age || "").match(/(\d{2})\s*대/);
+          if (!matched) return;
+          const decade = Number(matched[1]);
+          if (!Number.isFinite(decade)) return;
+          ageDecadeCounts.set(decade, (ageDecadeCounts.get(decade) || 0) + 1);
+        });
+      }
+      const ageText = [...ageDecadeCounts.entries()]
+        .sort((left, right) => right[1] - left[1] || left[0] - right[0])
+        .slice(0, 2)
+        .map(([decade]) => `${decade}대`)
+        .join("·");
+      const summary = ageText ? `${ageText} 중심 참여자 구성` : "참여자 구성";
+      const availabilityCopy = remainingSlots === 1
+        ? "마지막 한 자리만 남았어요."
+        : remainingSlots > 1
+          ? `${remainingSlots}자리만 남았어요.`
+          : "현재 모집이 마감됐어요.";
       return `
         <div class="join-card-participant-copy">
           <strong>${summary}</strong>
-          이미 ${confirmed.length}명 참여, 마지막 한 자리만 남았어요.
+          이미 ${confirmedCount}명 참여, ${availabilityCopy}
         </div>
       `;
     }
@@ -1150,7 +1205,7 @@
 
     function openMdPickProductDetailFromRegion(groupKey, countryKey) {
       closeRegionSearchModal();
-      openMdPickProductDetail(groupKey, countryKey);
+      openMdPickProductDetail(groupKey, countryKey, null, { sourceArea: "destination_search" });
     }
 
     const mdPickPackFilters = {};
@@ -1694,6 +1749,7 @@
       const selectedPeriodProducts = fixedProductGoodSeq
         ? products.filter((item) => getGolfJoinProductGoodSeq(item) === fixedProductGoodSeq)
         : products;
+      const availablePeriodProducts = selectedPeriodProducts.filter((item) => !isJoinProductBlockedForNewSchedule(item));
       Object.assign(builderState, {
         fixedProductGroupKey: productGroupKey,
         fixedProductGoodSeq,
@@ -1706,6 +1762,7 @@
         region: product?.region || country?.name || "",
         regions: product?.region ? [product.region] : (country ? [country.name] : []),
         dateConstraintRegions: country ? [country.name] : [],
+        regionDateFirstMode: false,
         startBefore: 0,
         startAfter: 0,
         endBefore: 0,
@@ -1715,7 +1772,7 @@
         durationFilter: ""
       });
       builderRegionSelectorMode = false;
-      const minDate = selectedPeriodProducts
+      const minDate = availablePeriodProducts
         .filter((item) => item.departureDate && item.departureDate >= getBuilderMinDepartureISO())
         .sort((a, b) => String(a.departureDate).localeCompare(String(b.departureDate)))[0]?.departureDate;
       const targetDate = options.useProductDates ? product?.departureDate : minDate;
@@ -1739,11 +1796,10 @@
       renderBuilderCalendar();
       updateBuilderRegionDisplay();
       updateBuilderSummary();
-      return { product, products: selectedPeriodProducts };
+      return { product, products: availablePeriodProducts };
     }
 
     async function openMdPickBuilder(productGroupKey, countryKey, options = {}) {
-      await ensureExternalGolfJoinProductsLoaded();
       const resolvedProduct = options.product || currentDetailJoinData;
       const resolvedGroupKey = resolvedProduct ? getProductGroupKey(resolvedProduct) : productGroupKey;
       setupMdPickBuilderState(resolvedGroupKey, countryKey, options);
@@ -1754,7 +1810,6 @@
     }
 
     async function openMdPickBuilderWithCurrentDate(productGroupKey, countryKey, product, options = {}) {
-      await ensureExternalGolfJoinProductsLoaded();
       const resolvedProduct = product || currentDetailJoinData;
       const resolvedGroupKey = resolvedProduct ? getProductGroupKey(resolvedProduct) : productGroupKey;
       setupMdPickBuilderState(resolvedGroupKey, countryKey, {
@@ -1769,26 +1824,56 @@
       return true;
     }
 
-    async function openMdPickProductDetail(productGroupKey, countryKey, trigger = null) {
+    async function openMdPickProductDetail(productGroupKey, countryKey, trigger = null, options = {}) {
       const pageScrollState = capturePageScrollState();
-      const products = getHomeProductSource().filter((product) => (
-        !product.homeReferenceOnly
-        && getProductGroupKey(product) === productGroupKey
+      const requestGeneration = ++mdPickDetailOpenGeneration;
+      const detailRequestGeneration = ++detailContentRequestGeneration;
+      const detailPerformanceGeneration = beginGolfJoinDetailPerformance();
+      const groupProducts = getHomeProductSource().filter((product) => (
+        getProductGroupKey(product) === productGroupKey
       ));
+      const products = groupProducts.filter((product) => !product.homeReferenceOnly);
+      const shellProduct = selectGolfJoinBookableProduct(products, { avoidActiveScheduleOverlap: true })
+        || selectGolfJoinProductGroupRepresentative(products, { ignoreRepresentativeEvent: true })
+        || selectGolfJoinProductGroupRepresentative(groupProducts, { ignoreRepresentativeEvent: true });
+      if (shellProduct) {
+        void showMdPickDetailProduct(shellProduct, productGroupKey, countryKey, {
+          pageScrollState,
+          progressiveShell: true,
+          skipDetailLoad: true,
+          requestGeneration,
+           detailRequestGeneration,
+           detailPerformanceGeneration,
+           analyticsSourceArea: options.sourceArea || ""
+         });
+      }
       return runJoinReadLoading(async () => {
-        const hasAvailabilityMetadata = products.some((item) => item.availabilityObjectName || item.availabilityUrl);
-        const availabilityProducts = await loadGolfJoinProductGroupAvailability(products);
-        const candidates = availabilityProducts.length ? availabilityProducts : products;
+        const hasAvailabilityMetadata = groupProducts.some((item) => item.availabilityObjectName || item.availabilityUrl);
+        const availabilityProducts = await loadGolfJoinProductGroupAvailability(groupProducts);
+        if (requestGeneration !== mdPickDetailOpenGeneration) return;
+        const candidates = availabilityProducts.length ? availabilityProducts : groupProducts;
         const product = selectGolfJoinBookableProduct(candidates, { avoidActiveScheduleOverlap: true })
           || (!hasAvailabilityMetadata
             ? selectGolfJoinProductGroupRepresentative(candidates, { ignoreRepresentativeEvent: true })
             : null);
         if (!product) {
+          if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailMode === "mdPickProduct") {
+            closeModal("detailModal");
+          }
           openBuilderAlert("현재 선택 가능한 출발일이 없습니다. 잠시 후 다시 확인해 주세요.");
           return;
         }
-        void ensureExternalGolfJoinProductsLoaded();
-        return showMdPickDetailProduct(product, productGroupKey, countryKey, { pageScrollState });
+        if (!document.getElementById("detailModal")?.classList.contains("open") || currentDetailMode !== "mdPickProduct") return;
+        const detailScrollState = captureDetailModalScrollState();
+        return showMdPickDetailProduct(product, productGroupKey, countryKey, {
+          open: false,
+          preserveScroll: true,
+          scrollState: detailScrollState,
+          skipPerformance: true,
+          requestGeneration,
+          detailRequestGeneration,
+          detailPerformanceGeneration
+        });
       }, {
         ownerKey: `mdpick-availability:${productGroupKey}`,
         target: trigger,
@@ -1829,6 +1914,10 @@
       if (!MD_PICK_COUNTRIES.some((item) => item.key === countryKey)) return;
       mdPickListAnimating = false;
       mdPickActiveCountryKey = countryKey;
+      trackGolfJoinGa4Event("golfjoin_filter_select", {
+        filter_type: "mdpick_country",
+        filter_value: countryKey
+      });
       if (renderMdPickCountryContentInPlace(countryKey)) return;
       renderMdPickCountryInPlace(countryKey);
     }
@@ -2115,9 +2204,18 @@
 
     function setSoonRangeFilter(key) {
       if (!SOON_RANGE_FILTERS.some((item) => item.key === key)) return;
+      const resetSoonRail = isMobileSlideDotsViewport();
       activeSoonRangeKey = key;
       resetSoonVisibleCount();
-      renderJoins({ skipQuickMobileCarousel: true });
+      renderJoins({ skipQuickMobileCarousel: true, resetSoonRail });
+      if (resetSoonRail) {
+        requestAnimationFrame(() => {
+          const grid = document.querySelector("#join-section-soon .join-grid");
+          if (!grid) return;
+          alignHomeRenderScrollActiveItem(grid, 0);
+          updateBestSectionControls("soon");
+        });
+      }
     }
 
     window.setSoonRangeFilter = setSoonRangeFilter;
@@ -2149,7 +2247,7 @@
     }
 
     function renderSoonMoreButton(visibleCount, totalCount) {
-      if (visibleCount >= totalCount) return "";
+      if (isMobileSlideDotsViewport() || visibleCount >= totalCount) return "";
       return `
         <div class="join-soon-more">
           <button type="button" class="join-soon-more-button" onclick="loadMoreSoonItems()">
@@ -2306,11 +2404,11 @@
           </div>
           ${section.key === "soon" ? renderSoonRangeTabs(section.items) : ""}
           ${displayItems.length ? `
-            <div class="join-grid"${section.key === "quick" ? ` onscroll="updateQuickSectionControls()"` : isBestJoinSectionKey(section.key) ? ` onscroll="updateBestSectionControls('${section.key}')"` : ""}>
+            <div class="join-grid"${section.key === "quick" ? ` onscroll="updateQuickSectionControls()"` : isHomeJoinCardRailKey(section.key) ? ` onscroll="updateBestSectionControls('${section.key}')"` : ""}>
               ${displayItems.map((join, index) => renderJoinCard(join, getJoinCardOptions(section, join, index))).join("")}
             </div>
           ` : (section.key === "overseas" ? renderOverseasBestEmptyState() : "")}
-          ${isBestJoinSectionKey(section.key) && displayItems.length ? renderSlideDots(section.key) : ""}
+          ${isHomeJoinCardRailKey(section.key) && displayItems.length ? renderSlideDots(section.key) : ""}
           ${section.key === "soon" ? renderSoonMoreButton(displayItems.length, soonTotalItems.length) : ""}
           ${section.key === "overseas" ? renderOverseasBestMoreButton(displayItems.length, overseasTotalCount) : ""}
         </section>
@@ -2336,25 +2434,29 @@
       });
     }
 
-    function renderMyJoinSectionInPlace() {
+    function renderMyJoinSectionInPlace(options = {}) {
       const host = document.getElementById("joinMyHomeSection");
       if (!host) return;
+      if (options.syncMemberScope !== false) {
+        syncActiveJoinMySchedulesMemberScope();
+        syncMyHomeJoinMemberScope();
+      }
       const html = renderMyHomeJoinSection();
-      host.innerHTML = html;
+      const changed = lastRenderedMyJoinSectionHtml !== html;
+      if (changed) replaceHomeRenderHtml(host, html);
       host.hidden = !html;
       lastRenderedMyJoinSectionHtml = html;
-      applyGolfJoinImageFallbacks(host);
-      updateJoinSectionNavVisibility(getHomeJoinSections(), Boolean(document.getElementById("joinMdPickSection")?.innerHTML));
-      requestAnimationFrame(() => {
-        updateBestSectionControls("my");
-        updateJoinSectionNavActive();
-        scheduleHomeSlideDotsRefresh();
-      });
+      if (changed) applyGolfJoinImageFallbacks(host);
+      if (options.updateNavigation !== false) updateMyJoinSectionNavVisibility();
+      scheduleJoinSectionNavActiveUpdate();
+      scheduleHomeSlideDotsRefresh();
     }
 
 
     function getOverseasBestItems(sortedItems) {
-      const overseasItems = sortedItems.filter(isOverseasJoin);
+      const overseasItems = sortedItems
+        .filter(isOverseasJoin)
+        .filter(isSoonCandidate);
       const builderApplicationItems = overseasItems
         .filter((join) => join.isBuilderApplicationJoin)
         .sort((a, b) => new Date(b.submittedAt || 0) - new Date(a.submittedAt || 0));
@@ -2366,6 +2468,10 @@
       // Anonymous visitors cannot own or join a member schedule. Avoid walking
       // every schedule and participant identity only to produce an empty list.
       if (!getJoinWishMemberKey()) return [];
+      // Builder and join rows can finish in either order. Rendering between the
+      // two completions makes an owner's member-add application flash under the
+      // joined tab before its creator row establishes authoritative ownership.
+      if (!isMyHomeJoinClassificationReady()) return [];
       return sortByDeparture(joins)
         .filter(isUserCreatedJoinSchedule)
         .filter((join) => getJoinDaysFromToday(join) >= 0)
@@ -2386,17 +2492,29 @@
         });
     }
 
+    function isPublicHomeJoinSchedule(join = {}) {
+      const lifecycle = [
+        join.applicationStatus,
+        join.status,
+        join.scheduleStatus,
+        join.approvalStatus,
+        join.lightSummary?.approvalStatus
+      ].map((value) => String(value || "").trim()).join(" ").toLowerCase();
+      const display = String(join.displayStatus || join.lightSummary?.displayStatus || "").trim().toLowerCase();
+      if (/(cancel|취소|deleted|삭제|rejected|거절)/i.test(lifecycle)) return false;
+      if (["hidden", "deleted", "inactive", "false", "0", "숨김"].includes(display)) return false;
+      return join?.isPublicHomeSchedule === true;
+    }
+
     function getHomeJoinSections() {
-      const currentMemberKey = getJoinWishMemberKey();
       const upcomingScheduleItems = sortByDeparture(joins)
         .filter(isUserCreatedJoinSchedule)
+        .filter(isPublicHomeJoinSchedule)
         .filter((join) => getJoinDaysFromToday(join) >= 0);
-      // Own/overlapping-schedule exclusion only has meaning for a signed-in
-      // member. The anonymous path used to repeat the full identity scan for
-      // every card even though it could never exclude anything.
-      const scheduleItems = currentMemberKey
-        ? upcomingScheduleItems.filter(isHomeJoinScheduleVisibleForCurrentMember)
-        : upcomingScheduleItems;
+      // Public home sections keep the same schedule collection for anonymous
+      // and signed-in visitors. Member ownership, participation and date
+      // conflicts are rendered as private overlays instead of deleting cards.
+      const scheduleItems = upcomingScheduleItems;
       const homeSectionItems = scheduleItems
         .filter(shouldDisplayJoinProduct)
         .filter(isSoonCandidate);
@@ -2441,12 +2559,191 @@
     let lastRenderedMdPickSectionHtml = null;
     let lastRenderedMyJoinSectionHtml = null;
     let lastRenderedJoinSectionListHtml = null;
+    let lastRenderedJoinSectionFingerprints = new Map();
     let lastRenderedLegacyJoinGridHtml = null;
     let quickMobileCarouselSetupPending = false;
+    let quickMobileCarouselSetupFrame = 0;
     let homeRenderScheduled = false;
     let homeRenderPendingOptions = {};
     let homeRenderDeferredUntilModalClose = false;
     let homeMdPickRenderScheduled = false;
+
+    const HOME_RENDER_SCROLL_STATE_SELECTOR = [
+      ".join-grid",
+      ".join-custom-panel",
+      ".join-mdpick-list",
+      ".join-mdpick-theme-groups"
+    ].join(", ");
+    const HOME_RENDER_FOCUS_STATE_SELECTOR = [
+      "button:not([disabled])",
+      "a[href]",
+      "input:not([disabled])",
+      "select:not([disabled])",
+      "textarea:not([disabled])",
+      "[tabindex]:not([tabindex='-1'])"
+    ].join(", ");
+
+    function getHomeRenderScrollActiveIndex(container) {
+      if (!container) return -1;
+      const items = Array.from(container.querySelectorAll(
+        ".join-card:not([hidden]):not([data-quick-carousel-clone='true']), .join-custom-theme-card, .join-mdpick-theme-group"
+      ));
+      if (!items.length) return -1;
+      const containerRect = container.getBoundingClientRect();
+      const center = containerRect.left + (containerRect.width / 2);
+      let nearestIndex = 0;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+      items.forEach((item, index) => {
+        const itemRect = item.getBoundingClientRect();
+        const distance = Math.abs(itemRect.left + (itemRect.width / 2) - center);
+        if (distance >= nearestDistance) return;
+        nearestIndex = index;
+        nearestDistance = distance;
+      });
+      return nearestIndex;
+    }
+
+    function alignHomeRenderScrollActiveItem(container, activeIndex) {
+      if (!container || activeIndex < 0) return;
+      const items = Array.from(container.querySelectorAll(
+        ".join-card:not([hidden]):not([data-quick-carousel-clone='true']), .join-custom-theme-card, .join-mdpick-theme-group"
+      ));
+      const item = items[activeIndex];
+      if (!item) return;
+      const containerRect = container.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const centeredLeft = container.scrollLeft
+        + itemRect.left
+        - containerRect.left
+        - ((containerRect.width - itemRect.width) / 2);
+      const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
+      const previousInlineScrollSnapType = container.style.scrollSnapType;
+      const previousInlineScrollBehavior = container.style.scrollBehavior;
+      container.style.scrollSnapType = "none";
+      container.style.scrollBehavior = "auto";
+      container.scrollTo({ left: Math.max(0, Math.min(maxScroll, centeredLeft)), behavior: "auto" });
+      requestAnimationFrame(() => {
+        if (!container?.isConnected) return;
+        container.style.scrollSnapType = previousInlineScrollSnapType;
+        container.style.scrollBehavior = previousInlineScrollBehavior;
+      });
+    }
+
+    function captureHomeRenderInteractionState(container) {
+      if (!container) return null;
+      const scrollStates = Array.from(container.querySelectorAll(HOME_RENDER_SCROLL_STATE_SELECTOR))
+        .map((node, index) => ({
+          index,
+          left: node.scrollLeft || 0,
+          top: node.scrollTop || 0,
+          activeIndex: getHomeRenderScrollActiveIndex(node)
+        }))
+        .filter((state) => state.left || state.top);
+      const focusableNodes = Array.from(container.querySelectorAll(HOME_RENDER_FOCUS_STATE_SELECTOR));
+      const focusIndex = container.contains(document.activeElement)
+        ? focusableNodes.indexOf(document.activeElement)
+        : -1;
+      return { scrollStates, focusIndex };
+    }
+
+    function restoreHomeRenderInteractionState(container, state, options = {}) {
+      if (!container || !state) return;
+      const scrollNodes = Array.from(container.querySelectorAll(HOME_RENDER_SCROLL_STATE_SELECTOR));
+      (state.scrollStates || []).forEach(({ index, left, top, activeIndex }) => {
+        const node = scrollNodes[index];
+        if (!node) return;
+        node.scrollLeft = Number(left) || 0;
+        node.scrollTop = Number(top) || 0;
+        if (options.alignActive === true) alignHomeRenderScrollActiveItem(node, Number(activeIndex));
+      });
+      if (options.focus !== false && state.focusIndex >= 0) {
+        const focusableNodes = Array.from(container.querySelectorAll(HOME_RENDER_FOCUS_STATE_SELECTOR));
+        focusableNodes[state.focusIndex]?.focus?.({ preventScroll: true });
+      }
+    }
+
+    function restoreHomeRenderInteractionStateAfterLayout(container, state) {
+      restoreHomeRenderInteractionState(container, state);
+      requestAnimationFrame(() => {
+        if (!container?.isConnected) return;
+        restoreHomeRenderInteractionState(container, state, { focus: false, alignActive: true });
+      });
+    }
+
+    function replaceHomeRenderHtml(container, html) {
+      if (!container) return false;
+      const interactionState = captureHomeRenderInteractionState(container);
+      container.innerHTML = html;
+      restoreHomeRenderInteractionStateAfterLayout(container, interactionState);
+      return true;
+    }
+
+    function reconcileHomeJoinSectionList(container, html, options = {}) {
+      if (!container) return false;
+      const template = document.createElement("template");
+      template.innerHTML = String(html || "").trim();
+      const desiredNodes = Array.from(template.content.children);
+      const desiredEntries = desiredNodes.map((node) => ({
+        key: String(node.dataset.joinSection || ""),
+        fingerprint: node.outerHTML,
+        node
+      }));
+      const desiredKeys = desiredEntries.map((entry) => entry.key);
+      const canReconcile = desiredEntries.length > 0
+        && desiredKeys.every(Boolean)
+        && new Set(desiredKeys).size === desiredKeys.length;
+      if (!canReconcile) {
+        const changed = container.innerHTML !== String(html || "");
+        if (changed) replaceHomeRenderHtml(container, html);
+        lastRenderedJoinSectionFingerprints = new Map();
+        return changed;
+      }
+
+      const existingByKey = new Map(
+        Array.from(container.querySelectorAll(":scope > [data-join-section]"))
+          .map((node) => [String(node.dataset.joinSection || ""), node])
+      );
+      const existingUnkeyedNodes = Array.from(container.children)
+        .filter((node) => !node.matches("[data-join-section]"));
+      const nextFingerprints = new Map();
+      let changed = false;
+      desiredEntries.forEach((entry, index) => {
+        const current = existingByKey.get(entry.key);
+        let resolved = current;
+        if (!current) {
+          resolved = entry.node;
+          changed = true;
+        } else if (lastRenderedJoinSectionFingerprints.get(entry.key) !== entry.fingerprint) {
+          const resetSectionInteraction = options.resetSoonRail === true && entry.key === "soon";
+          const interactionState = resetSectionInteraction
+            ? null
+            : captureHomeRenderInteractionState(current);
+          current.replaceWith(entry.node);
+          if (!resetSectionInteraction) {
+            restoreHomeRenderInteractionStateAfterLayout(entry.node, interactionState);
+          }
+          resolved = entry.node;
+          changed = true;
+        }
+        const reference = container.children[index] || null;
+        if (reference !== resolved) {
+          container.insertBefore(resolved, reference);
+          changed = true;
+        }
+        nextFingerprints.set(entry.key, entry.fingerprint);
+        existingByKey.delete(entry.key);
+      });
+      existingByKey.forEach((node) => {
+        node.remove();
+        changed = true;
+      });
+      existingUnkeyedNodes.forEach((node) => {
+        node.remove();
+        changed = true;
+      });
+      lastRenderedJoinSectionFingerprints = nextFingerprints;
+      return changed;
+    }
 
     function isHomeRenderBlockingInteractionActive() {
       return [...joinReadLoadingOwners.keys()].some((ownerKey) => (
@@ -2486,7 +2783,7 @@
       if (homeRenderScheduled) return;
       homeRenderScheduled = true;
       window.setTimeout(() => {
-        const run = () => {
+        const renderRemainingSections = () => {
           const pendingOptions = homeRenderPendingOptions;
           if (
             pendingOptions.deferWhileModalOpen
@@ -2499,15 +2796,40 @@
           homeRenderPendingOptions = {};
           homeRenderScheduled = false;
           try {
-            renderJoins(pendingOptions);
+            renderJoins({
+              ...pendingOptions,
+              skipMyJoinSection: true,
+              memberScopesAlreadySynced: true
+            });
           } catch (error) {
             golfJoinSafeWarn("Failed to render the deferred golf join home.", error);
           }
         };
+        const renderMySectionFirst = () => {
+          const pendingOptions = homeRenderPendingOptions;
+          if (
+            pendingOptions.deferWhileModalOpen
+            && isHomeRenderBlockedByModalOrInteraction()
+          ) {
+            homeRenderScheduled = false;
+            homeRenderDeferredUntilModalClose = true;
+            return;
+          }
+          try {
+            renderMyJoinSectionInPlace({ updateNavigation: false });
+          } catch (error) {
+            golfJoinSafeWarn("Failed to render the deferred member golf join section.", error);
+          }
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(renderRemainingSections, { timeout: 700 });
+          } else {
+            requestAnimationFrame(renderRemainingSections);
+          }
+        };
         if ("requestIdleCallback" in window) {
-          window.requestIdleCallback(run, { timeout: 700 });
+          window.requestIdleCallback(renderMySectionFirst, { timeout: 700 });
         } else {
-          requestAnimationFrame(run);
+          requestAnimationFrame(renderMySectionFirst);
         }
       }, 0);
     }
@@ -2567,8 +2889,10 @@
     }
 
     function renderJoins(options = {}) {
-      syncActiveJoinMySchedulesMemberScope();
-      syncMyHomeJoinMemberScope();
+      if (!options.memberScopesAlreadySynced) {
+        syncActiveJoinMySchedulesMemberScope();
+        syncMyHomeJoinMemberScope();
+      }
       const sections = getHomeJoinSections();
       const hasActiveJoinSchedules = hasActiveJoinScheduleItems(sections);
       const isLoading = isJoinProductCardsLoading();
@@ -2595,6 +2919,7 @@
         lastRenderedMdPickSectionHtml = null;
         lastRenderedMyJoinSectionHtml = null;
         lastRenderedJoinSectionListHtml = null;
+        lastRenderedJoinSectionFingerprints = new Map();
         lastRenderedLegacyJoinGridHtml = null;
         quickMobileCarouselSetupPending = false;
         updateJoinSectionNavVisibility([], true);
@@ -2603,12 +2928,13 @@
       }
       const deferMdPick = options.deferMdPick !== false;
       const mdPickSectionHtml = deferMdPick ? null : renderMdPickSection();
-      const myJoinSectionHtml = renderMyHomeJoinSection();
+      const skipMyJoinSection = options.skipMyJoinSection === true;
+      const myJoinSectionHtml = skipMyJoinSection ? lastRenderedMyJoinSectionHtml : renderMyHomeJoinSection();
       let mdPickSectionChanged = false;
       let myJoinSectionChanged = false;
-      if (myJoinSection) myJoinSection.hidden = !myJoinSectionHtml;
-      if (myJoinSection && lastRenderedMyJoinSectionHtml !== myJoinSectionHtml) {
-        myJoinSection.innerHTML = myJoinSectionHtml;
+      if (myJoinSection && !skipMyJoinSection) myJoinSection.hidden = !myJoinSectionHtml;
+      if (myJoinSection && !skipMyJoinSection && lastRenderedMyJoinSectionHtml !== myJoinSectionHtml) {
+        replaceHomeRenderHtml(myJoinSection, myJoinSectionHtml);
         lastRenderedMyJoinSectionHtml = myJoinSectionHtml;
         myJoinSectionChanged = true;
       }
@@ -2628,15 +2954,16 @@
           ? sections.map(renderJoinProductSection).join("")
           : (isLoading ? renderJoinLoadingSection() : "");
         if (lastRenderedJoinSectionListHtml !== sectionListHtml) {
-          sectionList.innerHTML = sectionListHtml;
+          joinSectionListChanged = reconcileHomeJoinSectionList(sectionList, sectionListHtml, {
+            resetSoonRail: options.resetSoonRail === true
+          });
           lastRenderedJoinSectionListHtml = sectionListHtml;
-          joinSectionListChanged = true;
         }
       } else if (legacyGrid) {
         const filtered = sortJoins(getVisibleJoinProducts()
           .filter(matchesPeriod)
           .filter(isUserCreatedJoinSchedule)
-          .filter(isHomeJoinScheduleVisibleForCurrentMember));
+          .filter(isPublicHomeJoinSchedule));
         legacyGrid.classList.toggle("is-loading-products", isLoading);
         const legacyGridHtml = filtered.map(renderJoinCard).join("");
         if (lastRenderedLegacyJoinGridHtml !== legacyGridHtml) {
@@ -2663,8 +2990,7 @@
       updateJoinSectionNavVisibility(sections, hasMdPickSection);
       if (joinSectionListChanged) quickMobileCarouselSetupPending = true;
       if (quickMobileCarouselSetupPending && !options.skipQuickMobileCarousel) {
-        setupQuickMobileCarousel();
-        quickMobileCarouselSetupPending = false;
+        scheduleQuickMobileCarouselSetup();
       }
       if (joinSectionListChanged) {
         setupCustomThemeRailScrollSync();
@@ -2698,6 +3024,7 @@
       lastRenderedMdPickSectionHtml = null;
       lastRenderedMyJoinSectionHtml = null;
       lastRenderedJoinSectionListHtml = null;
+      lastRenderedJoinSectionFingerprints = new Map();
       lastRenderedLegacyJoinGridHtml = null;
       quickMobileCarouselSetupPending = false;
       updateJoinSectionNavVisibility([], true);
@@ -2808,6 +3135,20 @@
       startQuickMobileCarouselTimer();
     }
 
+    function scheduleQuickMobileCarouselSetup() {
+      if (quickMobileCarouselSetupFrame) return;
+      quickMobileCarouselSetupFrame = requestAnimationFrame(() => {
+        // offsetTop is intentionally read after a full paint so a freshly
+        // replaced card rail cannot force layout in the render callback.
+        quickMobileCarouselSetupFrame = requestAnimationFrame(() => {
+          quickMobileCarouselSetupFrame = 0;
+          if (!quickMobileCarouselSetupPending) return;
+          setupQuickMobileCarousel();
+          quickMobileCarouselSetupPending = false;
+        });
+      });
+    }
+
     function hasOpenModalOrSheet() {
       return Boolean(document.querySelector(
         ".overlay.open, .calendar-sheet-overlay.open, .global-apply-overlay.open, #participantModal.open, #detailApplyPanel.open"
@@ -2852,6 +3193,28 @@
         button.style.display = shouldHide ? "none" : "";
       });
       const hasVisibleButton = buttons.some((button) => !button.hidden);
+      const nav = document.getElementById("joinSectionNav");
+      const slot = document.getElementById("joinSectionNavSlot");
+      if (nav) {
+        nav.hidden = !hasVisibleButton;
+        nav.style.display = hasVisibleButton ? "" : "none";
+      }
+      if (slot) {
+        slot.hidden = !hasVisibleButton;
+        slot.style.display = hasVisibleButton ? "" : "none";
+      }
+      scheduleJoinSectionNavActiveUpdate();
+    }
+
+    function updateMyJoinSectionNavVisibility() {
+      const button = document.querySelector("#joinSectionNav [data-join-section-target='my']");
+      if (button) {
+        const shouldHide = !hasRenderedJoinSectionContent("my");
+        button.hidden = shouldHide;
+        button.style.display = shouldHide ? "none" : "";
+      }
+      const buttons = Array.from(document.querySelectorAll("#joinSectionNav [data-join-section-target]"));
+      const hasVisibleButton = buttons.some((item) => !item.hidden);
       const nav = document.getElementById("joinSectionNav");
       const slot = document.getElementById("joinSectionNavSlot");
       if (nav) {
@@ -2933,6 +3296,14 @@
       joinSectionNavActiveKey = key;
     }
 
+    function isJoinSectionNavScrollSyncSuspended() {
+      return Boolean(
+        document.body?.classList.contains("join-widget-page-scroll-locked")
+        || document.documentElement.classList.contains("modal-open")
+        || document.body?.classList.contains("modal-open")
+      );
+    }
+
     function resetJoinSectionNavToStart() {
       const nav = document.getElementById("joinSectionNav");
       if (!nav || window.innerWidth > 640) return;
@@ -2941,16 +3312,19 @@
 
     function getJoinSectionNavScrollOffset(nav) {
       const root = document.getElementById("secret-golf-join") || document.documentElement;
-      const mobileHeaderOffset = Number.parseFloat(getComputedStyle(root).getPropertyValue("--mobile-home-header-height")) || 0;
-      const pcHeaderOffset = Number.parseFloat(getComputedStyle(root).getPropertyValue("--join-pc-header-zone-offset")) || 187;
+      const rootStyle = getComputedStyle(root);
+      const mobileHeaderOffset = Number.parseFloat(rootStyle.getPropertyValue("--mobile-home-header-height")) || 0;
+      const mobileFixedNavHeight = Number.parseFloat(rootStyle.getPropertyValue("--mobile-join-section-nav-fixed-height")) || 46;
+      const pcHeaderOffset = Number.parseFloat(rootStyle.getPropertyValue("--join-pc-header-zone-offset")) || 187;
       const navHeight = nav?.offsetHeight || 0;
       if (window.innerWidth > 640) return pcHeaderOffset + navHeight + 32;
-      return mobileHeaderOffset + navHeight + 12;
+      return mobileHeaderOffset + mobileFixedNavHeight + 12;
     }
 
     function scrollHomeJoinSection(key) {
       const section = document.getElementById(`join-section-${key}`);
       if (!section) return;
+      trackGolfJoinGa4Event("golfjoin_section_select", { section_name: key });
       const nav = document.getElementById("joinSectionNav");
       const offset = getJoinSectionNavScrollOffset(nav);
       const top = section.getBoundingClientRect().top + window.scrollY - offset;
@@ -2988,11 +3362,13 @@
       const containerRect = container.getBoundingClientRect();
       const navRect = nav.getBoundingClientRect();
       const navHeight = nav.offsetHeight;
-      const headerOffset = Number.parseFloat(getComputedStyle(document.getElementById("secret-golf-join") || document.documentElement).getPropertyValue("--mobile-home-header-height")) || 55;
+      const rootStyle = getComputedStyle(document.getElementById("secret-golf-join") || document.documentElement);
+      const headerOffset = Number.parseFloat(rootStyle.getPropertyValue("--mobile-home-header-height")) || 55;
+      const configuredCompactNavHeight = Number.parseFloat(rootStyle.getPropertyValue("--mobile-join-section-nav-fixed-height")) || 46;
       const firstSectionTitle = document.querySelector("#join-section-my .join-product-section-title, #join-section-mdpick .join-product-section-title");
       const firstSectionTitleTop = firstSectionTitle?.getBoundingClientRect().top ?? Number.NEGATIVE_INFINITY;
       const isFixed = nav.classList.contains("is-fixed");
-      const compactNavHeight = isFixed ? navHeight : 46;
+      const compactNavHeight = isFixed ? navHeight : configuredCompactNavHeight;
       const fixedReleaseLine = headerOffset + compactNavHeight + 74;
       const fixedAcquireLine = headerOffset + compactNavHeight + 54;
       const hasFixedRoom = containerRect.bottom > headerOffset + navHeight + 16;
@@ -3008,6 +3384,10 @@
     }
 
     function updateJoinSectionNavActive() {
+      // The shared modal lock fixes the body in place, which makes window.scrollY
+      // temporarily read as zero. Keep the current chip instead of treating that
+      // synthetic position as a real jump to the first home section.
+      if (isJoinSectionNavScrollSyncSuspended()) return;
       const sections = Array.from(document.querySelectorAll("[data-join-section]"))
         .filter((section) => {
           const key = section.dataset.joinSection;
@@ -3086,6 +3466,7 @@
     }
 
     function scheduleJoinSectionNavActiveUpdate() {
+      if (isJoinSectionNavScrollSyncSuspended()) return;
       if (joinSectionNavScrollFrame) return;
       joinSectionNavScrollFrame = requestAnimationFrame(() => {
         joinSectionNavScrollFrame = 0;

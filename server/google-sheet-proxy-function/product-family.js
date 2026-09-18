@@ -134,14 +134,19 @@ function getGolfScheduleDayLines(item = {}) {
 
 function analyzeGolfHoleLine(value = "") {
   const source = text(value).normalize("NFKC");
-  const holes = [...source.matchAll(/(\d+)\s*(?:홀|H\b)/gi)]
+  const tourismOptionIndex = source.search(/\[\s*(?:관광\s*옵션|선택\s*관광|관광\s*선택)\s*\]/i);
+  const primarySource = tourismOptionIndex > 0
+    && /(\d+)\s*(?:홀|H\b)/i.test(source.slice(0, tourismOptionIndex))
+    ? source.slice(0, tourismOptionIndex).trim()
+    : source;
+  const holes = [...primarySource.matchAll(/(\d+)\s*(?:홀|H\b)/gi)]
     .map((match) => Number(match[1]))
     .filter((number) => Number.isFinite(number) && number > 0 && number <= 144);
   if (!holes.length) return null;
-  if (/또는/.test(source) || /주중[\s\S]*\/[\s\S]*주말|주말[\s\S]*\/[\s\S]*주중/.test(source)) {
+  if (/또는/.test(primarySource) || /주중[\s\S]*\/[\s\S]*주말|주말[\s\S]*\/[\s\S]*주중/.test(primarySource)) {
     return { minHoles: Math.min(...holes), maxHoles: Math.max(...holes), condition: "alternative" };
   }
-  if (/보너스/.test(source)) {
+  if (/보너스/.test(primarySource)) {
     return { minHoles: holes[0], maxHoles: holes.reduce((sum, number) => sum + number, 0), condition: "optional_bonus" };
   }
   const total = holes.reduce((sum, number) => sum + number, 0);
@@ -197,18 +202,159 @@ function buildGolfSummaryFromSchedule(schedule = []) {
   };
 }
 
+function normalizeGolfSummary(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const golfDays = Number(value.golfDays);
+  const minTotalHoles = Number(value.minTotalHoles);
+  const maxTotalHoles = Number(value.maxTotalHoles);
+  const status = text(value.status);
+  if (!Number.isInteger(golfDays) || golfDays < 0) return null;
+  if (!Number.isFinite(minTotalHoles) || minTotalHoles < 0) return null;
+  if (!Number.isFinite(maxTotalHoles) || maxTotalHoles < minTotalHoles) return null;
+  if (!["empty", "resolved", "review_required"].includes(status)) return null;
+  const dayBreakdown = (Array.isArray(value.dayBreakdown) ? value.dayBreakdown : []).map((item) => ({
+    day: Number(item?.day || 0),
+    minHoles: Number(item?.minHoles || 0),
+    maxHoles: Number(item?.maxHoles || 0),
+    status: text(item?.status) || "review_required",
+    ...(Array.isArray(item?.conditions) ? { conditions: item.conditions.map(text).filter(Boolean) } : {})
+  }));
+  return {
+    golfDays,
+    minTotalHoles,
+    maxTotalHoles,
+    label: text(value.label),
+    status,
+    dayBreakdown
+  };
+}
+
+function normalizePackTypeValue(value) {
+  const normalized = text(value).replace(/\s+/g, "").toLowerCase();
+  if (!normalized) return "";
+  if (/^(air|항공팩|항공포함|에어텔|airpack|airtour|flightincluded|includedflight|y|yes|true|1|포함|include|included)$/.test(normalized)) return "air";
+  if (/^(golf|골프팩|골프텔|항공불포함|항공별도|golfpack|golftel|landonly|land|n|no|false|0|불포함|별도|exclude|excluded)$/.test(normalized)) return "golf";
+  if (/항공팩|항공포함|에어텔|airpack|airtour|flightincluded|includedflight/.test(normalized)) return "air";
+  if (/골프팩|골프텔|항공불포함|항공별도|golfpack|golftel|landonly|land/.test(normalized)) return "golf";
+  return "";
+}
+
+function flattenPackEvidence(value) {
+  if (Array.isArray(value)) return value.flat(Infinity).map(flattenPackEvidence).filter(Boolean).join(" ");
+  if (value && typeof value === "object") {
+    return Object.values(value).map(flattenPackEvidence).filter(Boolean).join(" ");
+  }
+  return text(value);
+}
+
+function inferPackTypeFromText(...values) {
+  const source = values.map(flattenPackEvidence).filter(Boolean).join(" ");
+  if (!source) return "";
+  if (/\[\s*항공팩|항공팩|왕복\s*항공|왕복항공권|항공권\s*\([^)]*포함\)|항공권\s*포함|항공\s*포함/i.test(source)) return "air";
+  if (/골프팩|골프텔|항공\s*불포함|항공별도|항공권\s*불포함/i.test(source)) return "golf";
+  return "";
+}
+
+function isIndividualAirlineName(value) {
+  return /개\s*별\s*항\s*공|individual\s*air/i.test(text(value));
+}
+
+function hasIndividualAirlineEvidence(product = {}) {
+  return [product.airline, product.airlineName, product.airlineNm, product.air2Nm, product.air2CdNm]
+    .some(isIndividualAirlineName);
+}
+
+function hasAirPackEvidence(product = {}) {
+  const airline = [product.airline, product.airlineName, product.airlineNm, product.air2Nm, product.air2CdNm]
+    .map(text)
+    .find(Boolean);
+  if (airline && !isIndividualAirlineName(airline)) return true;
+  const airCode = text(product.air2Cd).toUpperCase();
+  if (airCode && airCode !== "XX") return true;
+  if (text(product.goodTransportSeq)) return true;
+  if (Array.isArray(product.flightScheduleItems) && product.flightScheduleItems.length) return true;
+  return false;
+}
+
 function inferPackType(product = {}) {
-  const source = [
-    product.packType,
-    product.pack,
+  const explicitType = [product.packType, product.packTypeName, product.pack]
+    .map(normalizePackTypeValue)
+    .find(Boolean);
+  if (explicitType) return explicitType;
+  if (hasIndividualAirlineEvidence(product)) return "golf";
+
+  const inferredType = inferPackTypeFromText(
+    product.title,
+    product.sourceProductTitle,
+    product.badge,
+    product.airport,
+    product.includes,
+    product.notes,
+    product.schedule,
+    product.flightScheduleItems,
     product.productType,
+    product.productTypeName,
     product.goodsType,
+    product.goodsTypeName,
+    product.goodType,
+    product.goodTypeName,
+    product.goodKind,
+    product.goodKindName,
     product.goodDetailCdNm,
-    product.title
-  ].map(text).join(" ").toLowerCase();
-  if (/항공팩|air\s*pack|airpack/.test(source)) return "air";
-  if (/골프팩|golf\s*pack|golfpack/.test(source)) return "golf";
-  return "golf";
+    product.goodDetailName,
+    product.packageType,
+    product.packageTypeName,
+    product.tourType,
+    product.tourTypeName
+  );
+  if (inferredType) return inferredType;
+
+  const affirmativeFieldType = [
+    product.productType,
+    product.productTypeName,
+    product.goodsType,
+    product.goodsTypeName,
+    product.goodType,
+    product.goodTypeName,
+    product.goodKind,
+    product.goodKindName,
+    product.goodDetailCdNm,
+    product.goodDetailName,
+    product.packageType,
+    product.packageTypeName,
+    product.tourType,
+    product.tourTypeName,
+    product.airProductYn,
+    product.airYn,
+    product.flightYn,
+    product.includeAirYn,
+    product.flightIncludedYn
+  ].map(normalizePackTypeValue).find((value) => value === "air");
+  if (affirmativeFieldType) return affirmativeFieldType;
+  if (hasAirPackEvidence(product)) return "air";
+
+  const fallbackFieldType = [
+    product.productType,
+    product.productTypeName,
+    product.goodsType,
+    product.goodsTypeName,
+    product.goodType,
+    product.goodTypeName,
+    product.goodKind,
+    product.goodKindName,
+    product.goodDetailCdNm,
+    product.goodDetailName,
+    product.packageType,
+    product.packageTypeName,
+    product.tourType,
+    product.tourTypeName,
+    product.airProductYn,
+    product.airYn,
+    product.flightYn,
+    product.includeAirYn,
+    product.flightIncludedYn
+  ].map(normalizePackTypeValue).find(Boolean);
+  return fallbackFieldType || "golf";
 }
 
 function isAvailableProductEvent(product = {}, today = "") {
@@ -277,7 +423,8 @@ function buildProductCatalog(items = [], options = {}) {
       eventCount: events.length
     };
     product.departurePattern = parseDeparturePatternFromTitle(sourceProductTitle);
-    product.golfSummary = buildGolfSummaryFromSchedule(representative.schedule);
+    product.golfSummary = normalizeGolfSummary(representative.golfSummary)
+      || buildGolfSummaryFromSchedule(representative.schedule);
     product.candidateKey = buildCandidateKey(product);
     return product;
   }).sort((a, b) => a.goodSeq.localeCompare(b.goodSeq));
@@ -298,13 +445,99 @@ function buildProductMaterialSignature(product = {}) {
   });
 }
 
+function parseCandidateKey(value = "") {
+  const parts = text(value).split("|");
+  if (parts.length !== 4 || parts.some((part) => !part)) return null;
+  return {
+    packType: parts[0],
+    country: parts[1],
+    region: parts[2],
+    baseTitle: parts[3]
+  };
+}
+
+function getSafeCandidateKeyRepair(family = {}, catalog = []) {
+  const fromCandidateKey = text(family.candidateKeySnapshot);
+  const from = parseCandidateKey(fromCandidateKey);
+  if (!from || from.packType !== "golf" || text(family.status) === FAMILY_STATUS.REVOKED) {
+    return { applied: false };
+  }
+
+  const catalogMap = new Map((Array.isArray(catalog) ? catalog : [])
+    .map((product) => [normalizeGoodSeq(product?.goodSeq), product])
+    .filter(([goodSeq, product]) => goodSeq && product?.sourceActive !== false));
+  const activeGoodSeqs = [...new Set((Array.isArray(family.members) ? family.members : [])
+    .filter((member) => text(member.memberStatus || "active") === "active")
+    .map((member) => normalizeGoodSeq(member.goodSeq))
+    .filter(Boolean))];
+  if (activeGoodSeqs.length < 2) return { applied: false };
+
+  const products = activeGoodSeqs.map((goodSeq) => catalogMap.get(goodSeq));
+  if (products.some((product) => !product)) return { applied: false };
+  const candidateKeys = [...new Set(products.map((product) => text(product.candidateKey)).filter(Boolean))];
+  if (candidateKeys.length !== 1) return { applied: false };
+
+  const toCandidateKey = candidateKeys[0];
+  const to = parseCandidateKey(toCandidateKey);
+  if (!to || to.packType !== "air") return { applied: false };
+  if (from.country !== to.country || from.region !== to.region || from.baseTitle !== to.baseTitle) {
+    return { applied: false };
+  }
+  if (products.some((product) => text(product.packType) !== "air")) return { applied: false };
+
+  return {
+    applied: true,
+    reason: "pack_type_air_evidence",
+    fromCandidateKey,
+    toCandidateKey,
+    memberGoodSeqs: activeGoodSeqs
+  };
+}
+
+function applySafeCandidateKeyRepair(family = {}, catalog = []) {
+  const repair = getSafeCandidateKeyRepair(family, catalog);
+  if (!repair.applied) return { family, repair };
+  const catalogMap = new Map((Array.isArray(catalog) ? catalog : [])
+    .map((product) => [normalizeGoodSeq(product?.goodSeq), product])
+    .filter(([goodSeq]) => goodSeq));
+  const members = (Array.isArray(family.members) ? family.members : []).map((member) => {
+    const product = catalogMap.get(normalizeGoodSeq(member.goodSeq));
+    if (!product) return member;
+    const previousSignature = text(member.materialSignature);
+    const legacySignature = buildProductMaterialSignature({
+      ...product,
+      candidateKey: repair.fromCandidateKey
+    });
+    if (previousSignature && previousSignature !== legacySignature) return member;
+    return {
+      ...member,
+      materialSignature: buildProductMaterialSignature(product)
+    };
+  });
+  return {
+    repair,
+    family: {
+      ...family,
+      candidateKeySnapshot: repair.toCandidateKey,
+      members
+    }
+  };
+}
+
 function buildAnalysisRevision(catalog = [], sourceRevision = "") {
   const snapshot = (Array.isArray(catalog) ? catalog : []).map((product) => ({
     goodSeq: product.goodSeq,
     candidateKey: product.candidateKey,
     duration: product.durationLabel,
-    departurePattern: product.departurePattern?.label || "",
-    lowestPrice: product.lowestPrice,
+      departurePattern: product.departurePattern?.label || "",
+      golfSummary: {
+        golfDays: Number(product.golfSummary?.golfDays || 0),
+        minTotalHoles: Number(product.golfSummary?.minTotalHoles || 0),
+        maxTotalHoles: Number(product.golfSummary?.maxTotalHoles || 0),
+        label: text(product.golfSummary?.label),
+        status: text(product.golfSummary?.status)
+      },
+      lowestPrice: product.lowestPrice,
     sourceActive: product.sourceActive
   }));
   return `pfa_${stableHash({ sourceRevision: text(sourceRevision), snapshot }).slice(0, 24)}`;
@@ -473,9 +706,11 @@ function analyzeFamilyAgainstCatalog(family = {}, catalog = []) {
 
 function reconcileFamilyWithCatalog(family = {}, catalog = []) {
   if (!text(family.familyId) || text(family.status) === FAMILY_STATUS.REVOKED) {
-    return { changed: false, family, reasons: [], requiresReview: false };
+    return { changed: false, family, reasons: [], requiresReview: false, candidateKeyRepair: null };
   }
-  const analysis = analyzeFamilyAgainstCatalog(family, catalog);
+  const candidateRepair = applySafeCandidateKeyRepair(family, catalog);
+  const familyForAnalysis = candidateRepair.family;
+  const analysis = analyzeFamilyAgainstCatalog(familyForAnalysis, catalog);
   const nextStatus = analysis.requiresReview || text(family.status) === FAMILY_STATUS.REVIEW_REQUIRED
     ? FAMILY_STATUS.REVIEW_REQUIRED
     : FAMILY_STATUS.APPROVED;
@@ -490,13 +725,15 @@ function reconcileFamilyWithCatalog(family = {}, catalog = []) {
   });
   const changed = memberChanged
     || text(family.status) !== nextStatus
+    || text(family.candidateKeySnapshot) !== text(familyForAnalysis.candidateKeySnapshot)
     || normalizeGoodSeq(family.resolvedRepresentativeGoodSeq) !== analysis.resolvedRepresentativeGoodSeq;
   return {
     changed,
     reasons: analysis.reasons,
     requiresReview: analysis.requiresReview,
+    candidateKeyRepair: candidateRepair.repair.applied ? candidateRepair.repair : null,
     family: {
-      ...family,
+      ...familyForAnalysis,
       status: nextStatus,
       resolvedRepresentativeGoodSeq: analysis.resolvedRepresentativeGoodSeq,
       members: analysis.members
@@ -624,7 +861,7 @@ function buildPublishedFamilyCatalog(families = [], catalog = [], options = {}) 
         representativeEventSeq: text(product.representativeEventSeq),
         eventCount: Number(product.eventCount || 0),
         departurePattern: product.departurePattern || parseDeparturePatternFromTitle(product.sourceProductTitle || product.title),
-        golfSummary: product.golfSummary || buildGolfSummaryFromSchedule([])
+        golfSummary: normalizeGolfSummary(product.golfSummary) || buildGolfSummaryFromSchedule([])
       }));
 
       members.forEach((member) => {
@@ -727,9 +964,14 @@ module.exports = {
   parseDeparturePatternFromTitle,
   analyzeGolfHoleLine,
   buildGolfSummaryFromSchedule,
+  normalizeGolfSummary,
+  normalizePackTypeValue,
+  inferPackType,
+  hasAirPackEvidence,
   buildCandidateKey,
   buildProductCatalog,
   buildProductMaterialSignature,
+  getSafeCandidateKeyRepair,
   buildAnalysisRevision,
   buildCandidateAnalysis,
   hydrateFamilyState,

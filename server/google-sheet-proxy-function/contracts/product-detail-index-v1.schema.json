@@ -10,6 +10,20 @@
     "detailRevision": { "type": "string", "pattern": "^gpdi_[a-f0-9]{24}$" },
     "status": { "enum": ["legacy-on-demand", "partial", "ready"] },
     "count": { "type": "integer", "minimum": 0 },
-    "items": { "type": "array" }
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["goodSeq", "eventSeq", "detailRevision", "detailStatus", "objectName", "url"],
+        "properties": {
+          "goodSeq": { "type": "string", "pattern": "^\\d+$" },
+          "eventSeq": { "type": "string", "pattern": "^\\d+$" },
+          "detailRevision": { "type": "string", "pattern": "^gpd_[a-f0-9]{24}$" },
+          "detailStatus": { "const": "ready" },
+          "objectName": { "type": "string", "pattern": "/product-detail/gpd_[a-f0-9]{24}/\\d+\\.json$" },
+          "url": { "type": "string", "pattern": "^https://storage\\.googleapis\\.com/" }
+        }
+      }
+    }
   }
 }

@@ -50,11 +50,116 @@
       scheduleJoinFullscreenModalCoverStateUpdate();
     }
 
+    let widgetModalPageScrollLockState = null;
+
+    function captureWidgetModalPageScrollState() {
+      const scrollingElement = document.scrollingElement || document.documentElement;
+      return {
+        top: Math.max(0, Number(window.scrollY || scrollingElement?.scrollTop) || 0),
+        left: Math.max(0, Number(window.scrollX || scrollingElement?.scrollLeft) || 0)
+      };
+    }
+
+    function captureInlineStyleProperty(style, property) {
+      return {
+        value: style.getPropertyValue(property),
+        priority: style.getPropertyPriority(property)
+      };
+    }
+
+    function restoreInlineStyleProperty(style, property, snapshot = {}) {
+      if (snapshot.value) {
+        style.setProperty(property, snapshot.value, snapshot.priority || "");
+        return;
+      }
+      style.removeProperty(property);
+    }
+
+    function lockWidgetModalPageScroll(scrollState = captureWidgetModalPageScrollState()) {
+      if (widgetModalPageScrollLockState || !document.body) return;
+      const body = document.body;
+      const root = document.documentElement;
+      const top = Math.max(0, Number(scrollState.top) || 0);
+      const left = Math.max(0, Number(scrollState.left) || 0);
+      const scrollbarWidth = Math.max(0, window.innerWidth - root.clientWidth);
+      const bodyPaddingRight = Number.parseFloat(getComputedStyle(body).paddingRight) || 0;
+      const pageHeight = Math.max(
+        Number(root.scrollHeight) || 0,
+        Number(root.offsetHeight) || 0,
+        Number(body.scrollHeight) || 0,
+        Number(body.offsetHeight) || 0,
+        Number(window.innerHeight) || 0
+      );
+      widgetModalPageScrollLockState = {
+        top,
+        left,
+        body: {
+          position: captureInlineStyleProperty(body.style, "position"),
+          top: captureInlineStyleProperty(body.style, "top"),
+          left: captureInlineStyleProperty(body.style, "left"),
+          right: captureInlineStyleProperty(body.style, "right"),
+          width: captureInlineStyleProperty(body.style, "width"),
+          height: captureInlineStyleProperty(body.style, "height"),
+          minHeight: captureInlineStyleProperty(body.style, "min-height"),
+          overflow: captureInlineStyleProperty(body.style, "overflow"),
+          paddingRight: captureInlineStyleProperty(body.style, "padding-right")
+        },
+        root: {
+          overflow: captureInlineStyleProperty(root.style, "overflow"),
+          scrollBehavior: captureInlineStyleProperty(root.style, "scroll-behavior")
+        }
+      };
+
+      body.style.setProperty("position", "fixed");
+      body.style.setProperty("top", `-${top}px`);
+      body.style.setProperty("left", `-${left}px`);
+      body.style.setProperty("right", "0");
+      body.style.setProperty("width", "100%");
+      body.style.setProperty("height", `${pageHeight}px`);
+      body.style.setProperty("min-height", `${pageHeight}px`);
+      // body.modal-open의 overflow:hidden이 위로 이동한 본문까지 잘라내지 않도록
+      // 전체 문서는 그대로 보이게 두고 실제 스크롤 루트(html)만 잠근다.
+      body.style.setProperty("overflow", "visible", "important");
+      root.style.setProperty("overflow", "hidden", "important");
+      if (scrollbarWidth) {
+        body.style.setProperty("padding-right", `${bodyPaddingRight + scrollbarWidth}px`);
+      }
+      body.classList.add("join-widget-page-scroll-locked");
+    }
+
+    function unlockWidgetModalPageScroll() {
+      const lockState = widgetModalPageScrollLockState;
+      if (!lockState || !document.body) return;
+      const body = document.body;
+      const root = document.documentElement;
+      Object.entries(lockState.body).forEach(([property, snapshot]) => {
+        const cssProperty = property === "minHeight" ? "min-height" : property === "paddingRight" ? "padding-right" : property;
+        restoreInlineStyleProperty(body.style, cssProperty, snapshot);
+      });
+      restoreInlineStyleProperty(root.style, "overflow", lockState.root.overflow);
+      root.style.setProperty("scroll-behavior", "auto");
+      body.classList.remove("join-widget-page-scroll-locked");
+      widgetModalPageScrollLockState = null;
+
+      const scrollingElement = document.scrollingElement || root;
+      window.scrollTo(lockState.left, lockState.top);
+      if (scrollingElement) {
+        scrollingElement.scrollLeft = lockState.left;
+        scrollingElement.scrollTop = lockState.top;
+      }
+      window.requestAnimationFrame(() => {
+        window.scrollTo(lockState.left, lockState.top);
+        restoreInlineStyleProperty(root.style, "scroll-behavior", lockState.root.scrollBehavior);
+      });
+    }
+
     function setWidgetModalOpen(isOpen) {
-      const shouldKeepOpen = Boolean(isOpen || hasOpenJoinFullscreenModal());
+      const shouldKeepOpen = Boolean(isOpen || hasOpenBlockingModal() || hasOpenJoinFullscreenModal());
+      if (shouldKeepOpen) lockWidgetModalPageScroll();
       document.documentElement.classList.toggle("modal-open", shouldKeepOpen);
       document.body.classList.toggle("modal-open", shouldKeepOpen);
       document.getElementById("secret-golf-join")?.classList.toggle("modal-open", shouldKeepOpen);
+      if (!shouldKeepOpen) unlockWidgetModalPageScroll();
       if (!shouldKeepOpen) document.documentElement.classList.remove("join-mobile-modal-chrome-collapsed");
       if (shouldKeepOpen) {
         setJoinMobileBottomNavVisible(shouldKeepJoinMobileBottomNavOverModal(), { force: true, reason: "modal-sync" });
@@ -142,6 +247,10 @@
                 ? "2147483642"
               : id === "calendarSheet"
                 ? "2147483632"
+              : id === "builderActiveScheduleBackdrop"
+                ? "2147483638"
+              : id === "builderActiveScheduleSheet"
+                ? "2147483639"
               : id === "phoneModal"
                 ? "2147483800"
               : id === "joinMyReviewModal"
@@ -598,10 +707,20 @@
       signupDuplicateLocks: {},
       signupDuplicateTimers: {},
       signupDuplicateCheckedValues: {},
-      lastSignupDuplicateField: ""
+      lastSignupDuplicateField: "",
+      pendingSmsAuth: null,
+      smsAuthTimerId: 0,
+      smsAuthBusy: false,
+      signupPhoneAuth: null,
+      signupPhoneAuthTimerId: 0,
+      signupPhoneAuthBusy: false
     };
     const JOIN_TEMP_ADMIN_LOGIN_KEY = "joinTempAdminLogin";
     const JOIN_SESSION_MEMBER_KEY = "joinSessionMember";
+    const JOIN_MEMBER_AUTH_SESSION_KEY = "joinMemberAuthSessionV1";
+    const JOIN_MEMBER_AUTH_PENDING_LOGIN_KEY = "joinMemberAuthPendingLoginV1";
+    const GOLFJOIN_MEMBER_SMS_AUTH_ENABLED = window.GOLFJOIN_MEMBER_SMS_AUTH_ENABLED === true;
+    const GOLFJOIN_MEMBER_SIGNUP_PHONE_AUTH_ENABLED = window.GOLFJOIN_MEMBER_SIGNUP_PHONE_AUTH_ENABLED === true;
     const JOIN_LOGOUT_MARKER_KEY = "joinMemberLoggedOutCookieData";
     const JOIN_AUTH_DOCUMENT_ID = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const JOIN_MEMBER_PROFILE_COMPLETION_KEY = "joinMemberProfileCompletion";
@@ -610,4 +729,3 @@
     let renderedCookieDataStringCache;
     let renderedCookieDataStringScannedWhileLoading = false;
     let renderedCookieDataStringRescanScheduled = false;
-

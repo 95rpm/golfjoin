@@ -89,7 +89,7 @@ test("startup bootstrap applies rows without an immediate duplicate full home re
   assert.match(initializeBlock, /golfjoin:duration:home-local-render/);
   assert.match(
     initializeBlock,
-    /Promise\.all\(\[homeProductsPromise, bootstrapPromise\]\)[\s\S]*?scheduleHomeRender\(\{ deferWhileModalOpen: true \}\)/
+    /Promise\.all\(\[[\s\S]*?homeProductsPromise,[\s\S]*?bootstrapPromise,[\s\S]*?releaseV2LiveReconciliationPromise[\s\S]*?\]\)[\s\S]*?scheduleHomeRender\(\{ deferWhileModalOpen: true \}\)/
   );
   assert.match(initializeBlock, /void initialHomeDataRenderPromise/);
 });

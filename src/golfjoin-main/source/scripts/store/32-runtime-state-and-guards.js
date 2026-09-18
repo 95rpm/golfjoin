@@ -153,6 +153,7 @@
       region: "",
       regions: [],
       dateConstraintRegions: [],
+      regionDateFirstMode: false,
       durationFilter: "",
       productId: "",
       productName: "",

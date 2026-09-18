@@ -2,7 +2,7 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { buildGolfJoinHomeArtifacts } = require("./home-products");
+const { buildGolfJoinHomeArtifacts, buildGolfJoinFamilyAvailabilityArtifacts } = require("./home-products");
 const {
   REPRESENTATIVE_MODE,
   buildProductCatalog,
@@ -205,6 +205,7 @@ function buildProductDetailSnapshotFixture() {
         day: "1일차",
         dateText: "8/12(수)",
         content: "인천 출발, 우돈타니 도착",
+        points: ["인천 출발", "우돈타니 도착"],
         rawText: "인천 출발 후 우돈타니 도착",
         extra: { hotel: "로얄크릭 호텔", meals: [{ label: "석식", menu: "현지식" }] }
       },
@@ -212,6 +213,7 @@ function buildProductDetailSnapshotFixture() {
         day: "2일차",
         dateText: "8/13(목)",
         content: "골프 라운딩",
+        points: ["골프 라운딩"],
         rawText: "로얄크릭 골프 라운딩",
         extra: { hotel: "로얄크릭 호텔", meals: [{ label: "조식", menu: "호텔식" }] }
       }
@@ -231,7 +233,7 @@ test("계약 정의는 JSON Schema 2020-12 형식과 고유 ID를 가진다", ()
   });
 });
 
-test("release manifest V2 계약은 브라우저 사용 OFF와 역할별 리비전 일치를 요구한다", () => {
+test("release manifest V2 계약은 명시적인 브라우저 gate와 역할별 리비전 일치를 요구한다", () => {
   const revision = "gjr_111111111111111111111111";
   const roles = {
     homeCards: ["staticRevision", "ghc_111111111111111111111111"],
@@ -270,7 +272,9 @@ test("release manifest V2 계약은 브라우저 사용 OFF와 역할별 리비�
 
   const enabled = structuredClone(payload);
   enabled.browserReadEnabled = true;
-  assert.equal(validateDataContract("releaseManifestV2", enabled).valid, false);
+  enabled.browserGateUpdatedAt = "2026-08-11T16:00:00+09:00";
+  enabled.browserGatePreviousEnabled = false;
+  assert.equal(validateDataContract("releaseManifestV2", enabled).valid, true);
 
   const mismatched = structuredClone(payload);
   mismatched.objects.homeCards.revision = "ghc_222222222222222222222222";
@@ -313,6 +317,34 @@ test("출발 가능일의 goodSeq가 상위 상품과 다르면 계약이 실패
   payload.events[0].goodSeq = "39999999";
   const result = validateDataContract("productAvailabilityV1", payload);
   assert.ok(result.issues.some((issue) => issue.code === "good_seq_mismatch"));
+});
+
+test("상품군 가용일은 구성원·행사 수와 goodSeq가 모두 일치해야 한다", () => {
+  const availabilityRevision = "gpa_111111111111111111111111";
+  const home = buildGolfJoinHomeArtifacts({
+    generatedAt: "2026-08-12T10:00:00+09:00",
+    sourceGeneratedAt: "2026-08-12T10:00:00+09:00",
+    items: [
+      makeEvent(20, { goodSeq: "30001104", eventSeq: "3028520" }),
+      makeEvent(21, { goodSeq: "30001105", eventSeq: "3028521" })
+    ]
+  }, { availabilityRevision });
+  const publication = buildGolfJoinFamilyAvailabilityArtifacts({
+    publicationRevision: "pfc_222222222222222222222222",
+    families: [{
+      familyId: "pf_fixture",
+      members: [{ goodSeq: "30001104" }, { goodSeq: "30001105" }]
+    }]
+  }, home.availabilityArtifacts, { availabilityRevision });
+  const payload = publication.artifacts[0].payload;
+  assertDataContract("familyAvailabilityV1", payload);
+
+  const invalid = structuredClone(payload);
+  invalid.products[1].events[0].goodSeq = "39999999";
+  invalid.count += 1;
+  const result = validateDataContract("familyAvailabilityV1", invalid);
+  assert.ok(result.issues.some((issue) => issue.code === "good_seq_mismatch"));
+  assert.ok(result.issues.some((issue) => issue.path === "$.count" && issue.code === "count_mismatch"));
 });
 
 test("상품군 카탈로그와 매니페스트 생성 결과가 계약을 통과한다", () => {
@@ -491,6 +523,14 @@ test("일정이 있다고 표시했지만 일정표가 비어 있으면 실패�
   payload.schedule = [];
   const result = validateDataContract("productDetailSnapshotV1", payload);
   assert.ok(result.issues.some((issue) => issue.code === "available_section_empty"));
+});
+
+test("상품상세 일정 points에는 비어 있거나 중복된 항목을 허용하지 않는다", () => {
+  const payload = buildProductDetailSnapshotFixture();
+  payload.schedule[0].points = ["인천 출발", "인천 출발", ""];
+  const result = validateDataContract("productDetailSnapshotV1", payload);
+  assert.ok(result.issues.some((issue) => issue.path === "$.schedule[0].points[2]"));
+  assert.ok(result.issues.some((issue) => issue.code === "duplicate_value"));
 });
 
 test("항공 로딩 완료 상태인데 항공편이 비어 있으면 실패한다", () => {

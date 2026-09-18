@@ -58,7 +58,20 @@
         "durationLabel": { "type": "string", "minLength": 1 },
         "lowestPrice": { "type": "number", "exclusiveMinimum": 0 },
         "earliestDepartureDate": { "type": "string", "format": "date" },
-        "representativeEventSeq": { "type": ["string", "number"] }
+        "representativeEventSeq": { "type": ["string", "number"] },
+        "golfSummary": { "$ref": "#/$defs/golfSummary" }
+      }
+    },
+    "golfSummary": {
+      "type": "object",
+      "required": ["golfDays", "minTotalHoles", "maxTotalHoles", "label", "status", "dayBreakdown"],
+      "properties": {
+        "golfDays": { "type": "integer", "minimum": 0 },
+        "minTotalHoles": { "type": "number", "minimum": 0 },
+        "maxTotalHoles": { "type": "number", "minimum": 0 },
+        "label": { "type": "string" },
+        "status": { "type": "string", "enum": ["empty", "resolved", "review_required"] },
+        "dayBreakdown": { "type": "array" }
       }
     }
   }

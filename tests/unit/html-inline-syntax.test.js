@@ -5,7 +5,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 
-const MAIN_HTML_PATH = path.resolve(__dirname, "../../golfjoin_main.html");
+const MAIN_HTML_PATH = process.env.GOLFJOIN_MAIN_HTML_PATH
+  ? path.resolve(__dirname, "../..", process.env.GOLFJOIN_MAIN_HTML_PATH)
+  : path.resolve(__dirname, "../../golfjoin_main.html");
 
 test("all executable inline scripts in the main HTML parse successfully", () => {
   const html = fs.readFileSync(MAIN_HTML_PATH, "utf8");
@@ -13,7 +15,7 @@ test("all executable inline scripts in the main HTML parse successfully", () => 
     .map((match) => match[1])
     .filter((source) => source.trim());
 
-  assert.equal(scripts.length, 2);
+  assert.equal(scripts.length, 3);
   scripts.forEach((source, index) => {
     assert.doesNotThrow(
       () => new Function(source),

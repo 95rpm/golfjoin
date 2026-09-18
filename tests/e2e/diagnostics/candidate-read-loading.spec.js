@@ -104,11 +104,20 @@ test("slow product reads use delayed local loading and never open the global ove
   await page.waitForTimeout(800);
   expect(await page.evaluate(() => window.__candidateDeferredHomeRenderCalls.length)).toBe(0);
 
-  await page.evaluate(() => window.scrollBy(0, 100));
-  await expect.poll(() => page.evaluate((before) => window.scrollY > before, pageScrollBeforeRead)).toBe(true);
+  const detailModal = page.locator("#detailModal");
+  await expect(detailModal).toHaveClass(/\bopen\b/, { timeout: 1_000 });
+  const backgroundLock = await page.evaluate((before) => ({
+    scrollY: window.scrollY,
+    expectedScrollY: before,
+    bodyPosition: document.body.style.position,
+    bodyTop: document.body.style.top,
+    bodyOverflow: document.body.style.overflow,
+    htmlOverflow: document.documentElement.style.overflow
+  }), pageScrollBeforeRead);
+  expect(backgroundLock.bodyPosition).toBe("fixed");
+  expect(Math.abs(Math.abs(Number.parseFloat(backgroundLock.bodyTop)) - pageScrollBeforeRead)).toBeLessThanOrEqual(3);
 
   await page.evaluate(() => window.__releaseCandidateAvailability?.());
-  const detailModal = page.locator("#detailModal");
   await expect(detailModal).toHaveClass(/\bopen\b/, { timeout: 60_000 });
   await expect(firstCard.locator(":scope > .join-read-loading-indicator")).toHaveCount(0);
   await expect(firstCard).not.toHaveAttribute("aria-busy", "true");
@@ -159,6 +168,8 @@ test("slow product reads use delayed local loading and never open the global ove
   const closeButton = detailModal.locator(".detail-slider-back:visible, .modal-close-icon:visible").first();
   await closeButton.click();
   await expect(detailModal).not.toHaveClass(/\bopen\b/);
+  await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("");
+  await expect.poll(() => page.evaluate((before) => Math.abs(window.scrollY - before), pageScrollBeforeRead)).toBeLessThanOrEqual(3);
   await expect.poll(() => page.evaluate(() => window.__candidateDeferredHomeRenderCalls.length), {
     timeout: 60_000
   }).toBe(1);

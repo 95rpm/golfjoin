@@ -1,15 +1,15 @@
-# 4단계 Release manifest V2 배포 전 보고서
+# 4단계 Release manifest V2 배포 준비 및 완료 기록
 
 ## 현재 결론
 
 - [x] 로컬 설계·구현·자동시험 완료
 - [x] 기존 고객 화면과 자동 발행 경로 분리 완료
-- [ ] Cloud Function 배포
-- [ ] 운영 GCS 최초 발행·검증
-- [ ] 두 번째 발행과 실제 원격 롤백 검증
-- [ ] 4단계 최종 완료
+- [x] Cloud Function 배포
+- [x] 운영 GCS 최초 발행·검증
+- [x] 두 번째 발행과 실제 원격 롤백 검증
+- [x] 4단계 최종 완료 — 상세 결과는 `20260811_phase4_release_v2_final.md`에 기록
 
-쉽게 말하면 새 데이터 배달 상자와 안전한 교체 장치는 완성했지만, 아직 실제 창고인 운영 GCS에 시험 상자를 놓지는 않은 상태다. 현재 메인페이지는 이 새 상자를 읽지 않으므로 서버를 배포하고 V2를 발행해도 고객 화면 데이터는 기존 경로를 그대로 사용한다.
+새 데이터 배달 상자와 안전한 교체 장치를 만든 뒤 실제 운영 GCS에서 두 발행본과 롤백을 검증했다. 현재 메인페이지는 이 새 상자를 읽지 않으므로 고객 화면 데이터는 기존 경로를 그대로 사용한다. 실제 리비전과 원격 검증 결과는 `20260811_phase4_release_v2_final.md`에 기록했다.
 
 ## 구현한 안전장치
 
@@ -30,7 +30,7 @@
 
 | 검사 | 결과 |
 |---|---:|
-| Cloud Function 서버 전체 | 88/88 |
+| Cloud Function 서버 전체 | 92/92 |
 | 메인페이지 단위검사 | 44/44 |
 | 메인 소스 동일성 | B6D09D1A hash 일치 |
 | 동시 두 발행 | 1건 성공·1건 generation 충돌 |
@@ -54,13 +54,13 @@
 
 ## 배포 후 시험 순서
 
-- [ ] 1. 배포 직후 기존 공개 API와 메인페이지를 먼저 확인한다.
-- [ ] 2. 관리자 인증으로 `admin_release_v2_status`를 호출해 최초에는 `exists: false`이거나 기존 정상 root인지 확인한다.
-- [ ] 3. `admin_release_v2_publish`를 한 번만 호출한다.
-- [ ] 4. status를 다시 호출해 `objectCount: 5`, `browserReadEnabled: false`를 확인한다.
-- [ ] 5. 메인페이지 네트워크 요청에 `release-manifest-v2.json`이 추가되지 않았는지 확인한다.
-- [ ] 6. 원본 live 갱신 뒤 두 번째 publish를 실행해 `previousStableRevision`이 첫 release인지 확인한다.
-- [ ] 7. 첫 release로 rollback하고 활성 release·previous·rollbackFrom을 확인한다.
-- [ ] 8. 두 번째 release로 다시 rollback해 원래 최신 상태로 복원한다.
+- [x] 1. 배포 직후 기존 공개 API와 메인페이지를 먼저 확인한다.
+- [x] 2. 관리자 인증으로 `admin_release_v2_status`를 호출해 최초에는 `exists: false`이거나 기존 정상 root인지 확인한다.
+- [x] 3. `admin_release_v2_publish`를 한 번만 호출한다.
+- [x] 4. status를 다시 호출해 `objectCount: 5`, `browserReadEnabled: false`를 확인한다.
+- [x] 5. 메인페이지 네트워크 요청에 `release-manifest-v2.json`이 추가되지 않았는지 확인한다.
+- [x] 6. 원본 live 갱신 뒤 두 번째 publish를 실행해 `previousStableRevision`이 첫 release인지 확인한다.
+- [x] 7. 첫 release로 rollback하고 활성 release·previous·rollbackFrom을 확인한다.
+- [x] 8. 두 번째 release로 다시 rollback해 원래 최신 상태로 복원한다.
 
-4단계 체크박스는 위 원격 시험까지 끝난 뒤에만 완료 처리한다.
+위 원격 시험과 최신 발행본 재복원을 모두 마친 뒤 4단계를 완료 처리했다.

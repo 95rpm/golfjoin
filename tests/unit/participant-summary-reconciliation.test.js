@@ -67,6 +67,9 @@ test("최신 참여자 요약을 적용할 때 이전 공개 미리보기 아이
   let mergeExistingIds = [];
 
   const sandbox = {
+    shouldApplyScheduleMutationSnapshot() {
+      return true;
+    },
     findJoinForParticipantSummary() {
       return join;
     },

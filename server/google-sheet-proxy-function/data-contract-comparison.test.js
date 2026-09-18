@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const {
   compareHomeProductCollections,
   compareLiveScheduleCollections,
+  compareProductFamilyCollections,
   compareProductDetailCore,
   identityHash
 } = require("./data-contract-comparison");
@@ -172,4 +173,35 @@ test("비교용 식별자 해시는 같은 입력에 항상 같고 원문을 포
   assert.equal(first, second);
   assert.match(first, /^[a-f0-9]{16}$/);
   assert.equal(first.includes("private"), false);
+});
+
+test("상품군 대표상품과 구성원이 순서만 달라도 같은 상품군으로 비교한다", () => {
+  const first = [{
+    familyId: "pf_fixture",
+    representativeGoodSeq: "30001104",
+    members: [
+      { goodSeq: "30001104", representativeEventSeq: "30285494", lowestPrice: 259000, earliestDepartureDate: "2026-08-12", durationNights: 3, durationDays: 5 },
+      { goodSeq: "30001105", representativeEventSeq: "30285495", lowestPrice: 279000, earliestDepartureDate: "2026-08-13", durationNights: 3, durationDays: 5 }
+    ]
+  }];
+  const second = [{
+    familyId: "pf_fixture",
+    representativeGoodSeq: "30001104",
+    members: first[0].members.slice().reverse()
+  }];
+
+  assert.equal(compareProductFamilyCollections(first, second).valid, true);
+});
+
+test("상품군 대표상품이 바뀌면 원문 ID 없이 불일치로 기록한다", () => {
+  const current = [{ familyId: "pf_private_family", representativeGoodSeq: "30001104", members: [] }];
+  const candidate = [{ familyId: "pf_private_family", representativeGoodSeq: "30001279", members: [] }];
+  const result = compareProductFamilyCollections(current, candidate);
+  const serialized = JSON.stringify(result);
+
+  assert.equal(result.valid, false);
+  assert.ok(result.issues.some((issue) => issue.path === "$.representativeGoodSeq"));
+  assert.equal(serialized.includes("pf_private_family"), false);
+  assert.equal(serialized.includes("30001104"), false);
+  assert.equal(serialized.includes("30001279"), false);
 });

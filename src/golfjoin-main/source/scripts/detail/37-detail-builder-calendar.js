@@ -41,15 +41,263 @@
       openHeroOctoberMonthlyDetail();
     }
 
+    const HERO_BANNER_MANIFEST_URL = "https://storage.googleapis.com/golfjoin-bucket/web/hero-banners/manifest.json";
+    const HERO_BANNER_MANIFEST_SCHEMA = "golfjoin-hero-banners-v1";
+
+    function isSafeManagedHeroUrl(value, options = {}) {
+      const raw = String(value || "").trim();
+      if (!raw) return options.required !== true;
+      if (raw.startsWith("/") && !raw.startsWith("//")) return true;
+      try {
+        return new URL(raw).protocol === "https:";
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function normalizeManagedHeroBanners(payload = {}) {
+      if (!payload || payload.schema !== HERO_BANNER_MANIFEST_SCHEMA || !Array.isArray(payload.items)) return [];
+      return payload.items.slice(0, 10).map((item, index) => ({
+        id: String(item?.id || `hero_${index + 1}`).trim(),
+        imageUrl: String(item?.imageUrl || "").trim(),
+        linkUrl: String(item?.linkUrl || "").trim(),
+        alt: String(item?.alt || `시크릿투어 골프조인 배너 ${index + 1}`).trim()
+      })).filter((item) => (
+        isSafeManagedHeroUrl(item.imageUrl, { required: true })
+        && isSafeManagedHeroUrl(item.linkUrl)
+      ));
+    }
+
+    function getManagedHeroModalTarget(linkUrl = "") {
+      try {
+        const url = new URL(String(linkUrl || "").trim(), location.href);
+        const openTarget = String(url.searchParams.get("golfjoinOpen") || "").trim().toLowerCase();
+        const scheduleId = String(url.searchParams.get("scheduleId") || "").trim();
+        if (["detail", "product", "join-detail", "schedule"].includes(openTarget)
+          && scheduleId === HERO_OCTOBER_MONTHLY_SCHEDULE_ID) {
+          return "october-monthly";
+        }
+      } catch (error) {
+        return "";
+      }
+      return "";
+    }
+
+    function handleManagedHeroLinkClick(event) {
+      if (!event || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const slide = event.target?.closest?.("[data-hero-modal-target]");
+      if (!slide || !event.currentTarget?.contains?.(slide)) return;
+      if (slide.dataset.heroModalTarget === "october-monthly") {
+        event.preventDefault();
+        openHeroOctoberMonthlyDetail();
+      }
+    }
+
+    function suppressHeroClickAfterSwipe(event) {
+      if (Date.now() >= heroSuppressClickUntil) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    function bindManagedHeroInternalLinks(track) {
+      if (!track || track.dataset.heroInternalLinkBound === "true") return;
+      track.dataset.heroInternalLinkBound = "true";
+      track.addEventListener("click", handleManagedHeroLinkClick);
+    }
+
+    function createManagedHeroSlide(item = {}, index = 0) {
+      const slide = document.createElement(item.linkUrl ? "a" : "div");
+      slide.className = `hero-slide${item.linkUrl ? " is-clickable" : ""}`;
+      slide.dataset.heroBannerId = item.id || `hero_${index + 1}`;
+      if (item.linkUrl) {
+        slide.href = item.linkUrl;
+        slide.setAttribute("aria-label", item.alt || `배너 ${index + 1} 링크 열기`);
+        const modalTarget = getManagedHeroModalTarget(item.linkUrl);
+        if (modalTarget) slide.dataset.heroModalTarget = modalTarget;
+      }
+      const image = document.createElement("img");
+      image.src = item.imageUrl;
+      image.alt = item.alt || "";
+      image.loading = index === 0 ? "eager" : "lazy";
+      image.decoding = "async";
+      image.fetchPriority = index === 0 ? "high" : "low";
+      slide.append(image);
+      return slide;
+    }
+
+    async function loadManagedHeroBanners() {
+      const controller = typeof AbortController === "function" ? new AbortController() : null;
+      const timeout = controller ? window.setTimeout(() => controller.abort(), 3000) : null;
+      try {
+        const response = await fetch(`${HERO_BANNER_MANIFEST_URL}?v=${Date.now()}`, {
+          cache: "no-store",
+          credentials: "omit",
+          signal: controller?.signal
+        });
+        if (!response.ok) return false;
+        const items = normalizeManagedHeroBanners(await response.json());
+        if (!items.length) return false;
+        const track = document.getElementById("heroSliderTrack");
+        if (!track) return false;
+        track.replaceChildren(...items.map(createManagedHeroSlide));
+        bindManagedHeroInternalLinks(track);
+        startHeroSlider();
+        return true;
+      } catch (error) {
+        return false;
+      } finally {
+        if (timeout) window.clearTimeout(timeout);
+      }
+    }
+
+    function clearHeroSliderTimer() {
+      if (!heroSliderTimer) return;
+      window.clearInterval(heroSliderTimer);
+      heroSliderTimer = null;
+    }
+
+    function restartHeroSliderTimer() {
+      clearHeroSliderTimer();
+      if (heroRealSlideCount < 2) return;
+      heroSliderTimer = window.setInterval(() => {
+        if (document.visibilityState === "hidden") return;
+        setHeroSlide(heroSlideIndex + 1, { restartTimer: false });
+      }, 5000);
+    }
+
+    function normalizeHeroRealSlideIndex(index = heroSlideIndex, count = heroRealSlideCount) {
+      const safeCount = Math.max(0, Number(count) || 0);
+      if (!safeCount) return 0;
+      const numericIndex = Number(index);
+      const safeIndex = Number.isFinite(numericIndex) ? numericIndex : 1;
+      return ((safeIndex - 1) % safeCount + safeCount) % safeCount + 1;
+    }
+
+    function restoreHeroSliderAfterVisibilityChange() {
+      if (document.visibilityState === "hidden") {
+        heroSwipeState = null;
+        clearHeroSliderTimer();
+        return;
+      }
+      const track = document.getElementById("heroSliderTrack");
+      if (!track || !heroRealSlideCount) return;
+      heroSwipeState = null;
+      heroSlideIndex = normalizeHeroRealSlideIndex();
+      track.style.transition = "none";
+      track.style.transform = `translateX(-${heroSlideIndex * 100}%)`;
+      const activeSlide = track.children[heroSlideIndex];
+      activeSlide?.querySelectorAll?.("img").forEach((image) => {
+        image.loading = "eager";
+      });
+      track.offsetHeight;
+      track.style.transition = "";
+      updateHeroDots();
+      restartHeroSliderTimer();
+    }
+
+    function bindHeroVisibilityRecovery() {
+      if (heroVisibilityRecoveryBound) return;
+      heroVisibilityRecoveryBound = true;
+      document.addEventListener("visibilitychange", restoreHeroSliderAfterVisibilityChange);
+      window.addEventListener("pageshow", restoreHeroSliderAfterVisibilityChange);
+    }
+
+    function handleHeroSwipePointerDown(event) {
+      if (!event?.isPrimary || event.pointerType === "mouse" || heroRealSlideCount < 2) return;
+      heroSwipeState = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        deltaX: 0,
+        axis: "",
+        timerPaused: false
+      };
+      event.currentTarget?.setPointerCapture?.(event.pointerId);
+    }
+
+    function handleHeroSwipePointerMove(event) {
+      const state = heroSwipeState;
+      if (!state || state.pointerId !== event.pointerId) return;
+      const deltaX = event.clientX - state.startX;
+      const deltaY = event.clientY - state.startY;
+      state.deltaX = deltaX;
+      if (!state.axis) {
+        if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 6) return;
+        state.axis = Math.abs(deltaX) > Math.abs(deltaY) ? "horizontal" : "vertical";
+      }
+      if (state.axis !== "horizontal") return;
+      event.preventDefault();
+      if (!state.timerPaused) {
+        state.timerPaused = true;
+        clearHeroSliderTimer();
+      }
+      const track = document.getElementById("heroSliderTrack");
+      if (!track) return;
+      track.style.transition = "none";
+      track.style.transform = `translate3d(calc(-${heroSlideIndex * 100}% + ${deltaX}px), 0, 0)`;
+    }
+
+    function finishHeroSwipe(event, cancelled = false) {
+      const state = heroSwipeState;
+      if (!state || state.pointerId !== event.pointerId) return;
+      heroSwipeState = null;
+      event.currentTarget?.releasePointerCapture?.(event.pointerId);
+      if (state.axis !== "horizontal") return;
+      const track = document.getElementById("heroSliderTrack");
+      if (track) track.style.transition = "";
+      const viewportWidth = event.currentTarget?.clientWidth || window.innerWidth || 1;
+      const threshold = Math.min(80, Math.max(36, viewportWidth * 0.12));
+      const changed = !cancelled && Math.abs(state.deltaX) >= threshold;
+      if (changed) heroSuppressClickUntil = Date.now() + 500;
+      const nextIndex = changed
+        ? heroSlideIndex + (state.deltaX < 0 ? 1 : -1)
+        : heroSlideIndex;
+      setHeroSlide(nextIndex, { restartTimer: false });
+      restartHeroSliderTimer();
+    }
+
+    function bindHeroSwipeNavigation(track) {
+      const viewport = track?.closest?.(".hero-slider-viewport");
+      if (!viewport || viewport.dataset.heroSwipeBound === "true") return;
+      viewport.dataset.heroSwipeBound = "true";
+      viewport.addEventListener("pointerdown", handleHeroSwipePointerDown);
+      viewport.addEventListener("pointermove", handleHeroSwipePointerMove, { passive: false });
+      viewport.addEventListener("pointerup", (event) => finishHeroSwipe(event));
+      viewport.addEventListener("pointercancel", (event) => finishHeroSwipe(event, true));
+      viewport.addEventListener("click", suppressHeroClickAfterSwipe, true);
+    }
+
     function startHeroSlider() {
       const track = document.getElementById("heroSliderTrack");
       const dots = document.getElementById("heroSlickDots");
       if (!track) return;
+      clearHeroSliderTimer();
+      bindHeroSwipeNavigation(track);
+      bindHeroVisibilityRecovery();
+      track.removeEventListener("transitionend", normalizeHeroSlidePosition);
+      track.querySelectorAll('[data-hero-slide-clone="true"]').forEach((clone) => clone.remove());
       const originalSlides = Array.from(track.children);
       heroRealSlideCount = originalSlides.length;
-      if (heroRealSlideCount < 2) return;
-      track.prepend(originalSlides[heroRealSlideCount - 1].cloneNode(true));
-      track.append(originalSlides[0].cloneNode(true));
+      heroSlideIndex = heroRealSlideCount > 1 ? 1 : 0;
+      if (heroRealSlideCount < 2) {
+        track.style.transition = "none";
+        track.style.transform = "translateX(0)";
+        if (dots) dots.innerHTML = "";
+        window.trackGolfJoinGa4PromotionView?.(track.children[0]);
+        return;
+      }
+      const previousClone = originalSlides[heroRealSlideCount - 1].cloneNode(true);
+      const nextClone = originalSlides[0].cloneNode(true);
+      [previousClone, nextClone].forEach((clone) => {
+        clone.dataset.heroSlideClone = "true";
+        clone.setAttribute("aria-hidden", "true");
+        if (clone.matches("a, button, [tabindex]")) clone.tabIndex = -1;
+        clone.querySelectorAll("a, button, input, select, textarea, [tabindex]").forEach((element) => {
+          element.tabIndex = -1;
+        });
+      });
+      track.prepend(previousClone);
+      track.append(nextClone);
       track.style.transition = "none";
       track.style.transform = `translateX(-${heroSlideIndex * 100}%)`;
       track.offsetHeight;
@@ -60,17 +308,17 @@
         `).join("");
       }
       track.addEventListener("transitionend", normalizeHeroSlidePosition);
-      setInterval(() => {
-        setHeroSlide(heroSlideIndex + 1);
-      }, 5000);
+      updateHeroDots();
+      restartHeroSliderTimer();
     }
 
-    function setHeroSlide(index) {
+    function setHeroSlide(index, options = {}) {
       const track = document.getElementById("heroSliderTrack");
       if (!track || !heroRealSlideCount) return;
       heroSlideIndex = index;
       track.style.transform = `translateX(-${heroSlideIndex * 100}%)`;
       updateHeroDots();
+      if (options.restartTimer !== false) restartHeroSliderTimer();
     }
 
     function normalizeHeroSlidePosition() {
@@ -98,6 +346,9 @@
       document.querySelectorAll("#heroSlickDots .hero-slick-dot").forEach((dot, dotIndex) => {
         dot.classList.toggle("active", dotIndex === realIndex);
       });
+      const track = document.getElementById("heroSliderTrack");
+      const activeSlide = track?.children?.[realIndex + 1];
+      window.trackGolfJoinGa4PromotionView?.(activeSlide);
     }
 
     function formatPrice(value) {
@@ -105,7 +356,7 @@
       return Number.isFinite(price) && price > 0 ? price.toLocaleString("ko-KR") : "0";
     }
 
-    function formatCardDateRange(join) {
+    function formatCardDateRange(join, options = {}) {
       const start = new Date(join.departureDate + "T00:00:00");
       const end = new Date((join.returnDate || join.departureDate) + "T00:00:00");
       const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
@@ -116,6 +367,13 @@
       };
       const startLabel = formatCompact(start);
       const endLabel = formatCompact(end);
+      const familyReturnLabels = !options.selectedPeriod && join?.isAdminRecommendedSchedule && join?.productFamilyId
+        ? [...new Set(getAdminRecommendedFamilyOptions(join).map((item) => item.returnDate).filter(Boolean))]
+          .sort()
+          .map((date) => formatCompact(new Date(`${date}T00:00:00`)))
+          .filter(Boolean)
+        : [];
+      if (familyReturnLabels.length >= 2) return `${startLabel}~${familyReturnLabels.join("/")}`;
       const range = startLabel === endLabel ? startLabel : `${startLabel}~${endLabel}`;
       return range;
     }
@@ -689,21 +947,31 @@
 
     function formatScheduleDate(join, index) {
       const date = new Date(join.departureDate + "T00:00:00");
+      if (Number.isNaN(date.getTime())) return "";
       date.setDate(date.getDate() + index);
       const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
       return `${date.getMonth() + 1}/${String(date.getDate()).padStart(2, "0")}(${dayNames[date.getDay()]})`;
     }
 
+    function normalizeDetailSchedulePointText(value) {
+      return String(value || "")
+        .replace(/\u00a0/g, " ")
+        .split(/\r?\n/)
+        .map((line) => line.replace(/\s+/g, " ").trim())
+        .filter(Boolean)
+        .join("\n");
+    }
+
     function splitScheduleItems(content) {
-      const protectedSlashToken = "__SCHEDULE_SLASH__";
-      const protectedContent = String(content || "").replace(
-        /([가-힣A-Za-z0-9]+(?:\/[가-힣A-Za-z0-9]+){2,})(?=\s*골프장\s*중\s*한\s*곳)/g,
-        (match) => match.replace(/\//g, protectedSlashToken)
-      );
-      return protectedContent
-        .split(/,\s*|및|\/|·/)
-        .map((item) => item.replaceAll(protectedSlashToken, "/").trim())
+      const point = normalizeDetailSchedulePointText(content);
+      return point ? [point] : [];
+    }
+
+    function getDetailSchedulePoints(item = {}) {
+      const points = (Array.isArray(item.points) ? item.points : [])
+        .map(normalizeDetailSchedulePointText)
         .filter(Boolean);
+      return points.length ? points : splitScheduleItems(item.content);
     }
 
     function getScheduleExtraInfo(join, index) {
@@ -751,10 +1019,10 @@
             return `
             <div class="detail-schedule-item open" data-schedule-index="${index}">
               <div class="detail-schedule-row">
-                <div class="detail-schedule-day">${escapeHtml(item.day || `${index + 1}일차`)}<div class="detail-schedule-date">${escapeHtml(item.dateText || formatScheduleDate(join, index))}</div></div>
+                <div class="detail-schedule-day">${escapeHtml(item.day || `${index + 1}일차`)}<div class="detail-schedule-date">${escapeHtml(formatScheduleDate(join, index) || item.dateText || "")}</div></div>
                 <div class="detail-schedule-copy">
                   <div class="detail-schedule-timeline">
-                    ${splitScheduleItems(item.content).map((part) => `<div class="detail-schedule-point">${escapeHtml(part)}</div>`).join("")}
+                    ${getDetailSchedulePoints(item).map((part) => `<div class="detail-schedule-point">${escapeHtml(part)}</div>`).join("")}
                   </div>
                   ${renderScheduleExtraInfo(join, index)}
                 </div>
@@ -975,6 +1243,14 @@
       selectDetailScheduleDay(Number(item.dataset.scheduleIndex || 0));
     }
 
+    function getDetailScheduleDayScrollOffset(nav) {
+      if (!nav) return 12;
+      const styles = getComputedStyle(nav);
+      const stickyTop = Number.parseFloat(styles.top) || 0;
+      const navHeight = nav.offsetHeight || nav.getBoundingClientRect().height || 0;
+      return Math.max(0, stickyTop) + Math.max(0, navHeight) + 12;
+    }
+
     function selectDetailScheduleDay(index) {
       const detail = document.getElementById("detailContent");
       const targetIndex = Number(index) || 0;
@@ -990,10 +1266,9 @@
       ensureDetailScheduleDayChipVisible(nav, targetIndex);
       const detailRect = detail.getBoundingClientRect();
       const targetRect = target.getBoundingClientRect();
-      const navRect = nav?.getBoundingClientRect();
-      const anchorBottom = navRect ? navRect.bottom : detailRect.top;
+      const stickyOffset = getDetailScheduleDayScrollOffset(nav);
       detail.scrollTo({
-        top: Math.max(0, detail.scrollTop + targetRect.top - anchorBottom - 12),
+        top: Math.max(0, detail.scrollTop + targetRect.top - detailRect.top - stickyOffset),
         behavior: "smooth"
       });
     }
@@ -1338,10 +1613,24 @@
       const contentSheet = body?.querySelector(".detail-content-sheet");
       if (!body || !header || !contentSheet) return;
       const isMobile = window.matchMedia("(max-width: 640px)").matches;
+      const setHeaderAccessibility = (visible) => {
+        if (visible) {
+          header.inert = false;
+          header.removeAttribute("inert");
+          header.setAttribute("aria-hidden", "false");
+          return;
+        }
+        if (header.contains(document.activeElement)) {
+          document.activeElement?.blur?.();
+        }
+        header.inert = true;
+        header.setAttribute("inert", "");
+        header.setAttribute("aria-hidden", "true");
+      };
       if (!isMobile) {
         header.classList.remove("is-visible");
         body.classList.remove("detail-mobile-sticky-visible");
-        header.setAttribute("aria-hidden", "true");
+        setHeaderAccessibility(false);
         return;
       }
       const bodyRect = body.getBoundingClientRect();
@@ -1350,7 +1639,7 @@
       const visible = body.scrollTop >= Math.max(1, sheetScrollTop - 1);
       header.classList.toggle("is-visible", visible);
       body.classList.toggle("detail-mobile-sticky-visible", visible);
-      header.setAttribute("aria-hidden", visible ? "false" : "true");
+      setHeaderAccessibility(visible);
     }
 
     function updateDetailScheduleDayNav() {
@@ -1643,19 +1932,21 @@
     }
 
     function isMonthlyRecommendationJoin(join = {}) {
-      const rule = join.displayRule || {};
-      return String(join.scheduleType || rule.scheduleType || join.badgeType || rule.badgeType || "").toLowerCase() === "monthly"
-        || String(join.scheduleLabel || rule.scheduleLabel || join.badge || "").includes("월례회");
+      const safeJoin = join && typeof join === "object" ? join : {};
+      const rule = safeJoin.displayRule && typeof safeJoin.displayRule === "object" ? safeJoin.displayRule : {};
+      return String(safeJoin.scheduleType || rule.scheduleType || safeJoin.badgeType || rule.badgeType || "").toLowerCase() === "monthly"
+        || String(safeJoin.scheduleLabel || rule.scheduleLabel || safeJoin.badge || "").includes("월례회");
     }
 
     function getJoinRecruitmentCapacity(join = {}, fallback = JOIN_MAX_CAPACITY) {
-      const rule = join.displayRule || {};
+      const safeJoin = join && typeof join === "object" ? join : {};
+      const rule = safeJoin.displayRule && typeof safeJoin.displayRule === "object" ? safeJoin.displayRule : {};
       const value = Number(
-        join.participantSummary?.capacity
-        || join.lightSummary?.capacity
-        || join.capacity
-        || join.maxPeople
-        || join.maxCapacity
+        safeJoin.participantSummary?.capacity
+        || safeJoin.lightSummary?.capacity
+        || safeJoin.capacity
+        || safeJoin.maxPeople
+        || safeJoin.maxCapacity
         || rule.capacity
         || rule.maxPeople
         || fallback
@@ -1688,6 +1979,7 @@
       const matchGaugeClass = `detail-participant-match-gauge${isMatchLoginRequired ? " is-login-required" : ""}`;
       const mobileMatchReasons = isMatchLoginRequired ? "" : renderDetailTravelMatchReasons(travelMatch.reasons, "mobile");
       const desktopMatchReasons = isMatchLoginRequired ? "" : renderDetailTravelMatchReasons(travelMatch.reasons, "desktop");
+      const isEmptyAdminRecommendation = Boolean(join?.isAdminRecommendedSchedule) && count <= 0;
       return `
         <div class="detail-participant-status">
           <div class="detail-participant-status-title">함께하는 멤버</div>
@@ -1718,7 +2010,7 @@
                   <div class="detail-participant-gauge-fill" style="--gauge-width:${percent}%;"></div>
                 </div>
               </div>
-              <div class="detail-participant-gender">
+              ${isEmptyAdminRecommendation ? "" : `<div class="detail-participant-gender">
                 <div class="detail-participant-block-title">성별구성</div>
                 <div class="detail-participant-gender-row">
                   <div class="detail-participant-gender-side">
@@ -1739,7 +2031,7 @@
                     <div class="detail-participant-gender-mobile-label">여성 ${stats.female}명</div>
                   </div>
                 </div>
-              </div>
+              </div>`}
               <div class="detail-participant-info-grid">
                 <div class="detail-participant-info-cell">
                   <div class="detail-participant-info-label">평균연령</div>
@@ -1787,7 +2079,7 @@
                   <div class="detail-participant-info-value">${escapeHtml(count > 0 ? stats.averageHandicap : "-")}</div>
                 </div>
               </div>
-              <div class="detail-participant-gender">
+              ${isEmptyAdminRecommendation ? "" : `<div class="detail-participant-gender">
                 <div class="detail-participant-block-title">성별구성</div>
                 <div class="detail-participant-gender-row">
                   <div class="detail-participant-gender-side">
@@ -1808,10 +2100,10 @@
                     <div class="detail-participant-gender-mobile-label">여성 ${stats.female}명</div>
                   </div>
                 </div>
-              </div>
+              </div>`}
             </div>
             <div class="detail-participant-divider" aria-hidden="true"></div>
-            <div class="detail-participant-match">
+            ${isEmptyAdminRecommendation ? "" : `<div class="detail-participant-match">
               <div class="detail-participant-match-head">
                 <div class="detail-participant-match-label">여행스타일 적합도<svg class="detail-participant-match-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="detailMonthlyMatchSparklesGradient" x1="4" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe681"></stop><stop offset="0.55" stop-color="#ffc233"></stop><stop offset="1" stop-color="#ff9f1c"></stop></linearGradient></defs><path fill="url(#detailMonthlyMatchSparklesGradient)" d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path fill="url(#detailMonthlyMatchSparklesGradient)" d="M20 2a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0V7h-2a1 1 0 1 1 0-2h2V3a1 1 0 0 1 1-1z"></path><circle cx="4" cy="20" r="2" fill="url(#detailMonthlyMatchSparklesGradient)"></circle></svg></div>
               </div>
@@ -1822,11 +2114,11 @@
                 </div>
                 ${mobileMatchReasons}
               </div>
-              <div class="detail-participant-style-chips mobile">
-                ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
-              </div>
+            </div>`}
+            <div class="detail-participant-style-chips mobile">
+              ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
-            ${desktopMatchReasons}
+            ${isEmptyAdminRecommendation ? "" : desktopMatchReasons}
             <div class="detail-participant-style-chips desktop">
               ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
@@ -2101,13 +2393,35 @@
     }
 
     function getDetailMatchAgeLabel(ageDecade) {
-      return Number.isFinite(ageDecade) ? `${Math.round(ageDecade)}대` : "";
+      return Number.isFinite(ageDecade) ? `${Math.round(ageDecade / 10) * 10}대` : "";
     }
 
     function getDetailMatchScoreLabel(score) {
       if (!Number.isFinite(score) || score <= 0) return "";
       const rounded = Math.round(score / 10) * 10;
       return `${rounded}대 타수`;
+    }
+
+    function getDetailMatchedStyleReason(styleLabel = "") {
+      const normalized = String(styleLabel || "").replace(/\s+/g, "").trim();
+      if (!normalized) return "";
+      if (normalized.includes("친목")) return "친목 중심으로 즐기려는 멤버들이 모였어요";
+      if (normalized.includes("실력") || normalized.includes("집중")) return "함께 집중해서 실력을 높이기 좋은 모임이에요";
+      if (normalized.includes("매너") || normalized.includes("배려")) return "서로 배려하는 매너 중심의 라운딩을 선호해요";
+      if (normalized.includes("여유") || normalized.includes("힐링")) return "여유로운 라운딩을 선호하는 멤버들이 함께해요";
+      if (normalized.includes("관광") || normalized.includes("여행")) return "라운딩과 여행을 함께 즐기려는 멤버들이 모였어요";
+      return `${styleLabel}을 선호하는 멤버들과 잘 맞아요`;
+    }
+
+    function getDetailGroupStyleReason(styleLabel = "") {
+      const normalized = String(styleLabel || "").replace(/\s+/g, "").trim();
+      if (!normalized) return "";
+      if (normalized.includes("친목")) return "친목 중심으로 즐기려는 멤버들이 모였어요";
+      if (normalized.includes("실력") || normalized.includes("집중")) return "함께 집중해서 실력을 높이기 좋은 모임이에요";
+      if (normalized.includes("매너") || normalized.includes("배려")) return "서로 배려하는 매너 중심의 라운딩을 선호해요";
+      if (normalized.includes("여유") || normalized.includes("힐링")) return "여유로운 라운딩을 선호하는 멤버들이 함께해요";
+      if (normalized.includes("관광") || normalized.includes("여행")) return "라운딩과 여행을 함께 즐기려는 멤버들이 모였어요";
+      return `${styleLabel}을 선호하는 멤버들이 함께해요`;
     }
 
     function addDetailMatchReason(reasons, text) {
@@ -2117,15 +2431,7 @@
 
     function calculateDetailTravelMatch(join = {}, participants = []) {
       const member = getDetailCurrentMemberForMatch();
-      const explicitStyleLabel = getDetailMatchStyleLabel(getDetailMemberStyleTokens(member));
       const explicit = Number(join.travelStyleMatchPercent || join.matchPercent || join.matchRate || 0);
-      if (Number.isFinite(explicit) && explicit > 0) {
-        return {
-          percent: clampDetailTravelMatchScore(explicit),
-          reasons: [explicitStyleLabel ? `${explicitStyleLabel} 스타일을 기준으로 살펴봤어요` : "입력하신 스타일을 기준으로 살펴봤어요"]
-        };
-      }
-
       const memberAgeDecade = getDetailMemberAgeDecadeForMatch(member);
       const participantAgeAverage = getDetailParticipantAverage(participants.map(getDetailParticipantAgeDecadeV2));
       const memberScore = getDetailMemberScoreForMatch(member);
@@ -2142,9 +2448,15 @@
       const memberStyleLabel = getDetailMatchStyleLabel(memberStyles);
       const matchedStyleLabel = getDetailMatchStyleLabel(styleMatches) || memberStyleLabel;
       const scheduleStyleLabel = getDetailMatchStyleLabel(scheduleStyleMatches) || memberStyleLabel;
-      const memberAgeLabel = getDetailMatchAgeLabel(memberAgeDecade);
-      const memberScoreLabel = getDetailMatchScoreLabel(memberScore);
+      const participantStyleLabel = getDetailMatchStyleLabel(participantStyles);
+      const participantAgeLabel = getDetailMatchAgeLabel(participantAgeAverage);
+      const participantScoreLabel = getDetailMatchScoreLabel(participantScoreAverage);
       const hasParticipants = participants.length > 0;
+      const hasLimitedParticipantProfiles = hasParticipants
+        && !participantStyles.length
+        && !participantScoreAverage;
+      const hasMemberLifestyleDetails = Boolean(memberStyles.length || memberScore);
+      const isMonthlyGroup = isMonthlyRecommendationJoin(join);
       const hasPrice = Number(join.price || join.productPrice || 0) > 0;
       const hasDate = Boolean(join.departureDate && join.returnDate);
       const remaining = Number(join.emptySlots);
@@ -2158,39 +2470,56 @@
         addDetailMatchReason(reasons, memberStyleLabel ? `${memberStyleLabel} 스타일로 시작하기 좋아요` : "원하는 동행 분위기로 시작하기 좋아요");
       }
 
+      if (styleMatches.length) {
+        score += Math.min(6, styleMatches.length * 3);
+        addDetailMatchReason(reasons, getDetailMatchedStyleReason(matchedStyleLabel));
+      } else if (!memberStyles.length && participantStyles.length) {
+        addDetailMatchReason(reasons, getDetailGroupStyleReason(participantStyleLabel));
+      } else if (memberStyles.length && participantStyles.length) {
+        score += 1;
+      }
+      if (!hasParticipants && scheduleStyleMatches.length) {
+        score += Math.min(5, scheduleStyleMatches.length * 2);
+        addDetailMatchReason(reasons, getDetailMatchedStyleReason(scheduleStyleLabel));
+      }
+
       if (Number.isFinite(memberAgeDecade) && Number.isFinite(participantAgeAverage)) {
         const diff = Math.abs(memberAgeDecade - participantAgeAverage);
         if (diff <= 10) {
           score += 6;
-          addDetailMatchReason(reasons, memberAgeLabel ? `${memberAgeLabel} 기준으로 편하게 어울려요` : "편하게 어울릴 연령대에 가까워요");
+          addDetailMatchReason(reasons, participantAgeLabel ? `${participantAgeLabel} 중심이라 편안하게 대화하기 좋아요` : "편하게 어울릴 연령대에 가까워요");
         } else if (diff <= 20) {
           score += 3;
+          if (hasLimitedParticipantProfiles && participantAgeLabel) {
+            addDetailMatchReason(reasons, `${participantAgeLabel} 중심의 멤버들과 함께하는 ${isMonthlyGroup ? "월례회 " : ""}일정이에요`);
+          }
         } else {
           score -= 3;
+          if (hasLimitedParticipantProfiles && participantAgeLabel) {
+            addDetailMatchReason(reasons, `${participantAgeLabel} 중심의 멤버들과 함께하는 ${isMonthlyGroup ? "월례회 " : ""}일정이에요`);
+          }
         }
+      } else if (!Number.isFinite(memberAgeDecade) && Number.isFinite(participantAgeAverage)) {
+        addDetailMatchReason(
+          reasons,
+          participantAgeLabel
+            ? `${participantAgeLabel} 중심의 멤버들과 함께하는 ${isMonthlyGroup ? "월례회 " : ""}일정이에요`
+            : "다양한 멤버들과 함께하는 일정이에요"
+        );
       }
 
       if (memberScore && participantScoreAverage) {
         const diff = Math.abs(memberScore - participantScoreAverage);
         if (diff <= 10) {
           score += 6;
-          addDetailMatchReason(reasons, memberScoreLabel ? `${memberScoreLabel} 템포와 잘 맞아요` : "라운딩 템포가 잘 맞을 가능성이 높아요");
+          addDetailMatchReason(reasons, participantScoreLabel ? `${participantScoreLabel} 중심이라 라운딩 속도가 비슷해요` : "라운딩 속도가 잘 맞을 가능성이 높아요");
         } else if (diff <= 20) {
           score += 3;
         } else {
           score -= 4;
         }
-      }
-
-      if (styleMatches.length) {
-        score += Math.min(6, styleMatches.length * 3);
-        addDetailMatchReason(reasons, matchedStyleLabel ? `${matchedStyleLabel} 성향이 잘 맞아요` : "선호하는 라운딩 분위기가 잘 맞아요");
-      } else if (memberStyles.length && participantStyles.length) {
-        score += 1;
-      }
-      if (!hasParticipants && scheduleStyleMatches.length) {
-        score += Math.min(5, scheduleStyleMatches.length * 2);
-        addDetailMatchReason(reasons, scheduleStyleLabel ? `${scheduleStyleLabel} 분위기와 잘 맞아요` : "선호하는 동행 성향과 잘 맞아요");
+      } else if (!memberScore && participantScoreAverage) {
+        addDetailMatchReason(reasons, participantScoreLabel ? `${participantScoreLabel} 중심의 멤버들이 함께해요` : "비슷한 라운딩 속도의 멤버들이 함께해요");
       }
 
       if (hasDate && hasPrice) {
@@ -2203,13 +2532,30 @@
       if (Number.isFinite(remaining) && remaining > 0 && remaining <= 2) score += 3;
       if (Number.isFinite(remaining) && remaining >= 3) score += 2;
 
+      if (!hasMemberLifestyleDetails && hasParticipants) {
+        addDetailMatchReason(
+          reasons,
+          isMonthlyGroup
+            ? "여러 멤버가 함께하는 월례회라 처음 참여해도 자연스럽게 어울리기 좋아요"
+            : hasLimitedParticipantProfiles
+              ? "여러 멤버가 함께하는 단체 일정이라 처음 참여해도 자연스럽게 어울리기 좋아요"
+              : "함께 떠날 멤버가 있는 일정이라 부담 없이 합류하기 좋아요"
+        );
+      }
+
       if (!reasons.length) {
-        const hasStyleBasis = Boolean(memberStyles.length || participantStyles.length || joinStyles.length);
-        addDetailMatchReason(reasons, hasStyleBasis ? "입력하신 스타일을 바탕으로 살펴봤어요" : "스타일을 입력하면 더 정확하게 볼 수 있어요");
+        addDetailMatchReason(
+          reasons,
+          hasParticipants
+            ? "함께 떠날 멤버가 있는 일정이라 부담 없이 합류하기 좋아요"
+            : "원하는 분위기로 모임을 함께 만들어갈 수 있어요"
+        );
       }
 
       return {
-        percent: clampDetailTravelMatchScore(score),
+        percent: Number.isFinite(explicit) && explicit > 0
+          ? clampDetailTravelMatchScore(explicit)
+          : clampDetailTravelMatchScore(score),
         reasons
       };
     }
@@ -2300,9 +2646,9 @@
                 <div>${interestCount}명 관심중</div>
               </div>
             </div>
-            <div class="team-row detail-team">
+            ${isEmptyAdminRecommendation ? "" : `<div class="team-row detail-team">
               ${renderCardTeamSlots(join, false, 4, { allowEmptySlots: !options.disableEmptySlots })}
-            </div>
+            </div>`}
             <div class="detail-participant-info-grid">
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">현재인원</div>
@@ -2321,7 +2667,7 @@
                 <div class="detail-participant-info-value">${escapeHtml(averageHandicapLabel)}</div>
               </div>
             </div>
-            <div class="detail-participant-gender">
+            ${isEmptyAdminRecommendation ? "" : `<div class="detail-participant-gender">
               <div class="detail-participant-block-title">성별구성</div>
               <div class="detail-participant-gender-row">
                 <div class="detail-participant-gender-side">
@@ -2342,9 +2688,9 @@
                   <div class="detail-participant-gender-mobile-label">여성 ${stats.female}명</div>
                 </div>
               </div>
-            </div>
+            </div>`}
             <div class="detail-participant-divider" aria-hidden="true"></div>
-            <div class="detail-participant-match">
+            ${isEmptyAdminRecommendation ? "" : `<div class="detail-participant-match">
               <div class="detail-participant-match-head">
                 <div class="detail-participant-match-label">여행 스타일이 잘 맞아요<svg class="detail-participant-match-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="detailMatchSparklesGradient" x1="4" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe681"></stop><stop offset="0.55" stop-color="#ffc233"></stop><stop offset="1" stop-color="#ff9f1c"></stop></linearGradient></defs><path fill="url(#detailMatchSparklesGradient)" d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path fill="url(#detailMatchSparklesGradient)" d="M20 2a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0V7h-2a1 1 0 1 1 0-2h2V3a1 1 0 0 1 1-1z"></path><circle cx="4" cy="20" r="2" fill="url(#detailMatchSparklesGradient)"></circle></svg></div>
               </div>
@@ -2352,7 +2698,7 @@
                 <div class="detail-participant-gauge-fill" style="--gauge-width:${matchPercent}%;"></div>
               </div>
               <div class="detail-participant-match-summary">${matchPercent}%</div>
-            </div>
+            </div>`}
             <div class="detail-participant-style-chips">
               ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
@@ -2412,9 +2758,9 @@
                 <div>${interestCount}명 관심중</div>
               </div>
             </div>
-            <div class="team-row detail-team">
+            ${isEmptyAdminRecommendation ? "" : `<div class="team-row detail-team">
               ${renderCardTeamSlots(join, false, 4, { allowEmptySlots: !options.disableEmptySlots })}
-            </div>
+            </div>`}
             <div class="detail-participant-info-grid">
               <div class="detail-participant-info-cell">
                 <div class="detail-participant-info-label">현재인원</div>
@@ -2433,7 +2779,7 @@
                 <div class="detail-participant-info-value">${escapeHtml(averageHandicapLabel)}</div>
               </div>
             </div>
-            <div class="detail-participant-gender">
+            ${isEmptyAdminRecommendation ? "" : `<div class="detail-participant-gender">
               <div class="detail-participant-block-title">성별구성</div>
               <div class="detail-participant-gender-row">
                 <div class="detail-participant-gender-side">
@@ -2454,9 +2800,9 @@
                   <div class="detail-participant-gender-mobile-label">여성 ${stats.female}명</div>
                 </div>
               </div>
-            </div>
+            </div>`}
             <div class="detail-participant-divider" aria-hidden="true"></div>
-            <div class="detail-participant-match">
+            ${isEmptyAdminRecommendation ? "" : `<div class="detail-participant-match">
               <div class="detail-participant-match-head">
                 <div class="detail-participant-match-label">여행스타일 적합도<svg class="detail-participant-match-sparkle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="detailMatchSparklesGradient" x1="4" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffe681"></stop><stop offset="0.55" stop-color="#ffc233"></stop><stop offset="1" stop-color="#ff9f1c"></stop></linearGradient></defs><path fill="url(#detailMatchSparklesGradient)" d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path fill="url(#detailMatchSparklesGradient)" d="M20 2a1 1 0 0 1 1 1v2h2a1 1 0 1 1 0 2h-2v2a1 1 0 1 1-2 0V7h-2a1 1 0 1 1 0-2h2V3a1 1 0 0 1 1-1z"></path><circle cx="4" cy="20" r="2" fill="url(#detailMatchSparklesGradient)"></circle></svg></div>
               </div>
@@ -2467,11 +2813,11 @@
                 </div>
                 ${mobileMatchReasons}
               </div>
-              <div class="detail-participant-style-chips mobile">
-                ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
-              </div>
+            </div>`}
+            <div class="detail-participant-style-chips mobile">
+              ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
-            ${desktopMatchReasons}
+            ${isEmptyAdminRecommendation ? "" : desktopMatchReasons}
             <div class="detail-participant-style-chips desktop">
               ${styleTags.map((tag) => `<div class="detail-participant-style-chip">${escapeHtml(tag)}</div>`).join("")}
             </div>
@@ -2681,6 +3027,7 @@
           <div class="detail-flight-status-card" role="status">
             <div class="detail-flight-status-title">항공편 정보 확인 필요</div>
             <div>항공일정 응답이 지연되고 있습니다. 나머지 상품상세는 정상적으로 이용할 수 있습니다.</div>
+            <button type="button" class="detail-flight-retry-button" onclick="retryCurrentDetailFlightSchedule()">항공편 다시 확인</button>
           </div>
         `;
       }
@@ -2796,21 +3143,19 @@
     }
 
     function getDetailSlides(join) {
-      if (Array.isArray(join.slides) && join.slides.length) {
-        return join.slides;
+      const slides = Array.isArray(join.slides) ? join.slides.filter(Boolean) : [];
+      if (slides.length) {
+        return slides;
       }
-      return [
-        join.image,
-        "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC1.jpg",
-        "https://cauhemhvdwlkxalwxxxq.supabase.co/storage/v1/object/public/product-images/productCC2.jpg"
-      ];
+      const inlineFallback = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='760' viewBox='0 0 1200 760'%3E%3Crect width='1200' height='760' fill='%23eef2f7'/%3E%3Cpath d='M510 430l70-70 55 55 55-55 100 100H410z' fill='%2394a3b8'/%3E%3Ccircle cx='520' cy='290' r='34' fill='%2394a3b8'/%3E%3C/svg%3E";
+      return [join.image || inlineFallback];
     }
 
     function getDetailIntroImages(join) {
       if (Array.isArray(join.introImages) && join.introImages.length) {
-        return join.introImages;
+        return join.introImages.filter(Boolean);
       }
-      return getDetailSlides(join);
+      return join.image ? [join.image] : [];
     }
 
     function daysUntil(dateString) {
@@ -2862,6 +3207,23 @@
     let calendarMobileSelectionSort = "region";
     let calendarEmptyScheduleDate = "";
     let calendarEmptyScheduleOpenedAt = 0;
+
+    function refreshCalendarProductDiscovery(reason = "calendar-view") {
+      const targetMonth = calendarViewMonth || getTodayDate();
+      const generation = beginGolfJoinProductDiscoveryConsumer("join-calendar");
+      return loadGolfJoinProductDiscoveryMonths(
+        getGolfJoinProductDiscoveryAdjacentMonths(targetMonth),
+        { consumer: "join-calendar", reason }
+      ).then(() => {
+        if (!isGolfJoinProductDiscoveryConsumerCurrent("join-calendar", generation)) return false;
+        if (!document.getElementById("calendarSheet")?.classList.contains("open")) return false;
+        renderCalendarSheet();
+        return true;
+      }).catch((error) => {
+        golfJoinSafeWarn("Failed to refresh calendar product discovery.", error);
+        return false;
+      });
+    }
 
     function getISODateKey(date) {
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -2920,9 +3282,11 @@
       calendarViewMonth = nextMonth;
       if (isCalendarDesktopMode() && document.getElementById("calendarSheetBody")?.classList.contains("desktop-date-selected")) {
         refreshCalendarDesktopSelectedMonth();
+        requestAnimationFrame(() => void refreshCalendarProductDiscovery("month-change"));
         return;
       }
       renderCalendarSheet();
+      requestAnimationFrame(() => void refreshCalendarProductDiscovery("month-change"));
     }
 
     function getJoinEventsByDate() {
@@ -2934,30 +3298,55 @@
       }, {});
     }
 
+    function createJoinableCalendarRenderContext(eventsByDate = null) {
+      const registeredProducts = getBuilderRegisteredProductsForDateSelection();
+      const registeredDateIndex = getBuilderProductDateIndex(registeredProducts);
+      return {
+        eventsByDate: eventsByDate || getJoinEventsByDate(),
+        minimumDepartureISO: getBuilderMinDepartureISO(),
+        productDateBounds: getBuilderProductDateBounds(),
+        activeSchedules: getActiveJoinMySchedules(),
+        registeredDepartureDates: registeredDateIndex.departureDateSet,
+        hasRegisteredProducts: registeredProducts.length > 0
+      };
+    }
+
     function hasJoinEventsInMonth(monthDate) {
       const monthKey = getMonthKey(monthDate);
       return getVisibleCalendarJoinProducts().some((join) => String(join.departureDate || "").startsWith(monthKey));
     }
 
-    function isCalendarBuilderDepartureSelectable(date) {
+    function isCalendarBuilderDepartureSelectable(date, renderContext = null) {
+      const context = renderContext || createJoinableCalendarRenderContext();
       const iso = getISODateKey(date);
-      if (iso < getBuilderMinDepartureISO()) return false;
-      const { startDate, endDate } = getBuilderProductDateBounds();
+      if (iso < context.minimumDepartureISO) return false;
+      const departureTime = getDateOnlyTime(iso);
+      const minimumTripLeadTime = 2 * 24 * 60 * 60 * 1000;
+      if (Number.isFinite(departureTime) && context.activeSchedules.some((active) => (
+        active.range
+        && departureTime >= active.range.startTime - minimumTripLeadTime
+        && departureTime <= active.range.endTime
+      ))) return false;
+      const { startDate, endDate } = context.productDateBounds;
       if (startDate && iso < startDate) return false;
       if (endDate && iso > endDate) return false;
-      const products = getBuilderRegisteredProductsForDateSelection();
-      if (products.length) return products.some((product) => product.departureDate === iso);
+      if (context.hasRegisteredProducts) return context.registeredDepartureDates.has(iso);
       return true;
     }
 
-    function hasCalendarActiveDatesInMonth(monthDate, eventsByDate = getJoinEventsByDate()) {
+    function hasCalendarActiveDatesInMonth(monthDate, eventsByDate = getJoinEventsByDate(), renderContext = null) {
+      const context = renderContext || createJoinableCalendarRenderContext(eventsByDate);
       const year = monthDate.getFullYear();
       const month = monthDate.getMonth();
       const last = new Date(year, month + 1, 0);
       for (let day = 1; day <= last.getDate(); day += 1) {
         const date = new Date(year, month, day);
         const dateKey = getISODateKey(date);
-        if ((eventsByDate[dateKey] || []).length || isCalendarBuilderDepartureSelectable(date)) return true;
+        if (
+          getBuilderActiveScheduleForDate(date, context.activeSchedules)
+          || (eventsByDate[dateKey] || []).length
+          || isCalendarBuilderDepartureSelectable(date, context)
+        ) return true;
       }
       return false;
     }
@@ -3022,7 +3411,9 @@
 
     function getVisibleCalendarJoinProducts(items = joins) {
       const minDepartureISO = getBuilderMinDepartureISO();
-      return getVisibleJoinProducts(items).filter((join) => String(join.departureDate || "") >= minDepartureISO);
+      return getVisibleJoinProducts(items)
+        .filter((join) => String(join.departureDate || "") >= minDepartureISO)
+        .filter((join) => !isJoinExcludedFromMyReservationRecommendations(join));
     }
 
     function renderJoinCategoryChip(join) {
@@ -3067,6 +3458,12 @@
     function hasIncludedFlight(join = {}) {
       if (hasRoundTripFlightInclude(join)) return true;
       if (isIndividualAirProduct(join)) return false;
+      const packType = String(join.packType || "").trim().toLowerCase();
+      if (packType === "air" || packType === "airpack") return true;
+      if (packType === "golf" || packType === "golfpack") return false;
+      const actualProductType = getActualDetailProductType(join);
+      if (actualProductType === "항공팩") return true;
+      if (actualProductType === "골프팩") return false;
       const includes = [].concat(join.includes || []).filter(Boolean);
       if (includes.length) return false;
       return /\[\s*항공팩|항공팩|왕복\s*항공|왕복항공권|항공권\s*포함/i.test(String(join.title || ""));
@@ -3074,7 +3471,18 @@
 
     function renderJoinFlightChip(join) {
       const isIncluded = hasIncludedFlight(join);
-      return `<div class="join-flight-chip ${isIncluded ? "included" : "excluded"}">${isIncluded ? "항공포함" : "항공불포함"}</div>`;
+      const flight = isIncluded ? getDetailFlightRouteParts(join) : {};
+      const resolvedAirline = isIncluded
+        ? resolveSecretTourAirline(join)
+          || getDetailAirlineNameFromCode(flight.airlineCode)
+          || (flight.airline !== "항공사 확인 중" && isSecretTourAirlineName(flight.airline) ? flight.airline : "")
+        : "";
+      const includedLabel = resolvedAirline && !isIndividualAirName(resolvedAirline) ? resolvedAirline : "항공포함";
+      const normalizedAirlineCode = normalizeDetailAirlineCode(flight.airlineCode || getDetailAirlineCodeFromName(includedLabel));
+      const airlineImage = normalizedAirlineCode
+        ? `<img class="join-flight-chip-airline-image" src="https://storage.googleapis.com/golfjoin-bucket/golfjoin_img/air_${normalizedAirlineCode}.png" alt="" aria-hidden="true" loading="lazy" decoding="async" onerror="this.hidden=true">`
+        : "";
+      return `<div class="join-flight-chip ${isIncluded ? "included" : "excluded"}">${isIncluded ? `${airlineImage}<span>${escapeHtml(includedLabel)}</span>` : "항공불포함"}</div>`;
     }
 
     function getJoinAirportDepartureLabel(join = {}) {
@@ -3220,20 +3628,34 @@
     }
 
     function renderCalendarAvailabilityLegend() {
+      const hasActiveSchedule = getActiveJoinMySchedules().length > 0;
       return `
-        <div class="calendar-availability-legend" aria-label="초록색 원은 참여가능한 모임이 있는 날짜를 뜻합니다">
-          <div class="calendar-availability-legend-dot" aria-hidden="true"></div>
-          <div>참여가능</div>
+        <div class="calendar-availability-legend" aria-label="${hasActiveSchedule ? "주황색은 참여중인 일정, 초록색 원은 참여가능한 모임이 있는 날짜를 뜻합니다" : "초록색 원은 참여가능한 모임이 있는 날짜를 뜻합니다"}">
+          ${hasActiveSchedule ? `<div class="calendar-availability-legend-item active-schedule"><div class="calendar-active-schedule-legend-dot" aria-hidden="true"></div><div>참여중</div></div>` : ""}
+          <div class="calendar-availability-legend-item available"><div class="calendar-availability-legend-dot" aria-hidden="true"></div><div>참여가능</div></div>
         </div>
       `;
     }
 
-    function renderCalendarMobileSticky(monthDate) {
+    function renderCalendarMobileSticky(monthDate, startMonth, endMonth) {
+      const monthKey = getMonthKey(monthDate);
+      const isPrevDisabled = monthKey <= getMonthKey(startMonth);
+      const isNextDisabled = monthKey >= getMonthKey(endMonth);
+      const hasActiveSchedule = getActiveJoinMySchedules().length > 0;
       return `
         <div class="calendar-mobile-sticky" id="calendarMobileSticky">
-          <div class="calendar-mobile-month-head">
-            ${renderCalendarAvailabilityLegend()}
-            <div class="calendar-mobile-month-label" id="calendarMobileMonthLabel">${formatCalendarMonthTitle(monthDate)}</div>
+          <div class="calendar-mobile-month-head has-availability-legend" aria-label="${hasActiveSchedule ? "주황색은 참여중인 일정, 초록색 원은 참여가능한 모임이 있는 날짜를 뜻합니다" : "초록색 원은 참여가능한 모임이 있는 날짜를 뜻합니다"}">
+            ${hasActiveSchedule ? `<div class="calendar-availability-legend-item active-schedule"><div class="calendar-active-schedule-legend-dot" aria-hidden="true"></div><div>참여중</div></div>` : ""}
+            <div class="calendar-mobile-month-navigation">
+              <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <div class="calendar-mobile-month-label" id="calendarMobileMonthLabel">${formatCalendarMonthTitle(monthDate)}</div>
+              <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="calendar-availability-legend-item available"><div class="calendar-availability-legend-dot" aria-hidden="true"></div><div>참여가능</div></div>
           </div>
           <div class="calendar-grid">${renderCalendarWeekdayLabels()}</div>
         </div>
@@ -3368,12 +3790,15 @@
       updateBuilderNotice();
     }
 
-    function openBuilderFromCalendarEmptyDate() {
+    async function openBuilderFromCalendarEmptyDate() {
       const selectedDate = calendarEmptyScheduleDate;
       closeCalendarEmptyScheduleSheet();
       closeCalendarSheet();
-      openModal("builderModal");
+      const opened = await openModal("builderModal");
+      if (!opened) return false;
+      builderState.regionDateFirstMode = false;
       applyBuilderStartDateFromISO(selectedDate);
+      return true;
     }
 
     function toggleMobileCalendarArea() {
@@ -3435,11 +3860,14 @@
     function renderCalendarDesktopSelectedMonth() {
       const { startMonth, endMonth } = getCalendarMonthBounds();
       clampCalendarViewMonth(startMonth, endMonth);
-      return renderCalendarMonth(calendarViewMonth, getJoinEventsByDate(), {
+      const eventsByDate = getJoinEventsByDate();
+      const renderContext = createJoinableCalendarRenderContext(eventsByDate);
+      return renderCalendarMonth(calendarViewMonth, eventsByDate, {
         showMonthNav: true,
         forceSixWeeks: true,
         startMonth,
-        endMonth
+        endMonth,
+        renderContext
       });
     }
 
@@ -3456,11 +3884,9 @@
           <div class="calendar-month-navigation">
             <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              <div class="calendar-month-nav-label">이전 달</div>
             </button>
             <div class="calendar-month-label">${year}년 ${month + 1}월</div>
             <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
-              <div class="calendar-month-nav-label">다음 달</div>
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </div>
@@ -3519,7 +3945,7 @@
     function updateMobileExpandedCalendarHeight() {
       const body = document.getElementById("calendarSheetBody");
       const months = document.getElementById("calendarMobileMonths");
-      if (!body || !months || isCalendarDesktopMode()) return;
+      if (!body || !months || isCalendarDesktopMode() || !body.classList.contains("mobile-date-selected")) return;
       const selectedWeek = body.dataset.mobileSelectedMonth
         ? document.getElementById(`calendarWeek-${body.dataset.mobileSelectedMonth}`)
         : null;
@@ -3544,6 +3970,7 @@
     }
 
     function renderCalendarMonth(monthDate, eventsByDate, options = {}) {
+      const renderContext = options.renderContext || createJoinableCalendarRenderContext(eventsByDate);
       const year = monthDate.getFullYear();
       const month = monthDate.getMonth();
       const first = new Date(year, month, 1);
@@ -3562,6 +3989,8 @@
       const monthKey = getMonthKey(monthDate);
       const showMonthNav = Boolean(options.showMonthNav);
       const hideWeekdays = Boolean(options.hideWeekdays);
+      const hideMonthTitle = Boolean(options.hideMonthTitle);
+      const mobilePaged = Boolean(options.mobilePaged);
       const inactiveMonth = Boolean(options.inactiveMonth);
       const isPrevDisabled = showMonthNav && monthKey <= getMonthKey(options.startMonth);
       const isNextDisabled = showMonthNav && monthKey >= getMonthKey(options.endMonth);
@@ -3572,11 +4001,9 @@
             <div class="calendar-month-navigation">
               <button type="button" class="calendar-month-nav prev" onclick="changeCalendarMonth(-1)" ${isPrevDisabled ? "disabled" : ""} aria-label="이전 달">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5 8 12l7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <div class="calendar-month-nav-label">이전 달</div>
               </button>
               <div class="calendar-month-label">${year}년 ${month + 1}월</div>
               <button type="button" class="calendar-month-nav next" onclick="changeCalendarMonth(1)" ${isNextDisabled ? "disabled" : ""} aria-label="다음 달">
-                <div class="calendar-month-nav-label">다음 달</div>
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
             </div>
@@ -3596,24 +4023,36 @@
           const dateKey = getISODateKey(date);
           const isMutedMonth = date.getMonth() !== month;
           const displayDayNumber = date.getDate();
-          const canCreateSchedule = !isMutedMonth && isCalendarBuilderDepartureSelectable(date);
-          const events = !isMutedMonth && canCreateSchedule ? (eventsByDate[dateKey] || []) : [];
-          const summary = getCalendarEventSummary(events);
-          const canClickDate = !isMutedMonth && (events.length > 0 || canCreateSchedule);
+          const activeSchedule = getBuilderActiveScheduleForDate(date, renderContext.activeSchedules);
+          const canCreateSchedule = !isMutedMonth && !activeSchedule && isCalendarBuilderDepartureSelectable(date, renderContext);
+          const events = !isMutedMonth && !activeSchedule && canCreateSchedule ? (eventsByDate[dateKey] || []) : [];
+          const canClickActiveSchedule = Boolean(activeSchedule);
+          const canClickDate = !isMutedMonth && !activeSchedule && (events.length > 0 || canCreateSchedule);
           const isSunday = date.getDay() === 0;
           const holidayName = getHolidayMapForYear(date.getFullYear()).get(dateKey) || "";
-          const isHoliday = Boolean(holidayName);
-          const isUnavailable = dateKey < getBuilderMinDepartureISO();
+          // 오늘은 공휴일이어도 TODAY가 유일한 보조 라벨이 되도록 한다.
+          const isHoliday = Boolean(holidayName) && dateKey !== todayKey;
+          const isUnavailable = dateKey < renderContext.minimumDepartureISO;
+          const activeRange = activeSchedule?.range || null;
+          const activeStartTime = activeRange?.startTime;
+          const activeEndTime = activeRange?.endTime;
+          const dateTime = getDateOnlyTime(dateKey);
+          const activeScheduleClasses = activeSchedule ? [
+            "active-schedule",
+            dateTime === activeStartTime ? "active-schedule-start" : "",
+            dateTime === activeEndTime ? "active-schedule-end" : "",
+            activeStartTime === activeEndTime ? "active-schedule-single" : "",
+            dateTime > activeStartTime && dateTime < activeEndTime ? "active-schedule-range" : "",
+            offset === 0 ? "calendar-week-start" : "",
+            offset === 6 ? "calendar-week-end" : ""
+          ].filter(Boolean) : [];
           const weekKey = `${getMonthKey(monthDate)}-${weekStart / 7}`;
           weekCells.push(`
-            <div class="calendar-cell${isMutedMonth ? " muted" : ""}${events.length ? " has-data" : ""}${!events.length && canCreateSchedule ? " can-create" : ""}${dateKey === todayKey ? " today" : ""}${isUnavailable ? " unavailable" : ""}${isSunday ? " sunday" : ""}${isHoliday ? " holiday" : ""}">
-              <button type="button" class="calendar-day-button" ${canClickDate ? `onclick="toggleCalendarDay('${weekKey}', '${dateKey}')"` : "disabled"}>
+            <div class="calendar-cell${isMutedMonth ? " muted" : ""}${events.length ? " has-data" : ""}${!events.length && canCreateSchedule ? " can-create" : ""}${activeScheduleClasses.length ? ` ${activeScheduleClasses.join(" ")}` : ""}${dateKey === todayKey ? " today" : ""}${isUnavailable ? " unavailable" : ""}${isSunday ? " sunday" : ""}${isHoliday ? " holiday" : ""}">
+              <button type="button" class="calendar-day-button" ${canClickActiveSchedule ? `onclick="openBuilderActiveScheduleSheet('${escapeJsString(activeSchedule.key || "")}', '${dateKey}')"` : canClickDate ? `onclick="toggleCalendarDay('${weekKey}', '${dateKey}')"` : "disabled"}>
                 <strong>${displayDayNumber}</strong>
                 ${dateKey === todayKey ? `<div class="calendar-today-label">TODAY</div>` : ""}
                 ${holidayName && dateKey !== todayKey ? `<div class="calendar-holiday-label">${escapeHtml(holidayName)}</div>` : ""}
-                ${summary.monthly ? `<div class="calendar-event monthly">월례회 ${summary.monthly}</div>` : ""}
-                ${summary.domestic ? `<div class="calendar-event domestic">국내 ${summary.domestic}</div>` : ""}
-                ${summary.overseas ? `<div class="calendar-event overseas">해외 ${summary.overseas}</div>` : ""}
               </button>
             </div>
           `);
@@ -3627,8 +4066,8 @@
       }
 
       return `
-        <section class="calendar-month${hideWeekdays ? " mobile-compact" : ""}${inactiveMonth ? " inactive-month" : ""}" data-month-label="${formatCalendarMonthTitle(monthDate)}">
-          ${monthTitle}
+        <section class="calendar-month${hideWeekdays ? " mobile-compact" : ""}${mobilePaged ? " calendar-mobile-paged-month" : ""}${inactiveMonth ? " inactive-month" : ""}" data-month-label="${formatCalendarMonthTitle(monthDate)}">
+          ${hideMonthTitle ? "" : monthTitle}
           ${hideWeekdays ? "" : `<div class="calendar-grid">${labels.join("")}</div>`}
           ${weeks.join("")}
         </section>
@@ -3640,8 +4079,8 @@
       if (!body) return;
       const renderLoadingCell = (index) => `
         <div class="calendar-sheet-loading-cell" aria-hidden="true">
-          <div class="calendar-loading-cell-day skeleton-glass-shimmer"></div>
-          ${index % 3 === 1 ? "" : `<div class="calendar-loading-cell-event skeleton-glass-shimmer"></div>`}
+          <div class="calendar-loading-cell-day"></div>
+          ${index % 3 === 1 ? "" : `<div class="calendar-loading-cell-event"></div>`}
         </div>
       `;
       const renderLoadingWeek = (weekIndex) => `
@@ -3650,17 +4089,17 @@
         </div>
       `;
       const renderLoadingCard = (index) => `
-        <div class="calendar-sheet-loading-card skeleton-glass-shimmer" aria-hidden="true">
-          <div class="calendar-loading-card-thumb skeleton-glass-shimmer"></div>
+        <div class="calendar-sheet-loading-card" aria-hidden="true">
+          <div class="calendar-loading-card-thumb"></div>
           <div class="calendar-loading-card-info">
-            <div class="calendar-loading-card-line meta skeleton-glass-shimmer"></div>
-            <div class="calendar-loading-card-line name skeleton-glass-shimmer" style="width:${index % 2 ? 76 : 86}%;"></div>
-            <div class="calendar-loading-card-line date skeleton-glass-shimmer"></div>
+            <div class="calendar-loading-card-line meta"></div>
+            <div class="calendar-loading-card-line name" style="width:${index % 2 ? 76 : 86}%;"></div>
+            <div class="calendar-loading-card-line date"></div>
           </div>
           <div class="calendar-loading-card-side">
-            <div class="calendar-loading-card-pill skeleton-glass-shimmer"></div>
+            <div class="calendar-loading-card-pill"></div>
             <div class="calendar-loading-card-team">
-              ${Array.from({ length: 3 }).map(() => `<div class="calendar-loading-card-avatar skeleton-glass-shimmer"></div>`).join("")}
+              ${Array.from({ length: 3 }).map(() => `<div class="calendar-loading-card-avatar"></div>`).join("")}
             </div>
           </div>
         </div>
@@ -3676,15 +4115,21 @@
       delete body.dataset.desktopSelectedMonth;
       body.innerHTML = `
         <div class="calendar-sheet-loading" aria-live="polite" aria-busy="true">
+          <div class="calendar-sheet-common-loading">
+            <div class="join-action-loading-box has-message" role="status" aria-label="참여 가능한 일정을 확인하고 있어요">
+              <div class="join-action-loading-icon" aria-hidden="true">${joinActionLoadingIcons[1] || ""}</div>
+              <div class="join-action-loading-message"><div class="join-loading-text">참여 가능한 일정을 확인하고 있어요</div></div>
+            </div>
+          </div>
           <div class="calendar-loading-month-title">
-            <div class="calendar-sheet-loading-title skeleton-glass-shimmer"></div>
+            <div class="calendar-sheet-loading-title"></div>
           </div>
           <div class="calendar-grid calendar-loading-weekdays">${renderCalendarWeekdayLabels()}</div>
           <div class="calendar-sheet-loading-grid">
             ${Array.from({ length: 6 }).map((_, weekIndex) => renderLoadingWeek(weekIndex)).join("")}
           </div>
           <div class="calendar-loading-accordion">
-            <div class="detail-section-title" style="margin:0;"><div class="calendar-sheet-loading-title skeleton-glass-shimmer"></div></div>
+            <div class="detail-section-title" style="margin:0;"><div class="calendar-sheet-loading-title"></div></div>
             ${Array.from({ length: 3 }).map((_, index) => renderLoadingCard(index)).join("")}
           </div>
         </div>
@@ -3692,10 +4137,10 @@
     }
 
     function renderCalendarSheet() {
-      clearActiveJoinMySchedulesCache();
       const { startMonth, endMonth } = getCalendarMonthBounds();
       const endMonthKey = getMonthKey(endMonth);
       const eventsByDate = getJoinEventsByDate();
+      const renderContext = createJoinableCalendarRenderContext(eventsByDate);
       const months = [];
       const body = document.getElementById("calendarSheetBody");
       closeCalendarEmptyScheduleSheet();
@@ -3707,27 +4152,26 @@
           showMonthNav: true,
           forceSixWeeks: true,
           startMonth,
-          endMonth
+          endMonth,
+          renderContext
         }));
         months.push('</div>');
         months.push(renderCalendarDesktopSelectionShell());
         body.onscroll = null;
       } else {
-        months.push(renderCalendarMobileSticky(startMonth));
+        clampCalendarViewMonth(startMonth, endMonth);
+        months.push(renderCalendarMobileSticky(calendarViewMonth, startMonth, endMonth));
         months.push('<div class="calendar-mobile-months" id="calendarMobileMonths">');
-        const mobileEndMonth = addMonths(endMonth, 3);
-        const mobileEndMonthKey = getMonthKey(mobileEndMonth);
-        let cursor = startMonth;
-        while (getMonthKey(cursor) <= mobileEndMonthKey) {
-          months.push(renderCalendarMonth(cursor, eventsByDate, {
-            hideWeekdays: true,
-            inactiveMonth: !hasCalendarActiveDatesInMonth(cursor, eventsByDate)
-          }));
-          cursor = addMonths(cursor, 1);
-        }
+        months.push(renderCalendarMonth(calendarViewMonth, eventsByDate, {
+          hideWeekdays: true,
+          hideMonthTitle: true,
+          mobilePaged: true,
+          inactiveMonth: !hasCalendarActiveDatesInMonth(calendarViewMonth, eventsByDate, renderContext),
+          renderContext
+        }));
         months.push('</div>');
         months.push(renderCalendarMobileSelectionShell());
-        body.onscroll = updateCalendarMobileMonthLabel;
+        body.onscroll = null;
       }
 
       body.innerHTML = months.join("");
@@ -3741,12 +4185,13 @@
       delete body.dataset.desktopSelectedMonth;
       const mobileMonthLabel = document.getElementById("calendarMobileMonthLabel");
       if (mobileMonthLabel && !isCalendarDesktopMode()) {
-        mobileMonthLabel.textContent = formatCalendarMonthTitle(startMonth);
+        mobileMonthLabel.textContent = formatCalendarMonthTitle(calendarViewMonth);
       }
     }
 
     function toggleCalendarDay(monthKey, dateKey) {
       hideJoinMobileBottomNavForCalendarDateSelection();
+      if (getBuilderActiveScheduleForDate(new Date(`${dateKey}T00:00:00`))) return;
       const accordion = document.getElementById(`calendarAccordion-${monthKey}`);
       if (!accordion) return;
       const events = getJoinEventsByDate()[dateKey] || [];
@@ -3808,21 +4253,20 @@
       setWidgetModalOpen(true);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          ensureExternalGolfJoinProductsLoaded().finally(() => {
-            if (document.getElementById("calendarSheet")?.classList.contains("open")) {
-              renderCalendarSheet();
-            }
-          });
+          renderCalendarSheet();
+          requestAnimationFrame(() => void refreshCalendarProductDiscovery("initial-open"));
         });
       });
     }
 
     function closeCalendarSheet() {
       closeCalendarEmptyScheduleSheet();
+      closeBuilderActiveScheduleSheet();
       const sheet = document.getElementById("calendarSheet");
       resetModalRuntimeState(sheet);
       clearCalendarMobileSelection();
       clearCalendarDesktopSelection();
+      invalidateGolfJoinProductDiscoveryConsumer("join-calendar");
       sheet.classList.remove("open");
       setWidgetModalOpen(false);
       restoreJoinMobileBottomNavAfterNavModalClose();
@@ -3830,6 +4274,11 @@
 
     function handleCalendarSheetResize() {
       const sheet = document.getElementById("calendarSheet");
+      if (document.getElementById("builderActiveScheduleSheet")?.classList.contains("open")) {
+        syncBuilderActiveScheduleLayerGeometry(
+          Boolean(sheet?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open"))
+        );
+      }
       if (!sheet?.classList.contains("open")) return;
       const body = document.getElementById("calendarSheetBody");
       const nextMode = isCalendarDesktopMode() ? "desktop" : "mobile";
@@ -3863,8 +4312,11 @@
       });
     }
 
-    function getBuilderReturnDatePriceLabel(iso) {
+    function getBuilderReturnDatePriceLabel(iso, renderContext = null) {
       if (!builderState.fixedProductGroupKey || !Number.isFinite(builderState.startDay)) return "";
+      if (renderContext?.returnPriceLabelByDate instanceof Map) {
+        return renderContext.returnPriceLabelByDate.get(iso) || "";
+      }
       const departureIso = builderDateToISO(builderState.startDay);
       const matches = getBuilderFixedProductGroupProducts().filter((product) => {
         return product.departureDate === departureIso && (product.returnDate || product.departureDate) === iso && Number(product.price) > 0;
@@ -3884,9 +4336,16 @@
       return `${display}만`;
     }
 
-    function getBuilderDepartureDatePriceLabel(iso) {
+    function getBuilderDepartureDatePriceLabel(iso, renderContext = null) {
       if (!builderState.mdPickDateChangeMode || !builderState.fixedProductGroupKey || !iso) return "";
-      const matches = getBuilderFixedProductGroupProducts().filter((product) => product.departureDate === iso && Number(product.price) > 0);
+      if (renderContext?.departurePriceLabelByDate instanceof Map) {
+        return renderContext.departurePriceLabelByDate.get(iso) || "";
+      }
+      const matches = getBuilderFixedProductGroupProducts().filter((product) => (
+        product.departureDate === iso
+        && !isJoinProductBlockedForNewSchedule(product)
+        && Number(product.price) > 0
+      ));
       if (!matches.length) return "";
       const price = Math.min(...matches.map((product) => Number(product.price)));
       return formatBuilderCalendarPriceLabel(price);
@@ -3895,13 +4354,118 @@
     function getMdPickProductByDepartureDate(iso) {
       if (!iso) return null;
       return getBuilderFixedProductGroupProducts()
-        .filter((product) => product.departureDate === iso)
+        .filter((product) => product.departureDate === iso && !isJoinProductBlockedForNewSchedule(product))
         .sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0) || String(a.returnDate || "").localeCompare(String(b.returnDate || "")))[0] || null;
+    }
+
+    function getBuilderProductDateIndex(products = []) {
+      const source = Array.isArray(products) ? products : [];
+      const cached = builderProductDateIndexCache.get(source);
+      if (cached && cached.sourceLength === source.length) return cached;
+      const departureDateSet = new Set();
+      const returnDatesByDeparture = new Map();
+      let minimumDepartureDate = "";
+      let maximumDepartureDate = "";
+      source.forEach((product) => {
+        const departureDate = String(product?.departureDate || "").slice(0, 10);
+        const returnDate = String(product?.returnDate || departureDate || "").slice(0, 10);
+        if (!departureDate) return;
+        departureDateSet.add(departureDate);
+        if (!minimumDepartureDate || departureDate < minimumDepartureDate) minimumDepartureDate = departureDate;
+        if (!maximumDepartureDate || departureDate > maximumDepartureDate) maximumDepartureDate = departureDate;
+        if (!returnDatesByDeparture.has(departureDate)) returnDatesByDeparture.set(departureDate, new Set());
+        if (returnDate) returnDatesByDeparture.get(departureDate).add(returnDate);
+      });
+      const index = {
+        sourceLength: source.length,
+        departureDateSet,
+        returnDatesByDeparture,
+        minimumDepartureDate,
+        maximumDepartureDate
+      };
+      builderProductDateIndexCache.set(source, index);
+      return index;
+    }
+
+    function createBuilderCalendarRenderContext() {
+      const fixedProducts = builderState.fixedProductGroupKey
+        ? getBuilderFixedProductGroupProducts()
+        : [];
+      const registeredProducts = builderState.mdPickDateChangeMode
+        ? fixedProducts
+        : getBuilderRegisteredProductsForDateSelection();
+      const registeredDateIndex = getBuilderProductDateIndex(registeredProducts);
+      const departureProductsByDate = new Map();
+      const departurePriceLabelByDate = new Map();
+      const returnPriceLabelByDate = new Map();
+      const departureIso = Number.isFinite(builderState.startDay)
+        ? builderDateToISO(builderState.startDay)
+        : "";
+      const registeredReturnDateSet = new Set();
+      getBuilderSelectedDepartureDates().forEach((selectedDepartureIso) => {
+        registeredDateIndex.returnDatesByDeparture.get(selectedDepartureIso)?.forEach((returnIso) => {
+          registeredReturnDateSet.add(returnIso);
+        });
+      });
+
+      fixedProducts.forEach((product) => {
+        const productDeparture = String(product.departureDate || "");
+        if (productDeparture) {
+          if (!departureProductsByDate.has(productDeparture)) departureProductsByDate.set(productDeparture, []);
+          departureProductsByDate.get(productDeparture).push(product);
+          const price = Number(product.price) || 0;
+          if (price > 0) {
+            const currentPrice = Number(departurePriceLabelByDate.get(productDeparture)?.price) || 0;
+            if (!currentPrice || price < currentPrice) {
+              departurePriceLabelByDate.set(productDeparture, {
+                price,
+                label: formatBuilderCalendarPriceLabel(price)
+              });
+            }
+          }
+        }
+
+        if (departureIso && productDeparture === departureIso) {
+          const productReturn = String(product.returnDate || product.departureDate || "");
+          const price = Number(product.price) || 0;
+          if (productReturn && price > 0) {
+            const currentPrice = Number(returnPriceLabelByDate.get(productReturn)?.price) || 0;
+            if (!currentPrice || price < currentPrice) {
+              returnPriceLabelByDate.set(productReturn, {
+                price,
+                label: formatBuilderCalendarPriceLabel(price)
+              });
+            }
+          }
+        }
+      });
+
+      return {
+        productDateBounds: getBuilderProductDateBounds(),
+        minimumDepartureISO: getBuilderMinDepartureISO(),
+        activeSchedules: getActiveJoinMySchedules(),
+        fixedProducts,
+        registeredProducts,
+        registeredDepartureDateSet: registeredDateIndex.departureDateSet,
+        registeredReturnDateSet,
+        departureDateSet: new Set(departureProductsByDate.keys()),
+        departurePriceLabelByDate: new Map(
+          [...departurePriceLabelByDate].map(([iso, value]) => [iso, value.label])
+        ),
+        returnPriceLabelByDate: new Map(
+          [...returnPriceLabelByDate].map(([iso, value]) => [iso, value.label])
+        )
+      };
     }
 
     async function showMdPickDetailProduct(product, productGroupKey = currentMdPickProductGroupKey, countryKey = currentMdPickCountryKey, options = {}) {
       if (!product) return;
-      const detailPerformanceGeneration = beginGolfJoinDetailPerformance();
+      const progressiveShell = options.progressiveShell === true;
+      const requestGeneration = Number(options.requestGeneration || 0);
+      const detailRequestGeneration = Number(options.detailRequestGeneration || 0) || ++detailContentRequestGeneration;
+      const suppliedDetailPerformanceGeneration = Number(options.detailPerformanceGeneration || 0);
+      const detailPerformanceGeneration = suppliedDetailPerformanceGeneration
+        || (options.skipPerformance === true ? 0 : beginGolfJoinDetailPerformance());
       product = prepareSecretTourInitialFlightScheduleState(product);
       const detailScrollState = options.preserveScroll
         ? (options.scrollState || captureDetailModalScrollState())
@@ -3909,41 +4473,66 @@
       currentDetailMode = "mdPickProduct";
       currentDetailJoinId = product.id;
       currentDetailJoinData = product;
-      addJoinRecentViewedItem(product, "product");
+      if (!progressiveShell) addJoinRecentViewedItem(product, "product");
       currentMdPickProductGroupKey = productGroupKey;
       currentMdPickCountryKey = countryKey;
       currentDetailSlideIndex = 0;
       stopDetailReviewAutoSlide();
       closeDetailApply();
       document.getElementById("detailModalTitle").textContent = product.title;
-      renderDetailContent(product, { hideParticipants: true });
+      renderDetailContent(product, {
+        hideParticipants: true,
+        progressiveShell,
+        hydrateFamilyMetadata: !progressiveShell
+      });
+      setDetailMdPickRecruitActions();
       const primary = document.getElementById("detailPrimaryButton");
       if (primary) {
-        primary.innerHTML = `<span>멤버 모집하기</span>${renderDetailChevronRightIcon()}`;
-        primary.setAttribute("onclick", "handleDetailPrimaryAction()");
+        primary.innerHTML = progressiveShell
+          ? "<span>일정 확인 중</span>"
+          : `<span>멤버 모집하기</span>${renderDetailChevronRightIcon()}`;
+        if (progressiveShell) primary.removeAttribute("onclick");
+        else primary.setAttribute("onclick", "handleDetailPrimaryAction()");
+        primary.disabled = progressiveShell;
+        primary.setAttribute("aria-disabled", progressiveShell ? "true" : "false");
       }
-      setDetailMdPickRecruitActions();
-      setDetailScheduleConflictState(product);
+      if (progressiveShell) {
+        const dateChange = document.getElementById("detailDateChangeButton");
+        if (dateChange) dateChange.hidden = true;
+      }
+      if (!progressiveShell) setDetailScheduleConflictState(product);
       document.getElementById("detailModal")?.classList.add("mdpick-recruit-mode");
       document.getElementById("detailModal")?.classList.remove("builder-select-mode", "builder-product-detail-mode");
-      openModal("detailModal", { pageScrollState: options.pageScrollState });
+      if (options.open !== false) {
+        openModal("detailModal", {
+          pageScrollState: options.pageScrollState,
+          analyticsSourceArea: options.analyticsSourceArea || ""
+        });
+      }
       requestAnimationFrame(() => {
         prepareDetailScheduleHeights({ forceOpen: true });
         if (detailScrollState) restoreDetailModalScrollState(detailScrollState);
         else resetDetailModalScroll();
-        finishGolfJoinDetailPerformance(
-          detailPerformanceGeneration,
-          "golfjoin:detail:visible",
-          "golfjoin:duration:detail-visible"
-        );
+        if (detailPerformanceGeneration) {
+          finishGolfJoinDetailPerformance(
+            detailPerformanceGeneration,
+            "golfjoin:detail:visible",
+            "golfjoin:duration:detail-visible"
+          );
+        }
       });
+      if (progressiveShell || options.skipDetailLoad === true) return product;
       try {
         const detail = await loadSecretTourGoodsDetail(product);
-        finishGolfJoinDetailPerformance(
-          detailPerformanceGeneration,
-          "golfjoin:detail:erp-ready",
-          "golfjoin:duration:detail-erp"
-        );
+        if (requestGeneration && requestGeneration !== mdPickDetailOpenGeneration) return product;
+        if (detailRequestGeneration !== detailContentRequestGeneration) return product;
+        if (detailPerformanceGeneration) {
+          finishGolfJoinDetailPerformance(
+            detailPerformanceGeneration,
+            "golfjoin:detail:erp-ready",
+            "golfjoin:duration:detail-erp"
+          );
+        }
         const enrichedProduct = { ...mergeSecretTourGoodsDetail(product, detail), secretTourDetailLoaded: true };
         if (Array.isArray(externalGolfJoinProducts)) {
           externalGolfJoinProducts = externalGolfJoinProducts.map((item) => item.id === enrichedProduct.id ? enrichedProduct : item);
@@ -3962,27 +4551,41 @@
             restoreDetailModalScrollState(currentScrollState);
           });
         }
-        void enrichSecretTourFlightScheduleInBackground(enrichedProduct, detail, enrichedProduct)
-          .then(() => finishGolfJoinDetailPerformance(
+        void enrichSecretTourFlightScheduleInBackground(enrichedProduct, detail, enrichedProduct, { detailRequestGeneration })
+          .then(() => detailPerformanceGeneration && finishGolfJoinDetailPerformance(
             detailPerformanceGeneration,
             "golfjoin:detail:flight-ready",
             "golfjoin:duration:detail-flight"
           ))
           .catch((error) => {
-            finishGolfJoinDetailPerformance(
-              detailPerformanceGeneration,
-              "golfjoin:detail:flight-failed",
-              "golfjoin:duration:detail-flight"
-            );
+            if (detailPerformanceGeneration) {
+              finishGolfJoinDetailPerformance(
+                detailPerformanceGeneration,
+                "golfjoin:detail:flight-failed",
+                "golfjoin:duration:detail-flight"
+              );
+            }
             golfJoinSafeWarn("Failed to update MD PICK flight schedule.", error);
           });
+        return enrichedProduct;
       } catch (error) {
-        finishGolfJoinDetailPerformance(
-          detailPerformanceGeneration,
-          "golfjoin:detail:erp-failed",
-          "golfjoin:duration:detail-erp"
-        );
+        if (detailPerformanceGeneration) {
+          finishGolfJoinDetailPerformance(
+            detailPerformanceGeneration,
+            "golfjoin:detail:erp-failed",
+            "golfjoin:duration:detail-erp"
+          );
+        }
         golfJoinSafeWarn("Failed to enrich MD PICK detail from ERP.", error);
+        if (
+          detailRequestGeneration === detailContentRequestGeneration
+          && currentDetailMode === "mdPickProduct"
+          && currentDetailJoinId === product.id
+          && document.getElementById("detailModal")?.classList.contains("open")
+        ) {
+          showDetailLoadRetryNotice();
+        }
+        return product;
       }
     }
 
@@ -3994,16 +4597,42 @@
       showMdPickDetailProduct(product);
     }
 
+    function renderBuilderCalendarLoadingShell() {
+      const grid = document.getElementById("builderCalendar");
+      const card = grid?.closest(".builder-calendar-card");
+      if (!grid || !card) return;
+      const monthLabel = document.getElementById("builderCalendarMonth");
+      if (monthLabel) monthLabel.innerHTML = '<span class="builder-calendar-loading-month" aria-hidden="true"></span>';
+      card.classList.add("is-loading-dates", "is-loading-shell", "has-six-weeks");
+      syncBuilderCalendarLoading(true);
+      document.getElementById("builderActiveScheduleLegend")?.setAttribute("hidden", "");
+      const renderCell = (index) => `
+        <span class="builder-calendar-loading-cell" aria-hidden="true">
+          <span class="builder-calendar-loading-day"></span>
+          ${index % 3 === 1 ? "" : '<span class="builder-calendar-loading-event"></span>'}
+        </span>
+      `;
+      grid.innerHTML = Array.from({ length: 6 }).map((_, weekIndex) => `
+        <div class="builder-calendar-week builder-calendar-loading-week">
+          ${Array.from({ length: 7 }).map((__, dayIndex) => renderCell(weekIndex * 7 + dayIndex)).join("")}
+        </div>
+      `).join("");
+    }
+
     function renderBuilderCalendar() {
       const grid = document.getElementById("builderCalendar");
       if (!grid) return;
       bindBuilderCalendarSwipe(grid);
       syncActiveJoinMySchedulesMemberScope();
       const isLoadingDates = isBuilderDateLoading();
-      grid.closest(".builder-calendar-card")?.classList.toggle("is-loading-dates", isLoadingDates);
+      const calendarCard = grid.closest(".builder-calendar-card");
+      calendarCard?.classList.remove("is-loading-shell");
+      calendarCard?.classList.toggle("is-loading-dates", isLoadingDates);
       syncBuilderCalendarLoading(isLoadingDates);
       reconcileBuilderConstrainedDates();
+      const renderContext = createBuilderCalendarRenderContext();
       document.getElementById("builderCalendarMonth").textContent = `${builderState.viewYear}년 ${builderState.viewMonth + 1}월`;
+      updateBuilderRegionDateFirstMonthNavigation();
       const firstWeekday = new Date(builderState.viewYear, builderState.viewMonth, 1).getDay();
       const lastDate = new Date(builderState.viewYear, builderState.viewMonth + 1, 0).getDate();
       const prevLastDate = new Date(builderState.viewYear, builderState.viewMonth, 0).getDate();
@@ -4023,7 +4652,7 @@
       const renderCell = ({ day, dayOffset, date, muted, index }) => {
         const weekday = index % 7;
         const stamp = toStamp(date);
-        const unavailable = isLoadingDates || !isBuilderDateSelectable(date);
+        const unavailable = isLoadingDates || !isBuilderDateSelectable(date, renderContext);
         const hasStart = Number.isFinite(builderState.startDay);
         const hasEnd = Number.isFinite(builderState.endDay);
         const isStart = hasStart && stamp === toStamp(startDate);
@@ -4040,8 +4669,9 @@
         const isToday = stamp === todayStamp;
         const iso = getISODateKey(date);
         const holidayName = getKoreanHolidayMap(date.getFullYear()).get(iso) || "";
-        const isHoliday = Boolean(holidayName);
-        const activeSchedule = getBuilderActiveScheduleForDate(date);
+        // 오늘은 공휴일이어도 TODAY가 유일한 보조 라벨이 되도록 한다.
+        const isHoliday = Boolean(holidayName) && !isToday;
+        const activeSchedule = getBuilderActiveScheduleForDate(date, renderContext.activeSchedules);
         if (activeSchedule && !muted) hasActiveScheduleInCalendar = true;
         const activeRange = activeSchedule?.range || null;
         const activeStartTime = activeRange?.startTime;
@@ -4066,9 +4696,9 @@
           if ((inStartFlex && stamp === startFlexMax) || (inEndFlex && stamp === endFlexMax)) flexClasses.push("flex-edge-right");
         }
         const cls = ["builder-day", muted ? "muted" : "", displayUnavailable ? "unavailable" : "", isToday ? "today" : "", weekday === 0 ? "sunday" : "", weekday === 6 ? "saturday" : "", isHoliday ? "holiday" : "", ...activeScheduleClasses, ...new Set(flexClasses), isRange ? "range" : "", hasStart && hasEnd && !displayUnavailable && (isStart || isEnd) ? "linked" : "", !displayUnavailable && isStart ? "start" : "", !displayUnavailable && isEnd ? "end" : ""].filter(Boolean).join(" ");
-        const departurePriceLabel = !displayUnavailable && !hasStart ? getBuilderDepartureDatePriceLabel(iso) : "";
-        const returnPriceLabel = !displayUnavailable && !isStart && hasStart && !hasEnd ? getBuilderReturnDatePriceLabel(iso) : "";
-        const label = activeSchedule ? "" : !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : departurePriceLabel ? `<div class="builder-day-label">${departurePriceLabel}</div>` : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : holidayName ? `<div class="builder-day-holiday-label">${escapeHtml(holidayName)}</div>` : "";
+        const departurePriceLabel = !displayUnavailable && !hasStart ? getBuilderDepartureDatePriceLabel(iso, renderContext) : "";
+        const returnPriceLabel = !displayUnavailable && !isStart && hasStart && !hasEnd ? getBuilderReturnDatePriceLabel(iso, renderContext) : "";
+        const label = activeSchedule ? "" : !displayUnavailable && isStart ? '<div class="builder-day-label">출발</div>' : !displayUnavailable && isEnd ? '<div class="builder-day-label">도착</div>' : departurePriceLabel ? `<div class="builder-day-label">${departurePriceLabel}</div>` : returnPriceLabel ? `<div class="builder-day-label">${returnPriceLabel}</div>` : isToday ? '<div class="builder-day-today-label">TODAY</div>' : isHoliday ? `<div class="builder-day-holiday-label">${escapeHtml(holidayName)}</div>` : "";
         const canClick = !isLoadingDates && (activeSchedule || !unavailable || isStart || isEnd);
         const click = activeSchedule
           ? `openBuilderActiveScheduleSheet('${escapeJsString(activeSchedule.key)}', '${iso}')`
@@ -4165,10 +4795,59 @@
     }
 
     function isBuilderDateLoading() {
-      return externalGolfJoinProductsLoading && !externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed;
+      return golfJoinProductDiscoveryLoadingCount > 0
+        || (externalGolfJoinProductsLoading && !externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed);
+    }
+
+    function refreshBuilderProductDiscovery(reason = "builder-view", region = "") {
+      const targetMonth = new Date(builderState.viewYear, builderState.viewMonth, 1);
+      const months = getGolfJoinProductDiscoveryAdjacentMonths(targetMonth);
+      const generation = beginGolfJoinProductDiscoveryConsumer("builder-calendar");
+      const loadPromise = region
+        ? loadGolfJoinProductDiscoveryRegion(region, {
+          months,
+          date: targetMonth,
+          consumer: "builder-calendar",
+          reason
+        })
+        : loadGolfJoinProductDiscoveryMonths(months, {
+          consumer: "builder-calendar",
+          reason
+        });
+      return loadPromise.then(() => {
+        if (!isGolfJoinProductDiscoveryConsumerCurrent("builder-calendar", generation)) return false;
+        if (!document.getElementById("builderModal")?.classList.contains("open")) return false;
+        renderBuilderCalendar();
+        if (builderStep === 2) {
+          renderBuilderRegionProducts(document.getElementById("builderRegionSearchInput")?.value || "");
+        }
+        return true;
+      }).catch((error) => {
+        golfJoinSafeWarn("Failed to refresh builder product discovery.", error);
+        return false;
+      });
     }
 
     function changeBuilderMonth(delta) {
+      if (builderState.regionDateFirstMode) {
+        const monthKeys = getBuilderRegionDateFirstMonthKeys();
+        const currentMonthKey = `${builderState.viewYear}-${String(builderState.viewMonth + 1).padStart(2, "0")}`;
+        const currentIndex = monthKeys.indexOf(currentMonthKey);
+        const nextIndex = currentIndex + (delta < 0 ? -1 : 1);
+        if (currentIndex < 0 || nextIndex < 0 || nextIndex >= monthKeys.length) return;
+        const [year, month] = monthKeys[nextIndex].split("-").map(Number);
+        builderState.viewYear = year;
+        builderState.viewMonth = month - 1;
+        builderState.startDay = null;
+        builderState.endDay = null;
+        builderState.dateSelectionComplete = false;
+        clearBuilderProductForDateChange();
+        closeBuilderDatePopover(true);
+        closeBuilderDurationPopover();
+        closeBuilderActiveScheduleSheet();
+        renderBuilderCalendar();
+        return;
+      }
       const currentStartDate = Number.isFinite(builderState.startDay) ? new Date(builderState.viewYear, builderState.viewMonth, builderState.startDay) : null;
       const currentEndDate = Number.isFinite(builderState.endDay) ? new Date(builderState.viewYear, builderState.viewMonth, builderState.endDay) : null;
       const next = new Date(builderState.viewYear, builderState.viewMonth + delta, 1);
@@ -4183,6 +4862,9 @@
       closeBuilderDurationPopover();
       closeBuilderActiveScheduleSheet();
       renderBuilderCalendar();
+      requestAnimationFrame(() => {
+        void refreshBuilderProductDiscovery("month-change", builderState.dateConstraintRegions[0] || builderState.region || "");
+      });
     }
 
     function resetBuilderDates() {
@@ -4229,7 +4911,23 @@
       builderState.dateSelectionComplete = false;
       closeBuilderDurationPopover();
       const clickedIso = builderDateToISO(day);
-      const canUseAsDeparture = clickedIso >= getBuilderMinDepartureISO();
+      const canUseAsDeparture = clickedIso >= getBuilderMinDepartureISO()
+        && isBuilderDepartureDateAllowedByActiveSchedules(clickedIso);
+      if (builderState.regionDateFirstMode) {
+        if (!canUseAsDeparture) return;
+        builderState.startDay = day;
+        builderState.endDay = null;
+        builderState.startBefore = 0;
+        builderState.startAfter = 0;
+        builderState.endBefore = 0;
+        builderState.endAfter = 0;
+        builderState.durationFilter = "";
+        builderState.dateSelectionComplete = true;
+        clearBuilderProductForDateChange();
+        renderBuilderCalendar();
+        setBuilderStep(2);
+        return;
+      }
       if (!Number.isFinite(builderState.startDay)) {
         if (!canUseAsDeparture) return;
         builderState.startDay = day;
@@ -4265,6 +4963,7 @@
           openBuilderDatePopover("start", getBuilderDateButton(builderState.startDay) || trigger);
           return;
         }
+        if (!isBuilderReturnDateAllowedByActiveSchedules(clickedIso)) return;
         builderState.endDay = day;
         builderState.endBefore = 0;
         builderState.endAfter = 0;
@@ -4282,6 +4981,7 @@
         renderBuilderCalendar();
         openBuilderDatePopover("start", getBuilderDateButton(builderState.startDay) || trigger);
       } else if (day >= builderState.endDay) {
+        if (!isBuilderReturnDateAllowedByActiveSchedules(clickedIso)) return;
         builderState.endDay = Math.max(day, builderState.startDay + 1);
         builderState.endBefore = 0;
         builderState.endAfter = 0;
@@ -4302,6 +5002,7 @@
           renderBuilderCalendar();
           openBuilderDatePopover("start", getBuilderDateButton(builderState.startDay) || trigger);
         } else {
+          if (!isBuilderReturnDateAllowedByActiveSchedules(clickedIso)) return;
           builderState.endDay = day;
           builderState.endBefore = 0;
           builderState.endAfter = 0;
@@ -4919,7 +5620,7 @@
       const dateComplete = Boolean(
         builderState.dateSelectionComplete
         && Number.isFinite(builderState.startDay)
-        && Number.isFinite(builderState.endDay)
+        && (builderState.regionDateFirstMode || Number.isFinite(builderState.endDay))
       );
       const regionComplete = Boolean(builderState.regionSelectionComplete && builderState.productId);
       document.querySelectorAll("#builderModal [data-builder-progress]").forEach((item) => {
@@ -4973,6 +5674,7 @@
       if (step === 2) {
         renderBuilderRegionSearch(document.getElementById("builderRegionSearchInput")?.value || "");
       }
+      trackGolfJoinBuilderStep(step);
       updateBuilderAgreeCollapsedLayout();
       requestAnimationFrame(updateBuilderBottomOffset);
       body?.scrollTo({ top: 0, behavior: "smooth" });
@@ -5790,10 +6492,12 @@
       const timeout = setTimeout(() => controller.abort(), 25000);
       let response;
       try {
+        const memberAuthHeaders = await getJoinMemberAuthRequestHeaders(payload?.member || getJoinCachedCurrentMember?.());
         response = await fetch(GOLFJOIN_SHEET_API_ENDPOINT, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            ...memberAuthHeaders
           },
           body: JSON.stringify(payload),
           signal: controller.signal
@@ -5834,6 +6538,17 @@
       }
     }
 
+    function hasJoinMemberLookupParams(params = {}) {
+      return Boolean(
+        String(params.memberKey || "").trim()
+        || String(params.memberSeq || "").trim()
+        || String(params.memberId || "").trim()
+        || String(params.memberMobile || params.phone || "").trim()
+        || String(params.memberEmail || params.email || "").trim()
+        || String(params.kakaoId || "").trim()
+      );
+    }
+
     async function fetchGolfJoinSheetRows(params = {}, label = "Golfjoin sheet rows") {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
       const url = new URL(GOLFJOIN_SHEET_API_ENDPOINT);
@@ -5844,8 +6559,12 @@
       const timeout = setTimeout(() => controller.abort(), GOLFJOIN_SHEET_READ_TIMEOUT_MS);
       let response;
       try {
+        const memberAuthHeaders = hasJoinMemberLookupParams(params)
+          ? await getJoinMemberAuthRequestHeaders()
+          : {};
         response = await fetch(url.toString(), {
           method: "GET",
+          headers: memberAuthHeaders,
           cache: "no-store",
           signal: controller.signal
         });
@@ -5866,9 +6585,13 @@
       const timeout = setTimeout(() => controller.abort(), timeoutMs);
       let response;
       try {
+        const memberAuthHeaders = await getJoinMemberAuthRequestHeaders();
         response = await fetch(url.toString(), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...memberAuthHeaders
+          },
           cache: "no-store",
           body: JSON.stringify(payload),
           signal: controller.signal
@@ -5891,6 +6614,247 @@
 
     async function saveJoinApplyToGoogleSheet(payload) {
       return postGolfJoinSheetPayload(payload, "Join apply");
+    }
+
+    function getScheduleMutationIdentityKeys(source = {}) {
+      return [
+        source.scheduleId,
+        source.applicationId,
+        source.joinApplyId,
+        source.targetScheduleId,
+        source.targetApplicationId,
+        source.sourceApplicationId,
+        getNestedValue(source, "target.scheduleId"),
+        getNestedValue(source, "target.applicationId"),
+        getNestedValue(source, "scheduleSummary.scheduleId"),
+        getNestedValue(source, "scheduleSummary.applicationId"),
+        getNestedValue(source, "participantSummary.targetScheduleId"),
+        getNestedValue(source, "participantSummary.targetApplicationId")
+      ].map((value) => String(value || "").trim()).filter(Boolean);
+    }
+
+    function getScheduleMutationRevisionTime(source = {}) {
+      const revision = source.mutationRevision
+        || source.updatedAt
+        || source.lastAppliedAt
+        || source.submittedAt
+        || source.createdAt
+        || "";
+      const time = Date.parse(revision);
+      return Number.isFinite(time) ? time : 0;
+    }
+
+    function recordScheduleMutationWatermark(source = {}, revision = "") {
+      const revisionTime = getScheduleMutationRevisionTime({ mutationRevision: revision })
+        || getScheduleMutationRevisionTime(source)
+        || Date.now();
+      getScheduleMutationIdentityKeys(source).forEach((key) => {
+        const current = scheduleMutationWatermarks.get(key);
+        if (!current || revisionTime >= current.revisionTime) {
+          scheduleMutationWatermarks.set(key, { revisionTime, recordedAt: Date.now() });
+        }
+      });
+      return revisionTime;
+    }
+
+    function shouldApplyScheduleMutationSnapshot(source = {}) {
+      const watermarks = getScheduleMutationIdentityKeys(source)
+        .map((key) => scheduleMutationWatermarks.get(key))
+        .filter(Boolean);
+      if (!watermarks.length) return true;
+      const newestWatermark = Math.max(...watermarks.map((item) => Number(item.revisionTime) || 0));
+      const snapshotTime = getScheduleMutationRevisionTime(source);
+      return Boolean(snapshotTime && snapshotTime >= newestWatermark);
+    }
+
+    function getScheduleMutationOperationKey(payload = {}, mutationType = "") {
+      const memberKey = getNestedValue(payload, "member.memberKey")
+        || payload.memberKey
+        || getNestedValue(payload, "member.memberSeq")
+        || getNestedValue(payload, "member.memberId")
+        || "member";
+      const targetParts = mutationType === "builder"
+        ? [
+          getNestedValue(payload, "trip.productFamilyId"),
+          getNestedValue(payload, "trip.erpProductId"),
+          getNestedValue(payload, "trip.erpEventSeq"),
+          ...toBuilderApplicationArray(getNestedValue(payload, "trip.departureDates")),
+          ...toBuilderApplicationArray(getNestedValue(payload, "trip.returnDates"))
+        ]
+        : [
+          payload.targetType,
+          payload.targetScheduleId || getNestedValue(payload, "target.scheduleId"),
+          payload.targetApplicationId || getNestedValue(payload, "target.applicationId"),
+          payload.targetProductKey || getNestedValue(payload, "target.productKey")
+        ];
+      return [mutationType, memberKey, ...targetParts].map((value) => String(value || "").trim()).join("|");
+    }
+
+    function readPendingScheduleMutations() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(PENDING_SCHEDULE_MUTATION_STORAGE_KEY) || "null");
+        const source = Array.isArray(stored?.records)
+          ? stored.records
+          : (stored?.operationKey ? [stored] : []);
+        return source.filter((record) => (
+          record?.operationKey
+          && Date.now() - Number(record.createdAt || 0) <= PENDING_SCHEDULE_MUTATION_TTL_MS
+        ));
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function writePendingScheduleMutations(records = []) {
+      try {
+        const current = (Array.isArray(records) ? records : []).slice(0, 10);
+        if (current.length) {
+          localStorage.setItem(PENDING_SCHEDULE_MUTATION_STORAGE_KEY, JSON.stringify({ records: current }));
+        } else {
+          localStorage.removeItem(PENDING_SCHEDULE_MUTATION_STORAGE_KEY);
+        }
+      } catch (error) {
+        golfJoinSafeWarn("Failed to remember pending schedule mutation.", error);
+      }
+    }
+
+    function stabilizeScheduleMutationPayload(payload = {}, mutationType = "") {
+      const operationKey = getScheduleMutationOperationKey(payload, mutationType);
+      const pendingRecords = readPendingScheduleMutations();
+      const pending = pendingRecords.find((record) => record.operationKey === operationKey);
+      if (pending?.operationKey === operationKey && pending.applicationId) {
+        const applicationId = pending.applicationId;
+        return {
+          ...payload,
+          applicationId,
+          ...(mutationType === "builder" ? {
+            scheduleId: pending.scheduleId || buildGoogleSheetRecordId("sch", applicationId)
+          } : {
+            joinApplyId: applicationId
+          }),
+          submittedAt: pending.submittedAt || payload.submittedAt
+        };
+      }
+      const record = {
+        operationKey,
+        mutationType,
+        applicationId: payload.applicationId || payload.joinApplyId || "",
+        scheduleId: payload.scheduleId || "",
+        submittedAt: payload.submittedAt || "",
+        createdAt: Date.now()
+      };
+      writePendingScheduleMutations([
+        record,
+        ...pendingRecords.filter((item) => item.operationKey !== operationKey)
+      ]);
+      return payload;
+    }
+
+    function clearPendingScheduleMutation(payload = {}, mutationType = "") {
+      const pendingRecords = readPendingScheduleMutations();
+      const operationKey = getScheduleMutationOperationKey(payload, mutationType);
+      const pending = pendingRecords.find((record) => record.operationKey === operationKey);
+      if (!pending) return;
+      const applicationId = payload.applicationId || payload.joinApplyId || "";
+      if (pending.operationKey !== operationKey || String(pending.applicationId || "") !== String(applicationId)) return;
+      writePendingScheduleMutations(pendingRecords.filter((record) => record.operationKey !== operationKey));
+    }
+
+    function createScheduleMutationResponseError(response = {}, label = "Schedule mutation") {
+      const error = new Error(`${label} did not return a synchronized participant summary.`);
+      error.status = 502;
+      error.serverCode = "schedule_mutation_response_incomplete";
+      error.serverPayload = response;
+      return error;
+    }
+
+    async function saveScheduleMutationWithRetry(save, payload = {}, label = "Schedule mutation") {
+      let lastError = null;
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
+        try {
+          const response = await save(payload);
+          if (response?.participantSummarySync?.ok !== true || !response?.mutationRevision) {
+            throw createScheduleMutationResponseError(response, label);
+          }
+          return response;
+        } catch (error) {
+          lastError = error;
+          const status = Number(error?.status || 0);
+          const serverCode = String(error?.serverCode || error?.serverPayload?.code || "");
+          if (status >= 400 && status < 500 && serverCode !== "application_mutation_in_progress") throw error;
+          if (attempt < 2) {
+            await new Promise((resolve) => window.setTimeout(resolve, 350));
+          }
+        }
+      }
+      throw lastError || new Error(`${label} failed.`);
+    }
+
+    function acceptScheduleMutationResponse(response = {}, payload = {}) {
+      const mutationSource = {
+        ...payload,
+        ...response,
+        scheduleSummary: response.scheduleSummary || null,
+        participantSummary: response.participantSummary || null
+      };
+      recordScheduleMutationWatermark(mutationSource, response.mutationRevision);
+      homeBootstrapLightRequestGeneration += 1;
+      googleSheetBuilderApplicationsLoading = false;
+      googleSheetJoinApplicationsLoading = false;
+      invalidateJoinPrivateRequests();
+      invalidateHomeBootstrapLightCache();
+      try {
+        localStorage.removeItem(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY);
+        localStorage.removeItem(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY);
+      } catch (error) {}
+      if (response.scheduleSummary) upsertLightNewScheduleSummary(response.scheduleSummary);
+      return response;
+    }
+
+    function applyScheduleMutationParticipantResponse(response = {}) {
+      if (!response.participantSummary) return null;
+      const appliedJoin = applyLightParticipantSummary(response.participantSummary);
+      if (currentDetailJoinData?.isAdminRecommendedSchedule && currentDetailJoinData?.productFamilyId) {
+        const selectedGoodSeq = getGolfJoinProductGoodSeq(currentDetailJoinData);
+        currentDetailJoinData.familyParticipantSummary = response.participantSummary;
+        const selectedOption = getAdminRecommendedDetailFamilyPeriodOptions(currentDetailJoinData)
+          .find((option) => option.goodSeq === selectedGoodSeq);
+        if (selectedOption?.product) currentDetailJoinData = selectedOption.product;
+      }
+      return appliedJoin;
+    }
+
+    function attachJoinApplicationParticipantMarkersFromMutation(payload = {}, response = {}) {
+      const participantSummary = response?.participantSummary || {};
+      const summaryPreviews = Array.isArray(participantSummary.participantsPreview)
+        ? participantSummary.participantsPreview
+        : [];
+      if (!summaryPreviews.length) return payload;
+      const join = findJoinForParticipantSummary(participantSummary)
+        || findJoinForJoinApplicationPayload(payload);
+      if (!join) return payload;
+      const creatorPrefixCount = getLightCreatorPreviewPrefixCount(join, summaryPreviews);
+      const requestedCount = parseApplyPeopleValue(getNestedValue(payload, "applicant.people") || 1);
+      const recordId = String(payload.joinApplyId || payload.applicationId || "").trim();
+      const currentApplicationIndex = recordId
+        ? summaryPreviews.findIndex((preview = {}) => {
+          const seed = String(preview.iconSeed || preview.seed || "").trim();
+          return seed === recordId || seed.startsWith(`${recordId}-`);
+        })
+        : -1;
+      const applicationStartIndex = currentApplicationIndex >= 0
+        ? currentApplicationIndex
+        : Math.max(creatorPrefixCount, summaryPreviews.length - requestedCount);
+      const applicationPreviews = summaryPreviews.slice(applicationStartIndex, applicationStartIndex + requestedCount);
+      const firstApplicationPreview = applicationPreviews[0] || null;
+      if (!firstApplicationPreview) return payload;
+      return {
+        ...payload,
+        participantPreviewSeed: payload.participantPreviewSeed || firstApplicationPreview.iconSeed || "",
+        participantCompanionGroup: firstApplicationPreview.companionGroup
+          || payload.participantCompanionGroup
+          || ""
+      };
     }
 
     async function confirmBuilderApplySavedToGoogleSheet(payload = {}) {
@@ -5971,12 +6935,15 @@
       const expectedProfile = payload.profile || {};
       const expectedStyles = splitJoinMemberProfileStyles(expectedProfile.travelStyles).sort().join("|");
       const savedStyles = splitJoinMemberProfileStyles(profile.travelStyles || profile.styles).sort().join("|");
+      const expectedBirthDate = normalizeJoinMemberBirthDate(expectedProfile.birthDate || expectedProfile.birthday || "");
+      const savedBirthDate = getJoinMemberBirthDate(profile);
       return Boolean(
         profile?.profileId
         && isJoinMemberProfileComplete(profile)
         && normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || "")
           === normalizeJoinMemberPhone(payload?.member?.memberMobile || "")
         && String(profile.birthYear || "") === String(expectedProfile.birthYear || "")
+        && (!expectedBirthDate || savedBirthDate === expectedBirthDate)
         && normalizeJoinMemberGender(profile.gender || "") === normalizeJoinMemberGender(expectedProfile.gender || "")
         && String(profile.profession || "").trim() === String(expectedProfile.profession || "").trim()
         && String(profile.level || "").trim() === String(expectedProfile.level || "").trim()
@@ -6023,8 +6990,11 @@
       const scheduleId = join?.scheduleId || sheetApplication.scheduleId || (join?.isAdminRecommendedSchedule ? join.id : "") || "";
       const applicationId = join?.sourceApplicationId || sheetApplication.applicationId || join?.displayRule?.recommendedScheduleId || join?.displayRule?.displayRuleId || "";
       const erpEventSeq = normalizeJoinCanonicalErpEventSeq(join?.erpEventSeq || join?.eventSeq || productReference.eventSeq);
+      const isProductFamilySelection = Boolean(join?.productFamilyId || join?.displayRule?.productFamilyId);
       const erpProductId = normalizeJoinCanonicalErpProductId(
-        join?.displayRule?.erpProductId || join?.goodSeq || productReference.goodSeq || join?.erpProductId || productReference.id || "",
+        (isProductFamilySelection
+          ? (join?.goodSeq || join?.erpProductId || productReference.goodSeq || productReference.id)
+          : (join?.displayRule?.erpProductId || join?.goodSeq || productReference.goodSeq || join?.erpProductId || productReference.id)) || "",
         erpEventSeq
       );
       const targetType = join?.isAdminRecommendedSchedule ? "recommended_schedule" : (scheduleId ? "new_schedule" : "erp_product");
@@ -6107,6 +7077,7 @@
         targetProductKey: target.targetProductKey,
         erpProductId: target.erpProductId,
         erpEventSeq: target.erpEventSeq,
+        productFamilyId: join.productFamilyId || join.displayRule?.productFamilyId || "",
         target: {
           type: target.targetType,
           joinId: target.targetJoinId,
@@ -6117,6 +7088,7 @@
         product: {
           erpProductId: target.erpProductId || productReference.goodSeq || normalizeJoinCanonicalErpProductId(join.erpProductId, target.erpEventSeq) || "",
           erpEventSeq: target.erpEventSeq || join.erpEventSeq || productReference.eventSeq || "",
+          productFamilyId: join.productFamilyId || join.displayRule?.productFamilyId || "",
           productName: join.title || "",
           departureDate: join.departureDate || "",
           returnDate: join.returnDate || "",
@@ -6270,6 +7242,49 @@
       };
     }
 
+    function isJoinCanonicalIsoDate(value = "") {
+      const text = String(value || "").slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+      return Number.isFinite(Date.parse(`${text}T00:00:00`));
+    }
+
+    function reconcileJoinCanonicalTripFromApplication(join = {}, application = {}) {
+      const target = getJoinApplicationTargetRow(application);
+      const currentTitle = String(join.title || "").trim();
+      const hasFallbackTitle = !currentTitle
+        || /^[\d,\s원]+$/.test(currentTitle)
+        || /맞춤\s*조인(?:\s*요청)?$/i.test(currentTitle);
+      const hasInvalidDeparture = !isJoinCanonicalIsoDate(join.departureDate);
+      const hasInvalidReturn = !isJoinCanonicalIsoDate(join.returnDate);
+      const currentRangeReversed = !hasInvalidDeparture
+        && !hasInvalidReturn
+        && String(join.returnDate).slice(0, 10) < String(join.departureDate).slice(0, 10);
+      if (!hasFallbackTitle && !hasInvalidDeparture && !hasInvalidReturn && !currentRangeReversed) return join;
+
+      const departureDate = isJoinCanonicalIsoDate(target.departureDate)
+        ? target.departureDate
+        : String(join.departureDate || "").slice(0, 10);
+      const returnDate = isJoinCanonicalIsoDate(target.returnDate)
+        ? target.returnDate
+        : String(join.returnDate || "").slice(0, 10);
+      if (hasFallbackTitle && target.title) join.title = escapeBuilderApplicationText(target.title);
+      if (isJoinCanonicalIsoDate(departureDate)) join.departureDate = departureDate;
+      if (isJoinCanonicalIsoDate(returnDate)) join.returnDate = returnDate;
+      if (isJoinCanonicalIsoDate(join.departureDate) && isJoinCanonicalIsoDate(join.returnDate)) {
+        join.date = `${join.departureDate} - ${join.returnDate}`;
+        join.startSummary = join.departureDate;
+        join.endSummary = join.returnDate;
+        join.departureDates = [join.departureDate];
+        join.returnDates = [join.returnDate];
+        const nights = Math.max(0, Math.round((Date.parse(`${join.returnDate}T00:00:00`) - Date.parse(`${join.departureDate}T00:00:00`)) / 86400000));
+        if (nights > 0 && !/^\d{1,2}\s*박/.test(String(join.duration || ""))) {
+          join.duration = `${nights}박 ${nights + 1}일`;
+          join.dayNightCnt = join.duration;
+        }
+      }
+      return join;
+    }
+
     function findJoinForJoinApplicationPayload(application = {}) {
       const target = getJoinApplicationTargetRow(application);
       const scheduleCandidates = [
@@ -6397,6 +7412,7 @@
         quotePageUrl: item.quotePageUrl || item.quoteUrl || "",
         quotePdfUrl: item.quotePdfUrl || "",
         quoteGeneratedAt: item.quoteGeneratedAt || "",
+        quoteUnitPrice: item.quoteUnitPrice || "",
         applicationStatus: item.applicationStatus || item.status || "",
         participantStatus: item.participantStatus || "",
         pageUrl: item.pageUrl || "",
@@ -6475,8 +7491,20 @@
       return normalized;
     }
 
+    function sortJoinApplicationPayloadsBySubmittedAt(payloads = []) {
+      return (Array.isArray(payloads) ? payloads : [])
+        .slice()
+        .sort((left, right) => {
+          const leftTime = Date.parse(left?.submittedAt || left?.createdAt || "");
+          const rightTime = Date.parse(right?.submittedAt || right?.createdAt || "");
+          const safeLeftTime = Number.isFinite(leftTime) ? leftTime : Number.MAX_SAFE_INTEGER;
+          const safeRightTime = Number.isFinite(rightTime) ? rightTime : Number.MAX_SAFE_INTEGER;
+          return safeLeftTime - safeRightTime;
+        });
+    }
+
     function reapplyRememberedJoinApplications(options = {}) {
-      joinApplicationPayloadMemory.forEach((payload) => {
+      sortJoinApplicationPayloadsBySubmittedAt(Array.from(joinApplicationPayloadMemory.values())).forEach((payload) => {
         applyJoinApplicationPayload(payload, { render: false, remember: false });
       });
       if (options.render !== false) renderJoins();
@@ -6490,6 +7518,7 @@
         if (!rows.length || !Number.isFinite(fetchedAt)) return [];
         if (Date.now() - fetchedAt > GOOGLE_SHEET_READ_CACHE_TTL_MS) return [];
         if (options.memberKey !== undefined && String(cached?.memberKey || "") !== String(options.memberKey || "")) return [];
+        if (cached?.dataType && String(cached.dataType) !== String(key)) return [];
         return rows;
       } catch (error) {
         golfJoinSafeWarn("Failed to read Google Sheet rows cache.", error);
@@ -6502,6 +7531,7 @@
         const cached = JSON.parse(localStorage.getItem(key) || "null");
         const fetchedAt = Number(cached?.fetchedAt || 0);
         if (options.memberKey !== undefined && String(cached?.memberKey || "") !== String(options.memberKey || "")) return false;
+        if (cached?.dataType && String(cached.dataType) !== String(key)) return false;
         return Number.isFinite(fetchedAt) && fetchedAt > 0 && Date.now() - fetchedAt <= GOOGLE_SHEET_READ_CACHE_TTL_MS;
       } catch (error) {
         golfJoinSafeWarn("Failed to inspect Google Sheet rows cache.", error);
@@ -6511,9 +7541,15 @@
 
     function writeGoogleSheetRowsCache(key, rows = [], meta = {}) {
       try {
+        const memberKey = String(meta.memberKey || "").trim();
+        const requestScope = memberKey ? syncJoinPrivateRequestScope(memberKey) : null;
         localStorage.setItem(key, JSON.stringify({
           fetchedAt: Date.now(),
           ...meta,
+          ...(requestScope ? {
+            sessionGeneration: requestScope.generation,
+            dataType: key
+          } : {}),
           rows: Array.isArray(rows) ? rows : []
         }));
       } catch (error) {
@@ -6576,6 +7612,44 @@
       return directIndexes;
     }
 
+    function getJoinApplicationAuthoritativeCompanionGroup(existingParticipants = [], matchingIndexes = new Set()) {
+      for (const index of matchingIndexes || []) {
+        const companionGroup = String(existingParticipants[index]?.companionGroup || "").trim();
+        if (companionGroup) return companionGroup;
+      }
+      return "";
+    }
+
+    function enforceCreatorOwnedApplicationCompanionGroup(join = {}, application = {}, recordId = "", preferredGroup = "") {
+      if (!join || !recordId || !Array.isArray(join.participants)) return join;
+      const applicationMarkers = [application.participantPreviewSeed]
+        .map(normalizeJoinParticipantApplicationMarker)
+        .filter(isUsableJoinParticipantApplicationMarker);
+      const isApplicationParticipant = (participant = {}) => (
+        isJoinApplicationMaterializedParticipant(participant, recordId)
+        || (
+          applicationMarkers.length > 0
+          && hasJoinParticipantApplicationMarkerOverlap(participant, applicationMarkers)
+        )
+      );
+      const applicationParticipants = join.participants.filter(isApplicationParticipant);
+      if (!applicationParticipants.length) return join;
+      const hostParticipant = join.participants.find((participant) => participant?.isHost || participant?.isCreator);
+      const canonicalGroup = String(
+        hostParticipant?.companionGroup
+        || preferredGroup
+        || applicationParticipants.find((participant) => participant?.companionGroup)?.companionGroup
+        || `${join.scheduleId || join.sourceApplicationId || join.id}-creator-party`
+      ).trim();
+      if (!canonicalGroup) return join;
+      join.participants = join.participants.map((participant) => (
+        participant?.isHost || participant?.isCreator || isApplicationParticipant(participant)
+          ? { ...participant, companionGroup: canonicalGroup }
+          : participant
+      ));
+      return join;
+    }
+
     function applyJoinApplicationPayload(payload, options = {}) {
       const normalized = options.remember === false ? normalizeJoinApplyPayload(payload) : rememberJoinApplicationPayload(payload);
       if (isCancelledJoinApplyPayload(payload) || isCancelledJoinApplyPayload(normalized)) return null;
@@ -6583,22 +7657,55 @@
       const join = findJoinForJoinApplicationPayload(normalized)
         || joins.find((item) => item.id === normalizedJoinId);
       if (!join) return null;
+      reconcileJoinCanonicalTripFromApplication(join, normalized);
       const joinId = join.id || normalizedJoinId;
       const recordId = normalized.joinApplyId || buildGoogleSheetRecordId("ja", normalized.submittedAt, getNestedValue(normalized, "member.memberSeq") || getNestedValue(normalized, "member.memberId") || getNestedValue(normalized, "applicant.name") || "member", joinId);
       const capacity = getJoinRecruitmentCapacity(join, BUILDER_APPLICATION_MAX_CAPACITY);
       const existingParticipants = Array.isArray(join.participants) ? join.participants : [];
       let matchingPreviewIndexes = getJoinApplicationPreviewReplacementIndexes(existingParticipants, normalized, recordId);
+      const authoritativeCompanionGroup = getJoinApplicationAuthoritativeCompanionGroup(
+        existingParticipants,
+        matchingPreviewIndexes
+      );
       const applicant = normalized.applicant || {};
       const requestedCount = parseApplyPeopleValue(applicant.people || 1);
       const currentMember = typeof getJoinCachedCurrentMember === "function" ? getJoinCachedCurrentMember() : null;
       const currentMemberKey = getJoinMyMemberIdentity(currentMember || {}).memberKey;
       const memberLookupMatched = isJoinMemberLookupMatchedForMember(normalized, currentMember || {});
+      const currentMemberMatchesApplication = Boolean(
+        currentMember
+        && (memberLookupMatched || isJoinMyJoinApplicationForMember(normalized, currentMember))
+      );
       let currentMemberMarked = false;
       const currentMemberOwnsJoin = Boolean(currentMember && isJoinMyCreatedScheduleForMember(join, currentMember));
+      const creatorOwnedCompanionGroup = currentMemberOwnsJoin && currentMemberMatchesApplication
+        ? String(
+          authoritativeCompanionGroup
+          || normalized.participantCompanionGroup
+          || `${join.scheduleId || join.sourceApplicationId || join.id}-creator-party`
+        ).trim()
+        : "";
       const baseParticipants = existingParticipants
         .filter((participant, index) => !matchingPreviewIndexes.has(index))
         .map((participant) => {
           let nextParticipant = participant;
+          if (currentMember && currentMemberOwnsJoin) {
+            if (participant?.isHost || participant?.isCreator) {
+              if (!currentMemberMarked) {
+                currentMemberMarked = true;
+                return {
+                  ...participant,
+                  ...(creatorOwnedCompanionGroup ? { companionGroup: creatorOwnedCompanionGroup } : {}),
+                  isCurrentMember: true,
+                  currentMemberKey
+                };
+              }
+            } else if (participant?.isCurrentMember === true || isJoinParticipantForCurrentMember(participant)) {
+              nextParticipant = { ...participant };
+              delete nextParticipant.isCurrentMember;
+              delete nextParticipant.currentMemberKey;
+            }
+          }
           if (
             currentMember
             && !currentMemberOwnsJoin
@@ -6609,14 +7716,20 @@
             delete nextParticipant.isCurrentMember;
             delete nextParticipant.currentMemberKey;
           }
-          const isApplicationParticipant = isJoinApplicationMaterializedParticipant(nextParticipant, recordId);
+          const isCurrentMemberParticipant = nextParticipant?.isCurrentMember === true
+            || isJoinParticipantForCurrentMember(nextParticipant);
           if (
-            isApplicationParticipant
+            !currentMemberOwnsJoin
             && !currentMemberMarked
-            && (memberLookupMatched || isJoinParticipantForCurrentMember(nextParticipant))
+            && isCurrentMemberParticipant
           ) {
             currentMemberMarked = true;
             return { ...nextParticipant, isCurrentMember: true, currentMemberKey };
+          }
+          if (!currentMemberOwnsJoin && currentMemberMarked && isCurrentMemberParticipant) {
+            nextParticipant = { ...nextParticipant };
+            delete nextParticipant.isCurrentMember;
+            delete nextParticipant.currentMemberKey;
           }
           return nextParticipant;
         });
@@ -6635,7 +7748,7 @@
       for (let index = 0; occupiedApplicationIndexes.size < Math.min(requestedCount, materializedParticipants.length) && index < requestedCount; index += 1) {
         if (!occupiedApplicationIndexes.has(index)) occupiedApplicationIndexes.add(index);
       }
-      const prioritizeCurrentMemberApplication = Boolean(memberLookupMatched && !currentMemberOwnsJoin);
+      const prioritizeCurrentMemberApplication = Boolean(currentMemberMatchesApplication && !currentMemberOwnsJoin);
       const remainingSlots = Math.max(0, capacity - getConfirmedParticipants({ participants: baseParticipants }).length);
       const participantIndexes = Array.from({ length: requestedCount }, (_, index) => index)
         .filter((index) => !occupiedApplicationIndexes.has(index))
@@ -6644,17 +7757,19 @@
       const participants = participantIndexes.map((index) => {
         const participantId = `${recordId}-p${index + 1}`;
         const gender = index === 0 ? applicant.gender : (companionGenders[index - 1] || applicant.gender);
-        const memberIdentity = index === 0 ? {
+        const representsCurrentMember = index === 0 && !currentMemberOwnsJoin && !currentMemberMarked;
+        const memberIdentity = representsCurrentMember ? {
           memberSeq: getNestedValue(normalized, "member.memberSeq") || "",
           memberId: getNestedValue(normalized, "member.memberId") || "",
           memberMobile: normalizeJoinMemberPhone(getNestedValue(normalized, "member.memberMobile") || applicant.phone || ""),
           memberEmail: getNestedValue(normalized, "member.memberEmail") || "",
           kakaoId: getNestedValue(normalized, "member.kakaoId") || ""
         } : {};
-        const isCurrentMember = index === 0 && (
+        const isCurrentMember = representsCurrentMember && (
           memberLookupMatched
           || isJoinParticipantForCurrentMember(memberIdentity)
         );
+        if (isCurrentMember) currentMemberMarked = true;
         return {
           id: participantId,
           source: "join_apply",
@@ -6666,9 +7781,10 @@
           gender,
           ...memberIdentity,
           ...(isCurrentMember ? { isCurrentMember: true, currentMemberKey } : {}),
-          companionGroup: requestedCount > 1
-            ? (normalized.participantCompanionGroup || `${recordId}-companions`)
-            : "",
+          companionGroup: creatorOwnedCompanionGroup
+            || authoritativeCompanionGroup
+            || normalized.participantCompanionGroup
+            || (requestedCount > 1 ? `${recordId}-companions` : ""),
           age: applicant.ageDisplay || applicant.age || "",
           handicap: applicant.level || "",
           profession: applicant.profession || "",
@@ -6697,9 +7813,14 @@
               || participant?.isCreator
               || (hostCompanionGroup && String(participant?.companionGroup || "").trim() === hostCompanionGroup)
             ) priority = 0;
-            else if (isCurrentApplicationParticipant && !isJoinParticipantPreviewSource(participant)) priority = 1;
-            else if (!isJoinParticipantPreviewSource(participant)) priority = 2;
-            else if (participant?.summaryCountPlaceholder) priority = 4;
+            else if (
+              participant?.isCurrentMember === true
+              || isJoinParticipantForCurrentMemberInSchedule(participant, join)
+            ) priority = 1;
+            else if (isCurrentApplicationParticipant && !isJoinParticipantPreviewSource(participant)) priority = 2;
+            else if (!isJoinParticipantPreviewSource(participant)) priority = 3;
+            else if (participant?.summaryCountPlaceholder) priority = 5;
+            else priority = 4;
             return { participant, index, priority };
           })
           .sort((left, right) => left.priority - right.priority || left.index - right.index)
@@ -6711,6 +7832,17 @@
         join.participants = rankedParticipants.slice(0, displayCount);
       } else {
         join.participants = mergedParticipants.slice(0, capacity);
+      }
+      if (!options.persist && join.participantSummary?.participantsPreview) {
+        reconcileJoinParticipantsWithLightSummary(join, join.participantSummary);
+      }
+      if (currentMemberOwnsJoin && currentMemberMatchesApplication) {
+        enforceCreatorOwnedApplicationCompanionGroup(
+          join,
+          normalized,
+          recordId,
+          creatorOwnedCompanionGroup || authoritativeCompanionGroup
+        );
       }
       const summaryRemainingSlots = Number(join.participantSummary?.remainingSlots);
       join.emptySlots = Number.isFinite(summaryRemainingSlots)
@@ -6788,7 +7920,9 @@
     }
 
     function resetJoinApplicationsFromAuthoritativeRows(rows = []) {
-      const authoritativePayloads = rows.map(normalizeJoinApplyPayload);
+      const authoritativePayloads = rows
+        .map(normalizeJoinApplyPayload)
+        .filter(shouldApplyScheduleMutationSnapshot);
       const authoritativeKeys = new Set(authoritativePayloads.map(getJoinApplicationRecordKey).filter(Boolean));
       const rememberedApplications = Array.from(joinApplicationPayloadMemory.values())
         .map(normalizeJoinApplyPayload)
@@ -6800,8 +7934,8 @@
         });
       clearJoinApplicationLocalCache();
       clearJoinApplicationRuntimeState();
-      authoritativePayloads.forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
-      rememberedApplications.forEach((payload) => {
+      sortJoinApplicationPayloadsBySubmittedAt(authoritativePayloads).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+      sortJoinApplicationPayloadsBySubmittedAt(rememberedApplications).forEach((payload) => {
         applyJoinApplicationPayload(payload, { render: false, persist: String(payload.source || "") === "join_apply" });
       });
       clearActiveJoinMySchedulesCache();
@@ -6813,10 +7947,16 @@
         const memberKey = getJoinWishMemberKey();
         if (!memberKey) return;
         const cached = readJoinMemberScopedItems(JOIN_APPLICATIONS_STORAGE_KEY);
-        cached.map(normalizeJoinApplyPayload).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
-        readGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, { memberKey })
-          .map(normalizeJoinApplyPayload)
+        sortJoinApplicationPayloadsBySubmittedAt(cached.map(normalizeJoinApplyPayload))
           .forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+        sortJoinApplicationPayloadsBySubmittedAt(
+          readGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, { memberKey })
+            .map(normalizeJoinApplyPayload)
+        ).forEach((payload) => applyJoinApplicationPayload(payload, { render: false }));
+        if (hasFreshGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, { memberKey })) {
+          googleSheetJoinApplicationsReadCompleted = true;
+          googleSheetJoinApplicationsReadFailed = false;
+        }
       } catch (error) {
         golfJoinSafeWarn("Failed to load cached join applications.", error);
       }
@@ -6833,7 +7973,7 @@
       }
     }
 
-    async function hydrateJoinApplicationsFromGoogleSheet(options = {}) {
+    async function hydrateJoinApplicationsFromGoogleSheetUncoalesced(options = {}) {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
       const requestGeneration = ++googleSheetJoinApplicationsRequestGeneration;
       const member = getJoinCachedCurrentMember();
@@ -6845,6 +7985,7 @@
         requestGeneration === googleSheetJoinApplicationsRequestGeneration
         && memberKey === getJoinWishMemberKey(getJoinCachedCurrentMember())
       );
+      googleSheetJoinApplicationsReadMemberKey = "";
       googleSheetJoinApplicationsLoading = true;
       googleSheetJoinApplicationsReadFailed = false;
       if (options.renderStart !== false) renderJoins();
@@ -6861,9 +8002,11 @@
         if (!isRequestCurrent()) return [];
         writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows, { memberKey });
         resetJoinApplicationsFromAuthoritativeRows(rows);
+        googleSheetJoinApplicationsReadMemberKey = memberKey;
         googleSheetJoinApplicationsReadCompleted = true;
         googleSheetJoinApplicationsReadFailed = false;
         if (options.renderHome !== false) renderJoins();
+        refreshOpenCalendarSheetAfterJoinDataChange();
         refreshOpenBuilderCalendarAfterJoinDataChange();
         return rows;
       } catch (error) {
@@ -6880,9 +8023,21 @@
       }
     }
 
+    function hydrateJoinApplicationsFromGoogleSheet(options = {}) {
+      const memberKey = getJoinWishMemberKey(getJoinCachedCurrentMember());
+      if (!memberKey) return Promise.resolve([]);
+      return runJoinPrivateRequestOnce(
+        "join-applications",
+        memberKey,
+        () => hydrateJoinApplicationsFromGoogleSheetUncoalesced(options)
+      );
+    }
+
     function applyJoinApplicationsFromGoogleSheetRows(rows = []) {
-      writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows, { memberKey: getJoinWishMemberKey() });
+      const memberKey = getJoinWishMemberKey();
+      writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY, rows, { memberKey });
       resetJoinApplicationsFromAuthoritativeRows(rows);
+      googleSheetJoinApplicationsReadMemberKey = memberKey;
       googleSheetJoinApplicationsReadCompleted = true;
       googleSheetJoinApplicationsReadFailed = false;
       return rows;
@@ -7040,6 +8195,7 @@
         quotePageUrl: item.quotePageUrl || item.quoteUrl || "",
         quotePdfUrl: item.quotePdfUrl || "",
         quoteGeneratedAt: item.quoteGeneratedAt || "",
+        quoteUnitPrice: item.quoteUnitPrice || "",
         pageUrl: item.pageUrl || "",
         member: {
           memberKey: item.memberKey || "",
@@ -7321,9 +8477,11 @@
     function upsertBuilderApplicationJoin(payload, options = {}) {
       const join = buildBuilderApplicationJoin(payload);
       join.builderApplicationSource = options.source || "local";
+      if (options.publicHome === true) join.isPublicHomeSchedule = true;
       const currentIndex = joins.findIndex((item) => item.id === join.id);
       if (currentIndex >= 0) {
         const existingJoin = joins[currentIndex];
+        if (existingJoin.isPublicHomeSchedule === true) join.isPublicHomeSchedule = true;
         if (options.source === "sheet") {
           const nextIdentity = getJoinMyBuilderApplicationIdentity(join);
           const existingApplication = existingJoin.sheetApplication || {};
@@ -7535,14 +8693,15 @@
     }
 
     function getJoinAuthoritativeConfirmedCount(join = {}) {
-      const capacity = getJoinRecruitmentCapacity(join, JOIN_MAX_CAPACITY);
+      const safeJoin = join && typeof join === "object" ? join : {};
+      const capacity = getJoinRecruitmentCapacity(safeJoin, JOIN_MAX_CAPACITY);
       const counts = [
-        getConfirmedParticipants(join).length,
-        Number(join.participantSummary?.confirmedCount),
-        Number(join.lightSummary?.confirmedCount),
-        Number(join.confirmedCount),
-        Number(join.currentCount),
-        Number(join.participantCount)
+        getConfirmedParticipants(safeJoin).length,
+        Number(safeJoin.participantSummary?.confirmedCount),
+        Number(safeJoin.lightSummary?.confirmedCount),
+        Number(safeJoin.confirmedCount),
+        Number(safeJoin.currentCount),
+        Number(safeJoin.participantCount)
       ].filter((value) => Number.isFinite(value) && value >= 0);
       return Math.min(capacity, Math.max(0, ...counts));
     }
@@ -7550,7 +8709,7 @@
     function getLightPreviewMatchKey(preview = {}) {
       const displayName = String(preview.displayName || preview.name || "").replace(/\*/g, "").trim();
       return {
-        seed: String(preview.iconSeed || preview.seed || "").trim(),
+        seed: String(preview.iconSeed || preview.previewSeed || preview.seed || "").trim(),
         nameInitial: displayName.charAt(0),
         gender: String(preview.gender || "").trim().toLowerCase()
       };
@@ -7566,6 +8725,27 @@
         && leftKey.nameInitial === rightKey.nameInitial
         && (!leftKey.gender || !rightKey.gender || leftKey.gender === rightKey.gender)
       );
+    }
+
+    function dedupeJoinParticipantSummaryPreviews(participants = []) {
+      const source = Array.isArray(participants) ? participants.filter(Boolean) : [];
+      const materializedParticipants = source.filter((participant) => !isJoinParticipantPreviewSource(participant));
+      if (!materializedParticipants.length) return source;
+      return source.filter((participant) => {
+        if (!isJoinParticipantPreviewSource(participant)) return true;
+        const previewMarkers = getJoinParticipantApplicationMarkers(participant);
+        const previewGroup = String(participant.companionGroup || "").trim();
+        const hasMaterializedMatch = materializedParticipants.some((materializedParticipant) => {
+          if (hasJoinParticipantApplicationMarkerOverlap(materializedParticipant, previewMarkers)) return true;
+          const materializedGroup = String(materializedParticipant.companionGroup || "").trim();
+          return Boolean(
+            previewGroup
+            && materializedGroup === previewGroup
+            && areLightParticipantPreviewsSame(materializedParticipant, participant)
+          );
+        });
+        return !hasMaterializedMatch;
+      });
     }
 
     function getLightCreatorPreviewPrefixCount(join = {}, summaryPreviews = []) {
@@ -7586,12 +8766,13 @@
 
     function ensureJoinParticipantSummaryCount(join = {}, participants = [], summary = {}) {
       const capacity = getJoinRecruitmentCapacity({ ...join, capacity: summary.capacity || join.capacity }, BUILDER_APPLICATION_MAX_CAPACITY);
+      const uniqueParticipants = dedupeJoinParticipantSummaryPreviews(participants);
       const targetCount = Math.min(
         capacity,
         MAX_DETAIL_PARTICIPANT_PREVIEWS,
-        Math.max(0, Number(summary.confirmedCount) || participants.length)
+        Math.max(0, Number(summary.confirmedCount) || uniqueParticipants.length)
       );
-      const reconciled = participants.slice(0, capacity);
+      const reconciled = uniqueParticipants.slice(0, targetCount);
       const existingGenderCounts = reconciled.reduce((counts, participant = {}) => {
         const gender = String(participant.gender || "").trim().toLowerCase();
         if (gender.includes("여") || gender === "female") counts.female += 1;
@@ -7674,6 +8855,37 @@
         merged.push(participant);
       });
       return merged.slice(0, Math.max(0, limit));
+    }
+
+    function applyParticipantSummaryGroupsToMaterializedParticipants(existingParticipants = [], previewParticipants = []) {
+      const availablePreviews = (Array.isArray(previewParticipants) ? previewParticipants : [])
+        .map((preview, index) => ({ preview, index, used: false }));
+      return (Array.isArray(existingParticipants) ? existingParticipants : []).map((participant) => {
+        if (participant?.isHost || participant?.isCreator) return participant;
+        const participantMarkers = getJoinParticipantApplicationMarkers(participant);
+        let matchedRecord = availablePreviews.find((record) => (
+          !record.used
+          && hasJoinParticipantApplicationMarkerOverlap(record.preview, participantMarkers)
+        ));
+        if (!matchedRecord) {
+          const participantGroup = String(participant.companionGroup || "").trim();
+          matchedRecord = availablePreviews.find((record) => (
+            !record.used
+            && participantGroup
+            && String(record.preview?.companionGroup || "").trim() === participantGroup
+          ));
+        }
+        if (!matchedRecord) return participant;
+        matchedRecord.used = true;
+        const matchedPreview = matchedRecord.preview || {};
+        const companionGroup = String(matchedPreview?.companionGroup || "").trim();
+        const previewSeed = String(matchedPreview?.previewSeed || matchedPreview?.iconSeed || matchedPreview?.seed || "").trim();
+        return {
+          ...participant,
+          ...(companionGroup ? { companionGroup } : {}),
+          ...(previewSeed ? { previewSeed } : {})
+        };
+      });
     }
 
     function applyLightParticipantsToJoin(join, previews = [], summary = {}) {
@@ -7780,10 +8992,15 @@
       };
     }
 
-    function upsertLightNewScheduleSummary(summary = {}) {
+    function upsertLightNewScheduleSummary(summary = {}, options = {}) {
       if (!summary.scheduleId && !summary.applicationId) return null;
       if (!shouldShowLightSummary(summary)) return null;
-      const join = upsertBuilderApplicationJoin(buildLightBuilderPayload(summary), { render: false, source: "light" });
+      if (!shouldApplyScheduleMutationSnapshot(summary)) return null;
+      const join = upsertBuilderApplicationJoin(buildLightBuilderPayload(summary), {
+        render: false,
+        source: "light",
+        publicHome: options.publicHome === true
+      });
       join.lightSummary = summary;
       join.scheduleId = summary.scheduleId || join.scheduleId || "";
       join.sourceApplicationId = summary.applicationId || join.sourceApplicationId || "";
@@ -7828,25 +9045,32 @@
       return matches.length === 1 ? matches[0] : null;
     }
 
-    function applyLightParticipantSummary(summary = {}) {
-      const join = findJoinForParticipantSummary(summary);
+    function reconcileJoinParticipantsWithLightSummary(join, summary = {}) {
       if (!join) return null;
-      join.participantSummary = { ...(join.participantSummary || {}), ...summary };
       if (join.isBuilderApplicationJoin || join.scheduleId || join.sourceApplicationId) {
         const capacity = getJoinRecruitmentCapacity({ ...join, capacity: summary.capacity || join.capacity }, BUILDER_APPLICATION_MAX_CAPACITY);
         const previewLimit = Math.min(MAX_DETAIL_PARTICIPANT_PREVIEWS, capacity);
         // participant_summary is authoritative for public preview rows. Keep materialized
         // creator/member rows, but discard previews from the previous summary before merging
         // the latest list so a cancelled participant cannot survive as an anonymous icon.
-        const existingParticipants = getConfirmedParticipants(join)
+        let existingParticipants = getConfirmedParticipants(join)
           .filter((participant) => !isJoinParticipantPreviewSource(participant));
         const summaryPreviews = (Array.isArray(summary.participantsPreview) ? summary.participantsPreview : []).slice(0, previewLimit);
         const creatorPrefixCount = getLightCreatorPreviewPrefixCount(join, summaryPreviews);
+        const creatorCompanionGroup = String(
+          summaryPreviews.slice(0, creatorPrefixCount).find((preview) => preview?.companionGroup)?.companionGroup || ""
+        ).trim();
+        if (creatorCompanionGroup) {
+          existingParticipants = existingParticipants.map((participant, index) => (
+            index < creatorPrefixCount ? { ...participant, companionGroup: creatorCompanionGroup } : participant
+          ));
+        }
         const previewParticipants = summaryPreviews
           .slice(creatorPrefixCount)
           .map((preview, index) => buildLightPreviewParticipant(preview, join.id || join.scheduleId || "", index + creatorPrefixCount, {
             markFirstAsHost: isJoinMyBuilderApplicationJoin(join) && creatorPrefixCount === 0
           }));
+        existingParticipants = applyParticipantSummaryGroupsToMaterializedParticipants(existingParticipants, previewParticipants);
         join.participants = mergeJoinParticipantsByIdentity(existingParticipants, previewParticipants, capacity);
         join.participants = ensureJoinParticipantSummaryCount(join, getConfirmedParticipants(join), summary);
         const confirmedCount = Math.max(0, Math.min(capacity, Number(summary.confirmedCount) || getConfirmedParticipants(join).length));
@@ -7857,6 +9081,14 @@
         return join;
       }
       return applyLightParticipantsToJoin(join, summary.participantsPreview, summary);
+    }
+
+    function applyLightParticipantSummary(summary = {}) {
+      if (!shouldApplyScheduleMutationSnapshot(summary)) return null;
+      const join = findJoinForParticipantSummary(summary);
+      if (!join) return null;
+      join.participantSummary = { ...(join.participantSummary || {}), ...summary };
+      return reconcileJoinParticipantsWithLightSummary(join, join.participantSummary);
     }
 
     function applyLightWishTargetKeys(items = [], memberKey = getJoinWishMemberKey()) {
@@ -7905,27 +9137,33 @@
       pendingHomeBootstrapLightData = data || null;
       pendingHomeBootstrapLightOptions = { fromCache, render: options.render };
       const signature = getHomeBootstrapLightSignature(data || {});
-      const newScheduleSummaries = Array.isArray(data.newScheduleSummaries) ? data.newScheduleSummaries : [];
+      const newScheduleSummaries = (Array.isArray(data.newScheduleSummaries) ? data.newScheduleSummaries : [])
+        .filter(shouldApplyScheduleMutationSnapshot);
       const hasAuthoritativeScheduleList = options.fromCache !== true && Array.isArray(data.newScheduleSummaries);
       if (!hasAuthoritativeScheduleList && options.fromCache !== true && signature === homeBootstrapLightApplySignature) return data;
       homeBootstrapLightApplySignature = signature;
       if (hasAuthoritativeScheduleList) {
         const authoritativeKeys = newScheduleSummaries.flatMap(getBuilderApplicationIdentityKeys);
-        clearBuilderApplicationLocalCache({ authoritativeKeys });
-        syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys);
+        clearBuilderApplicationLocalCache({ authoritativeKeys, preserveRecentLocal: true });
+        syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys, { preserveRecentLocal: true });
       }
       const hasAuthoritativeParticipantSummaryList = options.fromCache !== true && Array.isArray(data.participantSummaries);
-      googleSheetBuilderApplicationsLoading = false;
-      googleSheetJoinApplicationsLoading = false;
-      googleSheetBuilderApplicationsReadCompleted = true;
-      if (!hasAuthoritativeParticipantSummaryList || Array.isArray(data.joinApplications)) {
-        googleSheetJoinApplicationsReadCompleted = true;
+      const hasMemberScope = Boolean(getJoinWishMemberKey(getJoinCachedCurrentMember()));
+      if (!hasMemberScope) {
+        googleSheetBuilderApplicationsLoading = false;
+        googleSheetJoinApplicationsLoading = false;
+        googleSheetBuilderApplicationsReadCompleted = true;
+        if (!hasAuthoritativeParticipantSummaryList || Array.isArray(data.joinApplications)) {
+          googleSheetJoinApplicationsReadCompleted = true;
+        }
+        googleSheetBuilderApplicationsReadFailed = false;
+        googleSheetJoinApplicationsReadFailed = false;
       }
-      googleSheetBuilderApplicationsReadFailed = false;
-      googleSheetJoinApplicationsReadFailed = false;
-      newScheduleSummaries.forEach(upsertLightNewScheduleSummary);
+      newScheduleSummaries.forEach((summary) => upsertLightNewScheduleSummary(summary, { publicHome: true }));
       applyAdminRecommendedScheduleRows(data.displayRules || []);
-      (data.participantSummaries || []).forEach(applyLightParticipantSummary);
+      (data.participantSummaries || [])
+        .filter(shouldApplyScheduleMutationSnapshot)
+        .forEach(applyLightParticipantSummary);
       reapplyRememberedJoinApplications({ render: false });
       if (options.render !== false) renderJoins();
       refreshOpenDetailAfterJoinParticipantsChange();
@@ -7950,6 +9188,80 @@
       return !["false", "0", "no", "n", "hidden", "disabled", "deleted"].includes(text);
     }
 
+    const adminRecommendedProductCache = new Map();
+    let adminRecommendedProductReconciliationPromise = null;
+    let pendingAdminRecommendedProductRows = [];
+
+    function getAdminRecommendedFamilyOptions(value = {}) {
+      const raw = value.familyOptions || value.familyOptionsJson || value.displayRule?.familyOptionsJson || [];
+      let parsed = raw;
+      if (typeof raw === "string") {
+        try {
+          parsed = JSON.parse(raw || "[]");
+        } catch (error) {
+          return [];
+        }
+      }
+      if (!Array.isArray(parsed)) return [];
+      const familyDepartureDate = String(value.familyDepartureDate || value.displayRule?.familyDepartureDate || value.departureDate || "").slice(0, 10);
+      const seen = new Set();
+      const normalizedOptions = parsed.map((option) => {
+        const goodSeq = String(option?.goodSeq || "").trim();
+        const eventSeq = String(option?.eventSeq || "").trim();
+        const departureDate = String(option?.departureDate || familyDepartureDate || "").slice(0, 10);
+        const returnDate = String(option?.returnDate || departureDate || "").slice(0, 10);
+        const durationLabel = String(option?.durationLabel || "").trim();
+        const price = Number(option?.price) || 0;
+        const capacity = Math.max(0, Math.round(Number(option?.capacity) || 0));
+        const key = `${goodSeq}:${eventSeq}`;
+        if (!/^\d+$/.test(goodSeq) || !/^\d+$/.test(eventSeq) || !/^\d{4}-\d{2}-\d{2}$/.test(departureDate) || !/^\d{4}-\d{2}-\d{2}$/.test(returnDate) || !durationLabel || seen.has(key)) return null;
+        if (familyDepartureDate && departureDate !== familyDepartureDate) return null;
+        seen.add(key);
+        return { goodSeq, eventSeq, departureDate, returnDate, durationLabel, price, capacity };
+      }).filter(Boolean);
+      if (normalizedOptions.length < 2) return normalizedOptions;
+      // Period capacities in familyOptions are authoritative once every option
+      // has an explicit value. A selected period product intentionally carries
+      // its own capacity (for example 30) while retaining the full option list
+      // ([30, 30]). Re-distributing that list from the selected capacity would
+      // recursively halve it on every render: 30 -> 15 -> 8.
+      if (normalizedOptions.every((option) => option.capacity > 0)) {
+        return normalizedOptions;
+      }
+      const totalCapacityValue = Number(
+        value.participantSummary?.capacity
+        || value.lightSummary?.capacity
+        || value.capacity
+        || value.maxPeople
+        || value.maxCapacity
+        || value.displayRule?.capacity
+        || value.displayRule?.maxPeople
+        || normalizedOptions.length
+      );
+      const totalCapacity = Number.isFinite(totalCapacityValue) && totalCapacityValue > 0
+        ? Math.round(totalCapacityValue)
+        : normalizedOptions.length;
+      const safeTotal = Math.max(totalCapacity, normalizedOptions.length);
+      const baseCapacity = Math.floor(safeTotal / normalizedOptions.length);
+      const remainder = safeTotal % normalizedOptions.length;
+      return normalizedOptions.map((option, index) => ({
+        ...option,
+        capacity: baseCapacity + (index < remainder ? 1 : 0)
+      }));
+    }
+
+    function getAdminRecommendedProductKey(value = {}) {
+      const reference = getSecretTourProductReference({
+        ...value,
+        id: value.erpProductId || value.goodSeq || value.id,
+        erpProductId: value.erpProductId || value.goodSeq,
+        erpEventSeq: value.erpEventSeq || value.eventSeq
+      });
+      return reference.goodSeq && reference.eventSeq
+        ? `${reference.goodSeq}:${reference.eventSeq}`
+        : "";
+    }
+
     function findAdminRecommendedProduct(rule = {}) {
       const reference = getSecretTourProductReference({
         id: rule.erpProductId || rule.goodSeq,
@@ -7959,7 +9271,15 @@
       const inlineProducts = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items)
         ? window.SECRET_GOLF_JOIN_PRODUCTS.items.map(normalizeExternalGolfJoinProduct)
         : [];
-      const source = [...(externalGolfJoinProducts || inlineProducts), ...joins];
+      const productKey = getAdminRecommendedProductKey(rule);
+      const cachedProduct = productKey ? adminRecommendedProductCache.get(productKey) : null;
+      const source = [
+        cachedProduct,
+        ...(externalGolfJoinProducts || []),
+        ...(homeGolfJoinProducts || []),
+        ...inlineProducts,
+        ...joins.filter((item) => !item?.isAdminRecommendedSchedule)
+      ].filter(Boolean);
       const sameReference = (item = {}) => {
         const itemReference = getSecretTourProductReference(item);
         return reference.goodSeq
@@ -7978,6 +9298,42 @@
         || null;
     }
 
+    function reconcileAdminRecommendedProducts(rows = [], normalizedJoins = []) {
+      const unresolvedKeys = new Set(normalizedJoins
+        .filter((join) => !String(join?.image || "").trim())
+        .map((join) => getAdminRecommendedProductKey(join.displayRule || join))
+        .filter(Boolean));
+      if (!unresolvedKeys.size || typeof loadGolfJoinHomeCardsJson !== "function") return;
+      pendingAdminRecommendedProductRows = Array.isArray(rows) ? rows.slice() : [];
+      if (adminRecommendedProductReconciliationPromise) return;
+
+      adminRecommendedProductReconciliationPromise = Promise.resolve()
+        .then(() => loadGolfJoinHomeCardsJson())
+        .then((payload) => {
+          const latestRows = pendingAdminRecommendedProductRows.slice();
+          const targetKeys = new Set(latestRows.map(getAdminRecommendedProductKey).filter(Boolean));
+          (Array.isArray(payload?.items) ? payload.items : []).forEach((item) => {
+            const rawKey = getAdminRecommendedProductKey(item);
+            if (!rawKey || !targetKeys.has(rawKey)) return;
+            const normalizedProduct = normalizeExternalGolfJoinProduct(item);
+            const key = getAdminRecommendedProductKey(normalizedProduct);
+            if (key && targetKeys.has(key)) adminRecommendedProductCache.set(key, normalizedProduct);
+          });
+          const hasHydratedProduct = [...targetKeys].some((key) => (
+            Boolean(String(adminRecommendedProductCache.get(key)?.image || "").trim())
+          ));
+          if (!hasHydratedProduct) return;
+          applyAdminRecommendedScheduleRows(latestRows, { reconcileProducts: false });
+          scheduleHomeRender({ deferWhileModalOpen: true, source: "admin-recommended-product-reconciliation" });
+        })
+        .catch((error) => {
+          golfJoinSafeWarn("Failed to reconcile admin recommended products from current home cards.", error);
+        })
+        .finally(() => {
+          adminRecommendedProductReconciliationPromise = null;
+        });
+    }
+
     function normalizeAdminRecommendedScheduleRule(rule = {}) {
       const section = String(rule.section || "").trim() || "available_schedule";
       if (section !== "available_schedule") return null;
@@ -7988,7 +9344,8 @@
         ...(product || {}),
         id: rule.erpProductId || product?.id,
         erpProductId: rule.erpProductId || product?.erpProductId,
-        erpEventSeq: rule.erpEventSeq || product?.erpEventSeq
+        erpEventSeq: rule.erpEventSeq || product?.erpEventSeq,
+        eventSeq: rule.erpEventSeq || product?.eventSeq
       });
       const departureDate = getFirstISODate(rule.displayStartAt) || product?.departureDate || fallback.departureDate || "";
       const returnDate = getFirstISODate(rule.displayEndAt) || product?.returnDate || product?.departureDate || departureDate;
@@ -7997,6 +9354,12 @@
       const recruitmentCapacity = getJoinRecruitmentCapacity({ displayRule: rule, capacity: rule.capacity, maxPeople: rule.maxPeople }, JOIN_MAX_CAPACITY);
       const isMonthlySchedule = String(rule.scheduleType || rule.badgeType || "").toLowerCase() === "monthly" || String(rule.scheduleLabel || "").includes("월례회");
       const title = rule.overrideTitle || product?.title || fallback.title || "추천 조인 일정";
+      const productFamilyId = String(rule.productFamilyId || "").trim();
+      const familyOptions = productFamilyId ? getAdminRecommendedFamilyOptions(rule) : [];
+      const selectedFamilyOption = familyOptions.find((option) => (
+        option.goodSeq === String(productReference.goodSeq || rule.erpProductId || "")
+        && option.eventSeq === String(productReference.eventSeq || rule.erpEventSeq || "")
+      )) || familyOptions[0] || null;
       const ruleCountry = String(rule.country || "").trim();
       const ruleRegion = String(rule.region || "").trim();
       const ruleDepartureAirport = String(rule.departureAirport || "").trim();
@@ -8014,16 +9377,16 @@
         title: escapeBuilderApplicationText(title),
         scheduleId,
         sourceApplicationId: rule.recommendedScheduleId || rule.displayRuleId || "",
-        departureDate,
-        returnDate,
-        date: `${departureDate} - ${returnDate}`,
+        departureDate: selectedFamilyOption?.departureDate || departureDate,
+        returnDate: selectedFamilyOption?.returnDate || returnDate,
+        date: `${selectedFamilyOption?.departureDate || departureDate} - ${selectedFamilyOption?.returnDate || returnDate}`,
         country: ruleCountry || product?.country || fallback.country || "",
         region: ruleRegion || product?.region || fallback.region || "",
         category,
         departureAirport: normalizeSecretTourAirportName(ruleDepartureAirport, product?.departureAirport, product?.airport, fallback.departureAirport, fallback.airport),
         arrivalAirport: ruleArrivalAirport || product?.arrivalAirport || fallback.arrivalAirport || "",
         airline: rule.airline || product?.airline || normalizeSecretTourAirlineName(product?.air2Nm, product?.air2CdNm),
-        price: hasRulePrice ? rulePrice : (Number(product?.price) || Number(fallback.price) || 0),
+        price: Number(selectedFamilyOption?.price) || (hasRulePrice ? rulePrice : (Number(product?.price) || Number(fallback.price) || 0)),
         image: rule.overrideImageUrl || product?.image || fallback.image || "",
         badge: rule.badgeType === "pinned" || isTruthyDisplayRuleValue(rule.isPinned) ? "추천일정" : (product?.badge || fallback.badge || "추천일정"),
         badge: isMonthlySchedule ? "월례회" : (rule.badgeType === "pinned" || isTruthyDisplayRuleValue(rule.isPinned) ? "추천일정" : (product?.badge || fallback.badge || "추천일정")),
@@ -8033,10 +9396,13 @@
         maxPeople: recruitmentCapacity,
         badgeKind: product?.badgeKind || "special",
         badgeImage: product?.badgeImage || BADGE_IMAGES.special || fallback.badgeImage || "",
-        goodSeq: rule.erpProductId || product?.goodSeq || productReference.goodSeq || "",
-        eventSeq: product?.eventSeq || productReference.eventSeq || rule.erpEventSeq || "",
-        erpProductId: normalizeJoinCanonicalErpProductId(rule.erpProductId || product?.goodSeq || productReference.goodSeq || product?.erpProductId, product?.erpEventSeq || productReference.eventSeq || rule.erpEventSeq) || "",
-        erpEventSeq: normalizeJoinCanonicalErpEventSeq(product?.erpEventSeq || productReference.eventSeq || rule.erpEventSeq),
+        goodSeq: selectedFamilyOption?.goodSeq || rule.erpProductId || product?.goodSeq || productReference.goodSeq || "",
+        eventSeq: selectedFamilyOption?.eventSeq || productReference.eventSeq || product?.eventSeq || "",
+        erpProductId: normalizeJoinCanonicalErpProductId(selectedFamilyOption?.goodSeq || rule.erpProductId || product?.goodSeq || productReference.goodSeq || product?.erpProductId, selectedFamilyOption?.eventSeq || productReference.eventSeq || product?.erpEventSeq) || "",
+        erpEventSeq: normalizeJoinCanonicalErpEventSeq(selectedFamilyOption?.eventSeq || productReference.eventSeq || product?.erpEventSeq),
+        productFamilyId,
+        familyDepartureDate: String(rule.familyDepartureDate || selectedFamilyOption?.departureDate || departureDate).slice(0, 10),
+        familyOptions,
         packType: rule.packType || product?.packType || fallback.packType || "",
         packTypeName: rule.packTypeName || product?.packTypeName || fallback.packTypeName || "",
         participants: [],
@@ -8048,17 +9414,38 @@
         schedule: product?.schedule?.length ? product.schedule : (fallback.schedule || []),
         displayOrder: Number(rule.displayOrder || 0),
         displayRule: rule,
-        isAdminRecommendedSchedule: true
+        isAdminRecommendedSchedule: true,
+        isPublicHomeSchedule: true
       };
     }
 
-    function applyAdminRecommendedScheduleRows(rows = []) {
+    function applyAdminRecommendedScheduleRows(rows = [], options = {}) {
       const nextIds = new Set();
-      rows.map(normalizeAdminRecommendedScheduleRule).filter(Boolean).forEach((join) => {
+      const normalizedJoins = rows.map(normalizeAdminRecommendedScheduleRule).filter(Boolean);
+      normalizedJoins.forEach((join) => {
         nextIds.add(join.id);
         const currentIndex = joins.findIndex((item) => item.id === join.id);
-        if (currentIndex >= 0) joins.splice(currentIndex, 1, join);
-        else joins.unshift(join);
+        if (currentIndex >= 0) {
+          const currentJoin = joins[currentIndex] || {};
+          const sameScheduleIdentity = (
+            String(currentJoin.sourceApplicationId || currentJoin.id || "") === String(join.sourceApplicationId || join.id || "")
+            && String(currentJoin.erpProductId || currentJoin.goodSeq || "") === String(join.erpProductId || join.goodSeq || "")
+            && String(currentJoin.erpEventSeq || currentJoin.eventSeq || "") === String(join.erpEventSeq || join.eventSeq || "")
+          );
+          const nextJoin = sameScheduleIdentity ? {
+            ...join,
+            participants: Array.isArray(currentJoin.participants) ? currentJoin.participants : join.participants,
+            participantSummary: currentJoin.participantSummary || join.participantSummary,
+            lightSummary: currentJoin.lightSummary || join.lightSummary,
+            confirmedCount: Number.isFinite(Number(currentJoin.confirmedCount)) ? currentJoin.confirmedCount : join.confirmedCount,
+            currentCount: Number.isFinite(Number(currentJoin.currentCount)) ? currentJoin.currentCount : join.currentCount,
+            participantCount: Number.isFinite(Number(currentJoin.participantCount)) ? currentJoin.participantCount : join.participantCount,
+            emptySlots: Number.isFinite(Number(currentJoin.emptySlots)) ? currentJoin.emptySlots : join.emptySlots
+          } : join;
+          joins.splice(currentIndex, 1, nextJoin);
+        } else {
+          joins.unshift(join);
+        }
       });
       for (let index = joins.length - 1; index >= 0; index -= 1) {
         if (joins[index]?.isAdminRecommendedSchedule && !nextIds.has(joins[index].id)) {
@@ -8070,6 +9457,9 @@
         if (a.isAdminRecommendedSchedule && b.isAdminRecommendedSchedule) return (Number(a.displayOrder || 0) - Number(b.displayOrder || 0));
         return a.isAdminRecommendedSchedule ? -1 : 1;
       });
+      if (options.reconcileProducts !== false) {
+        reconcileAdminRecommendedProducts(rows, normalizedJoins);
+      }
       return rows;
     }
 
@@ -8104,22 +9494,38 @@
         const cached = readJoinMemberScopedItems(BUILDER_APPLICATIONS_STORAGE_KEY);
         cached.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "local" }));
         readGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, { memberKey })
-          .map(normalizeBuilderApplicationPayload)
-          .forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
+          .forEach((row) => {
+            if (row?.creatorPreview && Array.isArray(row?.participantsPreview)) {
+              upsertLightNewScheduleSummary(row);
+              return;
+            }
+            upsertBuilderApplicationJoin(normalizeBuilderApplicationPayload(row), { render: false, source: "sheet" });
+          });
+        if (hasFreshGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, { memberKey })) {
+          googleSheetBuilderApplicationsReadCompleted = true;
+          googleSheetBuilderApplicationsReadFailed = false;
+        }
       } catch (error) {
         golfJoinSafeWarn("Failed to load cached builder applications.", error);
       }
     }
 
     function applyBuilderApplicationsFromGoogleSheetRows(rows = []) {
-      const authoritativeKeys = rows.flatMap(getBuilderPayloadIdentityKeys);
-      clearBuilderApplicationLocalCache({ authoritativeKeys });
-      syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys);
-      writeGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, rows, { memberKey: getJoinWishMemberKey() });
-      rows.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
+      const memberKey = getJoinWishMemberKey();
+      const currentRows = rows.filter(shouldApplyScheduleMutationSnapshot);
+      const authoritativeKeys = currentRows.flatMap(getBuilderPayloadIdentityKeys);
+      clearBuilderApplicationLocalCache({ authoritativeKeys, preserveRecentLocal: true });
+      syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys, { preserveRecentLocal: true });
+      writeGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, currentRows, { memberKey });
+      currentRows.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, {
+        render: false,
+        source: "sheet",
+        publicHome: true
+      }));
+      googleSheetBuilderApplicationsReadMemberKey = memberKey;
       googleSheetBuilderApplicationsReadCompleted = true;
       googleSheetBuilderApplicationsReadFailed = false;
-      return rows;
+      return currentRows;
     }
 
     function applyHomeBootstrapRows(data = {}, options = {}) {
@@ -8150,7 +9556,7 @@
       return data;
     }
 
-    async function hydrateBuilderApplicationJoinsFromGoogleSheet(options = {}) {
+    async function hydrateBuilderApplicationJoinsFromGoogleSheetUncoalesced(options = {}) {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return [];
       const requestGeneration = ++googleSheetBuilderApplicationsRequestGeneration;
       const requestMember = getJoinCachedCurrentMember();
@@ -8160,13 +9566,19 @@
         requestGeneration === googleSheetBuilderApplicationsRequestGeneration
         && requestMemberKey === getJoinWishMemberKey(getJoinCachedCurrentMember())
       );
+      googleSheetBuilderApplicationsReadMemberKey = "";
       googleSheetBuilderApplicationsLoading = true;
       googleSheetBuilderApplicationsReadFailed = false;
       if (options.renderStart !== false) renderJoins();
       try {
         const hasMemberLookup = Object.values(memberLookupParams).some((value) => String(value || "").trim());
+        const bootstrapPublicRows = Array.isArray(pendingHomeBootstrapLightData?.newScheduleSummaries)
+          ? pendingHomeBootstrapLightData.newScheduleSummaries
+          : [];
+        const canReuseBootstrapPublicRows = homeBootstrapLightAuthoritativeApplied
+          && Array.isArray(pendingHomeBootstrapLightData?.newScheduleSummaries);
         const [publicRows, memberRows] = await Promise.all([
-          fetchGolfJoinSheetRows({
+          canReuseBootstrapPublicRows ? Promise.resolve(bootstrapPublicRows) : fetchGolfJoinSheetRows({
             sheet: "new_schedule_applications",
             source: "new_schedule_builder",
             limit: "100"
@@ -8182,6 +9594,13 @@
           }) : Promise.resolve([])
         ]);
         if (!isRequestCurrent()) return [];
+        const scopedMemberRows = memberRows.map((row) => ({
+          ...row,
+          memberLookupMatched: true,
+          memberLookupKey: requestMemberKey
+        }));
+        const currentPublicRows = publicRows.filter(shouldApplyScheduleMutationSnapshot);
+        const currentScopedMemberRows = scopedMemberRows.filter(shouldApplyScheduleMutationSnapshot);
         const rows = [];
         const rowIndexesByKey = new Map();
         const mergeRow = (row) => {
@@ -8196,23 +9615,42 @@
           rows.push(row);
           keys.forEach((key) => rowIndexesByKey.set(key, nextIndex));
         };
-        publicRows.forEach(mergeRow);
-          memberRows.map((row) => ({
-            ...row,
-            memberLookupMatched: true,
-            memberLookupKey: requestMemberKey
-          })).forEach(mergeRow);
-        const authoritativeKeys = rows.flatMap(getBuilderPayloadIdentityKeys);
-        clearBuilderApplicationLocalCache({ authoritativeKeys });
-        syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys);
-        writeGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, rows, { memberKey: requestMemberKey });
-        rows.map(normalizeBuilderApplicationPayload).forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
+        currentPublicRows.forEach(mergeRow);
+        currentScopedMemberRows.forEach(mergeRow);
+        const currentRows = rows.filter(shouldApplyScheduleMutationSnapshot);
+        const authoritativeKeys = currentRows.flatMap(getBuilderPayloadIdentityKeys);
+        clearBuilderApplicationLocalCache({ authoritativeKeys, preserveRecentLocal: true });
+        syncBuilderApplicationJoinsWithAuthoritativeKeys(authoritativeKeys, { preserveRecentLocal: true });
+        // The public bootstrap rows are compact summaries, not full builder sheet rows.
+        // Re-normalizing them as sheet rows drops creator profile fields (for example,
+        // gender) and can overwrite the richer participant preview already applied by
+        // home_bootstrap_light. Keep the public rows on the light-summary path and cache
+        // only the member-scoped full rows in this private cache.
+        writeGoogleSheetRowsCache(GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY, currentScopedMemberRows, { memberKey: requestMemberKey });
+        if (canReuseBootstrapPublicRows) {
+          currentPublicRows.forEach((summary) => upsertLightNewScheduleSummary(summary, { publicHome: true }));
+        } else {
+          currentPublicRows.map(normalizeBuilderApplicationPayload)
+            .forEach((payload) => upsertBuilderApplicationJoin(payload, {
+              render: false,
+              source: "sheet",
+              publicHome: true
+            }));
+        }
+        currentScopedMemberRows.map(normalizeBuilderApplicationPayload)
+          .forEach((payload) => upsertBuilderApplicationJoin(payload, { render: false, source: "sheet" }));
+        if (canReuseBootstrapPublicRows) {
+          (pendingHomeBootstrapLightData?.participantSummaries || []).forEach(applyLightParticipantSummary);
+          reapplyRememberedJoinApplications({ render: false });
+        }
         clearActiveJoinMySchedulesCache();
+        googleSheetBuilderApplicationsReadMemberKey = requestMemberKey;
         googleSheetBuilderApplicationsReadCompleted = true;
         googleSheetBuilderApplicationsReadFailed = false;
         if (options.renderHome !== false) renderJoins();
+        refreshOpenCalendarSheetAfterJoinDataChange();
         refreshOpenBuilderCalendarAfterJoinDataChange();
-        return rows;
+        return currentRows;
       } catch (error) {
         if (!isRequestCurrent()) return [];
         googleSheetBuilderApplicationsReadCompleted = true;
@@ -8227,6 +9665,16 @@
       }
     }
 
+    function hydrateBuilderApplicationJoinsFromGoogleSheet(options = {}) {
+      const memberKey = getJoinWishMemberKey(getJoinCachedCurrentMember());
+      if (!memberKey) return Promise.resolve([]);
+      return runJoinPrivateRequestOnce(
+        "builder-applications",
+        memberKey,
+        () => hydrateBuilderApplicationJoinsFromGoogleSheetUncoalesced(options)
+      );
+    }
+
     async function submitBuilderApply(options = {}) {
       if (builderApplySubmitting) return false;
       if (!validateBuilderApplyStyleSelection()) return false;
@@ -8236,24 +9684,41 @@
         openApplySubmitConfirmModal("builder");
         return false;
       }
+      trackGolfJoinBuilderStep("submit_start");
       builderApplySubmitting = true;
       const next = document.getElementById("builderNextButton");
       const previousText = next?.textContent || "";
+      let builderSaveConfirmed = false;
       try {
         const result = await runJoinActionLoading(async () => {
-          const payload = await getBuilderApplyPayload();
+          let payload = await getBuilderApplyPayload();
           if (!validateBuilderApplyPayload(payload)) return { ok: false };
-          try {
-            await saveBuilderApplyToGoogleSheet(payload);
-          } catch (error) {
-            const confirmed = await confirmBuilderApplySavedToGoogleSheet(payload);
-            if (!confirmed) throw error;
-            golfJoinSafeWarn("Builder apply save response failed, but the row was confirmed in Google Sheet.", error);
-          }
-          invalidateHomeBootstrapLightCache();
+          payload = stabilizeScheduleMutationPayload(payload, "builder");
+          const saveResponse = await saveScheduleMutationWithRetry(
+            saveBuilderApplyToGoogleSheet,
+            payload,
+            "Builder apply"
+          );
+          acceptScheduleMutationResponse(saveResponse, payload);
+          builderSaveConfirmed = true;
+          trackGolfJoinGa4EventOnce(
+            `new_schedule:${payload.applicationId || payload.scheduleId || "confirmed"}`,
+            "golfjoin_create_complete",
+            {
+              item_id: payload.scheduleId || payload.applicationId || "",
+              item_name: getNestedValue(payload, "trip.productName") || "",
+              item_category: getNestedValue(payload, "trip.region") || getNestedValue(payload, "trip.country") || "",
+              item_type: "join_schedule",
+              source_area: "builder",
+              builder_step: "complete",
+              participant_count: Number(getNestedValue(payload, "applicant.people") || 1)
+            }
+          );
           const join = upsertBuilderApplicationJoin(payload, { persist: true });
+          applyScheduleMutationParticipantResponse(saveResponse);
+          clearPendingScheduleMutation(payload, "builder");
           latestBuilderApplicationShareJoin = join;
-          return { ok: true, join, payload };
+          return { ok: true, join, payload, saveResponse };
         }, {
           button: next,
           message: "모임을 생성 중이에요."
@@ -8262,6 +9727,13 @@
         setBuilderStep(4);
         return true;
       } catch (error) {
+        trackGolfJoinGa4Event("golfjoin_create_error", {
+          flow_type: "new_schedule",
+          source_area: "builder",
+          error_type: builderSaveConfirmed
+            ? "post_save_reconciliation_failed"
+            : error?.serverCode || error?.code || (error?.status ? `http_${error.status}` : "save_failed")
+        });
         golfJoinSafeError("Failed to save builder apply payload.", error);
         const rawErrorMessage = error?.serverMessage || error?.message || "";
         const detailMessage = rawErrorMessage ? `\n\n오류: ${rawErrorMessage}` : "";
@@ -8472,6 +9944,8 @@
       overlay?.setAttribute("aria-hidden", "false");
       setWidgetModalOpen(true);
       if (!overlay) return;
+      if (isBuilder) trackGolfJoinBuilderStep("review");
+      else trackGolfJoinApplyStep("review");
       overlay.classList.remove("open");
       if (applySubmitConfirmOpenFrame) {
         window.cancelAnimationFrame(applySubmitConfirmOpenFrame);
@@ -8546,7 +10020,7 @@
           openBuilderAlert("출발일을 선택해주세요.");
           return;
         }
-        if (!Number.isFinite(builderState.endDay)) {
+        if (!builderState.regionDateFirstMode && !Number.isFinite(builderState.endDay)) {
           openBuilderAlert("도착일을 선택해주세요.");
           return;
         }
@@ -8569,7 +10043,7 @@
       setBuilderStep(builderStep - 1);
     }
 
-    function resetBuilderModal() {
+    function resetBuilderModal(options = {}) {
       builderStep = 1;
       activeBuilderPopoverTarget = "start";
       activeBuilderPopoverDay = null;
@@ -8588,6 +10062,7 @@
         region: "",
         regions: [],
         dateConstraintRegions: [],
+        regionDateFirstMode: false,
         productId: "",
         productName: "",
         productFamilyId: "",
@@ -8604,8 +10079,18 @@
       closeBuilderFlexSheet();
       closeBuilderProductDetail();
       document.getElementById("builderModal")?.classList.remove("mdpick-builder-mode", "mdpick-date-change-mode", "mdpick-recruit-direct-mode");
-      renderBuilderCalendar();
-      ensureExternalGolfJoinProductsLoaded();
+      if (options.deferCalendarRender === true) {
+        renderBuilderCalendarLoadingShell();
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            renderBuilderCalendar();
+            requestAnimationFrame(() => void refreshBuilderProductDiscovery("initial-open"));
+          });
+        });
+      } else {
+        renderBuilderCalendar();
+        requestAnimationFrame(() => void refreshBuilderProductDiscovery("initial-open"));
+      }
       updateBuilderRegionDisplay();
       clearBuilderRegionSearchInput();
       setBuilderStep(1);
@@ -8629,18 +10114,82 @@
       document.getElementById("builderFlexSheet")?.classList.remove("open");
     }
 
-    function getBuilderActiveScheduleForDate(date) {
+    function getBuilderActiveScheduleForDate(date, activeSchedules = null) {
       const time = getDateOnlyTime(getISODateKey(date));
       if (!Number.isFinite(time)) return null;
-      return getActiveJoinMySchedules().find((item) => item.range && time >= item.range.startTime && time <= item.range.endTime) || null;
+      const schedules = Array.isArray(activeSchedules) ? activeSchedules : getActiveJoinMySchedules();
+      return schedules.find((item) => item.range && time >= item.range.startTime && time <= item.range.endTime) || null;
     }
 
     function getBuilderActiveScheduleByKey(key = "") {
       return getActiveJoinMySchedules().find((item) => item.key === key) || null;
     }
 
+    function syncBuilderActiveScheduleLayerGeometry(openedFromJoinableCalendar = false) {
+      const origin = openedFromJoinableCalendar
+        ? document.querySelector("#calendarSheet .calendar-sheet")
+        : document.querySelector("#builderModal .builder-modal");
+      const sheet = document.getElementById("builderActiveScheduleSheet");
+      const backdrop = document.getElementById("builderActiveScheduleBackdrop");
+      if (!origin || !sheet || !backdrop) return false;
+      const rect = origin.getBoundingClientRect();
+      if (!rect.width || !rect.height) return false;
+      const style = window.getComputedStyle(origin);
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || rect.bottom;
+      const values = {
+        "--builder-active-origin-left": `${Math.max(0, rect.left)}px`,
+        "--builder-active-origin-top": `${Math.max(0, rect.top)}px`,
+        "--builder-active-origin-bottom": `${Math.max(0, viewportHeight - rect.bottom)}px`,
+        "--builder-active-origin-width": `${rect.width}px`,
+        "--builder-active-origin-height": `${rect.height}px`,
+        "--builder-active-origin-max-sheet-height": `${Math.max(220, Math.floor(rect.height * 0.76))}px`,
+        "--builder-active-origin-radius-top-left": style.borderTopLeftRadius || "0px",
+        "--builder-active-origin-radius-top-right": style.borderTopRightRadius || "0px",
+        "--builder-active-origin-radius-bottom-right": style.borderBottomRightRadius || "0px",
+        "--builder-active-origin-radius-bottom-left": style.borderBottomLeftRadius || "0px",
+        "--builder-active-origin-translate-x": "0px"
+      };
+      [sheet, backdrop].forEach((element) => {
+        Object.entries(values).forEach(([name, value]) => element.style.setProperty(name, value));
+      });
+      sheet.dataset.originModal = openedFromJoinableCalendar ? "calendar" : "builder";
+      return true;
+    }
+
+    function cancelBuilderActiveScheduleOpenAnimation(sheet = document.getElementById("builderActiveScheduleSheet")) {
+      const frameId = Number(sheet?.dataset.openAnimationFrame || 0);
+      if (frameId) cancelAnimationFrame(frameId);
+      if (sheet) {
+        delete sheet.dataset.openAnimationFrame;
+        sheet.style.removeProperty("transition");
+      }
+    }
+
+    function startBuilderActiveScheduleOpenAnimation(sheet) {
+      if (!sheet) return;
+      cancelBuilderActiveScheduleOpenAnimation(sheet);
+      sheet.classList.remove("open");
+      sheet.style.setProperty("transition", "none");
+      sheet.getBoundingClientRect();
+      const prepareFrame = requestAnimationFrame(() => {
+        if (sheet.getAttribute("aria-hidden") === "true") {
+          cancelBuilderActiveScheduleOpenAnimation(sheet);
+          return;
+        }
+        sheet.style.removeProperty("transition");
+        const openFrame = requestAnimationFrame(() => {
+          delete sheet.dataset.openAnimationFrame;
+          if (sheet.getAttribute("aria-hidden") !== "true") sheet.classList.add("open");
+        });
+        sheet.dataset.openAnimationFrame = String(openFrame);
+      });
+      sheet.dataset.openAnimationFrame = String(prepareFrame);
+    }
+
     function closeBuilderActiveScheduleSheet() {
       const sheet = document.getElementById("builderActiveScheduleSheet");
+      cancelBuilderActiveScheduleOpenAnimation(sheet);
+      if (sheet?.contains(document.activeElement)) document.activeElement?.blur?.();
       sheet?.classList.remove("open");
       sheet?.setAttribute("aria-hidden", "true");
       const backdrop = document.getElementById("builderActiveScheduleBackdrop");
@@ -8649,12 +10198,16 @@
     }
 
     function openBuilderActiveScheduleSheet(scheduleKey = "", iso = "") {
-      hideJoinMobileBottomNavForBuilderDateSelection();
+      const openedFromJoinableCalendar = document.getElementById("calendarSheet")?.classList.contains("open")
+        && !document.getElementById("builderModal")?.classList.contains("open");
+      if (openedFromJoinableCalendar) hideJoinMobileBottomNavForCalendarDateSelection();
+      else hideJoinMobileBottomNavForBuilderDateSelection();
       closeBuilderDatePopover(true);
       closeBuilderFlexSheet();
-      const schedule = getBuilderActiveScheduleByKey(scheduleKey);
+      const schedule = getBuilderActiveScheduleByKey(scheduleKey)
+        || (iso ? getBuilderActiveScheduleForDate(new Date(`${iso}T00:00:00`)) : null);
       if (!schedule) return;
-      const sheet = document.getElementById("builderActiveScheduleSheet");
+      const sheet = portalOverlayToBody("builderActiveScheduleSheet");
       const dateTarget = document.getElementById("builderActiveScheduleDate");
       const list = document.getElementById("builderActiveScheduleList");
       if (dateTarget) dateTarget.textContent = iso ? iso.replace(/-/g, ".") : formatJoinMyDateRange(schedule);
@@ -8685,11 +10238,12 @@
           onClick: `openBuilderActiveScheduleDetail('${escapeJsString(schedule.key)}')`
         });
       }
-      const backdrop = document.getElementById("builderActiveScheduleBackdrop");
+      const backdrop = portalOverlayToBody("builderActiveScheduleBackdrop");
+      syncBuilderActiveScheduleLayerGeometry(openedFromJoinableCalendar);
       backdrop?.classList.add("open");
       backdrop?.setAttribute("aria-hidden", "false");
       sheet?.setAttribute("aria-hidden", "false");
-      sheet?.classList.add("open");
+      startBuilderActiveScheduleOpenAnimation(sheet);
     }
 
     function openBuilderActiveScheduleDetail(scheduleKey = "") {
@@ -8757,6 +10311,26 @@
         loadingToken = openJoinActionLoading(builderAction === "mdpick-detail" ? "상품 정보를 확인하고 있어요" : "신청 정보를 확인하고 있어요");
       }
       try {
+        if (builderAction === "region-search") {
+          const targetRegion = normalizeRegionBuilderEntryName(params.builderRegion);
+          if (!targetRegion) {
+            return openModal("builderModal", {
+              skipProfileCheck: Boolean(options.skipProfileCheck),
+              analyticsSourceArea: "destination_search"
+            });
+          }
+          pendingBuilderRegion = targetRegion;
+          const opened = await openModal("builderModal", {
+            skipProfileCheck: Boolean(options.skipProfileCheck),
+            analyticsSourceArea: "destination_search",
+            loginParams: {
+              builderAction: "region-search",
+              builderRegion: targetRegion
+            }
+          });
+          if (!opened) return false;
+          return initializeBuilderFromRegionSearch(targetRegion);
+        }
         if (builderAction === "mdpick-detail") {
           const productId = params.builderProductId || params.productId;
           const isSameDetailOpen = document.getElementById("detailModal")?.classList.contains("open")
@@ -8765,11 +10339,17 @@
           let product = findBuilderProductById(productId);
           if (!product) {
             try {
-              await ensureExternalGolfJoinProductsLoaded();
+              const reference = parseSecretTourProductReference(productId || "", params.eventSeq || params.erpEventSeq || "");
+              if (reference.goodSeq && reference.eventSeq) {
+                product = await loadGolfJoinProductDiscoveryDirect(reference.goodSeq, reference.eventSeq, {
+                  consumer: "builder-login-restore",
+                  reason: "mdpick-detail"
+                });
+              }
             } catch (error) {
               golfJoinSafeWarn("Failed to load product while restoring detail after login.", error);
             }
-            product = findBuilderProductById(productId);
+            product = product || findBuilderProductById(productId);
           }
           if (product) {
             const productGroupKey = params.productGroupKey || getProductGroupKey(product);
@@ -8829,8 +10409,6 @@
     }
 
     let detailModalPageScrollState = null;
-    let detailModalPageScrollLockState = null;
-
     function capturePageScrollState() {
       const scrollingElement = document.scrollingElement || document.documentElement;
       return {
@@ -8856,56 +10434,73 @@
       });
     }
 
-    function lockDetailModalPageScroll(state = {}) {
-      if (detailModalPageScrollLockState || !document.body) return;
-      const body = document.body;
-      const top = Math.max(0, Number(state.top) || 0);
-      const left = Math.max(0, Number(state.left) || 0);
-      const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
-      const bodyPaddingRight = Number.parseFloat(getComputedStyle(body).paddingRight) || 0;
-      const usesFixedBodyLock = Boolean(window.matchMedia?.("(max-width: 640px)")?.matches);
-      detailModalPageScrollLockState = {
-        usesFixedBodyLock,
-        position: body.style.position,
-        top: body.style.top,
-        left: body.style.left,
-        right: body.style.right,
-        width: body.style.width,
-        paddingRight: body.style.paddingRight
-      };
-      if (usesFixedBodyLock) {
-        body.style.position = "fixed";
-        body.style.top = `-${top}px`;
-        body.style.left = `-${left}px`;
-        body.style.right = "0";
-        body.style.width = "100%";
-      }
-      if (scrollbarWidth) body.style.paddingRight = `${bodyPaddingRight + scrollbarWidth}px`;
-      body.classList.add("detail-modal-page-scroll-locked");
+    function getBuilderGa4SourceArea(trigger) {
+      if (trigger?.closest?.("#joinMobileBottomNav")) return "mobile_navigation";
+      if (trigger?.classList?.contains("hero-create-button")) return "hero";
+      if (trigger?.classList?.contains("cta-create-button")) return "new_schedule";
+      return "home";
     }
 
-    function unlockDetailModalPageScroll(state = {}) {
-      const lockState = detailModalPageScrollLockState;
-      if (!lockState || !document.body) {
-        restorePageScrollState(state);
-        return;
-      }
-      const body = document.body;
-      body.style.position = lockState.position;
-      body.style.top = lockState.top;
-      body.style.left = lockState.left;
-      body.style.right = lockState.right;
-      body.style.width = lockState.width;
-      body.style.paddingRight = lockState.paddingRight;
-      body.classList.remove("detail-modal-page-scroll-locked");
-      detailModalPageScrollLockState = null;
-      restorePageScrollState(state);
+    function getBuilderGa4StepName(step) {
+      const numericStep = Number(step);
+      if (numericStep === 1) return "date_selection";
+      if (numericStep === 2) return "destination_selection";
+      if (numericStep === 3) return "participant_info";
+      if (numericStep === 4) return "complete";
+      return String(step || "").trim();
+    }
+
+    function trackGolfJoinBuilderStep(step, parameters = {}) {
+      const builderStepName = getBuilderGa4StepName(step);
+      if (!builderStepName || golfJoinBuilderGa4Steps.has(builderStepName)) return false;
+      const selectedProduct = typeof getBuilderSelectedFixedProduct === "function"
+        ? getBuilderSelectedFixedProduct()
+        : null;
+      const tracked = trackGolfJoinGa4Event("golfjoin_create_step_view", {
+        item_id: selectedProduct?.id || builderState.productId || "",
+        item_name: selectedProduct?.title || builderState.productName || "",
+        item_category: selectedProduct?.region || builderState.region || "",
+        item_type: "join_schedule",
+        flow_type: "new_schedule",
+        source_area: golfJoinBuilderGa4SourceArea,
+        builder_step: builderStepName,
+        ...parameters
+      });
+      if (tracked) golfJoinBuilderGa4Steps.add(builderStepName);
+      return tracked;
+    }
+
+    function trackGolfJoinApplyStep(step, parameters = {}) {
+      const applyStepName = String(step || "").trim();
+      if (!applyStepName || golfJoinApplyGa4Steps.has(applyStepName)) return false;
+      const applyJoin = getCurrentApplyJoin();
+      const tracked = trackGolfJoinGa4Event("golfjoin_apply_step_view", {
+        ...getGolfJoinGa4Item(applyJoin),
+        item_type: "join_schedule",
+        flow_type: "join_apply",
+        source_area: "detail",
+        apply_step: applyStepName,
+        ...parameters
+      });
+      if (tracked) golfJoinApplyGa4Steps.add(applyStepName);
+      return tracked;
+    }
+
+    function getDetailGa4SourceArea(options = {}) {
+      const explicit = options.analyticsSourceArea || options.sourceArea || options.sourceSection || "";
+      if (explicit) return explicit;
+      if (currentDetailReturnContext?.menu) return currentDetailReturnContext.menu;
+      if (currentDetailMode === "mdPickProduct") return "mdpick";
+      if (currentDetailMode === "builderProduct") return "builder";
+      if (currentDetailMode === "builder") return "my_reservation";
+      return "home";
     }
 
     async function openModal(id, options = {}) {
-      if (id === "builderModal" && !requireJoinLogin("builder")) return false;
+      const builderLoginParams = options.loginParams || {};
+      if (id === "builderModal" && !requireJoinLogin("builder", builderLoginParams)) return false;
       if (id === "builderModal" && !options.skipProfileCheck) {
-        const member = await ensureJoinMemberProfileReady("builder");
+        const member = await ensureJoinMemberProfileReady("builder", builderLoginParams);
         if (!member) return false;
       }
       const isOpeningMainPageDetail = id === "detailModal"
@@ -8922,11 +10517,11 @@
             }
           : capturePageScrollState();
         restorePageScrollState(detailModalPageScrollState);
-        lockDetailModalPageScroll(detailModalPageScrollState);
       }
       stopQuickMobileCarousel();
       prepareJoinMobileFullscreenModalViewport();
       const overlay = portalOverlayToBody(id);
+      const wasAlreadyOpen = Boolean(overlay?.classList.contains("open"));
       if (id === "detailModal" && overlay) {
         overlay.style.setProperty("z-index", "2147483643", "important");
         overlay.querySelector(".detail-modal")?.style.setProperty("z-index", "2147483644", "important");
@@ -8936,14 +10531,25 @@
         overlay.querySelector(".builder-modal")?.style.setProperty("z-index", "2147483636", "important");
       }
       overlay?.classList.add("open");
+      if (overlay && !wasAlreadyOpen && id === "builderModal") {
+        golfJoinBuilderGa4Steps.clear();
+        golfJoinBuilderGa4SourceArea = options.analyticsSourceArea || "builder";
+        trackGolfJoinGa4Event("golfjoin_create_start", {
+          source_area: golfJoinBuilderGa4SourceArea
+        });
+      }
       if (id === "builderModal" && !options.preserveBuilderState) {
         resetBuilderModal();
       }
-      if (id === "detailModal" || id === "builderModal") {
-        setWidgetModalOpen(true);
-      }
-      if (id === "detailModal" && detailModalPageScrollState && !detailModalPageScrollLockState?.usesFixedBodyLock) {
-        restorePageScrollState(detailModalPageScrollState);
+      setWidgetModalOpen(true);
+      if (overlay && !wasAlreadyOpen && id === "detailModal" && currentDetailJoinData) {
+        trackGolfJoinGa4Event("golfjoin_detail_view", {
+          ...getGolfJoinGa4Item(currentDetailJoinData),
+          item_type: typeof getJoinWishType === "function"
+            ? getJoinWishType(currentDetailJoinData)
+            : (currentDetailMode === "normal" || currentDetailMode === "builder" ? "join_schedule" : "product"),
+          source_area: getDetailGa4SourceArea(options)
+        });
       }
       return true;
     }
@@ -8957,10 +10563,22 @@
     }
 
     async function openBuilderModalFromMain(trigger) {
-      return runJoinActionLoading(
-        () => openModal("builderModal"),
-        { button: trigger, message: "조인모임 신청을 시작하고 있어요" }
-      );
+      if (!requireJoinLogin("builder")) return false;
+      const opened = await openModal("builderModal", {
+        skipProfileCheck: true,
+        preserveBuilderState: true,
+        analyticsSourceArea: getBuilderGa4SourceArea(trigger)
+      });
+      if (!opened) return false;
+      renderBuilderCalendarLoadingShell();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const member = await ensureJoinMemberProfileReady("builder");
+      if (!member) {
+        closeModal("builderModal");
+        return false;
+      }
+      resetBuilderModal({ deferCalendarRender: true });
+      return true;
     }
 
     function resetDetailModalScroll() {
@@ -9049,17 +10667,20 @@
     function closeModal(id) {
       const modal = document.getElementById(id);
       const detailReturnContext = id === "detailModal" ? currentDetailReturnContext : null;
-      const detailPageScrollState = id === "detailModal" ? detailModalPageScrollState : null;
-      const hadDetailPageScrollLock = id === "detailModal" && Boolean(detailModalPageScrollLockState);
       resetModalRuntimeState(modal);
       modal?.classList.remove("open");
-      if ((id === "detailModal" || id === "builderModal") && !document.getElementById("detailModal")?.classList.contains("open") && !document.getElementById("builderModal")?.classList.contains("open") && !document.getElementById("regionSearchModal")?.classList.contains("open")) {
-        setWidgetModalOpen(hasOpenBlockingModal());
-        if (id === "builderModal") {
-          restoreJoinMobileBottomNavAfterNavModalClose();
-        }
+      setWidgetModalOpen(hasOpenBlockingModal());
+      if (
+        id === "builderModal"
+        && !document.getElementById("detailModal")?.classList.contains("open")
+        && !document.getElementById("builderModal")?.classList.contains("open")
+        && !document.getElementById("regionSearchModal")?.classList.contains("open")
+      ) {
+        restoreJoinMobileBottomNavAfterNavModalClose();
       }
       if (id === "detailModal") {
+        mdPickDetailOpenGeneration += 1;
+        detailContentRequestGeneration += 1;
         closeDetailApply();
         currentDetailMode = "normal";
         currentDetailJoinData = null;
@@ -9073,9 +10694,10 @@
         }
         setDetailDefaultContactActions();
         detailModalPageScrollState = null;
-        if (hadDetailPageScrollLock) unlockDetailModalPageScroll(detailPageScrollState || {});
       }
       if (id === "builderModal") {
+        invalidateGolfJoinProductDiscoveryConsumer("builder-calendar");
+        closeBuilderActiveScheduleSheet();
         closeBuilderFlexSheet();
         closeBuilderProductDetail();
         resetBuilderApplyForm();
@@ -9089,8 +10711,6 @@
       resumeQuickMobileCarouselIfIdle();
       if (detailReturnContext) {
         restoreJoinMyMenuAfterDetail(detailReturnContext);
-      } else if (detailPageScrollState && !hadDetailPageScrollLock) {
-        restorePageScrollState(detailPageScrollState);
       }
     }
     window.closeModal = closeModal;
@@ -9098,6 +10718,12 @@
     function openMdPickRegionSearchModal(event) {
       event?.stopPropagation?.();
       openRegionSearchModal("mdpick");
+    }
+
+    function getRegionSearchGa4SourceArea(context = regionSearchContext) {
+      if (context === "mdpick") return "mdpick";
+      if (context === "builder") return "builder";
+      return "main";
     }
 
     async function openRegionSearchModal(context = "default", options = {}) {
@@ -9115,6 +10741,9 @@
           });
         }
         regionSearchContext = context;
+        trackGolfJoinGa4Event("golfjoin_destination_search_open", {
+          source_area: getRegionSearchGa4SourceArea(context)
+        });
         selectedRegionSearchName = "";
         regionProductSort = "recommended";
         regionProductSortMenuOpen = false;
@@ -9175,11 +10804,15 @@
     function getBuilderProductDateBounds() {
       const items = Array.isArray(window.SECRET_GOLF_JOIN_PRODUCTS?.items)
         ? window.SECRET_GOLF_JOIN_PRODUCTS.items
-        : (externalGolfJoinProducts || []);
-      const dates = items.map((item) => item.departureDate).filter(Boolean).sort();
+        : getBuilderProductSource();
+      const configuredStartDate = window.SECRET_GOLF_JOIN_PRODUCTS?.range?.startDate || golfJoinProductDiscoveryIndex?.range?.startDate || "";
+      const configuredEndDate = window.SECRET_GOLF_JOIN_PRODUCTS?.range?.endDate || golfJoinProductDiscoveryIndex?.range?.endDate || "";
+      const dateIndex = (!configuredStartDate || !configuredEndDate)
+        ? getBuilderProductDateIndex(items)
+        : null;
       return {
-        startDate: window.SECRET_GOLF_JOIN_PRODUCTS?.range?.startDate || dates[0] || "",
-        endDate: window.SECRET_GOLF_JOIN_PRODUCTS?.range?.endDate || dates[dates.length - 1] || ""
+        startDate: configuredStartDate || dateIndex?.minimumDepartureDate || "",
+        endDate: configuredEndDate || dateIndex?.maximumDepartureDate || ""
       };
     }
 
@@ -9192,16 +10825,59 @@
       return `${minDate.getFullYear()}-${String(minDate.getMonth() + 1).padStart(2, "0")}-${String(minDate.getDate()).padStart(2, "0")}`;
     }
 
-    function isBuilderDateSelectable(date) {
-      const { startDate, endDate } = getBuilderProductDateBounds();
+    function isBuilderDepartureDateAllowedByActiveSchedules(iso = "", activeSchedules = null) {
+      if (!iso) return false;
+      const schedules = Array.isArray(activeSchedules) ? activeSchedules : getActiveJoinMySchedules();
+      const departureTime = getDateOnlyTime(iso);
+      const minimumTripLeadTime = 2 * 24 * 60 * 60 * 1000;
+      return Number.isFinite(departureTime) && !schedules.some((active) => (
+        active.range
+        && departureTime >= active.range.startTime - minimumTripLeadTime
+        && departureTime <= active.range.endTime
+      ));
+    }
+
+    function isBuilderReturnDateAllowedByActiveSchedules(iso = "", activeSchedules = null) {
+      const startIso = builderDateToISO(builderState.startDay);
+      if (!startIso || !iso || iso <= startIso) return false;
+      const schedules = Array.isArray(activeSchedules) ? activeSchedules : getActiveJoinMySchedules();
+      const candidateRange = normalizeJoinScheduleRange({ departureDate: startIso, returnDate: iso });
+      return Boolean(candidateRange) && !schedules.some((active) => (
+        active.range && doJoinScheduleRangesOverlap(candidateRange, active.range)
+      ));
+    }
+
+    function getBuilderDateSelectionRole(iso = "") {
+      const startIso = builderDateToISO(builderState.startDay);
+      if (!startIso || iso <= startIso) return "departure";
+      const endIso = builderDateToISO(builderState.endDay);
+      if (!endIso || iso >= endIso) return "return";
+      const isoTime = getDateOnlyTime(iso);
+      const startTime = getDateOnlyTime(startIso);
+      const endTime = getDateOnlyTime(endIso);
+      return Math.abs(isoTime - startTime) <= Math.abs(endTime - isoTime) ? "departure" : "return";
+    }
+
+    function isBuilderDateSelectable(date, renderContext = null) {
+      const { startDate, endDate } = renderContext?.productDateBounds || getBuilderProductDateBounds();
       const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      if (!Number.isFinite(builderState.startDay) && iso < getBuilderMinDepartureISO()) return false;
+      const minimumDepartureISO = renderContext?.minimumDepartureISO || getBuilderMinDepartureISO();
+      if (!Number.isFinite(builderState.startDay) && iso < minimumDepartureISO) return false;
       if (builderState.mdPickDateChangeMode) {
-        return getBuilderFixedProductGroupProducts().some((product) => product.departureDate === iso);
+        if (renderContext?.departureDateSet instanceof Set) {
+          return renderContext.departureDateSet.has(iso);
+        }
+        return getBuilderFixedProductGroupProducts().some((product) => (
+          product.departureDate === iso && !isJoinProductBlockedForNewSchedule(product)
+        ));
       }
       if (startDate && iso < startDate) return false;
       if (endDate && iso > endDate) return false;
-      if (!isBuilderDateAllowedByConstraint(iso)) return false;
+      if (!isBuilderDateAllowedByConstraint(iso, renderContext?.registeredProducts, renderContext)) return false;
+      if (builderState.regionDateFirstMode || getBuilderDateSelectionRole(iso) === "departure") {
+        return isBuilderDepartureDateAllowedByActiveSchedules(iso, renderContext?.activeSchedules);
+      }
+      if (!isBuilderReturnDateAllowedByActiveSchedules(iso, renderContext?.activeSchedules)) return false;
       return true;
     }
 
@@ -9522,6 +11198,18 @@
       return String(name || "").split(",").map((part) => part.trim()).filter(Boolean)[0] || "";
     }
 
+    function normalizeRegionBuilderEntryName(name = "") {
+      return String(name || "")
+        .normalize("NFKC")
+        .replace(/[<>`\u0000-\u001f]/g, "")
+        .trim()
+        .slice(0, 120);
+    }
+
+    function getRegionBuilderEntryDisplayName(name = "") {
+      return formatRegionResultName(normalizeRegionBuilderEntryName(name)).replace(/\s*\([^)]*\)\s*$/, "").trim();
+    }
+
     function formatRegionDisplayHtml(name) {
       const parts = String(name || "").split(",").map((part) => part.trim()).filter(Boolean);
       if (parts.length >= 2) {
@@ -9549,7 +11237,7 @@
 
     function getUserCreatedRegionHotMap() {
       const map = new Map();
-      joins.filter(isUserCreatedJoinSchedule).forEach((join) => {
+      joins.filter(isUserCreatedJoinSchedule).filter(isPublicHomeJoinSchedule).forEach((join) => {
         const regionName = String(join.region || "").split(",")[0]?.trim() || "";
         const countryName = String(join.country || join.countryName || inferDetailCountryName(regionName, join) || "").trim();
         const labels = [
@@ -10075,12 +11763,66 @@
       };
     }
 
+    // 행사 목록 응답에는 항공편의 왕복 시각이 이미 포함되지만, goodTransportSeq는 0으로
+    // 내려오는 상품이 많다. 이 경우 별도 항공편 조회 API를 호출하면 반드시 실패하므로,
+    // 목록의 확정된 행사 시각을 우선 항공정보로 사용한다.
+    function buildSecretTourEventFlightScheduleItems(event = {}, product = {}) {
+      const departureDate = secretTourDateToISO(event.depStartDay || event.startDay || product.minStartDay);
+      const departureArrivalDate = secretTourDateToISO(event.depEndDay || event.startDay || product.minStartDay) || departureDate;
+      const returnDepartureDate = secretTourDateToISO(event.arrStartDay || event.endDay) || departureDate;
+      const returnDate = secretTourDateToISO(event.arrEndDay || event.endDay) || returnDepartureDate;
+      const outboundDepartureTime = String(event.depStartTime || "").trim();
+      const outboundArrivalTime = String(event.depEndTime || "").trim();
+      const inboundDepartureTime = String(event.arrStartTime || "").trim();
+      const inboundArrivalTime = String(event.arrEndTime || "").trim();
+      const airline = event.air2Nm || event.airline || event.airlineName || product.air2Nm || product.airline || "";
+      const code = event.air2Cd || event.airlineCode || product.air2Cd || "";
+
+      if (!outboundDepartureTime || !outboundArrivalTime || !inboundDepartureTime || !inboundArrivalTime) return [];
+      return [
+        {
+          label: "출발",
+          airline,
+          code,
+          fromDate: departureDate,
+          fromTime: outboundDepartureTime,
+          toDate: departureArrivalDate,
+          toTime: outboundArrivalTime
+        },
+        {
+          label: "도착",
+          airline,
+          code,
+          fromDate: returnDepartureDate,
+          fromTime: inboundDepartureTime,
+          toDate: returnDate,
+          toTime: inboundArrivalTime
+        }
+      ];
+    }
+
+    function isUsableSecretTourTransportSeq(value) {
+      const normalized = String(value ?? "").trim();
+      return Boolean(normalized && normalized !== "0");
+    }
+
+    async function loadSecretTourEventFlightSchedule(product = {}) {
+      const reference = getSecretTourProductReference(product);
+      if (!reference.goodSeq || !reference.eventSeq) return [];
+      const events = await loadSecretTourGoodsEvents(reference.goodSeq);
+      const matchedEvent = events.find((event) => (
+        String(event?.eventSeq || "").trim() === reference.eventSeq
+      ));
+      return matchedEvent ? buildSecretTourEventFlightScheduleItems(matchedEvent, product) : [];
+    }
+
     function normalizeSecretTourGoodsEventItem(product, event, index) {
       const departureDate = secretTourDateToISO(event.startDay || event.depStartDay || product.minStartDay);
       const returnDate = secretTourDateToISO(event.endDay || event.arrStartDay);
       const price = Number(event.adultPrice) || Number(event.maxPrice) || Number(product.dpPrice) || Number(product.maxPrice) || Number(event.minPrice) || Number(product.minPrice) || 0;
       const restCnt = Number(event.restCnt);
       const productType = event.productType || event.goodsType || event.goodType || event.goodKind || event.goodDetailCdNm || event.goodDetailName || event.packageType || event.packType || event.tourType || event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.productType || product.goodsType || product.goodType || product.goodKind || product.goodDetailCdNm || product.goodDetailName || product.packageType || product.packType || product.tourType || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn || "";
+      const flightScheduleItems = buildSecretTourEventFlightScheduleItems(event, product);
 
       return {
         id: event.eventSeq ? `secret-tour-${product.goodSeq}-${event.eventSeq}` : `secret-tour-${product.goodSeq}-event-${index}`,
@@ -10114,6 +11856,7 @@
         includes: [],
         excludes: [],
         notes: [],
+        flightScheduleItems,
         schedule: [],
         emptySlots: Math.min(JOIN_MAX_CAPACITY, Number.isFinite(restCnt) ? restCnt : JOIN_MAX_CAPACITY),
         source: "secret-tour-goods-event"
@@ -10308,7 +12051,11 @@
         const day = cleanSecretTourDetailText(item.querySelector(".timeline_bar_bullet, .timeline_title_main")?.textContent) || `${index + 1}일차`;
         const dateText = formatSecretTourScheduleTitleDate(item.querySelector(".timeline_title_sub")?.textContent);
         const points = [...item.querySelectorAll(".scheduleBox li")]
-          .map((node) => cleanSecretTourDetailText(node.textContent))
+          .map((node) => {
+            const clone = node.cloneNode(true);
+            clone.querySelectorAll("br").forEach((br) => br.replaceWith("\n"));
+            return normalizeDetailSchedulePointText(clone.textContent);
+          })
           .filter(Boolean);
         const extra = parseSecretTourScheduleExtra(item);
         const rawText = cleanSecretTourDetailText(item.textContent);
@@ -10316,6 +12063,7 @@
           day,
           dateText,
           content: points.join(", "),
+          points,
           rawText,
           extra
         };
@@ -10486,9 +12234,54 @@
 
     function getSecretTourGoodsDetailCacheKey(product = {}) {
       const lookupProduct = withSecretTourProductReference(product);
+      const detailRevision = [
+        lookupProduct.detailRevision,
+        lookupProduct.availabilityRevision,
+        golfJoinProductFamilyCatalog?.publicationRevision,
+        golfJoinHomeManifest?.activePublicationRevision,
+        "legacy"
+      ].map((value) => String(value || "").trim()).find(Boolean);
       return lookupProduct.goodSeq && lookupProduct.eventSeq
-        ? `${lookupProduct.goodSeq}:${lookupProduct.eventSeq}`
+        ? `${detailRevision}:${lookupProduct.goodSeq}:${lookupProduct.eventSeq}`
         : "";
+    }
+
+    function showDetailLoadRetryNotice() {
+      const head = document.querySelector("#detailModal .detail-product-head");
+      if (!head || head.querySelector(".detail-load-retry-notice")) return;
+      const notice = document.createElement("div");
+      notice.className = "detail-load-retry-notice";
+      notice.setAttribute("role", "status");
+      notice.innerHTML = `
+        <span>일부 상품상세 정보를 불러오지 못했습니다.</span>
+        <button type="button" onclick="retryCurrentDetailProductLoad()">다시 시도</button>
+      `;
+      head.appendChild(notice);
+    }
+
+    function retryCurrentDetailProductLoad() {
+      const product = currentDetailJoinData;
+      if (!product || !document.getElementById("detailModal")?.classList.contains("open")) return;
+      document.querySelector("#detailModal .detail-load-retry-notice")?.remove();
+      const scrollState = captureDetailModalScrollState();
+      if (currentDetailMode === "mdPickProduct") {
+        void showMdPickDetailProduct(product, currentMdPickProductGroupKey, currentMdPickCountryKey, {
+          open: false,
+          preserveScroll: true,
+          scrollState
+        });
+        return;
+      }
+      if (currentDetailMode === "builderProduct") {
+        void showBuilderProductDetailProduct(product, {
+          open: false,
+          preserveScroll: true,
+          scrollState
+        });
+        return;
+      }
+      const detailRequestGeneration = ++detailContentRequestGeneration;
+      void enrichOpenDetailWithSecretTourData(product, { preserveScroll: true }, 0, detailRequestGeneration);
     }
 
     function shouldLoadSecretTourFlightSchedule(product = {}, detail = {}) {
@@ -10496,11 +12289,12 @@
       const lookupProduct = withSecretTourProductReference(candidate);
       if (hasCompleteSecretTourFlightScheduleItems(candidate.flightScheduleItems)) return false;
       if (getDetailProductType(candidate) === "골프팩") return false;
-      return Boolean(lookupProduct.eventSeq && candidate.goodTransportSeq);
+      return Boolean(lookupProduct.eventSeq && isUsableSecretTourTransportSeq(candidate.goodTransportSeq));
     }
 
     function prepareSecretTourFlightScheduleState(product = {}, detail = {}) {
       const candidate = { ...product, ...detail };
+      const lookupProduct = withSecretTourProductReference(candidate);
       if (hasCompleteSecretTourFlightScheduleItems(candidate.flightScheduleItems)) {
         return { ...detail, secretTourFlightScheduleState: "loaded" };
       }
@@ -10509,7 +12303,8 @@
       }
       return {
         ...detail,
-        secretTourFlightScheduleState: shouldLoadSecretTourFlightSchedule(product, detail)
+        secretTourFlightScheduleState: Boolean(lookupProduct.goodSeq && lookupProduct.eventSeq)
+          || shouldLoadSecretTourFlightSchedule(product, detail)
           ? "loading"
           : "unavailable"
       };
@@ -10529,7 +12324,7 @@
     }
 
     function loadSecretTourFlightSchedule(product) {
-      if (!product?.eventSeq || !product?.goodTransportSeq) return Promise.resolve([]);
+      if (!product?.eventSeq || !isUsableSecretTourTransportSeq(product?.goodTransportSeq)) return Promise.resolve([]);
       const requestUrl = buildSecretTourFlightScheduleUrl(product);
       if (secretTourFlightSchedulePromiseCache.has(requestUrl)) {
         return secretTourFlightSchedulePromiseCache.get(requestUrl);
@@ -10562,6 +12357,119 @@
       return requestPromise;
     }
 
+    function getGolfJoinPublicDetailSnapshotUrls(product = {}) {
+      const lookupProduct = withSecretTourProductReference(product);
+      const goodSeq = String(lookupProduct.goodSeq || "").trim();
+      const detailRevision = String(product.detailRevision || "").trim();
+      const objectName = String(product.detailObjectName || "").replace(/^\/+/, "").trim();
+      const publicUrl = String(product.detailUrl || "").trim();
+      if (!goodSeq || !/^gpd_[a-f0-9]{24}$/.test(detailRevision) || product.detailStatus !== "ready") return [];
+      const expectedSuffix = `/product-detail/${detailRevision}/${goodSeq}.json`;
+      const urls = [];
+      try {
+        const parsedUrl = new URL(publicUrl);
+        if (
+          parsedUrl.protocol === "https:"
+          && parsedUrl.hostname === "storage.googleapis.com"
+          && parsedUrl.pathname.startsWith("/golfjoin-bucket/")
+          && decodeURIComponent(parsedUrl.pathname).endsWith(expectedSuffix)
+        ) urls.push(parsedUrl.href);
+      } catch {
+        // Invalid snapshot metadata is handled by the legacy detail fallback below.
+      }
+      if (objectName.endsWith(expectedSuffix)) {
+        urls.push(`https://storage.googleapis.com/golfjoin-bucket/${objectName.split("/").map(encodeURIComponent).join("/")}`);
+      }
+      return [...new Set(urls)];
+    }
+
+    function hasGolfJoinPublicDetailPrivateField(value, depth = 0) {
+      if (!value || typeof value !== "object" || depth > 8) return false;
+      const forbiddenKeys = /^(?:memberprice|adultprice|childprice|infantprice|oilprice|phone|mobile|email|memberid|memberkey|memberseq|benefit|seat|remainingseat)$/i;
+      return Object.entries(value).some(([key, item]) => (
+        forbiddenKeys.test(String(key).replace(/[^a-z0-9]/gi, ""))
+        || hasGolfJoinPublicDetailPrivateField(item, depth + 1)
+      ));
+    }
+
+    function validateGolfJoinPublicDetailSnapshot(snapshot = {}, product = {}) {
+      const lookupProduct = withSecretTourProductReference(product);
+      const expectedRevision = String(product.detailRevision || "").trim();
+      if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) return false;
+      if (snapshot.schema !== "secret-golf-join-product-detail-v1") return false;
+      if (snapshot.detailStatus !== "ready" || snapshot.detailRevision !== expectedRevision) return false;
+      if (String(snapshot.goodSeq || "") !== String(lookupProduct.goodSeq || "")) return false;
+      if (String(snapshot.erpProductId || "") !== String(snapshot.goodSeq || "")) return false;
+      if (!/^\d+$/.test(String(snapshot.eventSeq || "")) || String(snapshot.erpEventSeq || "") !== String(snapshot.eventSeq || "")) return false;
+      if (!snapshot.sectionStatus || Object.values(snapshot.sectionStatus).some((state) => !["available", "empty"].includes(state))) return false;
+      if (![snapshot.includes, snapshot.excludes, snapshot.notes, snapshot.schedule, snapshot.slides, snapshot.introImages].every(Array.isArray)) return false;
+      if (snapshot.schedule.some((day) => (
+        !day
+        || typeof day !== "object"
+        || !String(day.day || "").trim()
+        || (day.points !== undefined && (
+          !Array.isArray(day.points)
+          || day.points.some((point) => !String(point || "").trim())
+        ))
+      ))) return false;
+      if ([...snapshot.slides, ...snapshot.introImages].some((url) => !/^https?:\/\//i.test(String(url || "")))) return false;
+      if (hasGolfJoinPublicDetailPrivateField(snapshot)) return false;
+      return true;
+    }
+
+    function mapGolfJoinPublicDetailSnapshot(snapshot = {}, product = {}) {
+      return {
+        eventNm: product.title || snapshot.title || "",
+        detailTitleCopy: snapshot.detailTitleCopy || "",
+        goodTransportSeq: snapshot.goodTransportSeq || product.goodTransportSeq || "",
+        goodsImage: snapshot.heroImage || product.image || "",
+        goodDescription: snapshot.goodDescription || "",
+        includes: snapshot.includes,
+        excludes: snapshot.excludes,
+        notes: snapshot.notes,
+        schedule: snapshot.schedule,
+        slides: snapshot.slides,
+        introImages: snapshot.introImages,
+        secretTourPublicDetailSnapshot: true,
+        secretTourPublicDetailRevision: snapshot.detailRevision
+      };
+    }
+
+    async function loadGolfJoinPublicDetailSnapshot(product = {}) {
+      const urls = getGolfJoinPublicDetailSnapshotUrls(product);
+      if (!urls.length) throw new Error("Public product detail snapshot is unavailable.");
+      let lastError = null;
+      for (const url of urls) {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 2500);
+        try {
+          const response = await fetch(url, { method: "GET", cache: "force-cache", signal: controller.signal });
+          if (!response.ok) throw new Error(`Public product detail snapshot failed: ${response.status}`);
+          const snapshot = await response.json();
+          if (!validateGolfJoinPublicDetailSnapshot(snapshot, product)) {
+            throw new Error("Public product detail snapshot validation failed.");
+          }
+          return mapGolfJoinPublicDetailSnapshot(snapshot, product);
+        } catch (error) {
+          lastError = error;
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+      }
+      throw lastError || new Error("Public product detail snapshot load failed.");
+    }
+
+    function loadLegacySecretTourGoodsDetail(lookupProduct = {}) {
+      return fetch(buildSecretTourGoodsViewUrl(lookupProduct), {
+        method: "GET",
+        credentials: "same-origin",
+        cache: "no-store"
+      }).then((response) => {
+        if (!response.ok) throw new Error(`Secret Tour detail failed: ${response.status}`);
+        return response.text();
+      }).then(parseSecretTourGoodsDetailHtml);
+    }
+
     function loadSecretTourGoodsDetail(product) {
       const lookupProduct = withSecretTourProductReference(product);
       if (!lookupProduct.goodSeq || !lookupProduct.eventSeq) return Promise.resolve({});
@@ -10570,16 +12478,16 @@
         return secretTourGoodsDetailCache.get(cacheKey)
           .then((detail) => prepareSecretTourFlightScheduleState(lookupProduct, detail));
       }
-      const detailPromise = fetch(buildSecretTourGoodsViewUrl(lookupProduct), {
-        method: "GET",
-        credentials: "same-origin",
-        cache: "no-store"
-      })
-        .then((response) => {
-          if (!response.ok) throw new Error(`Secret Tour detail failed: ${response.status}`);
-          return response.text();
-        })
-        .then(parseSecretTourGoodsDetailHtml)
+      const snapshotUrls = getGolfJoinPublicDetailSnapshotUrls(lookupProduct);
+      const detailPromise = (snapshotUrls.length
+        ? loadGolfJoinPublicDetailSnapshot(lookupProduct).catch((error) => {
+            golfJoinSafeWarn("Public product detail snapshot fallback.", {
+              goodSeq: lookupProduct.goodSeq,
+              message: error?.message || ""
+            });
+            return loadLegacySecretTourGoodsDetail(lookupProduct);
+          })
+        : loadLegacySecretTourGoodsDetail(lookupProduct))
         .then((detail) => prepareSecretTourFlightScheduleState(lookupProduct, detail))
         .catch((error) => {
           secretTourGoodsDetailCache.delete(cacheKey);
@@ -10595,12 +12503,20 @@
       let nextDetail;
       try {
         const lookupProduct = withSecretTourProductReference({ ...product, ...preparedDetail });
-        const flightScheduleItems = await loadSecretTourFlightSchedule({
-          ...lookupProduct,
-          ...preparedDetail,
-          departureDate: secretTourDateToISO(preparedDetail.startDay) || lookupProduct.departureDate,
-          returnDate: secretTourDateToISO(preparedDetail.endDay) || lookupProduct.returnDate
-        });
+        let flightScheduleItems = [];
+        try {
+          flightScheduleItems = await loadSecretTourEventFlightSchedule({ ...lookupProduct, ...preparedDetail });
+        } catch (eventFlightError) {
+          golfJoinSafeWarn("Failed to load event flight schedule fallback.", eventFlightError);
+        }
+        if (!hasCompleteSecretTourFlightScheduleItems(flightScheduleItems)) {
+          flightScheduleItems = await loadSecretTourFlightSchedule({
+            ...lookupProduct,
+            ...preparedDetail,
+            departureDate: secretTourDateToISO(preparedDetail.startDay) || lookupProduct.departureDate,
+            returnDate: secretTourDateToISO(preparedDetail.endDay) || lookupProduct.returnDate
+          });
+        }
         const resolvedItems = hasCompleteSecretTourFlightScheduleItems(flightScheduleItems)
           ? flightScheduleItems
           : (preparedDetail.flightScheduleItems?.length ? preparedDetail.flightScheduleItems : flightScheduleItems);
@@ -10680,7 +12596,7 @@
       );
     }
 
-    function syncSecretTourFlightScheduleResult(product = {}, target = null) {
+    function syncSecretTourFlightScheduleResult(product = {}, target = null, options = {}) {
       if (target && typeof target === "object") Object.assign(target, product);
       if (Array.isArray(externalGolfJoinProducts)) {
         externalGolfJoinProducts = externalGolfJoinProducts.map((item) => (
@@ -10696,12 +12612,13 @@
         const updatedItems = (Array.isArray(items) ? items : []).map((item) => (
           isSameSecretTourDetailProduct(item, product) ? { ...item, ...product } : item
         ));
-        golfJoinProductAvailabilityCache.set(goodSeq, updatedItems);
+        setCachedGolfJoinAvailabilityProducts(goodSeq, updatedItems);
       });
       const linkedJoin = joins.find((item) => isSameSecretTourDetailProduct(item, product));
       if (linkedJoin && linkedJoin !== target) Object.assign(linkedJoin, product);
 
       const detailModal = document.getElementById("detailModal");
+      if (options.detailRequestGeneration && options.detailRequestGeneration !== detailContentRequestGeneration) return;
       if (!detailModal?.classList.contains("open") || !isSameSecretTourDetailProduct(currentDetailJoinData || {}, product)) return;
       currentDetailJoinData = { ...(currentDetailJoinData || {}), ...product };
       const flightCard = detailModal.querySelector("[data-detail-section='flight'] .detail-summary-flight-card");
@@ -10711,21 +12628,43 @@
       }
     }
 
-    function enrichSecretTourFlightScheduleInBackground(product, detail = {}, target = null) {
+    function enrichSecretTourFlightScheduleInBackground(product, detail = {}, target = null, options = {}) {
       const preparedDetail = prepareSecretTourFlightScheduleState(product, detail);
       if (preparedDetail.secretTourFlightScheduleState !== "loading") {
         const enrichedProduct = mergeSecretTourGoodsDetail(product, preparedDetail);
-        syncSecretTourFlightScheduleResult(enrichedProduct, target);
+        syncSecretTourFlightScheduleResult(enrichedProduct, target, options);
         return Promise.resolve(enrichedProduct);
       }
       return loadSecretTourGoodsFlightSchedule(product, preparedDetail).then((flightDetail) => {
         const enrichedProduct = mergeSecretTourGoodsDetail(product, flightDetail);
-        syncSecretTourFlightScheduleResult(enrichedProduct, target);
+        syncSecretTourFlightScheduleResult(enrichedProduct, target, options);
         return enrichedProduct;
       });
     }
 
-    async function enrichOpenDetailWithSecretTourData(join, renderOptions = {}, detailPerformanceGeneration = 0) {
+    function retryCurrentDetailFlightSchedule() {
+      const product = currentDetailJoinData;
+      if (!product || !document.getElementById("detailModal")?.classList.contains("open")) return;
+      const lookupProduct = withSecretTourProductReference(product);
+      if (!shouldLoadSecretTourFlightSchedule(lookupProduct, lookupProduct)) return;
+      const requestUrl = buildSecretTourFlightScheduleUrl(lookupProduct);
+      secretTourFlightSchedulePromiseCache.delete(requestUrl);
+      const detailRequestGeneration = ++detailContentRequestGeneration;
+      currentDetailJoinData = { ...product, secretTourFlightScheduleState: "loading" };
+      const flightCard = document.querySelector("#detailModal [data-detail-section='flight'] .detail-summary-flight-card");
+      if (flightCard) {
+        flightCard.dataset.flightState = "loading";
+        flightCard.innerHTML = renderDetailFlightSummary(currentDetailJoinData);
+      }
+      void enrichSecretTourFlightScheduleInBackground(
+        currentDetailJoinData,
+        currentDetailJoinData,
+        currentDetailJoinData,
+        { detailRequestGeneration }
+      );
+    }
+
+    async function enrichOpenDetailWithSecretTourData(join, renderOptions = {}, detailPerformanceGeneration = 0, detailRequestGeneration = 0) {
       const lookupProduct = withSecretTourProductReference(join);
       if (!lookupProduct.goodSeq || !lookupProduct.eventSeq || join.secretTourDetailLoaded) {
         if (detailPerformanceGeneration) {
@@ -10739,6 +12678,7 @@
       }
       try {
         const detail = await loadSecretTourGoodsDetail(lookupProduct);
+        if (detailRequestGeneration && detailRequestGeneration !== detailContentRequestGeneration) return join;
         if (detailPerformanceGeneration) {
           finishGolfJoinDetailPerformance(
             detailPerformanceGeneration,
@@ -10746,8 +12686,36 @@
             "golfjoin:duration:detail-erp"
           );
         }
+        const preservedRecommendation = join.isAdminRecommendedSchedule ? {
+          id: join.id,
+          title: join.title,
+          scheduleId: join.scheduleId,
+          sourceApplicationId: join.sourceApplicationId,
+          displayRule: join.displayRule,
+          participants: join.participants,
+          participantSummary: join.participantSummary,
+          lightSummary: join.lightSummary,
+          familyParticipantSummary: join.familyParticipantSummary,
+          capacity: join.capacity,
+          maxPeople: join.maxPeople,
+          maxCapacity: join.maxCapacity,
+          emptySlots: join.emptySlots,
+          isAdminRecommendedSchedule: true,
+          isPublicHomeSchedule: join.isPublicHomeSchedule,
+          productFamilyId: join.productFamilyId,
+          familyDepartureDate: join.familyDepartureDate,
+          familyOptions: join.familyOptions,
+          goodSeq: join.goodSeq,
+          eventSeq: join.eventSeq,
+          erpProductId: join.erpProductId,
+          erpEventSeq: join.erpEventSeq,
+          departureDate: join.departureDate,
+          returnDate: join.returnDate,
+          date: join.date,
+          price: join.price
+        } : null;
         const enrichedJoin = mergeSecretTourGoodsDetail(lookupProduct, detail);
-        Object.assign(join, enrichedJoin, { secretTourDetailLoaded: true });
+        Object.assign(join, enrichedJoin, preservedRecommendation || {}, { secretTourDetailLoaded: true });
         const isSameDetail = currentDetailJoinId === join.id && document.getElementById("detailModal")?.classList.contains("open");
         if (isSameDetail) {
           const currentScrollState = captureDetailModalScrollState();
@@ -10759,7 +12727,7 @@
             restoreDetailModalScrollState(currentScrollState);
           });
         }
-        void enrichSecretTourFlightScheduleInBackground(join, detail, join)
+        void enrichSecretTourFlightScheduleInBackground(join, detail, join, { detailRequestGeneration })
           .then(() => {
             if (detailPerformanceGeneration) {
               finishGolfJoinDetailPerformance(
@@ -10789,6 +12757,13 @@
           );
         }
         golfJoinSafeWarn("Failed to enrich Secret Tour detail from ERP.", error);
+        if (
+          (!detailRequestGeneration || detailRequestGeneration === detailContentRequestGeneration)
+          && currentDetailJoinId === join.id
+          && document.getElementById("detailModal")?.classList.contains("open")
+        ) {
+          showDetailLoadRetryNotice();
+        }
         return join;
       }
     }
@@ -10883,12 +12858,14 @@
       )), Promise.reject(new Error("Product family data load not started.")));
     }
 
-    function applyGolfJoinProductFamilyCatalog(manifest = {}, catalog = {}) {
+    function applyGolfJoinProductFamilyCatalog(manifest = {}, catalog = {}, options = {}) {
       if (String(catalog.publicationRevision || "") !== String(manifest.activePublicationRevision || "")) {
         throw new Error("Product family manifest and catalog revisions do not match.");
       }
       golfJoinProductFamilyIdByGoodSeq.clear();
       golfJoinProductFamilyById.clear();
+      golfJoinProductFamilyAvailabilityCache.clear();
+      golfJoinProductFamilyAvailabilityPromiseCache.clear();
       Object.entries(catalog.familyIdByGoodSeq || {}).forEach(([goodSeq, familyId]) => {
         if (/^\d+$/.test(String(goodSeq || "")) && familyId) {
           golfJoinProductFamilyIdByGoodSeq.set(String(goodSeq), String(familyId));
@@ -10910,13 +12887,42 @@
       };
       mdPickListCacheSourceSignature = "";
       mdPickListElementCache.clear();
-      scheduleMdPickSectionRenderWhenDataReady();
+      if (options.render !== false) scheduleMdPickSectionRenderWhenDataReady();
       return catalog;
     }
 
-    function ensureGolfJoinProductFamilyCatalogLoaded() {
+    function shouldDeferGolfJoinLegacyHomeDataForV2Startup(options = {}) {
+      return options.deferWhileHomeDataV2Startup !== false
+        && typeof isGolfJoinHomeDataV2StartupDecisionPending === "function"
+        && isGolfJoinHomeDataV2StartupDecisionPending();
+    }
+
+    function ensureGolfJoinProductFamilyCatalogLoaded(options = {}) {
       if (!GOLFJOIN_PRODUCT_FAMILY_ENABLED) return Promise.resolve(null);
-      if (golfJoinProductFamilyCatalog || golfJoinProductFamilyLoadFailed) {
+      if (shouldDeferGolfJoinLegacyHomeDataForV2Startup(options)) {
+        return Promise.resolve(golfJoinProductFamilyCatalog);
+      }
+      const requiredGolfSummaryFamilyId = String(options.requireGolfSummaryForFamilyId || "").trim();
+      const requiredGolfSummaryFamily = requiredGolfSummaryFamilyId
+        ? golfJoinProductFamilyById.get(requiredGolfSummaryFamilyId)
+        : null;
+      const requiredGolfSummaryMembers = Array.isArray(requiredGolfSummaryFamily?.members)
+        ? requiredGolfSummaryFamily.members
+        : [];
+      const requiresGolfSummaryRefresh = Boolean(
+        requiredGolfSummaryFamilyId
+        && (
+          !requiredGolfSummaryMembers.length
+          || requiredGolfSummaryMembers.some((member) => !String(member?.golfSummary?.label || "").trim())
+        )
+      );
+      const golfSummaryRefreshAttempts = ensureGolfJoinProductFamilyCatalogLoaded.golfSummaryRefreshAttempts
+        || (ensureGolfJoinProductFamilyCatalogLoaded.golfSummaryRefreshAttempts = new Set());
+      if (requiresGolfSummaryRefresh && !golfSummaryRefreshAttempts.has(requiredGolfSummaryFamilyId)) {
+        golfSummaryRefreshAttempts.add(requiredGolfSummaryFamilyId);
+        golfJoinProductFamilyLoadPromise = null;
+        golfJoinProductFamilyLoadFailed = false;
+      } else if (golfJoinProductFamilyCatalog || golfJoinProductFamilyLoadFailed) {
         return Promise.resolve(golfJoinProductFamilyCatalog);
       }
       if (!golfJoinProductFamilyLoadPromise) {
@@ -11054,6 +13060,11 @@
         price: generalPrice,
         priceFrom: Number(item.priceFrom) > 0 ? Number(item.priceFrom) : generalPrice,
         image: item.image || savedProductMeta.image || fallback.image || "",
+        detailRevision: item.detailRevision || savedProductMeta.detailRevision || "",
+        detailStatus: item.detailStatus || savedProductMeta.detailStatus || "",
+        detailObjectName: item.detailObjectName || savedProductMeta.detailObjectName || "",
+        detailUrl: item.detailUrl || savedProductMeta.detailUrl || "",
+        detailEventSeq: item.detailEventSeq || savedProductMeta.detailEventSeq || "",
         badgeImage: item.badgeImage || BADGE_IMAGES[badgeKind] || fallback.badgeImage || "",
         participants: Array.isArray(item.participants) ? item.participants.slice(0, JOIN_MAX_CAPACITY) : [],
         includes: Array.isArray(item.includes) ? item.includes : (fallback.includes || []),
@@ -11076,8 +13087,64 @@
       ].filter(Boolean))];
     }
 
+    function getGolfJoinProductAvailabilityCacheKey(product = {}, goodSeq = "") {
+      const normalizedGoodSeq = goodSeq || getGolfJoinProductGoodSeq(product);
+      const availabilityRevision = String(
+        product.availabilityRevision
+        || golfJoinHomeManifest?.availabilityRevision
+        || "legacy"
+      ).trim();
+      return normalizedGoodSeq ? `${availabilityRevision}:${normalizedGoodSeq}` : "";
+    }
+
+    function getGolfJoinProductFamilyAvailabilityContext(products = [], familyId = "") {
+      const summaries = (Array.isArray(products) ? products : []).filter(Boolean);
+      const familyRevision = String(
+        golfJoinProductFamilyCatalog?.publicationRevision
+        || golfJoinProductFamilyManifest?.activePublicationRevision
+        || ""
+      ).trim();
+      const availabilityRevisions = [...new Set(summaries
+        .map((product) => String(product.availabilityRevision || golfJoinHomeManifest?.availabilityRevision || "").trim())
+        .filter(Boolean))];
+      const availabilityRevision = availabilityRevisions.length === 1 ? availabilityRevisions[0] : "";
+      if (!familyId || !/^pfc_[a-f0-9]{24}$/.test(familyRevision) || !/^gpa_[a-f0-9]{24}$/.test(availabilityRevision)) {
+        return null;
+      }
+      const familyObjectSuffix = `/families/${encodeURIComponent(familyRevision)}/${encodeURIComponent(familyId)}.json`;
+      const urls = [];
+      summaries.some((product) => {
+        const objectName = String(product.availabilityObjectName || "").replace(/^\/+/, "").trim();
+        const publicUrl = String(product.availabilityUrl || "").trim();
+        const source = publicUrl || objectName;
+        if (!source || !/\/[^/]+\.json(?:\?.*)?$/.test(source)) return false;
+        const familySource = source.replace(/\/[^/]+\.json(?:\?.*)?$/, familyObjectSuffix);
+        if (/^https?:\/\//i.test(familySource)) urls.push(familySource);
+        else urls.push(`https://storage.googleapis.com/golfjoin-bucket/${familySource.split("/").map(encodeURIComponent).join("/")}`);
+        return true;
+      });
+      if (!urls.length) return null;
+      return {
+        familyId,
+        familyRevision,
+        availabilityRevision,
+        cacheKey: `${availabilityRevision}:${familyRevision}:${familyId}`,
+        urls: [...new Set(urls)]
+      };
+    }
+
     function getCachedGolfJoinAvailabilityProducts() {
-      return [...golfJoinProductAvailabilityCache.values()].flat();
+      if (golfJoinProductAvailabilitySnapshotRevision !== golfJoinProductAvailabilityCacheRevision) {
+        golfJoinProductAvailabilitySnapshot = [...golfJoinProductAvailabilityCache.values()].flat();
+        golfJoinProductAvailabilitySnapshotRevision = golfJoinProductAvailabilityCacheRevision;
+      }
+      return golfJoinProductAvailabilitySnapshot;
+    }
+
+    function setCachedGolfJoinAvailabilityProducts(cacheKey, products = []) {
+      golfJoinProductAvailabilityCache.set(cacheKey, products);
+      golfJoinProductAvailabilityCacheRevision += 1;
+      return products;
     }
 
     function mergeGolfJoinProductSources(...sources) {
@@ -11095,11 +13162,12 @@
     function loadGolfJoinProductAvailability(product = {}) {
       const goodSeq = getGolfJoinProductGoodSeq(product);
       if (!goodSeq) return Promise.resolve([]);
-      if (golfJoinProductAvailabilityCache.has(goodSeq)) {
-        return Promise.resolve(golfJoinProductAvailabilityCache.get(goodSeq));
+      const cacheKey = getGolfJoinProductAvailabilityCacheKey(product, goodSeq);
+      if (golfJoinProductAvailabilityCache.has(cacheKey)) {
+        return Promise.resolve(golfJoinProductAvailabilityCache.get(cacheKey));
       }
-      if (golfJoinProductAvailabilityPromiseCache.has(goodSeq)) {
-        return golfJoinProductAvailabilityPromiseCache.get(goodSeq);
+      if (golfJoinProductAvailabilityPromiseCache.has(cacheKey)) {
+        return golfJoinProductAvailabilityPromiseCache.get(cacheKey);
       }
       const urls = getGolfJoinProductAvailabilityUrls(product);
       if (!urls.length) return Promise.resolve([]);
@@ -11121,19 +13189,19 @@
             homeReferenceOnly: false,
             priceFrom: Number(product.priceFrom) || Number(event.price) || 0
           }, index));
-        golfJoinProductAvailabilityCache.set(goodSeq, products);
+        setCachedGolfJoinAvailabilityProducts(cacheKey, products);
         return products;
       }).catch((error) => {
         golfJoinSafeWarn("Failed to load product availability.", { goodSeq, message: error?.message || "" });
         return [];
       }).finally(() => {
-        golfJoinProductAvailabilityPromiseCache.delete(goodSeq);
+        golfJoinProductAvailabilityPromiseCache.delete(cacheKey);
       });
-      golfJoinProductAvailabilityPromiseCache.set(goodSeq, loadPromise);
+      golfJoinProductAvailabilityPromiseCache.set(cacheKey, loadPromise);
       return loadPromise;
     }
 
-    async function loadGolfJoinProductGroupAvailability(products = []) {
+    async function loadGolfJoinProductGroupAvailabilityLegacy(products = []) {
       const summaries = (Array.isArray(products) ? products : []).filter(Boolean);
       const uniqueByGoodSeq = new Map();
       summaries.forEach((product) => {
@@ -11142,6 +13210,89 @@
       });
       const groups = await Promise.all([...uniqueByGoodSeq.values()].map(loadGolfJoinProductAvailability));
       return mergeGolfJoinProductSources(...groups);
+    }
+
+    function applyGolfJoinProductFamilyAvailabilityPayload(payload = {}, summaries = [], context = {}) {
+      if (payload?.schema !== "secret-golf-join-family-availability-v1"
+        || String(payload.familyId || "") !== context.familyId
+        || String(payload.familyRevision || "") !== context.familyRevision
+        || String(payload.availabilityRevision || "") !== context.availabilityRevision
+        || !Array.isArray(payload.products)) {
+        throw new Error("Product family availability payload is invalid.");
+      }
+      const family = golfJoinProductFamilyById.get(context.familyId) || null;
+      const expectedGoodSeqs = [...new Set((family?.members || summaries)
+        .map((item) => getGolfJoinProductGoodSeq(item))
+        .filter(Boolean))].sort();
+      const payloadGoodSeqs = [...new Set(payload.products
+        .map((item) => getGolfJoinProductGoodSeq(item))
+        .filter(Boolean))].sort();
+      if (!expectedGoodSeqs.length
+        || expectedGoodSeqs.length !== payloadGoodSeqs.length
+        || expectedGoodSeqs.some((goodSeq, index) => goodSeq !== payloadGoodSeqs[index])
+        || Number(payload.productCount) !== payload.products.length) {
+        throw new Error("Product family availability members do not match the active catalog.");
+      }
+      const summaryByGoodSeq = new Map(summaries.map((product) => [getGolfJoinProductGoodSeq(product), product]));
+      let eventCount = 0;
+      const groups = payload.products.map((group) => {
+        const goodSeq = getGolfJoinProductGoodSeq(group);
+        const events = Array.isArray(group.events) ? group.events : null;
+        if (!goodSeq || !events || Number(group.count) !== events.length) {
+          throw new Error("Product family availability event group is invalid.");
+        }
+        const summary = summaryByGoodSeq.get(goodSeq);
+        if (!summary) throw new Error("Product family availability summary is missing.");
+        eventCount += events.length;
+        const normalized = events.map((event, index) => normalizeExternalGolfJoinProduct({
+          ...summary,
+          ...event,
+          homeProductSummary: false,
+          homeReferenceOnly: false,
+          priceFrom: Number(summary.priceFrom) || Number(event.price) || 0
+        }, index));
+        setCachedGolfJoinAvailabilityProducts(getGolfJoinProductAvailabilityCacheKey(summary, goodSeq), normalized);
+        return normalized;
+      });
+      if (Number(payload.count) !== eventCount) {
+        throw new Error("Product family availability event count does not match.");
+      }
+      const minimumAdvanceDays = Number(payload.minimumAdvanceDays);
+      if (Number.isFinite(minimumAdvanceDays) && minimumAdvanceDays >= 0) {
+        homeGolfJoinMinimumAdvanceDays = minimumAdvanceDays;
+      }
+      return mergeGolfJoinProductSources(...groups);
+    }
+
+    function loadGolfJoinProductGroupAvailability(products = []) {
+      const summaries = (Array.isArray(products) ? products : []).filter(Boolean);
+      const familyIds = [...new Set(summaries.map(getGolfJoinProductFamilyId).filter(Boolean))];
+      if (familyIds.length !== 1) return loadGolfJoinProductGroupAvailabilityLegacy(summaries);
+      const context = getGolfJoinProductFamilyAvailabilityContext(summaries, familyIds[0]);
+      if (!context) return loadGolfJoinProductGroupAvailabilityLegacy(summaries);
+      if (golfJoinProductFamilyAvailabilityCache.has(context.cacheKey)) {
+        return Promise.resolve(golfJoinProductFamilyAvailabilityCache.get(context.cacheKey));
+      }
+      if (golfJoinProductFamilyAvailabilityPromiseCache.has(context.cacheKey)) {
+        return golfJoinProductFamilyAvailabilityPromiseCache.get(context.cacheKey);
+      }
+      const loadPromise = context.urls.reduce((promise, url) => (
+        promise.catch(() => fetchGolfJoinHomeJson(url, "Product family availability"))
+      ), Promise.reject(new Error("Product family availability load not started."))).then((payload) => {
+        const merged = applyGolfJoinProductFamilyAvailabilityPayload(payload, summaries, context);
+        golfJoinProductFamilyAvailabilityCache.set(context.cacheKey, merged);
+        return merged;
+      }).catch((error) => {
+        golfJoinSafeWarn("Failed to load product family availability. Individual products will be used.", {
+          familyId: context.familyId,
+          message: error?.message || ""
+        });
+        return loadGolfJoinProductGroupAvailabilityLegacy(summaries);
+      }).finally(() => {
+        golfJoinProductFamilyAvailabilityPromiseCache.delete(context.cacheKey);
+      });
+      golfJoinProductFamilyAvailabilityPromiseCache.set(context.cacheKey, loadPromise);
+      return loadPromise;
     }
 
     function hydrateOverseasJoinsWithSecretProducts() {
@@ -11268,6 +13419,9 @@
     }
 
     function ensureHomeGolfJoinProductsLoaded(options = {}) {
+      if (shouldDeferGolfJoinLegacyHomeDataForV2Startup(options)) {
+        return Promise.resolve(homeGolfJoinProducts || []);
+      }
       if (homeGolfJoinProducts || homeGolfJoinProductsLoadFailed) {
         return Promise.resolve(homeGolfJoinProducts || []);
       }
@@ -11342,11 +13496,30 @@
     }
 
     function getBuilderProductSource() {
-      ensureExternalGolfJoinProductsLoaded();
-      return mergeGolfJoinProductSources(
-        getCachedGolfJoinAvailabilityProducts(),
-        externalGolfJoinProducts || joins || []
+      const availabilityProducts = getCachedGolfJoinAvailabilityProducts();
+      const discoveryProducts = getCachedGolfJoinProductDiscoveryProducts();
+      const fallbackProducts = externalGolfJoinProducts || homeGolfJoinProducts || joins || [];
+      if (
+        builderProductSourceCache.availabilityRef === availabilityProducts
+        && builderProductSourceCache.discoveryRef === discoveryProducts
+        && builderProductSourceCache.fallbackRef === fallbackProducts
+        && builderProductSourceCache.availabilityLength === availabilityProducts.length
+        && builderProductSourceCache.discoveryLength === discoveryProducts.length
+        && builderProductSourceCache.fallbackLength === fallbackProducts.length
+      ) return builderProductSourceCache.items;
+      builderProductSourceCache.availabilityRef = availabilityProducts;
+      builderProductSourceCache.discoveryRef = discoveryProducts;
+      builderProductSourceCache.fallbackRef = fallbackProducts;
+      builderProductSourceCache.availabilityLength = availabilityProducts.length;
+      builderProductSourceCache.discoveryLength = discoveryProducts.length;
+      builderProductSourceCache.fallbackLength = fallbackProducts.length;
+      builderProductSourceCache.items = mergeGolfJoinProductSources(
+        availabilityProducts,
+        discoveryProducts,
+        fallbackProducts
       );
+      builderProductDateIndexCache = new WeakMap();
+      return builderProductSourceCache.items;
     }
 
     function isGolfJoinProductFamilyGroupingEligible(product = {}) {
@@ -11469,14 +13642,19 @@
 
     function analyzeDetailProductFamilyHoleLine(value = "") {
       const source = String(value || "").normalize("NFKC").replace(/\s+/g, " ").trim();
-      const holes = [...source.matchAll(/(\d+)\s*(?:홀|H\b)/gi)]
+      const tourismOptionIndex = source.search(/\[\s*(?:관광\s*옵션|선택\s*관광|관광\s*선택)\s*\]/i);
+      const primarySource = tourismOptionIndex > 0
+        && /(\d+)\s*(?:홀|H\b)/i.test(source.slice(0, tourismOptionIndex))
+        ? source.slice(0, tourismOptionIndex).trim()
+        : source;
+      const holes = [...primarySource.matchAll(/(\d+)\s*(?:홀|H\b)/gi)]
         .map((match) => Number(match[1]))
         .filter((number) => Number.isFinite(number) && number > 0 && number <= 144);
       if (!holes.length) return null;
-      if (/또는/.test(source) || /주중[\s\S]*\/[\s\S]*주말|주말[\s\S]*\/[\s\S]*주중/.test(source)) {
+      if (/또는/.test(primarySource) || /주중[\s\S]*\/[\s\S]*주말|주말[\s\S]*\/[\s\S]*주중/.test(primarySource)) {
         return { minHoles: Math.min(...holes), maxHoles: Math.max(...holes), condition: "alternative" };
       }
-      if (/보너스/.test(source)) {
+      if (/보너스/.test(primarySource)) {
         return { minHoles: holes[0], maxHoles: holes.reduce((sum, number) => sum + number, 0), condition: "optional_bonus" };
       }
       const total = holes.reduce((sum, number) => sum + number, 0);
@@ -11523,56 +13701,107 @@
       };
     }
 
-    const detailProductFamilyMetadataCache = new Map();
-
-    function getDetailProductFamilyMetadataKey(product = {}) {
-      return `${getGolfJoinProductGoodSeq(product)}:${getGolfJoinProductEventSeq(product)}`;
-    }
-
     function getDetailProductFamilyGolfSummary(member = {}, product = {}) {
       if (Array.isArray(product.schedule) && product.schedule.length) {
         const liveSummary = buildDetailProductFamilyGolfSummary(product.schedule);
         if (liveSummary.label) return liveSummary;
       }
-      const cached = detailProductFamilyMetadataCache.get(getDetailProductFamilyMetadataKey(product));
-      return cached?.golfSummary || member.golfSummary || null;
-    }
-
-    async function hydrateDetailProductFamilyPeriodMetadata(join = {}) {
-      const options = getDetailProductFamilyPeriodOptions(join);
-      const queue = options.filter((option) => {
-        const key = getDetailProductFamilyMetadataKey(option.product);
-        return key && !detailProductFamilyMetadataCache.has(key) && !option.golfSummary?.label;
-      });
-      if (!queue.length) return;
-      let cursor = 0;
-      const worker = async () => {
-        while (cursor < queue.length) {
-          const option = queue[cursor++];
-          const key = getDetailProductFamilyMetadataKey(option.product);
-          const pending = loadSecretTourGoodsDetail(option.product)
-            .then((detail) => ({
-              status: "loaded",
-              golfSummary: buildDetailProductFamilyGolfSummary(detail?.schedule || [])
-            }))
-            .catch(() => ({ status: "failed", golfSummary: null }));
-          detailProductFamilyMetadataCache.set(key, { status: "loading", promise: pending });
-          detailProductFamilyMetadataCache.set(key, await pending);
-        }
-      };
-      await Promise.all(Array.from({ length: Math.min(2, queue.length) }, worker));
-      if (!document.getElementById("detailModal")?.classList.contains("open")) return;
-      const currentFamilyId = getGolfJoinProductFamilyId(currentDetailJoinData || {});
-      if (!currentFamilyId || currentFamilyId !== getGolfJoinProductFamilyId(join)) return;
-      const currentBox = document.querySelector("#detailModal .detail-family-periods");
-      if (currentBox) currentBox.outerHTML = renderDetailProductFamilyPeriods(currentDetailJoinData || join);
+      return member.golfSummary || null;
     }
 
     function isGolfJoinProductFamilyPeriodAvailable(product = {}) {
       return isGolfJoinBookableProductEvent(product);
     }
 
+    function getAdminRecommendedDetailFamilyPeriodOptions(join = {}) {
+      const familyId = String(join.productFamilyId || join.displayRule?.productFamilyId || "").trim();
+      const snapshots = familyId ? getAdminRecommendedFamilyOptions(join) : [];
+      if (snapshots.length < 2) return [];
+      const products = getBuilderProductSource();
+      const family = golfJoinProductFamilyById.get(familyId) || null;
+      const familyMembers = Array.isArray(family?.members) ? family.members : [];
+      const familyOptionSummaries = [join.familyParticipantSummary, join.participantSummary, join.lightSummary]
+        .flatMap((summary) => Array.isArray(summary?.familyOptionSummaries) ? summary.familyOptionSummaries : []);
+      const selectedGoodSeq = getGolfJoinProductGoodSeq(join);
+      const selectedEventSeq = getGolfJoinProductEventSeq(join);
+      return snapshots.map((snapshot) => {
+        const liveProduct = products.find((product) => (
+          getGolfJoinProductGoodSeq(product) === snapshot.goodSeq
+          && getGolfJoinProductEventSeq(product) === snapshot.eventSeq
+        )) || products.find((product) => (
+          getGolfJoinProductGoodSeq(product) === snapshot.goodSeq
+          && String(product.departureDate || "") === snapshot.departureDate
+        )) || null;
+        const familyMember = familyMembers.find((member) => (
+          String(member?.goodSeq || "").trim() === snapshot.goodSeq
+        )) || null;
+        const matchedSummary = familyOptionSummaries.find((summary) => (
+          String(summary?.goodSeq || summary?.erpProductId || "").trim() === snapshot.goodSeq
+          && String(summary?.eventSeq || summary?.erpEventSeq || "").trim() === snapshot.eventSeq
+        )) || null;
+        const optionCapacity = Math.max(1, Math.round(Number(matchedSummary?.capacity || snapshot.capacity) || 1));
+        const optionSummary = {
+          ...(matchedSummary || {}),
+          goodSeq: snapshot.goodSeq,
+          eventSeq: snapshot.eventSeq,
+          capacity: optionCapacity,
+          confirmedCount: Math.max(0, Math.min(optionCapacity, Math.round(Number(matchedSummary?.confirmedCount) || 0))),
+          remainingSlots: Number.isFinite(Number(matchedSummary?.remainingSlots))
+            ? Math.max(0, Math.min(optionCapacity, Math.round(Number(matchedSummary.remainingSlots))))
+            : optionCapacity,
+          participantsPreview: Array.isArray(matchedSummary?.participantsPreview) ? matchedSummary.participantsPreview : []
+        };
+        const optionProduct = {
+          ...join,
+          ...(liveProduct || {}),
+          id: join.id,
+          title: join.title,
+          scheduleId: join.scheduleId,
+          sourceApplicationId: join.sourceApplicationId,
+          displayRule: join.displayRule,
+          isAdminRecommendedSchedule: true,
+          productFamilyId: familyId,
+          familyDepartureDate: join.familyDepartureDate || snapshot.departureDate,
+          familyOptions: snapshots,
+          goodSeq: snapshot.goodSeq,
+          eventSeq: snapshot.eventSeq,
+          erpProductId: snapshot.goodSeq,
+          erpEventSeq: snapshot.eventSeq,
+          departureDate: snapshot.departureDate,
+          returnDate: snapshot.returnDate,
+          date: `${snapshot.departureDate} - ${snapshot.returnDate}`,
+          price: Number(snapshot.price) || Number(liveProduct?.price) || Number(join.price) || 0,
+          capacity: optionCapacity,
+          maxPeople: optionCapacity,
+          maxCapacity: optionCapacity,
+          participantSummary: optionSummary,
+          lightSummary: optionSummary,
+          familyParticipantSummary: join.familyParticipantSummary || join.participantSummary || join.lightSummary || null,
+          participants: [],
+          emptySlots: optionSummary.remainingSlots,
+          secretTourDetailLoaded: false
+        };
+        if (typeof reconcileJoinParticipantsWithLightSummary === "function") {
+          reconcileJoinParticipantsWithLightSummary(optionProduct, optionSummary);
+        }
+        return {
+          goodSeq: snapshot.goodSeq,
+          eventSeq: snapshot.eventSeq,
+          label: snapshot.durationLabel.replace(/(\d+)박(\d+)일/, "$1박 $2일"),
+          departurePattern: { label: `${formatCardFlexDateLabel(snapshot.departureDate)} 출발` },
+          golfSummary: getDetailProductFamilyGolfSummary(familyMember || {}, liveProduct || {}),
+          price: Number(snapshot.price) || Number(liveProduct?.price) || 0,
+          product: optionProduct,
+          hasScheduleConflict: Boolean(getBlockingActiveJoinSchedule({ ...join, departureDate: snapshot.departureDate, returnDate: snapshot.returnDate })),
+          selected: snapshot.goodSeq === selectedGoodSeq && snapshot.eventSeq === selectedEventSeq
+        };
+      });
+    }
+
     function getDetailProductFamilyPeriodOptions(join = {}) {
+      if (currentDetailMode === "normal" && join?.isAdminRecommendedSchedule && join?.productFamilyId) {
+        return getAdminRecommendedDetailFamilyPeriodOptions(join);
+      }
       if (!new Set(["mdPickProduct", "builderProduct"]).has(currentDetailMode)) return [];
       const family = getGolfJoinProductFamily(join);
       const familyId = String(family?.familyId || "").trim();
@@ -11639,7 +13868,10 @@
     }
 
     async function selectDetailProductFamilyPeriod(goodSeq) {
-      if (detailProductFamilyPeriodSwitching || !new Set(["mdPickProduct", "builderProduct"]).has(currentDetailMode)) return;
+      const isAdminRecommendedFamily = currentDetailMode === "normal"
+        && currentDetailJoinData?.isAdminRecommendedSchedule
+        && currentDetailJoinData?.productFamilyId;
+      if (detailProductFamilyPeriodSwitching || (!isAdminRecommendedFamily && !new Set(["mdPickProduct", "builderProduct"]).has(currentDetailMode))) return;
       const normalizedGoodSeq = String(goodSeq || "").trim();
       if (!normalizedGoodSeq || normalizedGoodSeq === getGolfJoinProductGoodSeq(currentDetailJoinData || {})) return;
       const option = getDetailProductFamilyPeriodOptions(currentDetailJoinData || {})
@@ -11653,7 +13885,20 @@
       periodBox?.querySelectorAll("button").forEach((button) => { button.disabled = true; });
       try {
         await runJoinReadLoading(async () => {
-          if (currentDetailMode === "builderProduct") {
+          if (isAdminRecommendedFamily) {
+            const detailRequestGeneration = ++detailContentRequestGeneration;
+            currentDetailJoinData = prepareSecretTourInitialFlightScheduleState(option.product);
+            document.getElementById("detailModalTitle").textContent = currentDetailJoinData.title;
+            renderDetailContent(currentDetailJoinData);
+            setDetailNormalPrimaryAction(currentDetailJoinData);
+            setDetailScheduleConflictState(currentDetailJoinData);
+            await enrichOpenDetailWithSecretTourData(
+              currentDetailJoinData,
+              { preserveScroll: true },
+              0,
+              detailRequestGeneration
+            );
+          } else if (currentDetailMode === "builderProduct") {
             await showBuilderProductDetailProduct(option.product, {
               open: false,
               preserveScroll: true,
@@ -11691,7 +13936,9 @@
     function getBuilderFixedProductGroupProducts() {
       const key = builderState.fixedProductGroupKey || "";
       if (!key) return [];
-      const products = getBuilderProductSource().filter((product) => getProductGroupKey(product) === key);
+      const products = getBuilderProductSource().filter((product) => (
+        getProductGroupKey(product) === key && !isJoinProductBlockedForNewSchedule(product)
+      ));
       const fixedGoodSeq = String(builderState.fixedProductGoodSeq || "").trim();
       if (!fixedGoodSeq) return products;
       return products.filter((product) => getGolfJoinProductGoodSeq(product) === fixedGoodSeq);
@@ -11766,17 +14013,11 @@
       };
     }
 
-    function builderProductMatchesSelectedDates(product) {
-      const { departureDateSet, returnDateSet } = getBuilderProductDateCriteria();
-      if (departureDateSet.size && !departureDateSet.has(product.departureDate)) return false;
-      if (returnDateSet.size && !returnDateSet.has(product.returnDate || product.departureDate)) return false;
-      return true;
-    }
-
     function getBuilderProductDateLabel() {
       const { departureDates, returnDates } = getBuilderProductDateCriteria();
       const departureLabel = formatBuilderDateSetLabel(departureDates);
       const returnLabel = formatBuilderDateSetLabel(returnDates);
+      if (builderState.regionDateFirstMode && departureLabel) return `${departureLabel} 출발`;
       if (departureLabel && returnLabel) return `${departureLabel} 출발 · ${returnLabel} 도착`;
       if (departureLabel) return `${departureLabel} 출발`;
       return "";
@@ -11819,6 +14060,51 @@
       return Array.isArray(builderState.dateConstraintRegions) && builderState.dateConstraintRegions.length > 0;
     }
 
+    function getBuilderRegionDateFirstProducts() {
+      if (!builderState.regionDateFirstMode) return [];
+      const minimumDeparture = getBuilderMinDepartureISO();
+      const activeSchedules = getActiveJoinMySchedules();
+      return getBuilderDateConstraintProducts()
+        .filter((product) => (
+          product.departureDate
+          && product.departureDate >= minimumDeparture
+          && !isJoinProductBlockedForNewSchedule(product, activeSchedules)
+        ));
+    }
+
+    function getBuilderRegionDateFirstMonthKeys() {
+      return [...new Set(getBuilderRegionDateFirstProducts()
+        .map((product) => String(product.departureDate || "").slice(0, 7))
+        .filter((month) => /^\d{4}-\d{2}$/.test(month)))]
+        .sort();
+    }
+
+    function syncBuilderRegionDateFirstViewMonth(force = false) {
+      if (!builderState.regionDateFirstMode) return false;
+      const monthKeys = getBuilderRegionDateFirstMonthKeys();
+      if (!monthKeys.length) return false;
+      const currentMonthKey = `${builderState.viewYear}-${String(builderState.viewMonth + 1).padStart(2, "0")}`;
+      const targetMonthKey = !force && monthKeys.includes(currentMonthKey) ? currentMonthKey : monthKeys[0];
+      const [year, month] = targetMonthKey.split("-").map(Number);
+      builderState.viewYear = year;
+      builderState.viewMonth = month - 1;
+      return true;
+    }
+
+    function updateBuilderRegionDateFirstMonthNavigation() {
+      const buttons = Array.from(document.querySelectorAll("#builderModal .builder-month-nav .builder-month-button"));
+      if (buttons.length < 2) return;
+      if (!builderState.regionDateFirstMode) {
+        buttons.forEach((button) => { button.disabled = false; });
+        return;
+      }
+      const monthKeys = getBuilderRegionDateFirstMonthKeys();
+      const currentMonthKey = `${builderState.viewYear}-${String(builderState.viewMonth + 1).padStart(2, "0")}`;
+      const currentIndex = monthKeys.indexOf(currentMonthKey);
+      buttons[0].disabled = currentIndex <= 0;
+      buttons[1].disabled = currentIndex < 0 || currentIndex >= monthKeys.length - 1;
+    }
+
     function getBuilderDateConstraintTokens() {
       const regions = builderState.dateConstraintRegions || [];
       return [...new Set(regions.flatMap((name) => {
@@ -11834,19 +14120,39 @@
       const fixedProducts = getBuilderFixedProductGroupProducts();
       if (fixedProducts.length) return fixedProducts;
       if (!hasBuilderDateConstraint()) return [];
-      const products = getBuilderProductSource();
-      if (!products.length) return [];
-      const tokens = getBuilderDateConstraintTokens();
-      if (!tokens.length) return [];
-      return products.filter((product) => builderProductMatchesTokens(product, tokens));
+      return getBuilderRegisteredProductsForDateSelection();
     }
 
     function getBuilderRegisteredProductsForDateSelection() {
       const fixedProducts = getBuilderFixedProductGroupProducts();
-      if (fixedProducts.length) return fixedProducts;
-      const constrained = getBuilderDateConstraintProducts();
-      if (constrained.length) return constrained;
-      return getBuilderProductSource();
+      if (builderState.fixedProductGroupKey) return fixedProducts;
+      const source = getBuilderProductSource();
+      if (!source.length) return [];
+      const activeSchedules = getActiveJoinMySchedules();
+      const activeScheduleKey = activeSchedules.map((active) => (
+        `${active.key || ""}:${active.range?.startTime || ""}:${active.range?.endTime || ""}`
+      )).join("|");
+      const tokens = hasBuilderDateConstraint() ? getBuilderDateConstraintTokens() : [];
+      const modeKey = [
+        builderState.regionDateFirstMode ? "region-first" : "standard",
+        tokens.join(",")
+      ].join(":");
+      if (
+        builderRegisteredProductsCache.sourceRef === source
+        && builderRegisteredProductsCache.sourceLength === source.length
+        && builderRegisteredProductsCache.modeKey === modeKey
+        && builderRegisteredProductsCache.activeScheduleKey === activeScheduleKey
+      ) return builderRegisteredProductsCache.items;
+      const items = source.filter((product) => (
+        (!tokens.length || builderProductMatchesTokens(product, tokens))
+        && !isJoinProductBlockedForNewSchedule(product, activeSchedules)
+      ));
+      builderRegisteredProductsCache.sourceRef = source;
+      builderRegisteredProductsCache.sourceLength = source.length;
+      builderRegisteredProductsCache.modeKey = modeKey;
+      builderRegisteredProductsCache.activeScheduleKey = activeScheduleKey;
+      builderRegisteredProductsCache.items = items;
+      return items;
     }
 
     function isBuilderConstraintDepartureDate(iso) {
@@ -11904,21 +14210,36 @@
       });
     }
 
-    function isBuilderDateAllowedByConstraint(iso) {
-      const products = getBuilderRegisteredProductsForDateSelection();
-      if (!products.length) return true;
+    function isBuilderDateAllowedByConstraint(iso, registeredProducts = null, renderContext = null) {
+      const products = Array.isArray(registeredProducts)
+        ? registeredProducts
+        : getBuilderRegisteredProductsForDateSelection();
+      if (!products.length) return !builderState.fixedProductGroupKey && !hasBuilderDateConstraint();
+      const departureDateSet = renderContext?.registeredDepartureDateSet;
+      const returnDateSet = renderContext?.registeredReturnDateSet;
+      if (builderState.regionDateFirstMode) {
+        return departureDateSet instanceof Set
+          ? departureDateSet.has(iso)
+          : products.some((product) => product.departureDate === iso);
+      }
       if (!hasBuilderDateConstraint() && !Number.isFinite(builderState.startDay)) {
-        return products.some((product) => product.departureDate === iso);
+        return departureDateSet instanceof Set
+          ? departureDateSet.has(iso)
+          : products.some((product) => product.departureDate === iso);
       }
       if (!Number.isFinite(builderState.startDay)) {
-        return products.some((product) => product.departureDate === iso);
+        return departureDateSet instanceof Set
+          ? departureDateSet.has(iso)
+          : products.some((product) => product.departureDate === iso);
       }
       const departureDates = getBuilderSelectedDepartureDates();
       const returnDates = getBuilderSelectedReturnDates();
       if (Number.isFinite(builderState.endDay)) {
         return departureDates.includes(iso) || returnDates.includes(iso);
       }
-      return products.some((product) => departureDates.includes(product.departureDate) && (product.returnDate || product.departureDate) === iso);
+      return returnDateSet instanceof Set
+        ? returnDateSet.has(iso)
+        : products.some((product) => departureDates.includes(product.departureDate) && (product.returnDate || product.departureDate) === iso);
     }
 
     function reconcileBuilderConstrainedDates() {
@@ -11951,18 +14272,62 @@
       return getRegionSearchTokens(name);
     }
 
+    function getBuilderActiveScheduleSignature(activeSchedules = []) {
+      return activeSchedules.map((active) => (
+        `${active.key || ""}:${active.range?.startTime || ""}:${active.range?.endTime || ""}`
+      )).join("|");
+    }
+
+    function getBuilderAvailableProductsForSelectedDates() {
+      const source = getBuilderProductSource();
+      if (!source.length) return [];
+      const activeSchedules = getActiveJoinMySchedules();
+      const activeScheduleKey = getBuilderActiveScheduleSignature(activeSchedules);
+      const {
+        departureDates,
+        returnDates,
+        departureDateSet,
+        returnDateSet
+      } = getBuilderProductDateCriteria();
+      const dateKey = [
+        builderState.regionDateFirstMode ? "region-first" : "standard",
+        departureDates.join(","),
+        returnDates.join(",")
+      ].join(":");
+      if (
+        builderAvailableProductsCache.sourceRef === source
+        && builderAvailableProductsCache.sourceLength === source.length
+        && builderAvailableProductsCache.dateKey === dateKey
+        && builderAvailableProductsCache.activeScheduleKey === activeScheduleKey
+      ) return builderAvailableProductsCache.items;
+
+      const items = source.filter((product) => {
+        if (departureDateSet.size && !departureDateSet.has(product.departureDate)) return false;
+        if (
+          !builderState.regionDateFirstMode
+          && returnDateSet.size
+          && !returnDateSet.has(product.returnDate || product.departureDate)
+        ) return false;
+        if (isJoinProductBlockedForNewSchedule(product, activeSchedules)) return false;
+        return true;
+      });
+      builderAvailableProductsCache.sourceRef = source;
+      builderAvailableProductsCache.sourceLength = source.length;
+      builderAvailableProductsCache.dateKey = dateKey;
+      builderAvailableProductsCache.activeScheduleKey = activeScheduleKey;
+      builderAvailableProductsCache.items = items;
+      return items;
+    }
+
     function isBuilderRegionAvailableForDate(name, options = {}) {
       const { departureDateSet, returnDateSet } = getBuilderProductDateCriteria();
       if (!departureDateSet.size && !returnDateSet.size) return true;
-      const products = getBuilderProductSource();
-      if (!products.length) return true;
+      if (!getBuilderProductSource().length) return true;
+      const products = getBuilderAvailableProductsForSelectedDates();
+      if (!products.length) return false;
       const tokens = getBuilderRegionAvailabilityTokens(name, options);
       if (!tokens.length) return false;
-      return products.some((product) => {
-        if (departureDateSet.size && !departureDateSet.has(product.departureDate)) return false;
-        if (returnDateSet.size && !returnDateSet.has(product.returnDate || product.departureDate)) return false;
-        return builderProductMatchesTokens(product, tokens);
-      });
+      return products.some((product) => builderProductMatchesTokens(product, tokens));
     }
 
     function builderRegionDisabledAttrs(isAvailable) {
@@ -12038,7 +14403,7 @@
     }
 
     function getBuilderRegionProducts(query = "") {
-      const products = getBuilderProductSource();
+      const products = getBuilderAvailableProductsForSelectedDates();
       const tokens = getBuilderProductCriteria(query);
       const fallbackTokens = getBuilderProductFallbackCriteria(query);
       if (!tokens.length) return [];
@@ -12046,9 +14411,7 @@
       const regionMatched = exactRegionMatched.length
         ? exactRegionMatched
         : products.filter((product) => builderProductMatchesTokens(product, fallbackTokens));
-      const matched = collapseBuilderProductsByDisplayGroup(
-        regionMatched.filter(builderProductMatchesSelectedDates)
-      );
+      const matched = collapseBuilderProductsByDisplayGroup(regionMatched);
       if (regionProductSort === "price") {
         return matched.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
       }
@@ -12059,18 +14422,14 @@
     }
 
     function hasExactBuilderDateProducts(query = "") {
-      const products = getBuilderProductSource();
+      const products = getBuilderAvailableProductsForSelectedDates();
       const tokens = getBuilderProductCriteria(query);
       const fallbackTokens = getBuilderProductFallbackCriteria(query);
       const { departureDateSet, returnDateSet } = getBuilderProductDateCriteria();
       if (!tokens.length || (!departureDateSet.size && !returnDateSet.size)) return true;
       const exactRegionMatched = products.filter((product) => builderProductMatchesTokens(product, tokens));
       const targetTokens = exactRegionMatched.length ? tokens : fallbackTokens;
-      return products.some((product) => {
-        if (departureDateSet.size && !departureDateSet.has(product.departureDate)) return false;
-        if (returnDateSet.size && !returnDateSet.has(product.returnDate || product.departureDate)) return false;
-        return builderProductMatchesTokens(product, targetTokens);
-      });
+      return products.some((product) => builderProductMatchesTokens(product, targetTokens));
     }
 
     function setBuilderProductSort(sort) {
@@ -12129,7 +14488,7 @@
       const area = document.getElementById("builderRegionProductArea");
       if (!area) return;
       const products = getBuilderRegionProducts(query);
-      const isLoading = !externalGolfJoinProducts && !externalGolfJoinProductsLoadFailed;
+      const isLoading = isBuilderDateLoading() && !getBuilderProductSource().length;
       const productDateLabel = getBuilderProductDateLabel();
       const isCompactProductView = window.innerWidth <= 640 || document.documentElement.clientWidth <= 640;
       const selectedProduct = builderState.productId ? findBuilderProductById(builderState.productId) : null;
@@ -12177,7 +14536,7 @@
     function selectBuilderProduct(productId) {
       const product = getBuilderRegionProducts(document.getElementById("builderRegionSearchInput")?.value || "").find((item) => item.id === productId)
         || findBuilderProductById(productId);
-      if (!product) return false;
+      if (!product || isJoinProductBlockedForNewSchedule(product)) return false;
       builderState.regionSelectionComplete = true;
       builderState.productId = product.id;
       builderState.productName = product.title;
@@ -12203,6 +14562,7 @@
 
     async function showBuilderProductDetailProduct(product, options = {}) {
       if (!product) return false;
+      const detailRequestGeneration = ++detailContentRequestGeneration;
       product = prepareSecretTourInitialFlightScheduleState(product);
       const detailScrollState = options.preserveScroll
         ? (options.scrollState || captureDetailModalScrollState())
@@ -12228,6 +14588,7 @@
       });
       try {
         const detail = await loadSecretTourGoodsDetail(product);
+        if (detailRequestGeneration !== detailContentRequestGeneration) return false;
         const enrichedProduct = { ...mergeSecretTourGoodsDetail(product, detail), secretTourDetailLoaded: true };
         if (Array.isArray(externalGolfJoinProducts)) {
           externalGolfJoinProducts = externalGolfJoinProducts.map((item) => item.id === enrichedProduct.id ? enrichedProduct : item);
@@ -12243,10 +14604,18 @@
             restoreDetailModalScrollState(currentScrollState);
           });
         }
-        void enrichSecretTourFlightScheduleInBackground(enrichedProduct, detail, enrichedProduct)
+        void enrichSecretTourFlightScheduleInBackground(enrichedProduct, detail, enrichedProduct, { detailRequestGeneration })
           .catch((error) => golfJoinSafeWarn("Failed to update builder product flight schedule.", error));
       } catch (error) {
         golfJoinSafeWarn(error);
+        if (
+          detailRequestGeneration === detailContentRequestGeneration
+          && currentDetailMode === "builderProduct"
+          && currentDetailJoinId === product.id
+          && document.getElementById("detailModal")?.classList.contains("open")
+        ) {
+          showDetailLoadRetryNotice();
+        }
       }
       return true;
     }
@@ -12339,8 +14708,7 @@
         return;
       }
       const displayCategories = getRegionDisplayCategories({ builderContext: true })
-        .map(({ item, index }) => ({ category: item, categoryIndex: index }))
-        .filter(({ category }) => isBuilderCategoryAvailable(category));
+        .map(({ item, index }) => ({ category: item, categoryIndex: index }));
       syncBuilderRegionAutoExpand(displayCategories);
       body.innerHTML = displayCategories.length ? displayCategories.map(({ category, categoryIndex }) => {
         const countries = getBuilderAvailableCountries(category);
@@ -12649,6 +15017,9 @@
       if (!shell) return;
       shell.classList.remove("region-panel-hot", "region-panel-recent", "region-panel-cities");
       if (mode) shell.classList.add(`region-panel-${mode}`);
+      // The expanded desktop panel and results share one scroll container.
+      shell.scrollTop = 0;
+      document.querySelector("#regionSearchModal .region-search-all-button")?.setAttribute("aria-expanded", String(mode === "cities"));
       document.querySelectorAll("[data-region-panel-button]").forEach((button) => {
         const isActive = button.dataset.regionPanelButton === mode;
         button.classList.toggle("active", isActive);
@@ -13005,6 +15376,9 @@
     function renderRegionProductCard(join, options = {}) {
       const participantCapacity = getJoinRecruitmentCapacity(join, Number(join.maxCapacity || join.capacity || JOIN_MAX_CAPACITY) || JOIN_MAX_CAPACITY);
       const showMonthlyParticipantSummary = isMonthlyRecommendationJoin(join) || participantCapacity > JOIN_MAX_CAPACITY;
+      const showEmptyAdminRecommendedRecruitment = Boolean(join.isAdminRecommendedSchedule)
+        && !showMonthlyParticipantSummary
+        && getMonthlyCardParticipantCount(join) <= 0;
       const cardOnClick = options.onClick || `openDetail('${escapeJsString(join.id)}')`;
       const adminRecommendedBadges = join.isAdminRecommendedSchedule
         ? (isMonthlyRecommendationJoin(join)
@@ -13033,8 +15407,8 @@
               <div class="region-product-price-value">${formatPrice(join.price)}</div>
               <div class="region-product-price-unit">원</div>
             </div>
-            <div class="region-product-team${showMonthlyParticipantSummary ? " monthly-summary" : ""}">
-              ${showMonthlyParticipantSummary ? renderMonthlyCalendarParticipantSummary(join) : renderCardTeamSlots(join)}
+            <div class="region-product-team${showMonthlyParticipantSummary ? " monthly-summary" : ""}${showEmptyAdminRecommendedRecruitment ? " admin-recommended-empty" : ""}">
+              ${showMonthlyParticipantSummary ? renderMonthlyCalendarParticipantSummary(join) : showEmptyAdminRecommendedRecruitment ? renderAdminRecommendedEmptyRecruitmentSummary() : renderCardTeamSlots(join)}
             </div>
           </div>
         </article>
@@ -13067,25 +15441,84 @@
       performRegionProductSearch();
     }
 
-    function openBuilderFromRegionSearch() {
-      const inputValue = document.getElementById("regionSearchInput")?.value.trim() || "";
-      pendingBuilderRegion = selectedRegionSearchName || inputValue || "";
-      closeRegionSearchModal();
-      openModal("builderModal");
-      if (pendingBuilderRegion) {
-        builderState.region = pendingBuilderRegion;
-        builderState.regions = [pendingBuilderRegion];
-        builderState.dateConstraintRegions = [pendingBuilderRegion];
-        builderRegionSelectorMode = false;
-        updateBuilderRegionDisplay();
-        updateBuilderSummary();
-        renderBuilderCalendar();
-        ensureExternalGolfJoinProductsLoaded().then(() => {
-          if (document.getElementById("builderModal")?.classList.contains("open") && builderStep === 1 && builderState.dateConstraintRegions.includes(pendingBuilderRegion)) {
-            renderBuilderCalendar();
-          }
+    async function initializeBuilderFromRegionSearch(regionName = "") {
+      const targetRegion = normalizeRegionBuilderEntryName(regionName);
+      if (!targetRegion) return false;
+      pendingBuilderRegion = targetRegion;
+      Object.assign(builderState, {
+        region: targetRegion,
+        regions: [targetRegion],
+        dateConstraintRegions: [targetRegion],
+        regionDateFirstMode: true,
+        startDay: null,
+        endDay: null,
+        dateSelectionComplete: false,
+        regionSelectionComplete: false,
+        productId: "",
+        productName: "",
+        productFamilyId: ""
+      });
+      builderRegionSelectorMode = false;
+      updateBuilderRegionDisplay();
+      updateBuilderSummary();
+      renderBuilderCalendar();
+      const loadingToken = isJoinActionLoadingOpen()
+        ? null
+        : openJoinActionLoading("출발 가능한 날짜를 확인하고 있어요");
+      try {
+        await loadGolfJoinProductDiscoveryRegion(targetRegion, {
+          consumer: "builder-calendar",
+          reason: "region-date-first"
         });
+        if (!document.getElementById("builderModal")?.classList.contains("open")) return false;
+        if (!builderState.regionDateFirstMode || builderState.dateConstraintRegions[0] !== targetRegion) return false;
+        syncBuilderRegionDateFirstViewMonth(true);
+        renderBuilderCalendar();
+        return true;
+      } catch (error) {
+        golfJoinSafeWarn("Failed to load region departure dates.", error);
+        renderBuilderCalendar();
+        return false;
+      } finally {
+        if (loadingToken) await closeJoinActionLoading(loadingToken);
       }
+    }
+
+    async function openBuilderFromRegionSearch(regionName = "") {
+      const inputValue = document.getElementById("regionSearchInput")?.value.trim() || "";
+      const targetRegion = normalizeRegionBuilderEntryName(regionName || selectedRegionSearchName || inputValue);
+      closeRegionSearchModal();
+      if (!targetRegion) return openModal("builderModal");
+      pendingBuilderRegion = targetRegion;
+      const loginParams = {
+        builderAction: "region-search",
+        builderRegion: targetRegion
+      };
+      const opened = await openModal("builderModal", {
+        analyticsSourceArea: "destination_search",
+        loginParams
+      });
+      if (!opened) return false;
+      return initializeBuilderFromRegionSearch(targetRegion);
+    }
+
+    function renderRegionCreatePrompt(query = "", options = {}) {
+      const targetRegion = normalizeRegionBuilderEntryName(query);
+      const displayRegion = getRegionBuilderEntryDisplayName(targetRegion);
+      if (!targetRegion || !displayRegion) return "";
+      const hasResults = options.hasResults === true;
+      const title = hasResults
+        ? "원하는 일정이 없나요?"
+        : `${displayRegion}에는 아직 참여 가능한 모임이 없어요.`;
+      return `
+        <div class="region-result-empty region-result-create-prompt${hasResults ? " is-after-results" : ""}">
+          <div class="region-result-empty-copy">
+            <div class="region-result-empty-title">${escapeHtml(title)}</div>
+            <div class="region-result-empty-action-line">원하는 상품과 날짜로 직접 모임을 만들어 보세요.</div>
+          </div>
+          <div><button type="button" class="region-result-empty-action" onclick="openBuilderFromRegionSearch('${escapeJsString(targetRegion)}')">${escapeHtml(displayRegion)}에 모임 만들기</button></div>
+        </div>
+      `;
     }
 
     function getJoinRecommendationRegionParts(region = "", products = []) {
@@ -13120,9 +15553,10 @@
 
     function renderEmptyRegionRecommendations(query, options = {}) {
       const activeType = SHOW_DOMESTIC_JOIN_PRODUCTS && regionEmptyRecommendType === "domestic" ? "domestic" : "overseas";
-      const title = options.title || "지금 합류 가능한 다른 지역";
+      const title = options.title || "바로 참여 가능한 모임";
       const setTypeHandler = options.setTypeHandler || "setRegionEmptyRecommendType";
       const moreHandler = options.moreHandler || "selectRegionResult";
+      const detailSourceArea = options.sourceArea || "destination_search";
       const excludeActiveScheduleOverlaps = options.excludeActiveScheduleOverlaps === true;
       const groups = new Map();
       getVisibleCalendarJoinProducts()
@@ -13154,7 +15588,7 @@
             ${totalCount >= 3 ? `<button type="button" class="region-empty-recommend-more" onclick="${moreHandler}('${escapeJsString(region)}')">더보기<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : ""}
           </div>
           ${products.map((join) => `
-            <button type="button" class="region-empty-recommend-card" onclick="openDetail('${escapeJsString(join.id)}')">
+            <button type="button" class="region-empty-recommend-card" onclick="openDetail('${escapeJsString(join.id)}', { sourceArea: '${escapeJsString(detailSourceArea)}' })">
               <div class="region-empty-recommend-thumb"><img src="${escapeHtml(join.image || "")}" alt="${escapeHtml(join.title || "")}"></div>
               <div class="region-empty-recommend-info">
                 <div class="region-empty-recommend-name">${escapeHtml(join.title || "")}</div>
@@ -13167,7 +15601,10 @@
             </button>
           `).join("")}
           <div class="region-empty-recommend-mobile-list calendar-accordion-list">
-            ${products.map((join) => renderRegionProductCard(join, { showDetailButton: true })).join("")}
+            ${products.map((join) => renderRegionProductCard(join, {
+              showDetailButton: true,
+              onClick: `openDetail('${escapeJsString(join.id)}', { sourceArea: '${escapeJsString(detailSourceArea)}' })`
+            })).join("")}
           </div>
         </div>
       `;
@@ -13201,16 +15638,25 @@
       setRegionSearchPanelMode("");
       updateRegionSearchSelectedText();
       if (!query) {
+        trackGolfJoinGa4Event("golfjoin_destination_search_submit", {
+          source_area: getRegionSearchGa4SourceArea(),
+          result_count_bucket: "empty_query"
+        });
         list.innerHTML = `<div class="region-result-empty">검색어를 입력하거나 국가 또는 지역을 선택해 주세요.</div>`;
         return;
       }
       if (regionSearchContext === "mdpick") {
         const results = getMdPickRegionProducts(query);
         if (!results.length) {
+          trackGolfJoinGa4Event("golfjoin_destination_search_submit", { source_area: "mdpick", result_count_bucket: "0" });
           const emptyRegionName = escapeHtml(formatRegionDisplayName(query) || query);
           list.innerHTML = `<div class="region-result-empty">ERP에 등록된 ${emptyRegionName} 상품이 없습니다.</div>`;
           return;
         }
+        trackGolfJoinGa4Event("golfjoin_destination_search_submit", {
+          source_area: "mdpick",
+          result_count_bucket: results.length <= 5 ? "1_5" : results.length <= 20 ? "6_20" : "21_plus"
+        });
         list.innerHTML = `
           <div class="region-product-head">
             <div class="region-product-count"><strong>${results.length}</strong>개 상품</div>
@@ -13228,15 +15674,17 @@
       }
       const results = sortRegionProductResults(getVisibleCalendarJoinProducts().filter((join) => joinMatchesRegionSearch(join, query))).slice(0, 12);
       if (!results.length) {
+        trackGolfJoinGa4Event("golfjoin_destination_search_submit", { source_area: getRegionSearchGa4SourceArea(), result_count_bucket: "0" });
         list.innerHTML = `
-          <div class="region-result-empty">
-            <div class="region-result-empty-copy"><div class="region-result-empty-title">이 지역에는 아직 등록된 일정이 없어요.</div><div class="region-result-empty-action-line">직접 모임을 만들어 멤버를 초대해보세요.</div></div>
-            <div><button type="button" class="region-result-empty-action" onclick="openBuilderFromRegionSearch()">새 모임 만들기</button></div>
-          </div>
-          ${renderEmptyRegionRecommendations(query)}
+          ${renderRegionCreatePrompt(query)}
+          ${renderEmptyRegionRecommendations(query, { title: "다른 지역에서 바로 참여 가능한 모임" })}
         `;
         return;
       }
+      trackGolfJoinGa4Event("golfjoin_destination_search_submit", {
+        source_area: getRegionSearchGa4SourceArea(),
+        result_count_bucket: results.length <= 5 ? "1_5" : "6_20"
+      });
       list.innerHTML = `
         <div class="region-product-head">
           <div class="region-product-count"><strong>${results.length}</strong>개 상품</div>
@@ -13257,8 +15705,11 @@
           </div>
         </div>
         <div class="region-product-grid">
-          ${results.map((join) => renderRegionProductCard(join)).join("")}
+          ${results.map((join) => renderRegionProductCard(join, {
+            onClick: `openDetail('${escapeJsString(join.id)}', { sourceArea: 'destination_search' })`
+          })).join("")}
         </div>
+        ${renderRegionCreatePrompt(query, { hasResults: true })}
       `;
     }
 
@@ -13355,7 +15806,108 @@
     }
 
     function getCurrentApplyJoin() {
-      return joins.find((item) => item.id === currentDetailJoinId) || null;
+      return (currentDetailJoinData && currentDetailJoinData.id === currentDetailJoinId ? currentDetailJoinData : null)
+        || joins.find((item) => item.id === currentDetailJoinId)
+        || null;
+    }
+
+    function getJoinApplyResumeParams(join = getCurrentApplyJoin()) {
+      if (!join) return {};
+      const reference = getSecretTourProductReference(join);
+      const applyJoinId = String(join.id || currentDetailJoinId || "").trim();
+      const productFamilyId = String(join.productFamilyId || join.displayRule?.productFamilyId || "").trim();
+      const goodSeq = String(join.goodSeq || join.erpProductId || reference.goodSeq || "").trim();
+      const eventSeq = String(join.eventSeq || join.erpEventSeq || reference.eventSeq || "").trim();
+      return {
+        ...(applyJoinId ? { applyJoinId } : {}),
+        ...(productFamilyId ? { productFamilyId } : {}),
+        ...(goodSeq ? { goodSeq } : {}),
+        ...(eventSeq ? { eventSeq } : {})
+      };
+    }
+
+    function findJoinApplyResumeTarget(params = {}) {
+      const applyJoinId = String(params.applyJoinId || params.joinId || params.scheduleId || "").trim();
+      if (applyJoinId) {
+        const direct = joins.find((item) => (
+          item?.id === applyJoinId
+          || item?.scheduleId === applyJoinId
+          || item?.sourceApplicationId === applyJoinId
+          || item?.applicationId === applyJoinId
+        ));
+        if (direct) return direct;
+      }
+      if (typeof findJoinExternalDeepLinkDetailTarget === "function") {
+        return findJoinExternalDeepLinkDetailTarget(applyJoinId
+          ? { joinId: applyJoinId, scheduleId: applyJoinId }
+          : {
+              productId: params.productId || params.goodSeq || "",
+              goodSeq: params.goodSeq || "",
+              eventSeq: params.eventSeq || ""
+            });
+      }
+      return null;
+    }
+
+    async function restoreJoinApplyTarget(params = {}) {
+      const applyJoinId = String(params.applyJoinId || params.joinId || params.scheduleId || "").trim();
+      if (applyJoinId) currentDetailJoinId = applyJoinId;
+      let target = findJoinApplyResumeTarget(params);
+      if (!target) {
+        if (typeof ensureHomeGolfJoinProductsLoaded === "function") {
+          await ensureHomeGolfJoinProductsLoaded({ renderHome: false });
+        }
+        target = findJoinApplyResumeTarget(params);
+      }
+      if (!target && typeof hydrateAdminRecommendedSchedulesFromGoogleSheet === "function") {
+        await hydrateAdminRecommendedSchedulesFromGoogleSheet();
+        target = findJoinApplyResumeTarget(params);
+      }
+      if (!target) return false;
+      currentDetailJoinId = target.id || applyJoinId;
+      currentDetailJoinData = target;
+      const goodSeq = String(params.goodSeq || "").trim();
+      const eventSeq = String(params.eventSeq || "").trim();
+      if (target.productFamilyId && goodSeq && eventSeq) {
+        const selectedOption = getAdminRecommendedDetailFamilyPeriodOptions(target).find((option) => (
+          option.goodSeq === goodSeq && option.eventSeq === eventSeq
+        ));
+        if (selectedOption?.product) currentDetailJoinData = selectedOption.product;
+      }
+      return Boolean(getCurrentApplyJoin());
+    }
+
+    function getInitialSameMemberApplyPayload(join = {}, member = {}) {
+      if (!join || !member) return null;
+      if (isJoinMyCreatedScheduleForMember(join, member) && join.sheetApplication) {
+        return join.sheetApplication;
+      }
+      return sortJoinApplicationPayloadsBySubmittedAt(
+        Array.from(joinApplicationPayloadMemory.values())
+          .filter((application) => !isCancelledJoinApplyPayload(application))
+          .filter((application) => isJoinMyJoinApplicationForMember(application, member))
+          .filter((application) => findJoinForJoinApplicationPayload(application) === join)
+      )[0] || null;
+    }
+
+    function applyInitialSameMemberApplyPreferences(join = {}, member = {}) {
+      const initialPayload = getInitialSameMemberApplyPayload(join, member);
+      if (!initialPayload) return false;
+      const applicant = initialPayload.applicant || {};
+      const styles = new Set(toBuilderApplicationArray(applicant.styles));
+      const memberPreferences = new Set(toBuilderApplicationArray(
+        applicant.preferredMemberComposition || applicant.memberPreferences
+      ));
+      document.querySelectorAll('[data-chip-group="global-style"] .apply-chip').forEach((chip) => {
+        chip.classList.toggle("active", styles.has(chip.dataset.value || chip.textContent.trim()));
+      });
+      document.querySelectorAll('[data-chip-group="global-member-preference"] .apply-chip').forEach((chip) => {
+        chip.classList.toggle("active", memberPreferences.has(chip.dataset.value || chip.textContent.trim()));
+      });
+      const greetingInput = document.getElementById("globalApplyGreeting");
+      if (greetingInput) greetingInput.value = String(applicant.greeting || "");
+      updateApplyPreview();
+      return true;
     }
 
     function getCurrentDetailJoin() {
@@ -13385,7 +15937,7 @@
           </div>
           <div class="apply-join-info-item">
             <div class="apply-join-info-label">일정</div>
-            <div class="apply-join-info-value">${escapeHtml(formatCardDateRange(join))}</div>
+            <div class="apply-join-info-value">${escapeHtml(formatCardDateRange(join, { selectedPeriod: true }))}</div>
           </div>
           <div class="apply-join-info-item">
             <div class="apply-join-info-label">기간</div>
@@ -13550,49 +16102,109 @@
 
     const singleRoomSurchargeKeywordPattern = /(1\s*인\s*1\s*실|1\s*인실|싱글\s*(?:룸|차지|룸차지)?|싱글|독실|single(?:\s*(?:room|charge|supplement))?)/i;
 
-    function parseApplyWonAmount(value) {
+    const applySurchargeAmountPattern = /(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만원|천원|원|만|엔|円|jpy|¥|달러|usd|us\$|\$|위안|cny|rmb|元|바트|thb|฿|동|vnd|₫|유로|eur|€)?/gi;
+
+    function getApplySurchargeCurrency(unit = "") {
+      const normalized = String(unit || "").trim().toLowerCase();
+      if (!normalized || /^(?:만원|천원|원|만)$/.test(normalized)) return { code: "KRW", label: "원" };
+      if (/^(?:엔|円|jpy|¥)$/.test(normalized)) return { code: "JPY", label: "엔" };
+      if (/^(?:달러|usd|us\$|\$)$/.test(normalized)) return { code: "USD", label: "달러" };
+      if (/^(?:위안|cny|rmb|元)$/.test(normalized)) return { code: "CNY", label: "위안" };
+      if (/^(?:바트|thb|฿)$/.test(normalized)) return { code: "THB", label: "바트" };
+      if (/^(?:동|vnd|₫)$/.test(normalized)) return { code: "VND", label: "동" };
+      if (/^(?:유로|eur|€)$/.test(normalized)) return { code: "EUR", label: "유로" };
+      return { code: "", label: String(unit || "").trim() };
+    }
+
+    function parseApplySurchargeMoneyToken(value, options = {}) {
       const text = String(value ?? "").trim();
-      if (!text) return 0;
-      const match = text.match(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만원|만|천원|원)?/);
-      if (!match) return 0;
+      if (!text) return null;
+      const match = text.match(/^(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만원|천원|원|만|엔|円|jpy|¥|달러|usd|us\$|\$|위안|cny|rmb|元|바트|thb|฿|동|vnd|₫|유로|eur|€)?$/i);
+      if (!match) return null;
       const raw = Number(String(match[1]).replace(/,/g, ""));
-      if (!Number.isFinite(raw) || raw <= 0) return 0;
+      if (!Number.isFinite(raw) || raw <= 0) return null;
       const unit = match[2] || "";
-      if (/만원|만/.test(unit)) return Math.round(raw * 10000);
-      if (/천원/.test(unit)) return Math.round(raw * 1000);
-      if (!unit && !String(match[1]).includes(",") && raw < 10000) return 0;
-      return Math.round(raw);
+      if (!unit && !options.allowUnitless && !String(match[1]).includes(",") && raw < 10000) return null;
+      const currency = getApplySurchargeCurrency(unit);
+      if (!currency.code) return null;
+      let amount = Math.round(raw);
+      if (currency.code === "KRW" && /만원|만/i.test(unit)) amount = Math.round(raw * 10000);
+      if (currency.code === "KRW" && /천원/i.test(unit)) amount = Math.round(raw * 1000);
+      return {
+        amount: currency.code === "KRW" ? amount : 0,
+        foreignAmount: currency.code === "KRW" ? 0 : Math.round(raw),
+        currency: currency.code,
+        displayText: currency.code === "KRW"
+          ? `${amount.toLocaleString("ko-KR")}원`
+          : `${raw.toLocaleString("ko-KR")}${currency.label}`,
+        explicitUnit: Boolean(unit)
+      };
+    }
+
+    function findApplySurchargeMoney(value, options = {}) {
+      if (typeof value === "number") return parseApplySurchargeMoneyToken(value, { allowUnitless: true });
+      const text = String(value ?? "").trim();
+      if (!text) return null;
+      for (const match of text.matchAll(applySurchargeAmountPattern)) {
+        const parsed = parseApplySurchargeMoneyToken(match[0], options);
+        if (parsed) return parsed;
+      }
+      return null;
+    }
+
+    function parseApplyWonAmount(value) {
+      const parsed = findApplySurchargeMoney(value);
+      return parsed?.currency === "KRW" ? parsed.amount : 0;
     }
 
     function extractSingleRoomSurcharge(notes = []) {
       const candidates = notes.filter((text) => singleRoomSurchargeKeywordPattern.test(text));
       for (const text of candidates) {
-        const matches = [...String(text || "").matchAll(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(만원|만|천원|원)?/g)];
+        const matches = [...String(text || "").matchAll(applySurchargeAmountPattern)];
         for (const match of matches) {
-          const amount = parseApplyWonAmount(match[0]);
-          if (!amount) continue;
+          const parsed = parseApplySurchargeMoneyToken(match[0]);
+          if (!parsed) continue;
           return {
-            amount,
+            amount: parsed.amount,
+            displayText: parsed.displayText,
             sourceText: text,
-            status: "found"
+            status: parsed.currency === "KRW" ? "found" : "manual_check"
           };
         }
       }
       return {
         amount: 0,
+        displayText: "",
         sourceText: candidates[0] || "",
         status: candidates.length ? "manual_check" : "not_found"
       };
     }
 
     function getSingleRoomSurchargeInfo(product = {}) {
-      const directAmount = parseApplyWonAmount(product.singleRoomSurcharge || getNestedValue(product, "applicant.singleRoomSurcharge") || getNestedValue(product, "sheetApplication.applicant.singleRoomSurcharge") || 0);
+      const directValue = product.singleRoomSurcharge || getNestedValue(product, "applicant.singleRoomSurcharge") || getNestedValue(product, "sheetApplication.applicant.singleRoomSurcharge") || 0;
       const directText = String(product.singleRoomSurchargeText || getNestedValue(product, "applicant.singleRoomSurchargeText") || getNestedValue(product, "sheetApplication.applicant.singleRoomSurchargeText") || "").trim();
-      if (Number.isFinite(directAmount) && directAmount > 0) {
+      const directTextMoney = findApplySurchargeMoney(directText);
+      const directMoney = directTextMoney?.currency && directTextMoney.currency !== "KRW"
+        ? directTextMoney
+        : findApplySurchargeMoney(directValue);
+      if (directMoney) {
         return {
-          amount: directAmount,
+          amount: directMoney.amount,
+          displayText: directMoney.displayText,
           sourceText: directText,
-          status: product.singleRoomSurchargeStatus || "found"
+          status: directMoney.currency === "KRW"
+            ? (product.singleRoomSurchargeStatus || "found")
+            : "manual_check"
+        };
+      }
+      if (directTextMoney) {
+        return {
+          amount: directTextMoney.amount,
+          displayText: directTextMoney.displayText,
+          sourceText: directText,
+          status: directTextMoney.currency === "KRW"
+            ? (product.singleRoomSurchargeStatus || "found")
+            : "manual_check"
         };
       }
       return extractSingleRoomSurcharge(parseApplyBookingNotes(product));
@@ -13611,6 +16223,7 @@
         roomType,
         flightRequestType,
         singleRoomSurcharge: surcharge.amount || 0,
+        singleRoomSurchargeDisplayText: surcharge.displayText || "",
         singleRoomSurchargeText: surcharge.sourceText || "",
         singleRoomSurchargeStatus: surcharge.status || ""
       };
@@ -13631,8 +16244,9 @@
       surcharge.removeAttribute("title");
       if (options.roomType !== "1인1실") {
         surcharge.textContent = "";
-      } else if (options.singleRoomSurcharge > 0) {
-        surcharge.innerHTML = `1인 1실 추가요금 <strong>${escapeHtml(formatApplyWon(options.singleRoomSurcharge))}</strong>`;
+      } else if (options.singleRoomSurchargeDisplayText || options.singleRoomSurcharge > 0) {
+        const displayText = options.singleRoomSurchargeDisplayText || formatApplyWon(options.singleRoomSurcharge);
+        surcharge.innerHTML = `1인 1실 추가요금 <strong>${escapeHtml(displayText)}</strong>`;
         if (options.singleRoomSurchargeText) surcharge.title = options.singleRoomSurchargeText;
       } else if (options.singleRoomSurchargeText) {
         surcharge.textContent = `1인 1실 요금 참고사항: ${options.singleRoomSurchargeText}`;
@@ -13905,17 +16519,26 @@
       if (openGlobalApply.isOpening) return;
       openGlobalApply.isOpening = true;
       try {
+        if (options.resumeParams && !await restoreJoinApplyTarget(options.resumeParams)) {
+          openBuilderAlert("신청할 상품 정보를 다시 불러오지 못했습니다.\n상품상세를 다시 열어 주세요.");
+          return false;
+        }
         const applyJoinId = currentDetailJoinId || "";
         const applyJoin = getCurrentApplyJoin();
+        if (!applyJoin) {
+          openBuilderAlert("신청할 상품 정보를 확인하지 못했습니다.\n상품상세를 다시 열어 주세요.");
+          return false;
+        }
+        const applyResumeParams = getJoinApplyResumeParams(applyJoin);
         if (applyJoin && getBlockingActiveJoinSchedule(applyJoin)) {
           setDetailScheduleConflictState(applyJoin);
-          return;
+          return false;
         }
-        if (!requireJoinLogin("apply", applyJoinId ? { applyJoinId } : {})) return;
+        if (!requireJoinLogin("apply", applyResumeParams)) return false;
         let readyMember = null;
         if (!options.skipProfileCheck) {
-          readyMember = await ensureJoinMemberProfileReady("apply", applyJoinId ? { applyJoinId } : {});
-          if (!readyMember) return;
+          readyMember = await ensureJoinMemberProfileReady("apply", applyResumeParams);
+          if (!readyMember) return false;
         }
         stopQuickMobileCarousel();
         const overlay = document.getElementById("globalApplyOverlay");
@@ -13933,6 +16556,11 @@
         clearApplyErrors();
         document.querySelectorAll('[data-chip-group="global-gender"] .apply-chip.active').forEach((chip) => chip.classList.remove("active"));
         document.querySelector('[data-chip-group="global-gender"] .apply-chip[data-value="남성"]')?.classList.add("active");
+        document.querySelectorAll('[data-chip-group="global-style"] .apply-chip.active, [data-chip-group="global-member-preference"] .apply-chip.active').forEach((chip) => {
+          chip.classList.remove("active");
+        });
+        const greetingInput = document.getElementById("globalApplyGreeting");
+        if (greetingInput) greetingInput.value = greetingInput.defaultValue || "잘 부탁드립니다.";
         document.querySelector('[data-chip-group="global-room-type"]')?.classList.remove("is-group");
         document.querySelector('[data-chip-group="global-flight-request"]')?.classList.remove("is-group");
         document.querySelectorAll('[data-chip-group="global-room-type"] .apply-chip, [data-chip-group="global-room-type"] .apply-people-button').forEach((chip) => {
@@ -13978,14 +16606,23 @@
             chip.classList.toggle("active", styles.has(chip.dataset.value || chip.textContent.trim()));
           });
         }
+        applyInitialSameMemberApplyPreferences(applyJoin, memberProfile.member || readyMember || {});
         prepareJoinMobileFullscreenModalViewport();
+        golfJoinApplyGa4Steps.clear();
         overlay.classList.add("open");
+        trackGolfJoinGa4Event("golfjoin_apply_start", {
+          ...getGolfJoinGa4Item(applyJoin),
+          item_type: "join_schedule",
+          source_area: "detail"
+        });
+        trackGolfJoinApplyStep("form_view");
         requestAnimationFrame(() => panel.classList.add("open"));
         setWidgetModalOpen(true);
         updateApplyBookingOptions("global");
         updateApplyProgressive();
         document.querySelectorAll("#globalApplyPanel .traveler-field input").forEach(updateTravelerFieldState);
         refreshGlobalApplyProductDataInBackground(applyJoin, applyJoinId);
+        return true;
       } finally {
         openGlobalApply.isOpening = false;
       }
@@ -14341,9 +16978,10 @@
           "joinId",
           "scheduleId",
           "wishJoinId",
-          "productId",
-          "goodSeq",
-          "eventSeq"
+           "productId",
+           "goodSeq",
+           "eventSeq",
+           "productFamilyId"
         ].forEach((key) => url.searchParams.delete(key));
         url.hash = "";
         location.replace(url.toString());
@@ -14464,29 +17102,57 @@
       if (submitButton) {
         submitButton.disabled = true;
       }
+      trackGolfJoinApplyStep("submit_start", { participant_count: Number(people || 1) });
       const loadingToken = openJoinActionLoading("참여 신청을 접수하고 있어요");
+      let applySaveConfirmed = false;
       try {
-        const applyPayload = buildJoinApplyPayload(applyData);
+        let applyPayload = buildJoinApplyPayload(applyData);
         validateJoinApplyCanonicalPayload(applyPayload);
-        try {
-          await saveJoinApplyToGoogleSheet(applyPayload);
-        } catch (error) {
-          if (isJoinScheduleFullSaveError(error)) throw error;
-          const confirmed = await confirmJoinApplySavedToGoogleSheet(applyPayload);
-          if (!confirmed) throw error;
-          golfJoinSafeWarn("Join apply save response failed, but the row was confirmed in Google Sheet.", error);
-        }
-        invalidateHomeBootstrapLightCache();
+        applyPayload = stabilizeScheduleMutationPayload(applyPayload, "join");
+        const saveResponse = await saveScheduleMutationWithRetry(
+          saveJoinApplyToGoogleSheet,
+          applyPayload,
+          "Join apply"
+        );
+        acceptScheduleMutationResponse(saveResponse, applyPayload);
+        applySaveConfirmed = true;
+        trackGolfJoinApplyStep("complete", { participant_count: Number(people || 1) });
+        trackGolfJoinGa4EventOnce(
+          `join_apply:${applyPayload.joinApplyId || applyPayload.applicationId || "confirmed"}`,
+          "golfjoin_apply_complete",
+          {
+            ...getGolfJoinGa4Item(applyPayload.join),
+            item_type: "join_schedule",
+            source_area: "detail",
+            apply_step: "complete",
+            participant_count: Number(people || 1)
+          }
+        );
+        applyPayload = attachJoinApplicationParticipantMarkersFromMutation(applyPayload, saveResponse);
         applyJoinApplicationPayload(applyPayload, { persist: true });
+        applyScheduleMutationParticipantResponse(saveResponse);
+        clearPendingScheduleMutation(applyPayload, "join");
         if (document.getElementById("detailModal")?.classList.contains("open") && currentDetailJoinId === getNestedValue(applyPayload, "join.id")) {
           renderDetailContent(getCurrentApplyJoin());
         }
         showGlobalApplyCompleteState();
       } catch (error) {
+        trackGolfJoinGa4Event("golfjoin_apply_error", {
+          flow_type: "join_apply",
+          source_area: "detail",
+          error_type: applySaveConfirmed
+            ? "post_save_reconciliation_failed"
+            : error?.serverCode || error?.code || (error?.status ? `http_${error.status}` : "save_failed")
+        });
         golfJoinSafeError("Failed to save join apply payload.", error);
         if (isJoinScheduleFullSaveError(error)) {
           await closeJoinActionLoading(loadingToken);
           openJoinScheduleFullAlert();
+        } else if (Number(error?.status) === 409 && String(error?.serverCode || error?.serverPayload?.code || "") === "join_schedule_option_invalid") {
+          await closeJoinActionLoading(loadingToken);
+          openBuilderAlert("선택한 여행기간 정보가 변경되었습니다.\n메인페이지를 새로고침합니다.", {
+            onConfirm: reloadJoinMainPage
+          });
         } else {
           alert(error?.userMessage || "참여 신청 저장 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
@@ -15028,16 +17694,7 @@
     }
 
     function getMonthlyCardParticipantCount(join = {}) {
-      const values = [
-        join.participantSummary?.confirmedCount,
-        join.lightSummary?.confirmedCount,
-        join.confirmedCount,
-        join.currentCount,
-        join.participantCount,
-        getConfirmedParticipants(join).length
-      ];
-      const count = values.map(Number).find((value) => Number.isFinite(value) && value >= 0);
-      return Math.max(0, count || 0);
+      return getJoinAuthoritativeConfirmedCount(join);
     }
 
     function renderMonthlyCardThumbStack(join = {}, count = 0) {
@@ -15076,6 +17733,29 @@
           </div>
           <div class="monthly-card-progress-track" aria-hidden="true">
             <div class="monthly-card-progress-fill" style="--monthly-card-progress: ${progress}%;"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdminRecommendedEmptyRecruitmentSummary() {
+      return `
+        <div class="recommended-recruitment-summary" aria-label="멤버 모집 중, 첫 참여 혜택 적용">
+          <div class="recommended-recruitment-head">
+            <div class="monthly-card-participant-label">멤버 모집 중</div>
+            <span class="recommended-recruitment-new-badge">NEW</span>
+          </div>
+          <div class="recommended-recruitment-benefit">
+            <span class="recommended-recruitment-benefit-label">
+              <svg class="recommended-recruitment-gift-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 10.5h16v9.25a1.75 1.75 0 0 1-1.75 1.75H5.75A1.75 1.75 0 0 1 4 19.75V10.5Z" fill="#FFD84D" stroke="#F97316" stroke-width="1.6"/>
+                <path d="M3 7.5h18v3H3v-3Z" fill="#FFB020" stroke="#F97316" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="M12 7.5v14" stroke="#F97316" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M12 7.2C9.1 7.2 7.2 6.3 7.2 4.7c0-1.15.88-1.95 1.98-1.95 1.7 0 2.82 2.04 2.82 4.45ZM12 7.2c2.9 0 4.8-.9 4.8-2.5 0-1.15-.88-1.95-1.98-1.95-1.7 0-2.82 2.04-2.82 4.45Z" fill="#FFB020" stroke="#F97316" stroke-width="1.35" stroke-linejoin="round"/>
+              </svg>
+              <span class="recommended-recruitment-benefit-title">첫 참여 혜택</span>
+            </span>
+            <span class="recommended-recruitment-gift-badge">골프공 증정</span>
           </div>
         </div>
       `;
@@ -15158,12 +17838,18 @@
 
     function renderJoinCard(join, options = {}) {
       const isMonthlyCard = isMonthlyRecommendationJoin(join);
+      const isEmptyAdminRecommendedCard = Boolean(join.isAdminRecommendedSchedule)
+        && !isMonthlyCard
+        && getMonthlyCardParticipantCount(join) <= 0;
       const cardClass = ["join-card", options.cardClass].filter(Boolean).join(" ");
       const shortDate = options.shortDate || "";
       const isSoonCard = Boolean(shortDate);
       const reviewCount = getJoinReviewCount(join);
       const detailOptions = options.allowUnavailable ? ", { allowUnavailable: true }" : "";
       const myJoinCardAttribute = options.myJoinFilter ? ` data-my-join-card="${options.myJoinFilter}"` : "";
+      const displayPrice = options.myJoinFilter
+        ? (getJoinFinalQuoteUnitPrice(join) || join.price)
+        : join.price;
       const hiddenAttribute = options.hidden ? " hidden" : "";
       return `
         <article class="${cardClass}"${shortDate ? ` data-short-date="${shortDate}"` : ""}${myJoinCardAttribute}${hiddenAttribute} onclick="openDetail('${join.id}'${detailOptions})">
@@ -15177,7 +17863,7 @@
             ${isSoonCard ? "" : `
               <div class="join-category-row">
                 ${options.featureTag ? `<div class="join-card-feature-tag"${options.featureTagColor ? ` style="--feature-tag-color:${options.featureTagColor};--feature-tag-soft:${options.featureTagSoft || "rgba(241, 245, 249, .9)"};"` : ""}>${options.featureTag}</div>` : ""}
-                ${join.isAdminRecommendedSchedule ? `<div class="join-recommended-schedule-chip">추천일정</div>` : ""}
+                ${join.isAdminRecommendedSchedule ? `<div class="join-recommended-schedule-chip">&#x2728;추천일정</div>` : ""}
                 ${renderJoinCategoryChip(join)}
                 ${renderJoinFlightChip(join)}
               </div>
@@ -15200,12 +17886,12 @@
             ${options.showIncludes ? `<div class="join-card-include-tags">${renderJoinIncludeTags(join)}</div>` : ""}
             ${options.showParticipantCopy ? renderJoinParticipantCopy(join) : ""}
             <div class="join-price">
-              <div class="join-price-value">${formatPrice(join.price)}</div>
+              <div class="join-price-value">${formatPrice(displayPrice)}</div>
               <div class="join-price-unit">원</div>
             </div>
             ${options.showReviewNote && reviewCount ? `<div class="join-card-review-note">후기 ${reviewCount}개로 검증</div>` : ""}
-            <div class="team-row${isMonthlyCard ? " monthly-card-team" : ""}">
-              ${isMonthlyCard ? renderMonthlyCardTeamSlots(join) : renderCardTeamSlots(join, true, 4, {
+            <div class="team-row${isMonthlyCard ? " monthly-card-team" : ""}${isEmptyAdminRecommendedCard ? " admin-recommended-empty-team" : ""}">
+              ${isMonthlyCard ? renderMonthlyCardTeamSlots(join) : isEmptyAdminRecommendedCard ? renderAdminRecommendedEmptyRecruitmentSummary() : renderCardTeamSlots(join, true, 4, {
                 showCurrentMemberBadge: options.showCurrentMemberBadge === true
               })}
             </div>
@@ -15300,6 +17986,7 @@
 
     function getSoonDisplayItems(items) {
       const filteredItems = getSoonFilteredItems(items);
+      if (isSoonMobilePagedLayout()) return filteredItems;
       return filteredItems.slice(0, Math.max(getSoonPageSize(), getSoonVisibleCount()));
     }
 

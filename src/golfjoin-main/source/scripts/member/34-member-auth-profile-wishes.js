@@ -123,6 +123,7 @@
         gender: member.gender || "",
         birthday: member.birthday || "",
         birthYear: member.birthYear || "",
+        birthDate: member.birthDate || member.birthday || "",
         profession: member.profession || "",
         level: member.level || "",
         travelStyles: member.travelStyles || member.styles || "",
@@ -156,9 +157,15 @@
       }
       const sessionMember = getJoinSessionMember();
       if (sessionMember?.erpSessionDocumentId === JOIN_AUTH_DOCUMENT_ID) {
+        if (isJoinMemberSmsAuthEnabledFor(sessionMember) && !readJoinMemberAuthSession()) {
+          return { isLogin: false, member: {} };
+        }
         return { isLogin: true, member: sessionMember };
       }
       const member = parseJoinCookieData(raw);
+      if (isJoinMemberSmsAuthEnabledFor(member) && !readJoinMemberAuthSession()) {
+        return { isLogin: false, member: {} };
+      }
       const isLogin = Boolean(raw && (member.memberSeq || member.memberId));
       if (!isLogin) {
         const tempAdmin = getJoinTempAdminMember();
@@ -232,7 +239,9 @@
         "productId",
         "goodSeq",
         "eventSeq",
+        "productFamilyId",
         "builderAction",
+        "builderRegion",
         "builderProductId",
         "productGroupKey",
         "countryKey",
@@ -290,7 +299,22 @@
       continueAfterJoinMemberLogin(joinMyMenuState.pendingAfterLogin || "my-menu");
     }
 
-    function finishJoinMemberSignupAndContinue(member = {}, profile = {}) {
+    function finishJoinMemberSignupAndContinue(member = {}, profile = {}, options = {}) {
+      const trackedMemberState = String(member.memberChannel || member.userChnCd || "").trim().toUpperCase() === "KAKAO"
+        ? "kakao"
+        : "homepage";
+      if (options.trackSignup === true) {
+        trackGolfJoinGa4Event("sign_up", {
+          method: options.signupMethod || String(member.memberChannel || "email").toLowerCase(),
+          member_state: trackedMemberState
+        });
+      }
+      if (options.trackLogin === true) {
+        trackGolfJoinGa4Event("login", {
+          method: options.loginMethod || String(member.memberChannel || "email").toLowerCase(),
+          member_state: trackedMemberState
+        });
+      }
       const completedMember = mergeJoinMemberWithProfile(member, profile);
       const sessionMember = setJoinSessionMember({
         ...completedMember,
@@ -307,7 +331,7 @@
       if (status) status.textContent = message;
     }
 
-    function showJoinMemberSignupAlert(message = "", focusTargetId = "") {
+    function showJoinMemberSignupAlert(message = "", focusTargetId = "", title = "") {
       const alert = document.getElementById("joinMemberSignupAlert");
       const messageEl = document.getElementById("joinMemberSignupAlertMessage");
       if (!alert) {
@@ -315,6 +339,8 @@
         return;
       }
       alert.dataset.focusTarget = focusTargetId || "";
+      const titleEl = document.getElementById("joinMemberSignupAlertTitle");
+      if (titleEl) titleEl.textContent = title || "이미 가입된 정보입니다";
       if (messageEl) messageEl.textContent = message;
       alert.hidden = false;
       alert.classList.add("is-open");
@@ -375,13 +401,27 @@
       return {
         memberSeq,
         memberId: memberId || kakaoId,
-        memberName,
+        memberName: memberName || kakaoResponse?.kakao_account?.name || "",
         memberChannel: "KAKAO",
-        memberMobile,
+        memberMobile: memberMobile || normalizeJoinMemberPhone(kakaoResponse?.kakao_account?.phone_number || ""),
         memberEmail: memberEmail || kakaoResponse?.kakao_account?.email || "",
         kakaoId,
         kakaoNickname: kakaoResponse?.properties?.nickname || kakaoResponse?.kakao_account?.profile?.nickname || ""
       };
+    }
+
+    function requestJoinKakaoCurrentUser(KakaoSdk = window.Kakao) {
+      return new Promise((resolve, reject) => {
+        if (typeof KakaoSdk?.API?.request !== "function") {
+          resolve({});
+          return;
+        }
+        KakaoSdk.API.request({
+          url: "/v2/user/me",
+          success: (response) => resolve(response || {}),
+          fail: (error) => reject(error)
+        });
+      });
     }
 
     function postJoinMemberLoginForm(url, data, options = {}) {
@@ -429,6 +469,755 @@
         window.clearTimeout(timeout);
       });
     }
+
+    function buildJoinHomeMemberFromLoginResponse(data = {}, fallback = {}) {
+      const mobileParts = [
+        findJoinApiStringValue(data, ["mobile1"]),
+        findJoinApiStringValue(data, ["mobile2"]),
+        findJoinApiStringValue(data, ["mobile3"])
+      ].join("");
+      const directMobile = findJoinApiStringValue(data, ["memberMobile", "mobile", "mobileNo", "hpNo", "phone", "telNo"]);
+      return {
+        ...fallback,
+        memberSeq: findJoinApiStringValue(data, ["memberSeq", "userSeq", "custSeq", "custNo", "mberSeq"])
+          || String(fallback.memberSeq || "").trim(),
+        memberId: findJoinApiStringValue(data, ["memberId", "userId", "custId", "loginId", "mberId"])
+          || String(fallback.memberId || "").trim(),
+        memberName: findJoinApiStringValue(data, ["memberName", "userNm", "custNm", "memberNm", "mberNm", "custName", "userName"])
+          || String(fallback.memberName || "").trim(),
+        memberChannel: "HOME",
+        memberMobile: normalizeJoinMemberPhone(mobileParts || directMobile || fallback.memberMobile || ""),
+        memberEmail: findJoinApiStringValue(data, ["memberEmail", "email", "emailAddr", "userEmail", "custEmail"])
+          || String(fallback.memberEmail || "").trim()
+      };
+    }
+
+    async function postGolfJoinMemberAuthAction(action, payload = {}, options = {}) {
+      const allowedActions = new Set([
+        "member_auth_start",
+        "member_auth_verify",
+        "member_auth_refresh",
+        "member_auth_logout",
+        "member_kakao_auth_exchange",
+        "member_kakao_signup_complete",
+        "member_signup_phone_start",
+        "member_signup_phone_verify",
+        "member_signup_phone_assert",
+        "member_signup_phone_complete"
+      ]);
+      if (!allowedActions.has(action)) {
+        throw createJoinMemberApiError("지원하지 않는 회원 인증 요청입니다.", { code: "member_auth_action_invalid" });
+      }
+      if (!GOLFJOIN_SHEET_API_ENDPOINT) {
+        throw createJoinMemberApiError("회원 인증 서버를 확인하지 못했습니다.", { code: "member_auth_endpoint_missing" });
+      }
+      const url = new URL(GOLFJOIN_SHEET_API_ENDPOINT);
+      url.searchParams.set("action", action);
+      const controller = new AbortController();
+      const timeoutMs = Math.max(3000, Number(options.timeoutMs || 15000));
+      const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const response = await fetch(url.toString(), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          credentials: "omit",
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+        const responseText = await response.text();
+        let data = {};
+        try {
+          data = responseText ? JSON.parse(responseText) : {};
+        } catch (error) {
+          data = {};
+        }
+        if (!response.ok || data?.ok === false) {
+          throw createJoinMemberApiError(
+            String(data?.error || data?.message || "회원 인증 요청을 처리하지 못했습니다."),
+            {
+              endpoint: url.toString(),
+              status: response.status,
+              code: String(data?.code || "member_auth_request_failed"),
+              retryAfterSeconds: Number(data?.retryAfterSeconds || response.headers.get("Retry-After") || 0),
+              attemptsRemaining: Number.isFinite(Number(data?.attemptsRemaining))
+                ? Number(data.attemptsRemaining)
+                : undefined
+            }
+          );
+        }
+        return data;
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          throw createJoinMemberApiError("회원 인증 요청 시간이 초과되었습니다.", {
+            code: "member_auth_timeout"
+          });
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
+
+    function readJoinMemberAuthSession() {
+      try {
+        const session = JSON.parse(sessionStorage.getItem(JOIN_MEMBER_AUTH_SESSION_KEY) || "null");
+        if (!session || typeof session !== "object" || !session.refreshToken || !session.memberKey) return null;
+        if (Number(session.sessionExpiresAt || 0) <= Date.now()) {
+          sessionStorage.removeItem(JOIN_MEMBER_AUTH_SESSION_KEY);
+          return null;
+        }
+        return session;
+      } catch (error) {
+        try {
+          sessionStorage.removeItem(JOIN_MEMBER_AUTH_SESSION_KEY);
+        } catch (storageError) {
+          // Ignore storage cleanup failures and treat the session as unavailable.
+        }
+        return null;
+      }
+    }
+
+    function storeJoinMemberAuthSession(result = {}) {
+      const now = Date.now();
+      const previous = readJoinMemberAuthSession();
+      const advertisedSessionExpiry = now + Math.max(0, Number(result.sessionExpiresIn || 0)) * 1000;
+      const sessionExpiresAt = previous?.sessionExpiresAt
+        ? Math.min(Number(previous.sessionExpiresAt), advertisedSessionExpiry)
+        : advertisedSessionExpiry;
+      const session = {
+        accessToken: String(result.accessToken || ""),
+        accessExpiresAt: now + Math.max(0, Number(result.expiresIn || 0)) * 1000,
+        refreshToken: String(result.refreshToken || ""),
+        sessionExpiresAt,
+        memberKey: String(result.memberKey || "")
+      };
+      if (!session.accessToken || !session.refreshToken || !session.memberKey || sessionExpiresAt <= now) {
+        throw createJoinMemberApiError("회원 인증 세션을 저장하지 못했습니다.", { code: "member_auth_session_invalid" });
+      }
+      sessionStorage.setItem(JOIN_MEMBER_AUTH_SESSION_KEY, JSON.stringify(session));
+      return session;
+    }
+
+    let joinMemberAuthRefreshPromise = null;
+
+    function isJoinMemberSmsAuthEnabledFor(member = {}) {
+      if (!GOLFJOIN_MEMBER_SMS_AUTH_ENABLED) return false;
+      const memberChannel = String(member.memberChannel || member.userChnCd || "").trim().toUpperCase();
+      if (memberChannel !== "HOME") return false;
+      const rawAllowlist = window.GOLFJOIN_MEMBER_SMS_AUTH_MEMBER_SEQS;
+      const allowlist = Array.isArray(rawAllowlist)
+        ? rawAllowlist
+        : String(rawAllowlist || "").split(",");
+      const normalizedAllowlist = allowlist.map((value) => String(value || "").trim()).filter(Boolean);
+      if (!normalizedAllowlist.length) return true;
+      return normalizedAllowlist.includes(String(member.memberSeq || "").trim());
+    }
+
+    async function ensureJoinMemberAccessToken() {
+      if (!GOLFJOIN_MEMBER_SMS_AUTH_ENABLED) return "";
+      const session = readJoinMemberAuthSession();
+      if (!session) {
+        throw createJoinMemberApiError("휴대폰 인증이 필요합니다.", { code: "member_auth_required" });
+      }
+      if (Number(session.accessExpiresAt || 0) > Date.now() + 30000 && session.accessToken) {
+        return session.accessToken;
+      }
+      if (joinMemberAuthRefreshPromise) return joinMemberAuthRefreshPromise;
+      joinMemberAuthRefreshPromise = postGolfJoinMemberAuthAction("member_auth_refresh", {
+        refreshToken: session.refreshToken
+      }).then((result) => storeJoinMemberAuthSession(result).accessToken)
+        .catch((error) => {
+          try {
+            sessionStorage.removeItem(JOIN_MEMBER_AUTH_SESSION_KEY);
+          } catch (storageError) {
+            // Ignore storage cleanup failures.
+          }
+          throw error;
+        })
+        .finally(() => {
+          joinMemberAuthRefreshPromise = null;
+        });
+      return joinMemberAuthRefreshPromise;
+    }
+
+    let joinKakaoAuthExchangePromise = null;
+
+    function isJoinKakaoMember(member = {}) {
+      return String(member.memberChannel || member.userChnCd || "").trim().toUpperCase() === "KAKAO";
+    }
+
+    async function ensureJoinKakaoMemberAuthSessionOnStartup() {
+      const renderedMember = parseJoinCookieData(getRenderedCookieDataString());
+      const storedMember = getJoinSessionMember();
+      const member = storedMember
+        && String(storedMember.memberSeq || "").trim()
+        && String(storedMember.memberSeq || "").trim() === String(renderedMember.memberSeq || "").trim()
+        ? mergeJoinMemberIdentity(storedMember, renderedMember)
+        : renderedMember;
+      const memberSeq = String(member.memberSeq || "").trim();
+      if (!GOLFJOIN_MEMBER_SMS_AUTH_ENABLED || !isJoinKakaoMember(member) || !/^\d+$/.test(memberSeq)) {
+        return { ok: true, skipped: true };
+      }
+      const expectedMemberKey = `seq:${memberSeq}`;
+      const existing = readJoinMemberAuthSession();
+      if (existing?.memberKey === expectedMemberKey) return { ok: true, reused: true };
+      if (existing) {
+        try { sessionStorage.removeItem(JOIN_MEMBER_AUTH_SESSION_KEY); } catch (error) {}
+      }
+      if (joinKakaoAuthExchangePromise) return joinKakaoAuthExchangePromise;
+      joinKakaoAuthExchangePromise = (async () => {
+        let kakaoAccessToken = "";
+        try {
+          const KakaoSdk = await ensureJoinKakaoSdk();
+          if (!KakaoSdk?.isInitialized?.()) KakaoSdk?.init?.(JOIN_KAKAO_JS_KEY);
+          kakaoAccessToken = String(KakaoSdk?.Auth?.getAccessToken?.() || "").trim();
+          if (!kakaoAccessToken) return { ok: false, skipped: true, code: "kakao_token_missing" };
+          let result;
+          try {
+            result = await postGolfJoinMemberAuthAction("member_kakao_auth_exchange", {
+              kakaoAccessToken,
+              memberSeq
+            });
+          } catch (exchangeError) {
+            if (![404, 409].includes(Number(exchangeError?.status || 0))) throw exchangeError;
+            let recoveryMember = member;
+            if (
+              !recoveryMember.memberName
+              || !normalizeJoinMemberPhone(recoveryMember.memberMobile || "")
+            ) {
+              const erpDetail = await fetchJoinMemberDetail();
+              if (!erpDetail?.sessionExpired) {
+                recoveryMember = mergeJoinMemberIdentity(recoveryMember, erpDetail);
+              }
+            }
+            if (
+              !recoveryMember.memberName
+              || !normalizeJoinMemberPhone(recoveryMember.memberMobile || "")
+            ) {
+              try {
+                const kakaoResponse = await requestJoinKakaoCurrentUser(KakaoSdk);
+                recoveryMember = mergeJoinMemberIdentity(
+                  recoveryMember,
+                  buildJoinErpMemberFromLoginResponse({}, kakaoResponse)
+                );
+              } catch (kakaoUserError) {
+                golfJoinSafeWarn("Failed to hydrate Kakao signup recovery identity.", {
+                  code: kakaoUserError?.code,
+                  status: kakaoUserError?.status
+                });
+              }
+            }
+            if (
+              !recoveryMember.memberName
+              || !normalizeJoinMemberPhone(recoveryMember.memberMobile || "")
+            ) {
+              const erpLoginResult = await postJoinMemberLoginForm(
+                "/member/getMemberExternalLoginCheck.json",
+                buildJoinExternalMemberLoginPayload({
+                  externalId: recoveryMember.memberId || "",
+                  externalName: recoveryMember.memberName || "",
+                  extnChnlLinkToken: kakaoAccessToken
+                })
+              );
+              if ((erpLoginResult?.message || "") !== "SUCCESS") throw exchangeError;
+              recoveryMember = mergeJoinMemberIdentity(
+                recoveryMember,
+                buildJoinErpMemberFromLoginResponse(erpLoginResult, {
+                  id: recoveryMember.memberId || member.memberId || ""
+                })
+              );
+            }
+            recoveryMember = mergeJoinMemberIdentity(recoveryMember, { memberSeq });
+            setJoinSessionMember(recoveryMember);
+            result = await postGolfJoinMemberAuthAction("member_kakao_signup_complete", {
+              kakaoAccessToken,
+              memberSeq: recoveryMember.memberSeq || memberSeq,
+              memberId: recoveryMember.memberId || "",
+              memberName: recoveryMember.memberName || "",
+              memberMobile: recoveryMember.memberMobile || ""
+            }, { timeoutMs: 25000 });
+          }
+          storeJoinMemberAuthSession(result);
+          return { ok: true };
+        } catch (error) {
+          golfJoinSafeWarn("Kakao member authentication exchange failed.", {
+            code: error?.code,
+            status: error?.status
+          });
+          return { ok: false, code: error?.code || "member_kakao_auth_exchange_failed" };
+        } finally {
+          kakaoAccessToken = "";
+        }
+      })().finally(() => {
+        joinKakaoAuthExchangePromise = null;
+      });
+      return joinKakaoAuthExchangePromise;
+    }
+
+    async function getJoinMemberAuthRequestHeaders(member = getJoinCachedCurrentMember?.()) {
+      const session = readJoinMemberAuthSession();
+      if (!session) return {};
+      const memberSeq = String(member?.memberSeq || member?.userSeq || "").trim();
+      if (memberSeq && session.memberKey !== `seq:${memberSeq}`) return {};
+      try {
+        const accessToken = await ensureJoinMemberAccessToken();
+        return accessToken ? { "Authorization": `Bearer ${accessToken}` } : {};
+      } catch (error) {
+        golfJoinSafeWarn("Member authentication token refresh failed.", { code: error?.code, status: error?.status });
+        return {};
+      }
+    }
+
+    function revokeJoinMemberAuthSession() {
+      const session = readJoinMemberAuthSession();
+      try {
+        sessionStorage.removeItem(JOIN_MEMBER_AUTH_SESSION_KEY);
+      } catch (error) {
+        golfJoinSafeWarn("Failed to clear member authentication session.", error);
+      }
+      if (!session?.refreshToken || !GOLFJOIN_MEMBER_SMS_AUTH_ENABLED) return Promise.resolve({ ok: true, skipped: true });
+      return postGolfJoinMemberAuthAction("member_auth_logout", {
+        refreshToken: session.refreshToken
+      }, { timeoutMs: 5000 }).catch((error) => {
+        golfJoinSafeWarn("Failed to revoke member authentication session.", error);
+        return { ok: false };
+      });
+    }
+
+    function setJoinMemberAuthPendingLogin(member = {}) {
+      try {
+        sessionStorage.setItem(JOIN_MEMBER_AUTH_PENDING_LOGIN_KEY, JSON.stringify({
+          memberSeq: String(member.memberSeq || "").trim(),
+          startedAt: Date.now()
+        }));
+      } catch (error) {
+        golfJoinSafeWarn("Failed to store pending member authentication state.", error);
+      }
+    }
+
+    function clearJoinMemberAuthPendingLogin() {
+      try {
+        sessionStorage.removeItem(JOIN_MEMBER_AUTH_PENDING_LOGIN_KEY);
+      } catch (error) {
+        golfJoinSafeWarn("Failed to clear pending member authentication state.", error);
+      }
+    }
+
+    function hasJoinMemberAuthPendingLogin() {
+      try {
+        const marker = JSON.parse(sessionStorage.getItem(JOIN_MEMBER_AUTH_PENDING_LOGIN_KEY) || "null");
+        return Boolean(marker?.memberSeq && Number(marker.startedAt || 0) > 0);
+      } catch (error) {
+        clearJoinMemberAuthPendingLogin();
+        return false;
+      }
+    }
+
+    function getJoinLoggedOutMainUrl() {
+      const current = new URL(location.href);
+      const clean = new URL(current.pathname, current.origin);
+      ["eventPlanSeq", "page"].forEach((key) => {
+        const value = current.searchParams.get(key);
+        if (value) clean.searchParams.set(key, value);
+      });
+      return clean.toString();
+    }
+
+    async function clearJoinMemberErpLoginForSmsAuth(options = {}) {
+      const clearPending = options.clearPending !== false;
+      if (options.revokeAuthSession !== false) {
+        await revokeJoinMemberAuthSession();
+      }
+      let loggedOut = false;
+      try {
+        const response = await fetch(
+          location.hostname.includes("secret-tour.com")
+            ? "/member/logout.json"
+            : "https://www.secret-tour.com/member/logout.json",
+          {
+            method: "GET",
+            credentials: "include",
+            cache: "no-cache",
+            headers: {
+              "Accept": "application/json, text/javascript, */*; q=0.01",
+              "X-Requested-With": "XMLHttpRequest"
+            }
+          }
+        );
+        loggedOut = response.ok;
+      } catch (error) {
+        golfJoinSafeWarn("Failed to clear ERP login during SMS authentication.", {
+          name: error?.name
+        });
+      }
+      if (clearPending) clearJoinMemberAuthPendingLogin();
+      setJoinLogoutMarker();
+      try {
+        sessionStorage.removeItem(JOIN_SESSION_MEMBER_KEY);
+      } catch (error) {
+        golfJoinSafeWarn("Failed to clear the partial ERP login session.", error);
+      }
+      joinMyMenuState.memberPromise = null;
+      return loggedOut;
+    }
+
+    async function rollbackJoinMemberErpLoginAfterSmsAuthFailure() {
+      return clearJoinMemberErpLoginForSmsAuth({ clearPending: true, revokeAuthSession: true });
+    }
+
+    async function resetPendingJoinMemberSmsAuthOnStartup() {
+      if (!GOLFJOIN_MEMBER_SMS_AUTH_ENABLED) return false;
+      const renderedMember = parseJoinCookieData(getRenderedCookieDataString());
+      const authenticationRequired = isJoinMemberSmsAuthEnabledFor(renderedMember)
+        && !readJoinMemberAuthSession();
+      if (!hasJoinMemberAuthPendingLogin() && !authenticationRequired) return false;
+      stopJoinMemberOtpTimer();
+      joinMyMenuState.pendingSmsAuth = null;
+      joinMyMenuState.smsAuthBusy = false;
+      await rollbackJoinMemberErpLoginAfterSmsAuthFailure();
+      location.replace(getJoinLoggedOutMainUrl());
+      return true;
+    }
+
+    function stopJoinMemberOtpTimer() {
+      if (joinMyMenuState.smsAuthTimerId) {
+        window.clearInterval(joinMyMenuState.smsAuthTimerId);
+        joinMyMenuState.smsAuthTimerId = 0;
+      }
+    }
+
+    function setJoinMemberOtpStatus(message = "", isError = false) {
+      const status = document.getElementById("joinMemberOtpStatus");
+      if (!status) return;
+      status.textContent = message;
+      status.classList.toggle("is-error", Boolean(message && isError));
+    }
+
+    function setJoinMemberOtpBusy(busy) {
+      joinMyMenuState.smsAuthBusy = Boolean(busy);
+      const state = joinMyMenuState.pendingSmsAuth;
+      const expired = !state || Number(state.expiresAt || 0) <= Date.now();
+      const verifyButton = document.getElementById("joinMemberOtpVerifyButton");
+      const input = document.getElementById("joinMemberOtpCode");
+      const codeComplete = /^\d{6}$/.test(String(input?.value || ""));
+      if (verifyButton) {
+        verifyButton.disabled = Boolean(busy) || expired || Boolean(state?.locked) || !codeComplete;
+        verifyButton.textContent = busy ? "확인하고 있어요" : "인증하기";
+      }
+      if (input) input.disabled = Boolean(busy) || expired || Boolean(state?.locked);
+      updateJoinMemberOtpTimer();
+    }
+
+    function updateJoinMemberOtpTimer() {
+      const state = joinMyMenuState.pendingSmsAuth;
+      const timer = document.getElementById("joinMemberOtpTimer");
+      const resendButton = document.getElementById("joinMemberOtpResendButton");
+      if (!state) {
+        if (timer) timer.textContent = "03:00";
+        if (timer) timer.hidden = false;
+        if (resendButton) {
+          resendButton.hidden = true;
+          resendButton.disabled = true;
+        }
+        return;
+      }
+      const now = Date.now();
+      const remainingSeconds = Math.max(0, Math.ceil((Number(state.expiresAt || 0) - now) / 1000));
+      const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, "0");
+      const seconds = String(remainingSeconds % 60).padStart(2, "0");
+      if (timer) timer.textContent = `${minutes}:${seconds}`;
+      if (timer) timer.hidden = remainingSeconds <= 0;
+      if (resendButton) {
+        resendButton.hidden = remainingSeconds > 0;
+        resendButton.disabled = joinMyMenuState.smsAuthBusy || remainingSeconds > 0;
+        resendButton.textContent = "재전송";
+      }
+      if (remainingSeconds <= 0 && !state.expiredAnnounced) {
+        state.expiredAnnounced = true;
+        setJoinMemberOtpStatus("인증번호가 만료되었습니다. 새 인증번호를 받아 주세요.", true);
+        const input = document.getElementById("joinMemberOtpCode");
+        const verifyButton = document.getElementById("joinMemberOtpVerifyButton");
+        if (input) input.disabled = true;
+        if (verifyButton) verifyButton.disabled = true;
+      }
+    }
+
+    function startJoinMemberOtpTimer() {
+      stopJoinMemberOtpTimer();
+      updateJoinMemberOtpTimer();
+      joinMyMenuState.smsAuthTimerId = window.setInterval(updateJoinMemberOtpTimer, 1000);
+    }
+
+    function closeJoinMemberOtpForm() {
+      stopJoinMemberOtpTimer();
+      clearJoinMemberAuthPendingLogin();
+      joinMyMenuState.pendingSmsAuth = null;
+      joinMyMenuState.smsAuthBusy = false;
+      const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
+      modal?.classList.remove("is-otp-mode");
+      document.getElementById("joinMemberOtpForm")?.classList.remove("is-open");
+      const input = document.getElementById("joinMemberOtpCode");
+      if (input) {
+        input.value = "";
+        input.disabled = false;
+      }
+      const verifyButton = document.getElementById("joinMemberOtpVerifyButton");
+      if (verifyButton) {
+        verifyButton.disabled = true;
+        verifyButton.textContent = "인증하기";
+      }
+      setJoinMemberFieldInvalid("joinMemberOtpCodeField", "joinMemberOtpCodeHelper", "");
+      setJoinMemberOtpStatus("");
+    }
+
+    function openJoinMemberOtpForm(result = {}, member = {}, options = {}) {
+      stopJoinMemberOtpTimer();
+      const now = Date.now();
+      joinMyMenuState.pendingSmsAuth = {
+        challengeId: String(result.challengeId || ""),
+        member: { ...member, memberChannel: "HOME" },
+        flow: options.flow === "signup" ? "signup" : "login",
+        profile: options.profile || {},
+        erpLogin: options.erpLogin
+          ? {
+            custId: String(options.erpLogin.custId || ""),
+            custPw: String(options.erpLogin.custPw || "")
+          }
+          : null,
+        expiresAt: now + Math.max(1, Number(result.expiresIn || 180)) * 1000,
+        resendAt: now + Math.max(
+          Math.max(1, Number(result.expiresIn || 180)),
+          Math.max(0, Number(result.resendAfter || 60))
+        ) * 1000,
+        expiredAnnounced: false,
+        locked: false
+      };
+      const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
+      modal?.classList.remove("is-email-mode", "is-signup-mode", "is-signup-intro-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
+      modal?.classList.add("is-otp-mode");
+      const title = document.getElementById("joinMemberLoginTitle");
+      if (title) title.textContent = "휴대폰 인증";
+      document.getElementById("joinMemberEmailForm")?.classList.remove("is-open");
+      document.getElementById("joinMemberSignupIntro")?.classList.remove("is-open");
+      document.getElementById("joinMemberSignupForm")?.classList.remove("is-open");
+      document.getElementById("joinMemberFindIdForm")?.classList.remove("is-open");
+      document.getElementById("joinMemberFindPwForm")?.classList.remove("is-open");
+      document.getElementById("joinMemberOtpForm")?.classList.add("is-open");
+      const destination = document.getElementById("joinMemberOtpDestination");
+      if (destination) destination.textContent = formatJoinMemberOtpDestinationHint(result.destinationHint);
+      const input = document.getElementById("joinMemberOtpCode");
+      if (input) {
+        input.value = "";
+        input.disabled = false;
+      }
+      setJoinMemberFieldInvalid("joinMemberOtpCodeField", "joinMemberOtpCodeHelper", "");
+      setJoinMemberOtpStatus("");
+      joinMyMenuState.loginRedirecting = false;
+      setJoinMemberOtpBusy(false);
+      startJoinMemberOtpTimer();
+      requestAnimationFrame(() => input?.focus());
+    }
+
+    function formatJoinMemberOtpDestinationHint(value = "") {
+      const digits = String(value || "").replace(/\D/g, "");
+      if (digits.length >= 7) {
+        return `${digits.slice(0, 3)}-xxxx-${digits.slice(-4)}`;
+      }
+      return String(value || "").replace(/\*+/g, "xxxx");
+    }
+
+    async function beginJoinMemberSmsAuth(member = {}, options = {}) {
+      const normalizedMember = {
+        ...member,
+        memberSeq: String(member.memberSeq || "").trim(),
+        memberId: String(member.memberId || "").trim(),
+        memberName: String(member.memberName || "").trim(),
+        memberChannel: "HOME",
+        memberMobile: normalizeJoinMemberPhone(member.memberMobile || "")
+      };
+      if (!normalizedMember.memberId || !normalizedMember.memberName || !normalizedMember.memberMobile) {
+        throw createJoinMemberApiError("로그인 회원정보를 확인하지 못했습니다.", { code: "member_verification_failed" });
+      }
+      joinMyMenuState.loginRedirecting = true;
+      setJoinMemberLoginStatus("");
+      const loadingToken = openJoinActionLoading("인증번호를 보내고 있어요", {
+        ownerToken: "member-auth-start",
+        minVisibleMs: 350
+      });
+      try {
+        const result = await postGolfJoinMemberAuthAction("member_auth_start", normalizedMember);
+        openJoinMemberOtpForm(result, normalizedMember, options);
+        return result;
+      } catch (error) {
+        joinMyMenuState.loginRedirecting = false;
+        throw error;
+      } finally {
+        await closeJoinActionLoading(loadingToken);
+      }
+    }
+
+    function normalizeJoinMemberOtpCode(input) {
+      if (!input) return "";
+      input.value = String(input.value || "").replace(/\D/g, "").slice(0, 6);
+      setJoinMemberFieldInvalid("joinMemberOtpCodeField", "joinMemberOtpCodeHelper", "");
+      setJoinMemberOtpStatus("");
+      setJoinMemberOtpBusy(joinMyMenuState.smsAuthBusy);
+      return input.value;
+    }
+
+    function getJoinMemberOtpErrorMessage(error) {
+      const code = String(error?.code || "");
+      if (code === "member_otp_invalid") {
+        const remaining = Number(error?.attemptsRemaining);
+        return Number.isFinite(remaining)
+          ? `인증번호가 일치하지 않습니다. ${remaining}회 더 입력할 수 있어요.`
+          : "인증번호가 일치하지 않습니다.";
+      }
+      if (code === "member_otp_locked") return "입력 횟수를 초과했습니다. 새 인증번호를 받아 주세요.";
+      if (code === "member_otp_expired") return "인증번호가 만료되었습니다. 새 인증번호를 받아 주세요.";
+      if (code === "member_otp_rate_limited") {
+        const seconds = Math.max(1, Number(error?.retryAfterSeconds || 0));
+        if (seconds >= 300) return "인증번호 요청 횟수가 많습니다. 잠시 후 다시 시도해 주세요.";
+        return `${seconds}초 후 인증번호를 다시 요청해 주세요.`;
+      }
+      if (code === "member_verification_failed") return "시크릿투어 회원정보와 골프조인 회원정보가 일치하지 않습니다.";
+      if (code === "member_auth_disabled" || code === "member_auth_not_configured") return "휴대폰 인증을 준비 중입니다. 잠시 후 다시 시도해 주세요.";
+      return String(error?.message || "회원 인증 중 오류가 발생했습니다.");
+    }
+
+    async function submitJoinMemberOtpCode() {
+      if (joinMyMenuState.smsAuthBusy) return;
+      const state = joinMyMenuState.pendingSmsAuth;
+      const input = document.getElementById("joinMemberOtpCode");
+      const code = normalizeJoinMemberOtpCode(input);
+      if (!state?.challengeId || Number(state.expiresAt || 0) <= Date.now()) {
+        setJoinMemberOtpStatus("인증번호가 만료되었습니다. 새 인증번호를 받아 주세요.", true);
+        updateJoinMemberOtpTimer();
+        return;
+      }
+      if (!/^\d{6}$/.test(code)) {
+        setJoinMemberFieldInvalid("joinMemberOtpCodeField", "joinMemberOtpCodeHelper", "인증번호 6자리를 입력해 주세요.");
+        input?.focus();
+        return;
+      }
+      setJoinMemberOtpBusy(true);
+      setJoinMemberOtpStatus("");
+      const loadingToken = openJoinActionLoading("로그인을 완료하고 있어요", {
+        ownerToken: "member-auth-verify",
+        minVisibleMs: 350
+      });
+      let verifiedAuthResult = null;
+      try {
+        verifiedAuthResult = await postGolfJoinMemberAuthAction("member_auth_verify", {
+          challengeId: state.challengeId,
+          code
+        });
+        const verifiedMemberSeq = String(verifiedAuthResult?.memberKey || "").match(/^seq:(\d+)$/)?.[1] || "";
+        if (!verifiedMemberSeq) {
+          throw createJoinMemberApiError("인증 회원정보를 확인하지 못했습니다.", { code: "member_verification_failed" });
+        }
+        state.member = { ...state.member, memberSeq: verifiedMemberSeq };
+        let verifiedMember = state.member;
+        if (state.flow !== "signup") {
+          const erpLogin = state.erpLogin || {};
+          if (!erpLogin.custId || !erpLogin.custPw) {
+            throw createJoinMemberApiError("로그인 정보를 다시 확인해 주세요.", { code: "member_erp_relogin_failed" });
+          }
+          const erpResult = await postJoinMemberLoginForm("/member/getMemberLoginCheck.json", erpLogin);
+          if ((erpResult?.message || "") !== "SUCCESS") {
+            throw createJoinMemberApiError("로그인 정보를 다시 확인해 주세요.", { code: "member_erp_relogin_failed" });
+          }
+          const restoredMember = buildJoinHomeMemberFromLoginResponse(erpResult, state.member);
+          if (String(restoredMember.memberSeq || "") !== verifiedMemberSeq) {
+            throw createJoinMemberApiError("로그인 회원정보가 일치하지 않습니다.", { code: "member_erp_relogin_failed" });
+          }
+          verifiedMember = restoredMember;
+        }
+        storeJoinMemberAuthSession(verifiedAuthResult);
+        clearJoinMemberAuthPendingLogin();
+        clearJoinLogoutMarker();
+        const passwordInput = document.getElementById("joinMemberLoginPassword");
+        if (passwordInput) passwordInput.value = "";
+        stopJoinMemberOtpTimer();
+        joinMyMenuState.pendingSmsAuth = null;
+        joinMyMenuState.loginRedirecting = true;
+        if (state.flow === "signup") {
+          joinMyMenuState.loginRedirecting = false;
+          await promptJoinPendingRosterCandidates({ source: "signup" });
+          finishJoinMemberSignupAndContinue(state.member, state.profile, {
+            trackSignup: true,
+            signupMethod: String(state.member?.memberChannel || "email").toLowerCase()
+          });
+          return;
+        }
+        setJoinSessionMember(verifiedMember);
+        trackGolfJoinGa4Event("login", { method: "email", member_state: "homepage" });
+        location.href = getJoinLoginRedirectTarget();
+      } catch (error) {
+        golfJoinSafeWarn("Member OTP verification failed.", { code: error?.code, status: error?.status });
+        if (error?.code === "member_erp_relogin_failed") {
+          if (verifiedAuthResult?.refreshToken) {
+            await postGolfJoinMemberAuthAction("member_auth_logout", {
+              refreshToken: verifiedAuthResult.refreshToken
+            }, { timeoutMs: 5000 }).catch(() => ({ ok: false }));
+          }
+          await rollbackJoinMemberErpLoginAfterSmsAuthFailure();
+          openJoinMemberEmailForm();
+          setJoinMemberLoginStatus("인증은 완료되었지만 로그인을 연결하지 못했습니다. 다시 로그인해 주세요.");
+          document.getElementById("joinMemberLoginId")?.focus();
+          return;
+        }
+        const isLocked = error?.code === "member_otp_locked";
+        const isExpired = error?.code === "member_otp_expired";
+        if (isLocked || isExpired) {
+          state.locked = isLocked;
+          state.expiresAt = 0;
+          state.expiredAnnounced = true;
+        }
+        setJoinMemberOtpStatus(getJoinMemberOtpErrorMessage(error), true);
+        if (!isLocked && !isExpired) {
+          if (input) input.value = "";
+          input?.focus();
+        }
+      } finally {
+        await closeJoinActionLoading(loadingToken);
+        setJoinMemberOtpBusy(false);
+      }
+    }
+
+    async function resendJoinMemberOtpCode() {
+      if (joinMyMenuState.smsAuthBusy) return;
+      const state = joinMyMenuState.pendingSmsAuth;
+      if (!state?.member || Number(state.expiresAt || 0) > Date.now()) return;
+      setJoinMemberOtpBusy(true);
+      setJoinMemberOtpStatus("");
+      const loadingToken = openJoinActionLoading("인증번호를 다시 보내고 있어요", {
+        ownerToken: "member-auth-resend",
+        minVisibleMs: 350
+      });
+      try {
+        const result = await postGolfJoinMemberAuthAction("member_auth_start", state.member);
+        openJoinMemberOtpForm(result, state.member, {
+          flow: state.flow,
+          profile: state.profile,
+          erpLogin: state.erpLogin
+        });
+        setJoinMemberOtpStatus("새 인증번호를 보냈습니다.");
+      } catch (error) {
+        if (error?.code === "member_otp_rate_limited" && Number(error?.retryAfterSeconds) > 0) {
+          state.resendAt = Date.now() + Number(error.retryAfterSeconds) * 1000;
+        }
+        setJoinMemberOtpStatus(getJoinMemberOtpErrorMessage(error), true);
+      } finally {
+        await closeJoinActionLoading(loadingToken);
+        setJoinMemberOtpBusy(false);
+      }
+    }
+
+    window.normalizeJoinMemberOtpCode = normalizeJoinMemberOtpCode;
+    window.submitJoinMemberOtpCode = submitJoinMemberOtpCode;
+    window.resendJoinMemberOtpCode = resendJoinMemberOtpCode;
 
     function ensureJoinKakaoSdk() {
       if (window.Kakao?.Auth) return Promise.resolve(window.Kakao);
@@ -512,7 +1301,10 @@
       if (!isJoinMemberProfileComplete(mergedMember)) return false;
       rememberJoinMemberProfileLocally(member, profile);
       clearJoinPendingKakaoProfile();
-      finishJoinMemberSignupAndContinue(mergedMember, profile);
+      finishJoinMemberSignupAndContinue(mergedMember, profile, {
+        trackLogin: true,
+        loginMethod: "kakao"
+      });
       return true;
     }
 
@@ -534,6 +1326,7 @@
 
     async function submitJoinMemberKakaoLogin() {
       if (joinMyMenuState.loginRedirecting) return;
+      trackGolfJoinGa4Event("golfjoin_login_start", { login_method: "kakao" });
       joinMyMenuState.loginRedirecting = true;
       setJoinMemberLoginStatus("");
       try {
@@ -599,6 +1392,7 @@
                         setJoinSessionMember(erpMember);
                       }
                       clearJoinLogoutMarker();
+                      trackGolfJoinGa4Event("login", { method: "kakao", member_state: "kakao" });
                       location.href = getJoinLoginRedirectTarget();
                       return;
                     }
@@ -606,6 +1400,10 @@
                     return undefined;
                   }).catch((error) => {
                     joinMyMenuState.loginRedirecting = false;
+                    trackGolfJoinGa4Event("golfjoin_login_fail", {
+                      login_method: "kakao",
+                      error_type: "request_failed"
+                    });
                     golfJoinSafeWarn("Kakao external login failed.", error);
                     if (isJoinLocalDevHost()) {
                       return continueWithExistingKakaoProfileIfReady(res).then((continued) => {
@@ -623,6 +1421,10 @@
                 },
                 fail(error) {
                   joinMyMenuState.loginRedirecting = false;
+                  trackGolfJoinGa4Event("golfjoin_login_fail", {
+                    login_method: "kakao",
+                    error_type: "profile_request_failed"
+                  });
                   golfJoinSafeWarn("Kakao profile request failed.", error);
                   reopenLoginWithStatus("카카오 계정 정보를 가져오지 못했습니다.");
                   finish();
@@ -631,6 +1433,10 @@
             },
             fail(error) {
               joinMyMenuState.loginRedirecting = false;
+              trackGolfJoinGa4Event("golfjoin_login_fail", {
+                login_method: "kakao",
+                error_type: "cancelled_or_failed"
+              });
               golfJoinSafeWarn("Kakao auth failed.", error);
               setJoinMemberLoginStatus("카카오 로그인이 취소되었거나 실패했습니다.");
               finish();
@@ -639,6 +1445,10 @@
         });
       } catch (error) {
         joinMyMenuState.loginRedirecting = false;
+        trackGolfJoinGa4Event("golfjoin_login_fail", {
+          login_method: "kakao",
+          error_type: "initialization_failed"
+        });
         golfJoinSafeWarn("Failed to initialize Kakao login.", error);
         setJoinMemberLoginStatus("카카오 로그인을 준비하지 못했습니다.");
       }
@@ -649,6 +1459,7 @@
     }
 
     function openJoinMemberLoginModal(afterLogin = "my-menu", extraParams = {}) {
+      trackGolfJoinGa4Event("golfjoin_login_required", { return_action: afterLogin });
       joinMyMenuState.loginRedirecting = false;
       joinMyMenuState.pendingAfterLogin = afterLogin;
       joinMyMenuState.pendingLoginParams = { ...extraParams };
@@ -672,58 +1483,84 @@
       setWidgetModalOpen(hasOpenBlockingModal());
     }
 
-    function continueAfterJoinMemberLogin(afterLogin = "my-menu") {
+    function trackJoinLoginReturnComplete(afterLogin = "my-menu", resumed = true) {
+      if (resumed === false) return false;
+      trackGolfJoinGa4Event("golfjoin_login_return_complete", {
+        return_action: afterLogin,
+        source_area: "login"
+      });
+      return true;
+    }
+
+    async function continueAfterJoinMemberLogin(afterLogin = "my-menu") {
       joinMyMenuState.loginRedirecting = false;
       const params = joinMyMenuState.pendingLoginParams || {};
       const returnUrl = getJoinSafeReturnUrl(params.returnUrl || "");
       if (returnUrl) {
+        trackJoinLoginReturnComplete(afterLogin);
         location.href = returnUrl;
-        return;
+        return true;
       }
       closeJoinMemberLoginModal();
       if (afterLogin === "builder") {
-        continueBuilderAfterLogin(params);
-        return;
+        const resumed = await continueBuilderAfterLogin(params);
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "apply") {
-        openGlobalApply();
-        return;
+        const resumed = await openGlobalApply({ resumeParams: params, skipProfileCheck: true });
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "interest") {
         setJoinMobileNavActive("my");
-        openJoinMyMenu();
-        return;
+        const resumed = await openJoinMyMenu();
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "my-drawer") {
         setJoinMobileNavActive("my");
-        openJoinMyDrawer();
-        return;
+        const resumed = await openJoinMyDrawer();
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "detail-wish") {
-        continueDetailWishAfterLogin(params);
-        return;
+        const resumed = await continueDetailWishAfterLogin(params);
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "detail") {
-        continueJoinExternalDetailAfterLogin(params);
-        return;
+        const resumed = await continueJoinExternalDetailAfterLogin(params);
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "my-section") {
-        continueMyHomeJoinDeepLinkAfterLogin(params);
-        return;
+        const resumed = await continueMyHomeJoinDeepLinkAfterLogin(params);
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "profile-manage") {
-        openJoinProfileManageModal();
-        return;
+        const resumed = await openJoinProfileManageModal();
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "my-menu") {
         setJoinMobileNavActive("my");
-        openJoinMyMenu({ tab: params.golfjoinTab || "" });
+        const resumed = await openJoinMyMenu({ tab: params.golfjoinTab || "" });
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
+      return false;
     }
 
     function handleJoinMemberLoginBack() {
       const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
       const signupForm = document.getElementById("joinMemberSignupForm");
+      if (modal?.classList.contains("is-otp-mode")) {
+        setJoinMemberOtpStatus("로그인을 완료하려면 휴대폰 인증을 진행해 주세요.");
+        document.getElementById("joinMemberOtpCode")?.focus();
+        return;
+      }
       if (signupForm?.dataset.profileRequired === "true") {
         setJoinMemberLoginStatus("");
         return;
@@ -767,9 +1604,10 @@
     }
 
     function openJoinMemberEmailForm() {
+      closeJoinMemberOtpForm();
       const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
       modal?.classList.add("is-email-mode");
-      modal?.classList.remove("is-signup-mode", "is-signup-intro-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
+      modal?.classList.remove("is-otp-mode", "is-signup-mode", "is-signup-intro-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
       const title = document.getElementById("joinMemberLoginTitle");
       if (title) title.textContent = "로그인";
       document.getElementById("joinMemberEmailForm")?.classList.add("is-open");
@@ -797,9 +1635,10 @@
     }
 
     function openJoinMemberSignupIntro() {
+      closeJoinMemberOtpForm();
       const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
       modal?.classList.add("is-signup-intro-mode");
-      modal?.classList.remove("is-email-mode", "is-signup-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
+      modal?.classList.remove("is-otp-mode", "is-email-mode", "is-signup-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
       const title = document.getElementById("joinMemberLoginTitle");
       if (title) title.textContent = "회원가입";
       document.getElementById("joinMemberSignupIntro")?.classList.add("is-open");
@@ -818,9 +1657,11 @@
     }
 
     function openJoinMemberSignupForm() {
+      trackGolfJoinGa4Event("golfjoin_signup_step_view", { signup_step: "1" });
+      closeJoinMemberOtpForm();
       const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
       modal?.classList.add("is-signup-mode");
-      modal?.classList.remove("is-email-mode", "is-signup-intro-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
+      modal?.classList.remove("is-otp-mode", "is-email-mode", "is-signup-intro-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
       const title = document.getElementById("joinMemberLoginTitle");
       if (title) title.textContent = "일반 회원가입";
       populateJoinMemberSignupYears();
@@ -854,8 +1695,9 @@
     }
 
     function setJoinMemberFindMode(mode) {
+      closeJoinMemberOtpForm();
       const modal = document.querySelector("#joinMemberLoginModal .join-member-login-modal");
-      modal?.classList.remove("is-email-mode", "is-signup-mode", "is-signup-intro-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
+      modal?.classList.remove("is-otp-mode", "is-email-mode", "is-signup-mode", "is-signup-intro-mode", "is-find-id-mode", "is-find-pw-mode", "is-profile-required");
       modal?.classList.add(mode === "pw" ? "is-find-pw-mode" : "is-find-id-mode");
       document.getElementById("joinMemberEmailForm")?.classList.remove("is-open");
       document.getElementById("joinMemberSignupIntro")?.classList.remove("is-open");
@@ -880,6 +1722,9 @@
       if (title) title.textContent = "비밀번호 찾기";
       setJoinMemberFindMode("pw");
       joinMyMenuState.resetPasswordToken = null;
+      document.getElementById("joinMemberFindPwForm")?.classList.remove("is-reset-mode");
+      const resetUsername = document.getElementById("joinMemberResetUsername");
+      if (resetUsername) resetUsername.value = "";
       document.getElementById("joinMemberFindPwReset")?.classList.remove("is-visible");
       document.getElementById("joinMemberFindPwFail")?.classList.remove("is-visible");
       document.querySelector("[data-find-pw-check]")?.removeAttribute("hidden");
@@ -897,6 +1742,7 @@
     }
 
     function resetJoinMemberLoginModalMode() {
+      closeJoinMemberOtpForm();
       closeJoinMemberEmailForm();
       closeJoinMemberFindForms();
       closeJoinMemberSignupIntro();
@@ -971,6 +1817,216 @@
       }
       const middleLength = digits.length === 10 ? 3 : 4;
       input.value = `${digits.slice(0, 3)}-${digits.slice(3, 3 + middleLength)}-${digits.slice(3 + middleLength)}`;
+    }
+
+    function isJoinMemberSignupPhoneAuthRequired() {
+      const form = document.getElementById("joinMemberSignupForm");
+      return Boolean(
+        GOLFJOIN_MEMBER_SIGNUP_PHONE_AUTH_ENABLED
+        && form
+        && form.dataset.profileOnly !== "true"
+        && form.dataset.profileRequired !== "true"
+        && !form.classList.contains("is-kakao-signup")
+      );
+    }
+
+    function stopJoinMemberSignupPhoneAuthTimer() {
+      if (joinMyMenuState.signupPhoneAuthTimerId) {
+        window.clearInterval(joinMyMenuState.signupPhoneAuthTimerId);
+        joinMyMenuState.signupPhoneAuthTimerId = 0;
+      }
+    }
+
+    function getJoinMemberSignupPhoneValue() {
+      return normalizeJoinMemberPhone(document.getElementById("joinMemberSignupMobile")?.value || "");
+    }
+
+    function isJoinMemberSignupPhoneVerified() {
+      if (!isJoinMemberSignupPhoneAuthRequired()) return true;
+      const state = joinMyMenuState.signupPhoneAuth;
+      return Boolean(
+        state?.verified
+        && state.verificationToken
+        && state.mobile === getJoinMemberSignupPhoneValue()
+        && Number(state.verificationExpiresAt || 0) > Date.now()
+      );
+    }
+
+    function syncJoinMemberSignupPhoneAuthUi() {
+      const required = isJoinMemberSignupPhoneAuthRequired();
+      const state = joinMyMenuState.signupPhoneAuth;
+      const verified = required && isJoinMemberSignupPhoneVerified();
+      const mobileInput = document.getElementById("joinMemberSignupMobile");
+      const sendButton = document.getElementById("joinMemberSignupPhoneSendButton");
+      const verifiedBadge = document.getElementById("joinMemberSignupPhoneVerifiedBadge");
+      const authRow = document.getElementById("joinMemberSignupPhoneAuthRow");
+      const codeInput = document.getElementById("joinMemberSignupPhoneCode");
+      const verifyButton = document.getElementById("joinMemberSignupPhoneVerifyButton");
+      if (mobileInput) mobileInput.disabled = verified;
+      if (sendButton) {
+        sendButton.hidden = !required || verified;
+        sendButton.disabled = Boolean(joinMyMenuState.signupPhoneAuthBusy);
+        sendButton.textContent = state?.challengeId && !verified ? "재전송" : "인증하기";
+      }
+      if (verifiedBadge) verifiedBadge.hidden = !verified;
+      if (authRow) authRow.hidden = !required || verified || !state?.challengeId;
+      if (codeInput) codeInput.disabled = Boolean(joinMyMenuState.signupPhoneAuthBusy || state?.expired || verified);
+      if (verifyButton) {
+        verifyButton.disabled = Boolean(
+          joinMyMenuState.signupPhoneAuthBusy
+          || state?.expired
+          || verified
+          || String(codeInput?.value || "").length !== 6
+        );
+        verifyButton.textContent = joinMyMenuState.signupPhoneAuthBusy ? "확인 중" : "인증하기";
+      }
+    }
+
+    function resetJoinMemberSignupPhoneAuth(options = {}) {
+      stopJoinMemberSignupPhoneAuthTimer();
+      joinMyMenuState.signupPhoneAuth = null;
+      joinMyMenuState.signupPhoneAuthBusy = false;
+      const codeInput = document.getElementById("joinMemberSignupPhoneCode");
+      if (codeInput) {
+        codeInput.value = "";
+        codeInput.disabled = false;
+      }
+      const timer = document.getElementById("joinMemberSignupPhoneTimer");
+      if (timer) timer.textContent = "03:00";
+      if (options.keepHelper !== true) {
+        setJoinMemberFieldInvalid("joinMemberSignupMobileField", "joinMemberSignupMobileHelper", "");
+      }
+      syncJoinMemberSignupPhoneAuthUi();
+      updateJoinMemberSignupNavState();
+    }
+
+    function handleJoinMemberSignupMobileInput(input) {
+      const mobile = normalizeJoinMemberPhone(input?.value || "");
+      const state = joinMyMenuState.signupPhoneAuth;
+      if (state && state.mobile !== mobile) resetJoinMemberSignupPhoneAuth({ keepHelper: true });
+      else syncJoinMemberSignupPhoneAuthUi();
+    }
+
+    function handleJoinMemberSignupPhoneCodeInput(input) {
+      if (!input) return;
+      input.value = String(input.value || "").replace(/\D/g, "").slice(0, 6);
+      setJoinMemberFieldInvalid("joinMemberSignupMobileField", "joinMemberSignupMobileHelper", "");
+      syncJoinMemberSignupPhoneAuthUi();
+    }
+
+    function updateJoinMemberSignupPhoneAuthTimer() {
+      const state = joinMyMenuState.signupPhoneAuth;
+      const timer = document.getElementById("joinMemberSignupPhoneTimer");
+      if (!state?.challengeId) {
+        if (timer) timer.textContent = "03:00";
+        return;
+      }
+      const remainingSeconds = Math.max(0, Math.ceil((Number(state.expiresAt || 0) - Date.now()) / 1000));
+      const minutes = String(Math.floor(remainingSeconds / 60)).padStart(2, "0");
+      const seconds = String(remainingSeconds % 60).padStart(2, "0");
+      if (timer) timer.textContent = `${minutes}:${seconds}`;
+      if (remainingSeconds <= 0 && !state.expired) {
+        state.expired = true;
+        stopJoinMemberSignupPhoneAuthTimer();
+        setJoinMemberFieldInvalid(
+          "joinMemberSignupMobileField",
+          "joinMemberSignupMobileHelper",
+          "인증시간이 만료되었습니다. 다시 인증해 주세요."
+        );
+      }
+      syncJoinMemberSignupPhoneAuthUi();
+    }
+
+    function startJoinMemberSignupPhoneAuthTimer() {
+      stopJoinMemberSignupPhoneAuthTimer();
+      updateJoinMemberSignupPhoneAuthTimer();
+      joinMyMenuState.signupPhoneAuthTimerId = window.setInterval(updateJoinMemberSignupPhoneAuthTimer, 1000);
+    }
+
+    async function startJoinMemberSignupPhoneAuth() {
+      if (!isJoinMemberSignupPhoneAuthRequired() || joinMyMenuState.signupPhoneAuthBusy) return;
+      const mobile = getJoinMemberSignupPhoneValue();
+      if (!/^01\d{8,9}$/.test(mobile)) {
+        setJoinMemberFieldInvalid("joinMemberSignupMobileField", "joinMemberSignupMobileHelper", "올바른 휴대폰번호를 입력해 주세요.");
+        document.getElementById("joinMemberSignupMobile")?.focus();
+        return;
+      }
+      window.clearTimeout(joinMyMenuState.signupDuplicateTimers?.mobile);
+      if (!(await checkJoinMemberSignupFieldDuplicate("mobile"))) return;
+      joinMyMenuState.signupPhoneAuthBusy = true;
+      syncJoinMemberSignupPhoneAuthUi();
+      const loadingToken = openJoinActionLoading("인증번호를 보내고 있어요", { minVisibleMs: 450 });
+      try {
+        const result = await postGolfJoinMemberAuthAction("member_signup_phone_start", { mobile });
+        const now = Date.now();
+        joinMyMenuState.signupPhoneAuth = {
+          challengeId: String(result.challengeId || ""),
+          mobile,
+          expiresAt: now + Math.max(1, Number(result.expiresIn || 180)) * 1000,
+          verificationExpiresAt: 0,
+          verificationToken: "",
+          verified: false,
+          expired: false
+        };
+        const codeInput = document.getElementById("joinMemberSignupPhoneCode");
+        if (codeInput) codeInput.value = "";
+        setJoinMemberFieldInvalid("joinMemberSignupMobileField", "joinMemberSignupMobileHelper", "");
+        startJoinMemberSignupPhoneAuthTimer();
+        requestAnimationFrame(() => codeInput?.focus());
+      } catch (error) {
+        setJoinMemberFieldInvalid(
+          "joinMemberSignupMobileField",
+          "joinMemberSignupMobileHelper",
+          String(error?.message || "인증번호를 발송하지 못했습니다. 잠시 후 다시 시도해 주세요.")
+        );
+      } finally {
+        joinMyMenuState.signupPhoneAuthBusy = false;
+        syncJoinMemberSignupPhoneAuthUi();
+        await closeJoinActionLoading(loadingToken);
+      }
+    }
+
+    async function verifyJoinMemberSignupPhoneAuth() {
+      const state = joinMyMenuState.signupPhoneAuth;
+      if (!isJoinMemberSignupPhoneAuthRequired() || !state?.challengeId || joinMyMenuState.signupPhoneAuthBusy) return;
+      const codeInput = document.getElementById("joinMemberSignupPhoneCode");
+      const code = String(codeInput?.value || "").replace(/\D/g, "");
+      if (!/^\d{6}$/.test(code)) {
+        setJoinMemberFieldInvalid("joinMemberSignupMobileField", "joinMemberSignupMobileHelper", "인증번호 6자리를 입력해 주세요.");
+        codeInput?.focus();
+        return;
+      }
+      joinMyMenuState.signupPhoneAuthBusy = true;
+      syncJoinMemberSignupPhoneAuthUi();
+      const loadingToken = openJoinActionLoading("인증번호를 확인하고 있어요", { minVisibleMs: 400 });
+      try {
+        const result = await postGolfJoinMemberAuthAction("member_signup_phone_verify", {
+          challengeId: state.challengeId,
+          code,
+          mobile: state.mobile
+        });
+        state.verified = result?.verified === true;
+        state.verificationToken = String(result?.verificationToken || "");
+        state.verificationExpiresAt = Date.now() + Math.max(1, Number(result?.verificationExpiresIn || 900)) * 1000;
+        state.expired = false;
+        stopJoinMemberSignupPhoneAuthTimer();
+        if (codeInput) codeInput.value = "";
+        setJoinMemberFieldInvalid("joinMemberSignupMobileField", "joinMemberSignupMobileHelper", "");
+      } catch (error) {
+        const attempts = Number(error?.attemptsRemaining);
+        const suffix = Number.isFinite(attempts) && attempts >= 0 ? ` (남은 횟수 ${attempts}회)` : "";
+        setJoinMemberFieldInvalid(
+          "joinMemberSignupMobileField",
+          "joinMemberSignupMobileHelper",
+          `${String(error?.message || "인증번호를 확인해 주세요.")}${suffix}`
+        );
+        codeInput?.focus();
+      } finally {
+        joinMyMenuState.signupPhoneAuthBusy = false;
+        syncJoinMemberSignupPhoneAuthUi();
+        updateJoinMemberSignupNavState();
+        await closeJoinActionLoading(loadingToken);
+      }
     }
 
     function normalizeJoinMemberSignupIdInput(input) {
@@ -1266,16 +2322,99 @@
     };
 
     function populateJoinMemberSignupYears() {
-      const select = document.getElementById("joinMemberSignupBirthYear");
-      if (!select || select.dataset.ready === "true") return;
-      const startYear = new Date().getFullYear() - 18;
-      for (let year = startYear; year >= 1930; year -= 1) {
-        const option = document.createElement("option");
-        option.value = String(year);
-        option.textContent = String(year);
-        select.appendChild(option);
+      const yearSelect = document.getElementById("joinMemberSignupBirthYear");
+      const monthSelect = document.getElementById("joinMemberSignupBirthMonth");
+      if (!yearSelect || !monthSelect || yearSelect.dataset.ready === "true") return;
+      const today = new Date();
+      const latestYear = today.getFullYear() - 18;
+      yearSelect.innerHTML = '<option value="">연도</option>';
+      for (let year = latestYear; year >= 1930; year -= 1) {
+        yearSelect.insertAdjacentHTML("beforeend", `<option value="${year}">${year}년</option>`);
       }
-      select.dataset.ready = "true";
+      monthSelect.innerHTML = '<option value="">월</option>';
+      for (let month = 1; month <= 12; month += 1) {
+        const value = String(month).padStart(2, "0");
+        monthSelect.insertAdjacentHTML("beforeend", `<option value="${value}">${month}월</option>`);
+      }
+      yearSelect.dataset.ready = "true";
+      populateJoinMemberSignupBirthDays();
+    }
+
+    function normalizeJoinMemberBirthDate(value = "") {
+      const digits = String(value || "").replace(/\D/g, "");
+      if (!/^\d{8}$/.test(digits)) return "";
+      const year = Number(digits.slice(0, 4));
+      const month = Number(digits.slice(4, 6));
+      const day = Number(digits.slice(6, 8));
+      const date = new Date(Date.UTC(year, month - 1, day));
+      if (year < 1930 || date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return "";
+      return digits;
+    }
+
+    function isJoinMemberAdultBirthDate(value = "") {
+      const birthDate = normalizeJoinMemberBirthDate(value);
+      if (!birthDate) return false;
+      const today = new Date();
+      const maximum = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+      const selected = new Date(
+        Number(birthDate.slice(0, 4)),
+        Number(birthDate.slice(4, 6)) - 1,
+        Number(birthDate.slice(6, 8))
+      );
+      return selected <= maximum;
+    }
+
+    function populateJoinMemberSignupBirthDays() {
+      const year = Number(document.getElementById("joinMemberSignupBirthYear")?.value || 0);
+      const month = Number(document.getElementById("joinMemberSignupBirthMonth")?.value || 0);
+      const daySelect = document.getElementById("joinMemberSignupBirthDay");
+      if (!daySelect) return;
+      const selectedDay = daySelect.value;
+      const dayCount = year && month ? new Date(year, month, 0).getDate() : 31;
+      daySelect.innerHTML = '<option value="">일</option>';
+      for (let day = 1; day <= dayCount; day += 1) {
+        const value = String(day).padStart(2, "0");
+        daySelect.insertAdjacentHTML("beforeend", `<option value="${value}">${day}일</option>`);
+      }
+      if ([...daySelect.options].some((option) => option.value === selectedDay)) daySelect.value = selectedDay;
+    }
+
+    function composeJoinMemberSignupBirthDate() {
+      const year = String(document.getElementById("joinMemberSignupBirthYear")?.value || "");
+      const month = String(document.getElementById("joinMemberSignupBirthMonth")?.value || "");
+      const day = String(document.getElementById("joinMemberSignupBirthDay")?.value || "");
+      const birthDate = normalizeJoinMemberBirthDate(`${year}${month}${day}`);
+      return isJoinMemberAdultBirthDate(birthDate) ? birthDate : "";
+    }
+
+    function getJoinMemberSignupBirthDate() {
+      return composeJoinMemberSignupBirthDate();
+    }
+
+    function handleJoinMemberSignupBirthDateInput(input) {
+      if (["joinMemberSignupBirthYear", "joinMemberSignupBirthMonth"].includes(input?.id)) {
+        populateJoinMemberSignupBirthDays();
+      }
+      const birthDate = composeJoinMemberSignupBirthDate();
+      const birthDateInput = document.getElementById("joinMemberSignupBirthDate");
+      if (birthDateInput) birthDateInput.value = birthDate;
+      if (birthDate) setJoinMemberFieldInvalid("joinMemberSignupBirthYearField", "joinMemberSignupBirthYearHelper", "");
+      updateJoinMemberSignupNavState();
+    }
+
+    function setJoinMemberSignupBirthDate(value = "") {
+      const birthDate = normalizeJoinMemberBirthDate(value);
+      const legacyYear = /^\d{4}$/.test(String(value || "").trim()) ? String(value).trim() : "";
+      populateJoinMemberSignupYears();
+      const yearSelect = document.getElementById("joinMemberSignupBirthYear");
+      const monthSelect = document.getElementById("joinMemberSignupBirthMonth");
+      const daySelect = document.getElementById("joinMemberSignupBirthDay");
+      const birthDateInput = document.getElementById("joinMemberSignupBirthDate");
+      if (yearSelect) yearSelect.value = birthDate.slice(0, 4) || legacyYear;
+      if (monthSelect) monthSelect.value = birthDate.slice(4, 6);
+      populateJoinMemberSignupBirthDays();
+      if (daySelect) daySelect.value = birthDate.slice(6, 8);
+      if (birthDateInput) birthDateInput.value = birthDate;
     }
 
     function setJoinMemberSignupStep(step) {
@@ -1384,7 +2523,10 @@
 
     function getJoinMemberMissingProfileFields(member = {}) {
       const missing = [];
-      if (!getJoinMemberBirthYear(member)) missing.push("birthYear");
+      const hasLegacyBirthYear = /^\d{4}$/.test(String(member.birthYear || "").trim());
+      // 기존 프로필은 출생연도만 저장되어 있다. 신규·수정 저장은 전체 생년월일을
+      // 계속 요구하되, 기존 회원을 약관/추가정보 화면으로 되돌리지는 않는다.
+      if (!getJoinMemberBirthDate(member) && !hasLegacyBirthYear) missing.push("birthDate");
       if (!member.gender) missing.push("gender");
       if (!String(member.profession || "").trim()) missing.push("profession");
       if (!member.level) missing.push("level");
@@ -1392,17 +2534,35 @@
       return missing;
     }
 
+    function isJoinMemberBirthDateUpgradeRequired(member = {}) {
+      if (
+        !member
+        || isJoinTempAdminMember(member)
+        || String(member.profileStatus || "").trim().toLowerCase() === "pending"
+        || getJoinMemberBirthDate(member)
+      ) return false;
+      const hasExistingProfile = Boolean(String(member.profileId || "").trim());
+      const hasCoreProfile = Boolean(
+        normalizeJoinMemberGender(member.gender || "")
+        && String(member.profession || "").trim()
+        && String(member.level || "").trim()
+        && splitJoinMemberProfileStyles(member.travelStyles || member.styles).length
+      );
+      return hasExistingProfile && hasCoreProfile;
+    }
+
     function isJoinMemberProfileComplete(member = {}) {
+      if (String(member.profileStatus || "").trim().toLowerCase() === "pending") return false;
       return getJoinMemberMissingProfileFields(member).length === 0;
     }
 
     function validateJoinMemberSignupProfileStep() {
-      const birthYear = document.getElementById("joinMemberSignupBirthYear")?.value || "";
+      const birthDate = getJoinMemberSignupBirthDate();
       const gender = getJoinMemberSignupSelectedGender();
-      const validBirthYear = /^\d{4}$/.test(birthYear);
-      setJoinMemberFieldInvalid("joinMemberSignupBirthYearField", "joinMemberSignupBirthYearHelper", validBirthYear ? "" : "출생연도를 선택해 주세요.");
+      const validBirthDate = /^\d{8}$/.test(birthDate);
+      setJoinMemberFieldInvalid("joinMemberSignupBirthYearField", "joinMemberSignupBirthYearHelper", validBirthDate ? "" : "생년월일을 선택해 주세요.");
       setJoinMemberFieldInvalid("joinMemberSignupGenderField", "joinMemberSignupGenderHelper", gender ? "" : "성별을 선택해 주세요.");
-      return validBirthYear && Boolean(gender);
+      return validBirthDate && Boolean(gender);
     }
 
     function isJoinMemberSignupStepComplete(step = getJoinMemberSignupStep()) {
@@ -1419,13 +2579,14 @@
         const name = document.getElementById("joinMemberSignupName")?.value.trim() || "";
         const mobile = normalizeJoinMemberPhone(document.getElementById("joinMemberSignupMobile")?.value || "");
         const email = document.getElementById("joinMemberSignupContactEmail")?.value.trim() || "";
-        const birthYear = document.getElementById("joinMemberSignupBirthYear")?.value || "";
+        const birthDate = getJoinMemberSignupBirthDate();
         return name.length >= 2
           && /^01\d{8,9}$/.test(mobile)
+          && isJoinMemberSignupPhoneVerified()
           && !hasJoinMemberSignupDuplicateLock("mobile")
           && isValidJoinMemberEmail(email)
           && !hasJoinMemberSignupDuplicateLock("email")
-          && /^\d{4}$/.test(birthYear)
+          && /^\d{8}$/.test(birthDate)
           && Boolean(getJoinMemberSignupSelectedGender());
       }
       if (step === 4) {
@@ -1486,6 +2647,18 @@
           document.querySelector("#joinMemberSignupForm .join-member-email-field.is-invalid input, #joinMemberSignupForm .join-member-email-field.is-invalid select")?.focus();
           return false;
         }
+        if (!isJoinMemberSignupPhoneVerified()) {
+          setJoinMemberFieldInvalid(
+            "joinMemberSignupMobileField",
+            "joinMemberSignupMobileHelper",
+            "휴대폰 인증을 완료해 주세요."
+          );
+          const focusTarget = joinMyMenuState.signupPhoneAuth?.challengeId
+            ? document.getElementById("joinMemberSignupPhoneCode")
+            : document.getElementById("joinMemberSignupPhoneSendButton");
+          focusTarget?.focus();
+          return false;
+        }
         return true;
       }
       if (step === 4 && !getJoinMemberSignupSelectedLevel()) {
@@ -1522,7 +2695,10 @@
 
     async function goJoinMemberSignupStep(direction) {
       const current = getJoinMemberSignupStep();
-      if (direction > 0 && !validateJoinMemberSignupStep(current)) return;
+      if (direction > 0 && !validateJoinMemberSignupStep(current)) {
+        trackGolfJoinGa4Event("golfjoin_signup_validation_error", { signup_step: String(current), error_type: "required_or_invalid" });
+        return;
+      }
       if (direction > 0 && !(await validateJoinMemberSignupDuplicateBeforeNext(current))) return;
       setJoinMemberLoginStatus("");
       const form = document.getElementById("joinMemberSignupForm");
@@ -1544,7 +2720,9 @@
         setJoinMemberSignupStep(1);
         return;
       }
-      setJoinMemberSignupStep(current + Number(direction || 0));
+      const nextStep = current + Number(direction || 0);
+      setJoinMemberSignupStep(nextStep);
+      if (direction > 0) trackGolfJoinGa4Event("golfjoin_signup_step_view", { signup_step: String(nextStep) });
     }
 
     const JOIN_MEMBER_SIGNUP_PROFESSION_LIMIT = 3;
@@ -1815,6 +2993,79 @@
       }
     }
 
+    function rememberJoinPendingKakaoSignupDraft(profilePayload = {}) {
+      const pending = getJoinPendingKakaoProfile();
+      const member = profilePayload.member || {};
+      const profile = profilePayload.profile || {};
+      const kakao = profilePayload.kakao || {};
+      const signupDraft = {
+        member: {
+          memberId: String(member.memberId || pending.kakaoId || "").trim(),
+          memberName: String(member.memberName || "").trim(),
+          memberMobile: normalizeJoinMemberPhone(member.memberMobile || ""),
+          memberEmail: String(member.memberEmail || "").trim()
+        },
+        profile: {
+          birthYear: String(profile.birthYear || "").trim(),
+          birthDate: normalizeJoinMemberBirthDate(profile.birthDate || ""),
+          gender: normalizeJoinMemberGender(profile.gender || ""),
+          profession: String(profile.profession || "").trim(),
+          level: String(profile.level || "").trim(),
+          travelStyles: splitJoinMemberProfileStyles(profile.travelStyles || []),
+          requiredAgreed: profile.requiredAgreed === true,
+          marketingAgreed: profile.marketingAgreed === true,
+          termsAgreedAt: String(profile.termsAgreedAt || "").trim()
+        },
+        kakao: {
+          kakaoId: String(kakao.kakaoId || pending.kakaoId || member.memberId || "").trim(),
+          nickname: String(kakao.nickname || pending.nickname || "").trim()
+        }
+      };
+      joinMyMenuState.pendingKakaoSignup = {
+        ...pending,
+        signupDraft
+      };
+      try {
+        const stored = JSON.parse(sessionStorage.getItem("joinPendingKakaoProfile") || "{}") || {};
+        sessionStorage.setItem("joinPendingKakaoProfile", JSON.stringify({
+          ...stored,
+          kakaoId: stored.kakaoId || pending.kakaoId || signupDraft.kakao.kakaoId,
+          signupDraft
+        }));
+      } catch (error) {
+        golfJoinSafeWarn("Failed to store pending Kakao signup draft.", error);
+      }
+      return signupDraft;
+    }
+
+    function restoreJoinPendingKakaoSignupDraft(member = {}) {
+      const draft = getJoinPendingKakaoProfile()?.signupDraft;
+      if (!draft?.profile) return false;
+      const memberChannel = String(member.memberChannel || member.userChnCd || "").trim().toUpperCase();
+      const memberKakaoId = String(member.kakaoId || (memberChannel === "KAKAO" ? member.memberId : "") || "").trim();
+      const draftKakaoId = String(draft.kakao?.kakaoId || draft.member?.memberId || "").trim();
+      if (memberKakaoId && draftKakaoId && memberKakaoId !== draftKakaoId) return false;
+      const nameInput = document.getElementById("joinMemberSignupName");
+      const mobileInput = document.getElementById("joinMemberSignupMobile");
+      const emailInput = document.getElementById("joinMemberSignupContactEmail");
+      const professionInput = document.getElementById("joinMemberSignupProfession");
+      if (nameInput && draft.member?.memberName) nameInput.value = draft.member.memberName;
+      if (mobileInput && draft.member?.memberMobile) mobileInput.value = draft.member.memberMobile;
+      if (emailInput && draft.member?.memberEmail) emailInput.value = draft.member.memberEmail;
+      if (professionInput) professionInput.value = draft.profile.profession || "";
+      setJoinMemberSignupBirthDate(draft.profile.birthDate || draft.profile.birthYear || "");
+      setJoinMemberSignupChipValue("join-member-gender", draft.profile.gender || "");
+      setJoinMemberSignupChipValue("join-member-level", draft.profile.level || "");
+      setJoinMemberSignupChipValues("join-member-travel-style", draft.profile.travelStyles || []);
+      getJoinMemberSignupAgreements().forEach((input) => {
+        input.checked = input.dataset.required === "true"
+          ? draft.profile.requiredAgreed === true
+          : draft.profile.marketingAgreed === true;
+      });
+      syncJoinMemberSignupAgreementState();
+      return true;
+    }
+
     function clearJoinPendingKakaoProfile() {
       joinMyMenuState.pendingKakaoSignup = null;
       try {
@@ -1903,6 +3154,18 @@
       }
     }
 
+    function isJoinMemberProfileIdentityCompatible(member = {}, profile = {}) {
+      const memberSeq = String(member.memberSeq || member.userSeq || "").trim();
+      const profileSeq = String(profile.memberSeq || profile.userSeq || "").trim();
+      if (memberSeq && profileSeq && memberSeq !== profileSeq) return false;
+      const memberChannel = String(member.memberChannel || member.userChnCd || "").trim().toUpperCase();
+      const profileChannel = String(profile.memberChannel || profile.userChnCd || "").trim().toUpperCase();
+      const memberKakaoId = String(member.kakaoId || (memberChannel === "KAKAO" ? member.memberId : "") || "").trim();
+      const profileKakaoId = String(profile.kakaoId || (profileChannel === "KAKAO" ? profile.memberId : "") || "").trim();
+      if (memberKakaoId && profileKakaoId && memberKakaoId !== profileKakaoId) return false;
+      return true;
+    }
+
     function rememberJoinMemberProfileLocally(member = {}, profile = {}) {
       const memberMobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
       const profileMobile = normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || "");
@@ -1921,7 +3184,9 @@
       if (!keys.length) return;
       try {
         const store = JSON.parse(localStorage.getItem("joinMemberProfiles") || "{}");
-        const existingProfile = keys.map((key) => store[key]).find(Boolean) || {};
+        const existingProfile = keys
+          .map((key) => store[key])
+          .find((entry) => entry && isJoinMemberProfileIdentityCompatible(member, entry)) || {};
         const cachedProfile = {
           ...existingProfile,
           ...profile,
@@ -1974,7 +3239,7 @@
           member.kakaoId
         ].map((value) => String(value || "").trim()).filter(Boolean);
         for (const key of keys) {
-          if (store[key]) return store[key];
+          if (store[key] && isJoinMemberProfileIdentityCompatible(member, store[key])) return store[key];
         }
       } catch (error) {
         golfJoinSafeWarn("Failed to read cached join member profile.", error);
@@ -2058,6 +3323,7 @@
         memberId: row.memberId || getNestedValue(row, "member.memberId") || getNestedValue(row, "kakao.kakaoId") || "",
         memberName: row.memberName || getNestedValue(row, "member.memberName") || row.name || "",
         memberChannel: row.memberChannel || getNestedValue(row, "member.memberChannel") || "",
+        profileStatus: row.profileStatus || profile.profileStatus || "",
         memberMobile: mobile,
         memberEmail: row.memberEmail || getNestedValue(row, "member.memberEmail") || row.email || "",
         kakaoId: row.kakaoId || getNestedValue(row, "kakao.kakaoId") || "",
@@ -2065,7 +3331,8 @@
         name: row.memberName || getNestedValue(row, "member.memberName") || row.name || "",
         gender: normalizeJoinMemberGender(row.gender || profile.gender || ""),
         birthYear: row.birthYear || profile.birthYear || "",
-        birthday: row.birthYear || profile.birthYear || "",
+        birthDate: normalizeJoinMemberBirthDate(row.birthDate || profile.birthDate || row.birthday || profile.birthday || ""),
+        birthday: normalizeJoinMemberBirthDate(row.birthDate || profile.birthDate || row.birthday || profile.birthday || "") || row.birthYear || profile.birthYear || "",
         profession: row.profession || profile.profession || "",
         level: row.level || profile.level || "",
         travelStyles: row.travelStyles || row.styles || profile.travelStyles || profile.styles || "",
@@ -2109,7 +3376,7 @@
         }
         const rows = getGolfJoinSheetActionRows(lookupData);
         const profile = normalizeJoinMemberProfileRow(rows[0] || {});
-        if (profile.gender || profile.birthYear || profile.profession || profile.level || profile.travelStyles || profile.profileImageUrl || profile.profileThumbnailUrl) {
+        if (profile.gender || profile.birthDate || profile.birthYear || profile.profession || profile.level || profile.travelStyles || profile.profileImageUrl || profile.profileThumbnailUrl) {
           rememberJoinMemberProfileLocally(member, profile);
           joinMemberProfileLookupResults.set(lookupKey, { fetchedAt: Date.now(), profile });
           return profile;
@@ -2134,6 +3401,7 @@
       const profileMobile = normalizeJoinMemberPhone(profile.memberMobile || profile.mobile || profile.phone || "");
       return {
         ...member,
+        profileId: profile.profileId || member.profileId || "",
         memberName: profile.memberName || profile.name || member.memberName || "",
         memberMobile: profileMobile || memberMobile || "",
         memberEmail: member.memberEmail || profile.memberEmail || profile.email || "",
@@ -2141,7 +3409,8 @@
         kakaoNickname: member.kakaoNickname || profile.kakaoNickname || "",
         gender: profile.gender || member.gender || "",
         birthYear: profile.birthYear || member.birthYear || "",
-        birthday: profile.birthYear || member.birthday || "",
+        birthDate: profile.birthDate || member.birthDate || "",
+        birthday: profile.birthDate || member.birthDate || profile.birthYear || member.birthday || "",
         profession: profile.profession || member.profession || "",
         level: profile.level || member.level || "",
         travelStyles: profile.travelStyles || member.travelStyles || "",
@@ -2170,6 +3439,7 @@
     function stripJoinMemberProfileFields(member = {}) {
       const {
         gender,
+        birthDate,
         birthYear,
         birthday,
         profession,
@@ -2228,6 +3498,7 @@
         name,
         gender: getJoinMemberSignupSelectedGender(),
         birthYear: document.getElementById("joinMemberSignupBirthYear")?.value || "",
+        birthDate: getJoinMemberSignupBirthDate(),
         mobile,
         phone: mobile,
         profession: document.getElementById("joinMemberSignupProfession")?.value || "",
@@ -2309,14 +3580,13 @@
       const nameInput = document.getElementById("joinMemberSignupName");
       const mobileInput = document.getElementById("joinMemberSignupMobile");
       const emailInput = document.getElementById("joinMemberSignupContactEmail");
-      const birthYearInput = document.getElementById("joinMemberSignupBirthYear");
       if (nameInput && !nameInput.value.trim()) nameInput.value = mergedMember.memberName || mergedMember.name || "";
       if (mobileInput && !normalizeJoinMemberPhone(mobileInput.value)) {
         mobileInput.value = normalizeJoinMemberPhone(mergedMember.memberMobile || mergedMember.mobile || mergedMember.phone || "");
         formatJoinMemberSignupMobile(mobileInput);
       }
       if (emailInput && !emailInput.value.trim()) emailInput.value = mergedMember.memberEmail || mergedMember.email || "";
-      if (birthYearInput && !birthYearInput.value) birthYearInput.value = getJoinMemberBirthYear(mergedMember);
+      if (!getJoinMemberSignupBirthDate()) setJoinMemberSignupBirthDate(getJoinMemberBirthDate(mergedMember));
       syncAllJoinMemberFloatingFields();
       updateJoinMemberSignupNavState();
     }
@@ -2380,16 +3650,16 @@
       const nameInput = document.getElementById("joinMemberSignupName");
       const mobileInput = document.getElementById("joinMemberSignupMobile");
       const emailInput = document.getElementById("joinMemberSignupContactEmail");
-      const birthYearInput = document.getElementById("joinMemberSignupBirthYear");
       if (nameInput) nameInput.value = member.memberName || member.name || "";
       if (mobileInput) mobileInput.value = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
       if (emailInput) emailInput.value = member.memberEmail || member.email || "";
-      if (birthYearInput) birthYearInput.value = getJoinMemberBirthYear(member);
+      setJoinMemberSignupBirthDate(getJoinMemberBirthDate(member));
       setJoinMemberSignupChipValue("join-member-gender", member.gender || "");
       setJoinMemberSignupChipValue("join-member-level", member.level || "");
       setJoinMemberSignupChipValues("join-member-travel-style", member.travelStyles || member.styles || []);
       const professionInput = document.getElementById("joinMemberSignupProfession");
       if (professionInput) professionInput.value = member.profession || "";
+      restoreJoinPendingKakaoSignupDraft(member);
       syncAllJoinMemberFloatingFields();
       setJoinMemberSignupStep(1);
       setJoinMemberLoginStatus("");
@@ -2397,7 +3667,7 @@
       setWidgetModalOpen(true);
     }
 
-    function continueAfterJoinMemberProfileSave(member = {}) {
+    async function continueAfterJoinMemberProfileSave(member = {}) {
       const afterLogin = joinMyMenuState.pendingProfileAfterLogin || joinMyMenuState.pendingAfterLogin || "my-menu";
       const params = joinMyMenuState.pendingProfileParams || {};
       joinMyMenuState.pendingProfileAfterLogin = "my-menu";
@@ -2405,47 +3675,464 @@
       joinMyMenuState.pendingProfileMember = null;
       closeJoinMemberLoginModal();
       if (afterLogin === "builder") {
-        continueBuilderAfterLogin(params, { skipProfileCheck: true });
-        return;
+        const resumed = await continueBuilderAfterLogin(params, { skipProfileCheck: true });
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "apply") {
         if (params.applyJoinId) currentDetailJoinId = params.applyJoinId;
-        openGlobalApply({ skipProfileCheck: true });
-        return;
+        const resumed = await openGlobalApply({ skipProfileCheck: true });
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "interest") {
         setJoinMobileNavActive("my");
-        openJoinMyMenu({ skipProfileCheck: true, member });
-        return;
+        const resumed = await openJoinMyMenu({ skipProfileCheck: true, member });
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "my-drawer") {
         setJoinMobileNavActive("my");
-        showJoinMyDrawer(member);
-        return;
+        const resumed = await showJoinMyDrawer(member);
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "detail-wish") {
-        continueDetailWishAfterLogin(params, { skipProfileCheck: true });
-        return;
+        const resumed = await continueDetailWishAfterLogin(params, { skipProfileCheck: true });
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "detail") {
-        continueJoinExternalDetailAfterLogin(params);
-        return;
+        const resumed = await continueJoinExternalDetailAfterLogin(params);
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "my-section") {
-        continueMyHomeJoinDeepLinkAfterLogin(params);
-        return;
+        const resumed = await continueMyHomeJoinDeepLinkAfterLogin(params);
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "profile-manage") {
-        openJoinProfileManageModal();
-        return;
+        const resumed = await openJoinProfileManageModal();
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       if (afterLogin === "my-menu") {
         setJoinMobileNavActive("my");
-        openJoinMyMenu({ skipProfileCheck: true, member, tab: params.golfjoinTab || "" });
-        return;
+        const resumed = await openJoinMyMenu({ skipProfileCheck: true, member, tab: params.golfjoinTab || "" });
+        trackJoinLoginReturnComplete(afterLogin, resumed);
+        return resumed;
       }
       setJoinMobileNavActive("my");
-      openJoinMyMenu({ skipProfileCheck: true, member });
+      const resumed = await openJoinMyMenu({ skipProfileCheck: true, member });
+      trackJoinLoginReturnComplete(afterLogin, resumed);
+      return resumed;
+    }
+
+    let joinMemberBirthDateUpgradeMember = null;
+    let joinMemberBirthDateUpgradeBusy = false;
+    let joinMemberBirthDateUpgradeContinue = false;
+
+    function ensureJoinMemberBirthDateUpgradeModal() {
+      let overlay = document.getElementById("joinMemberBirthDateUpgradeModal");
+      if (overlay) return overlay;
+      overlay = document.createElement("div");
+      overlay.id = "joinMemberBirthDateUpgradeModal";
+      overlay.className = "join-member-birthdate-upgrade-overlay";
+      overlay.innerHTML = `
+        <section class="join-member-birthdate-upgrade-modal" role="dialog" aria-modal="true" aria-labelledby="joinMemberBirthDateUpgradeTitle">
+          <header class="join-member-birthdate-upgrade-header">
+            <button type="button" class="join-member-birthdate-upgrade-close" data-birthdate-upgrade-close aria-label="나중에 입력하기">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </header>
+          <div class="join-member-birthdate-upgrade-content">
+            <div class="join-member-birthdate-upgrade-title" id="joinMemberBirthDateUpgradeTitle">생년월일을 입력해주세요.</div>
+            <p class="join-member-birthdate-upgrade-description">원활한 여행 예약을 위해 생년월일이 필요해요.</p>
+            <div class="join-member-birth-selects join-member-birthdate-upgrade-selects">
+              <select class="join-member-year-select" id="joinMemberBirthDateUpgradeYear" aria-label="출생연도"></select>
+              <select class="join-member-year-select" id="joinMemberBirthDateUpgradeMonth" aria-label="출생월"></select>
+              <select class="join-member-year-select" id="joinMemberBirthDateUpgradeDay" aria-label="출생일"></select>
+            </div>
+            <p class="join-member-birthdate-upgrade-helper" id="joinMemberBirthDateUpgradeHelper" aria-live="polite"></p>
+            <button type="button" class="join-member-birthdate-upgrade-submit" id="joinMemberBirthDateUpgradeSubmit" disabled>저장하기</button>
+          </div>
+        </section>
+      `;
+      overlay.addEventListener("click", (event) => {
+        if (event.target.closest("[data-birthdate-upgrade-close]")) {
+          closeJoinMemberBirthDateUpgradePrompt();
+          return;
+        }
+        if (event.target.closest("#joinMemberBirthDateUpgradeSubmit")) submitJoinMemberBirthDateUpgrade();
+      });
+      ["Year", "Month", "Day"].forEach((part) => {
+        overlay.querySelector(`#joinMemberBirthDateUpgrade${part}`)?.addEventListener("change", () => {
+          const helper = overlay.querySelector("#joinMemberBirthDateUpgradeHelper");
+          if (helper) {
+            delete helper.dataset.error;
+            helper.textContent = "";
+          }
+          if (part === "Year" || part === "Month") populateJoinMemberBirthDateUpgradeDays();
+          updateJoinMemberBirthDateUpgradeState();
+        });
+      });
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function populateJoinMemberBirthDateUpgradeDays() {
+      const year = Number(document.getElementById("joinMemberBirthDateUpgradeYear")?.value || 0);
+      const month = Number(document.getElementById("joinMemberBirthDateUpgradeMonth")?.value || 0);
+      const daySelect = document.getElementById("joinMemberBirthDateUpgradeDay");
+      if (!daySelect) return;
+      const selectedDay = daySelect.value;
+      const dayCount = year && month ? new Date(year, month, 0).getDate() : 31;
+      daySelect.innerHTML = '<option value="">일</option>';
+      for (let day = 1; day <= dayCount; day += 1) {
+        const value = String(day).padStart(2, "0");
+        daySelect.insertAdjacentHTML("beforeend", `<option value="${value}">${day}일</option>`);
+      }
+      if ([...daySelect.options].some((option) => option.value === selectedDay)) daySelect.value = selectedDay;
+    }
+
+    function getJoinMemberBirthDateUpgradeValue() {
+      const year = document.getElementById("joinMemberBirthDateUpgradeYear")?.value || "";
+      const month = document.getElementById("joinMemberBirthDateUpgradeMonth")?.value || "";
+      const day = document.getElementById("joinMemberBirthDateUpgradeDay")?.value || "";
+      const birthDate = normalizeJoinMemberBirthDate(`${year}${month}${day}`);
+      return isJoinMemberAdultBirthDate(birthDate) ? birthDate : "";
+    }
+
+    function updateJoinMemberBirthDateUpgradeState() {
+      const submitButton = document.getElementById("joinMemberBirthDateUpgradeSubmit");
+      const helper = document.getElementById("joinMemberBirthDateUpgradeHelper");
+      const birthDate = getJoinMemberBirthDateUpgradeValue();
+      if (submitButton) submitButton.disabled = joinMemberBirthDateUpgradeBusy || !birthDate;
+      if (helper && !joinMemberBirthDateUpgradeBusy && !helper.dataset.error && !birthDate) {
+        helper.textContent = "";
+      }
+    }
+
+    function populateJoinMemberBirthDateUpgradeSelects(member = {}) {
+      const overlay = ensureJoinMemberBirthDateUpgradeModal();
+      const yearSelect = overlay.querySelector("#joinMemberBirthDateUpgradeYear");
+      const monthSelect = overlay.querySelector("#joinMemberBirthDateUpgradeMonth");
+      const daySelect = overlay.querySelector("#joinMemberBirthDateUpgradeDay");
+      const today = new Date();
+      const latestYear = today.getFullYear() - 18;
+      yearSelect.innerHTML = '<option value="">연도</option>';
+      for (let year = latestYear; year >= 1930; year -= 1) {
+        yearSelect.insertAdjacentHTML("beforeend", `<option value="${year}">${year}년</option>`);
+      }
+      monthSelect.innerHTML = '<option value="">월</option>';
+      for (let month = 1; month <= 12; month += 1) {
+        const value = String(month).padStart(2, "0");
+        monthSelect.insertAdjacentHTML("beforeend", `<option value="${value}">${month}월</option>`);
+      }
+      const birthDate = getJoinMemberBirthDate(member);
+      yearSelect.value = birthDate.slice(0, 4) || getJoinMemberBirthYear(member) || "";
+      monthSelect.value = birthDate.slice(4, 6) || "";
+      populateJoinMemberBirthDateUpgradeDays();
+      daySelect.value = birthDate.slice(6, 8) || "";
+      updateJoinMemberBirthDateUpgradeState();
+    }
+
+    function buildJoinMemberBirthDateUpgradePayload(member = {}, birthDate = "") {
+      const submittedAt = nowKstISOString();
+      const mobile = normalizeJoinMemberPhone(member.memberMobile || member.mobile || member.phone || "");
+      const profileId = getStableJoinMemberProfileId(member, mobile);
+      const travelStyles = splitJoinMemberProfileStyles(member.travelStyles || member.styles);
+      return {
+        profileId,
+        action: "upsert",
+        keyField: "profileId",
+        keyValue: profileId,
+        source: "join_member_profile",
+        sheet: "join_member_profiles",
+        submittedAt,
+        pageUrl: location.href,
+        memberSeq: member.memberSeq || "",
+        memberId: member.memberId || member.kakaoId || "",
+        memberName: member.memberName || member.name || "",
+        memberChannel: member.memberChannel || (member.kakaoId ? "KAKAO" : "HOME"),
+        memberMobile: mobile,
+        memberEmail: member.memberEmail || member.email || "",
+        birthYear: birthDate.slice(0, 4),
+        birthDate,
+        gender: normalizeJoinMemberGender(member.gender || ""),
+        profession: String(member.profession || "").trim(),
+        level: String(member.level || "").trim(),
+        travelStyles,
+        profileImageUrl: member.profileImageUrl || "",
+        profileThumbnailUrl: member.profileThumbnailUrl || member.profileImageUrl || "",
+        profileImageObjectName: member.profileImageObjectName || "",
+        profileImageMimeType: member.profileImageMimeType || "",
+        profileImageSize: member.profileImageSize || "",
+        member: {
+          memberSeq: member.memberSeq || "",
+          memberId: member.memberId || member.kakaoId || "",
+          memberName: member.memberName || member.name || "",
+          memberChannel: member.memberChannel || (member.kakaoId ? "KAKAO" : "HOME"),
+          memberMobile: mobile,
+          memberEmail: member.memberEmail || member.email || ""
+        },
+        profile: {
+          birthYear: birthDate.slice(0, 4),
+          birthDate,
+          gender: normalizeJoinMemberGender(member.gender || ""),
+          profession: String(member.profession || "").trim(),
+          level: String(member.level || "").trim(),
+          travelStyles,
+          requiredAgreed: true,
+          profileImageUrl: member.profileImageUrl || "",
+          profileThumbnailUrl: member.profileThumbnailUrl || member.profileImageUrl || "",
+          profileImageObjectName: member.profileImageObjectName || "",
+          profileImageMimeType: member.profileImageMimeType || "",
+          profileImageSize: member.profileImageSize || ""
+        },
+        kakao: {
+          kakaoId: member.kakaoId || (String(member.memberChannel || "").toUpperCase() === "KAKAO" ? member.memberId || "" : ""),
+          nickname: member.kakaoNickname || ""
+        }
+      };
+    }
+
+    function openJoinMemberBirthDateUpgradePrompt(member = {}, afterLogin = "", extraParams = {}, options = {}) {
+      if (!isJoinMemberBirthDateUpgradeRequired(member)) return false;
+      joinMemberBirthDateUpgradeMember = member;
+      joinMemberBirthDateUpgradeContinue = Boolean(options.continueAfterSave);
+      if (joinMemberBirthDateUpgradeContinue) {
+        joinMyMenuState.pendingProfileAfterLogin = afterLogin || "my-menu";
+        joinMyMenuState.pendingProfileParams = { ...extraParams };
+        joinMyMenuState.pendingProfileMember = member;
+      }
+      const overlay = ensureJoinMemberBirthDateUpgradeModal();
+      const helper = overlay.querySelector("#joinMemberBirthDateUpgradeHelper");
+      if (helper) {
+        delete helper.dataset.error;
+        helper.textContent = "";
+      }
+      populateJoinMemberBirthDateUpgradeSelects(member);
+      overlay.classList.add("open");
+      setWidgetModalOpen(true);
+      requestAnimationFrame(() => overlay.querySelector("#joinMemberBirthDateUpgradeYear")?.focus());
+      return true;
+    }
+
+    function closeJoinMemberBirthDateUpgradePrompt() {
+      if (joinMemberBirthDateUpgradeBusy) return;
+      document.getElementById("joinMemberBirthDateUpgradeModal")?.classList.remove("open");
+      if (joinMemberBirthDateUpgradeContinue) {
+        joinMyMenuState.pendingProfileAfterLogin = "my-menu";
+        joinMyMenuState.pendingProfileParams = {};
+        joinMyMenuState.pendingProfileMember = null;
+      }
+      joinMemberBirthDateUpgradeMember = null;
+      joinMemberBirthDateUpgradeContinue = false;
+      setWidgetModalOpen(false);
+    }
+
+    async function submitJoinMemberBirthDateUpgrade() {
+      const member = joinMemberBirthDateUpgradeMember;
+      const birthDate = getJoinMemberBirthDateUpgradeValue();
+      if (!member || !birthDate || joinMemberBirthDateUpgradeBusy) {
+        updateJoinMemberBirthDateUpgradeState();
+        return;
+      }
+      const overlay = ensureJoinMemberBirthDateUpgradeModal();
+      const helper = overlay.querySelector("#joinMemberBirthDateUpgradeHelper");
+      const closeButton = overlay.querySelector("[data-birthdate-upgrade-close]");
+      const shouldContinue = joinMemberBirthDateUpgradeContinue;
+      joinMemberBirthDateUpgradeBusy = true;
+      if (closeButton) closeButton.disabled = true;
+      if (helper) helper.textContent = "생년월일을 저장하고 있어요.";
+      updateJoinMemberBirthDateUpgradeState();
+      try {
+        const payload = buildJoinMemberBirthDateUpgradePayload(member, birthDate);
+        await updateSecretTourMemberProfile(payload, member);
+        const saveResult = await saveJoinMemberProfileWithConfirmation(payload, member);
+        const savedProfile = normalizeJoinMemberProfileRow({
+          ...member,
+          ...payload,
+          ...payload.profile,
+          profileId: saveResult?.profileId || payload.profileId,
+          updatedAt: payload.submittedAt
+        });
+        rememberJoinMemberProfileLocally(member, savedProfile);
+        const updatedMember = mergeJoinMemberWithProfile(member, savedProfile);
+        rememberJoinMemberProfileCompletion(updatedMember, true);
+        joinMyMenuState.memberPromise = Promise.resolve(updatedMember);
+        if (getJoinSessionMember()) setJoinSessionMember(updatedMember);
+        overlay.classList.remove("open");
+        joinMemberBirthDateUpgradeMember = null;
+        joinMemberBirthDateUpgradeContinue = false;
+        setWidgetModalOpen(false);
+        await promptJoinPendingRosterCandidates({ source: "birthdate-upgrade" });
+        if (shouldContinue) continueAfterJoinMemberProfileSave(updatedMember);
+      } catch (error) {
+        golfJoinSafeWarn("Existing member birth date update failed.", { code: error?.code, status: error?.status });
+        if (helper) {
+          helper.dataset.error = "true";
+          helper.textContent = "생년월일을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+        }
+      } finally {
+        joinMemberBirthDateUpgradeBusy = false;
+        if (closeButton) closeButton.disabled = false;
+        updateJoinMemberBirthDateUpgradeState();
+      }
+    }
+
+    let joinPendingRosterPromptPromise = null;
+    let joinPendingRosterPromptResolve = null;
+    let joinPendingRosterPromptCandidates = [];
+    let joinPendingRosterPromptBusy = false;
+
+    function formatJoinPendingRosterDate(value = "") {
+      const text = String(value || "").trim();
+      const match = text.match(/^(\d{4})[-./]?(\d{2})[-./]?(\d{2})/);
+      return match ? `${Number(match[2])}.${Number(match[3])}` : text;
+    }
+
+    function ensureJoinPendingRosterModal() {
+      let overlay = document.getElementById("joinPendingRosterModal");
+      if (overlay) return overlay;
+      overlay = document.createElement("div");
+      overlay.id = "joinPendingRosterModal";
+      overlay.className = "join-pending-roster-overlay";
+      overlay.innerHTML = `
+        <section class="join-pending-roster-modal" role="dialog" aria-modal="true" aria-labelledby="joinPendingRosterTitle">
+          <button type="button" class="join-pending-roster-close" data-pending-roster-later aria-label="나중에 확인하기">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+          </button>
+          <div class="join-pending-roster-kicker">참여 기록 확인</div>
+          <h2 class="join-pending-roster-title" id="joinPendingRosterTitle">이전에 등록된 일정이 있어요</h2>
+          <p class="join-pending-roster-description">관리자가 먼저 등록한 참여자 정보와 회원님의 이름, 생년월일, 성별이 일치합니다.</p>
+          <div class="join-pending-roster-content" id="joinPendingRosterContent"></div>
+          <p class="join-pending-roster-status" id="joinPendingRosterStatus" aria-live="polite"></p>
+          <div class="join-pending-roster-actions">
+            <button type="button" class="join-pending-roster-button secondary" data-pending-roster-decision="reject">아니요</button>
+            <button type="button" class="join-pending-roster-button primary" data-pending-roster-decision="accept">맞아요, 내 일정이에요</button>
+          </div>
+          <button type="button" class="join-pending-roster-later" data-pending-roster-later>나중에 확인하기</button>
+        </section>
+      `;
+      overlay.addEventListener("click", (event) => {
+        const laterButton = event.target.closest("[data-pending-roster-later]");
+        if (laterButton) {
+          closeJoinPendingRosterPrompt();
+          return;
+        }
+        const decisionButton = event.target.closest("[data-pending-roster-decision]");
+        if (decisionButton) decideJoinPendingRosterCandidate(decisionButton.dataset.pendingRosterDecision);
+      });
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    function renderJoinPendingRosterPrompt() {
+      const overlay = ensureJoinPendingRosterModal();
+      const candidate = joinPendingRosterPromptCandidates[0];
+      const content = overlay.querySelector("#joinPendingRosterContent");
+      const status = overlay.querySelector("#joinPendingRosterStatus");
+      const decisionButtons = overlay.querySelectorAll("[data-pending-roster-decision]");
+      decisionButtons.forEach((button) => { button.disabled = joinPendingRosterPromptBusy; });
+      if (status) status.textContent = joinPendingRosterPromptBusy ? "확인 내용을 저장하고 있어요." : "";
+      if (!candidate || !content) return;
+      const period = [formatJoinPendingRosterDate(candidate.departureDate), formatJoinPendingRosterDate(candidate.returnDate)]
+        .filter(Boolean)
+        .join(" ~ ");
+      content.innerHTML = `
+        <div class="join-pending-roster-card">
+          <div class="join-pending-roster-product">${escapeHtml(candidate.productName || "골프조인 일정")}</div>
+          <div class="join-pending-roster-meta">
+            ${candidate.region ? `<span>${escapeHtml(candidate.region)}</span>` : ""}
+            ${period ? `<span>${escapeHtml(period)}</span>` : ""}
+          </div>
+          <p class="join-pending-roster-question">이 일정을 다녀오신 적이 있나요?</p>
+        </div>
+        ${joinPendingRosterPromptCandidates.length > 1
+          ? `<div class="join-pending-roster-progress">확인할 일정 ${joinPendingRosterPromptCandidates.length}건</div>`
+          : ""}
+      `;
+    }
+
+    function finishJoinPendingRosterPrompt(result = {}) {
+      const resolve = joinPendingRosterPromptResolve;
+      joinPendingRosterPromptResolve = null;
+      joinPendingRosterPromptPromise = null;
+      joinPendingRosterPromptCandidates = [];
+      joinPendingRosterPromptBusy = false;
+      resolve?.(result);
+    }
+
+    function closeJoinPendingRosterPrompt() {
+      const overlay = document.getElementById("joinPendingRosterModal");
+      overlay?.classList.remove("open");
+      finishJoinPendingRosterPrompt({ ok: true, deferred: true });
+    }
+
+    async function decideJoinPendingRosterCandidate(decision = "") {
+      const candidate = joinPendingRosterPromptCandidates[0];
+      if (!candidate || joinPendingRosterPromptBusy || !["accept", "reject"].includes(decision)) return;
+      joinPendingRosterPromptBusy = true;
+      renderJoinPendingRosterPrompt();
+      try {
+        await postGolfJoinSheetAction("member_pending_roster_decide", {
+          applicationIds: [candidate.applicationId],
+          decision
+        }, "Pending roster decision", { timeoutMs: 20000 });
+        if (decision === "accept") clearJoinPrivateClientCaches();
+        joinPendingRosterPromptCandidates.shift();
+        joinPendingRosterPromptBusy = false;
+        if (joinPendingRosterPromptCandidates.length) {
+          renderJoinPendingRosterPrompt();
+          return;
+        }
+        document.getElementById("joinPendingRosterModal")?.classList.remove("open");
+        finishJoinPendingRosterPrompt({ ok: true, decision });
+      } catch (error) {
+        joinPendingRosterPromptBusy = false;
+        renderJoinPendingRosterPrompt();
+        const status = document.getElementById("joinPendingRosterStatus");
+        if (status) status.textContent = "확인 내용을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+        golfJoinSafeWarn("Pending roster decision failed.", { status: error?.status, code: error?.code });
+      }
+    }
+
+    async function promptJoinPendingRosterCandidates(options = {}) {
+      if (joinPendingRosterPromptPromise) {
+        if (typeof options.beforePromptOpen === "function") {
+          await options.beforePromptOpen();
+        }
+        return joinPendingRosterPromptPromise;
+      }
+      let data;
+      try {
+        data = await postGolfJoinSheetAction(
+          "member_pending_roster_candidates",
+          {},
+          "Pending roster candidates",
+          { timeoutMs: 20000 }
+        );
+      } catch (error) {
+        golfJoinSafeWarn("Pending roster candidate lookup skipped.", { status: error?.status, code: error?.code });
+        return { ok: false, skipped: true };
+      }
+      const items = getGolfJoinSheetActionRows(data).filter((item) => item?.applicationId);
+      if (!items.length) return { ok: true, count: 0 };
+      joinPendingRosterPromptCandidates = items;
+      joinPendingRosterPromptPromise = new Promise((resolve) => {
+        joinPendingRosterPromptResolve = resolve;
+      });
+      if (typeof options.beforePromptOpen === "function") {
+        await options.beforePromptOpen();
+      }
+      const overlay = ensureJoinPendingRosterModal();
+      renderJoinPendingRosterPrompt();
+      overlay.classList.add("open");
+      requestAnimationFrame(() => overlay.querySelector(".join-pending-roster-button.primary")?.focus());
+      return joinPendingRosterPromptPromise;
     }
 
     function resetJoinMemberSignupValidation() {
@@ -2455,6 +4142,7 @@
       joinMyMenuState.signupDuplicateLocks = {};
       joinMyMenuState.signupDuplicateTimers = {};
       joinMyMenuState.signupDuplicateCheckedValues = {};
+      resetJoinMemberSignupPhoneAuth();
       closeJoinMemberSignupAlert();
       [
         ["joinMemberSignupEmailField", "joinMemberSignupEmailHelper"],
@@ -2499,6 +4187,7 @@
         "validTermCd",
         "custId",
         "custNm",
+        "birthday",
         "mobile",
         "email"
       ];
@@ -2521,6 +4210,7 @@
         "validTermCd",
         "email",
         "custNm",
+        "birthday",
         "mobile"
       ];
       return allowedKeys.reduce((payload, key) => {
@@ -2538,6 +4228,125 @@
         extnChnlLinkToken: data.extnChnlLinkToken || "",
         extnChnlLinkCd: "KAKAO"
       };
+    }
+
+    async function getJoinKakaoErpMemberAfterSignup(data = {}, options = {}) {
+      const required = options.required === true;
+      const retryDelays = required ? [0, 500, 1000, 2000, 3500] : [0];
+      let lastResult = null;
+      let lastError = null;
+      for (const delayMs of retryDelays) {
+        if (delayMs > 0) await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+        try {
+          lastResult = await postJoinMemberLoginForm(
+            "/member/getMemberExternalLoginCheck.json",
+            buildJoinExternalMemberLoginPayload(data)
+          );
+          lastError = null;
+        } catch (error) {
+          lastError = error;
+          lastResult = null;
+        }
+        if ((lastResult?.message || "") !== "SUCCESS") {
+          const sessionDetail = await fetchJoinMemberDetail().catch(() => null);
+          const expectedName = String(data.custNm || data.externalName || "").replace(/\s+/g, "").toLowerCase();
+          const detailName = String(sessionDetail?.memberName || "").replace(/\s+/g, "").toLowerCase();
+          const expectedMobile = normalizeJoinMemberPhone(data.mobile || "");
+          const detailMobile = normalizeJoinMemberPhone(sessionDetail?.memberMobile || "");
+          const expectedKakaoId = String(data.externalId || data.custId || "").trim();
+          const detailMemberId = String(sessionDetail?.memberId || "").trim();
+          if (
+            /^\d+$/.test(String(sessionDetail?.memberSeq || "").trim())
+            && expectedName
+            && detailName === expectedName
+            && expectedMobile
+            && detailMobile === expectedMobile
+            && (!detailMemberId || !expectedKakaoId || detailMemberId === expectedKakaoId)
+          ) {
+            const erpMember = mergeJoinMemberIdentity(
+              getJoinMemberFromKakaoSignupData(data),
+              sessionDetail
+            );
+            setJoinSessionMember(erpMember);
+            return erpMember;
+          }
+          continue;
+        }
+        const erpMember = mergeJoinMemberIdentity(
+          getJoinMemberFromKakaoSignupData(data),
+          buildJoinErpMemberFromLoginResponse(lastResult, buildJoinMemberKakaoResponseSnapshot(data))
+        );
+        if (!/^\d+$/.test(String(erpMember.memberSeq || "").trim())) {
+          if (!required) return null;
+          throw createJoinMemberApiError("ERP 회원 식별정보를 확인하지 못했습니다.", {
+            endpoint: "/member/getMemberExternalLoginCheck.json",
+            code: "member_kakao_erp_identity_missing",
+            responseData: lastResult
+          });
+        }
+        setJoinSessionMember(erpMember);
+        return erpMember;
+      }
+      if (!required) return null;
+      throw createJoinMemberApiError(
+        summarizeJoinMemberApiResponse(lastResult)
+          || lastError?.serverMessage
+          || lastError?.message
+          || "생성된 카카오 회원정보를 확인하지 못했습니다.",
+        {
+          endpoint: "/member/getMemberExternalLoginCheck.json",
+          code: "member_kakao_erp_login_failed",
+          status: lastError?.status,
+          responseData: lastResult
+        }
+      );
+    }
+
+    async function establishJoinKakaoSignupAuthSession(data = {}, erpMember = {}, profilePayload = null) {
+      const result = await postGolfJoinMemberAuthAction("member_kakao_signup_complete", {
+        kakaoAccessToken: data.extnChnlLinkToken || "",
+        memberSeq: erpMember.memberSeq || "",
+        memberId: data.externalId || data.custId || erpMember.memberId || "",
+        memberName: data.custNm || data.externalName || erpMember.memberName || "",
+        memberMobile: data.mobile || erpMember.memberMobile || "",
+        ...(profilePayload ? { profilePayload } : {})
+      }, { timeoutMs: 60000 });
+      storeJoinMemberAuthSession(result);
+      const verifiedMemberSeq = String(result?.member?.memberSeq || "").trim()
+        || String(result?.memberKey || "").match(/^seq:(\d+)$/)?.[1]
+        || "";
+      if (!verifiedMemberSeq) {
+        throw createJoinMemberApiError("확정된 ERP 회원번호를 확인하지 못했습니다.", {
+          code: "member_kakao_erp_identity_missing"
+        });
+      }
+      const finalizedMember = mergeJoinMemberIdentity(
+        getJoinMemberFromKakaoSignupData(data),
+        {
+          ...erpMember,
+          ...(result?.member || {}),
+          memberSeq: verifiedMemberSeq
+        }
+      );
+      setJoinSessionMember(finalizedMember);
+      return { ...result, erpMember: finalizedMember };
+    }
+
+    async function finalizeJoinKakaoSignupAndContinue(data = {}, erpMember = {}, profilePayload = null, options = {}) {
+      const fallbackMember = mergeJoinMemberIdentity(
+        getJoinMemberFromKakaoSignupData(data),
+        erpMember
+      );
+      const authResult = await establishJoinKakaoSignupAuthSession(data, fallbackMember, profilePayload);
+      const finalizedMember = authResult?.erpMember || fallbackMember;
+      await saveJoinMemberKakaoProfileAndContinue(data, finalizedMember, {
+        serverFinalized: true,
+        profilePayload,
+        saveResult: authResult?.profile || {},
+        trackSignup: options.trackSignup === true,
+        trackLogin: options.trackLogin === true
+      });
+      return finalizedMember;
     }
 
     async function prepareJoinMemberSaveSession(validTermCd = "010") {
@@ -2598,6 +4407,7 @@
     }
 
     function showJoinMemberFindPwFail() {
+      document.getElementById("joinMemberFindPwForm")?.classList.remove("is-reset-mode");
       document.getElementById("joinMemberFindPwReset")?.classList.remove("is-visible");
       document.getElementById("joinMemberFindPwFail")?.classList.add("is-visible");
       document.querySelector("[data-find-pw-check]")?.removeAttribute("hidden");
@@ -2689,6 +4499,9 @@
           return;
         }
         joinMyMenuState.resetPasswordToken = { custSeq: resetCustSeq, custId: resetCustId, loginId: custId };
+        const resetUsername = document.getElementById("joinMemberResetUsername");
+        if (resetUsername) resetUsername.value = custId;
+        document.getElementById("joinMemberFindPwForm")?.classList.add("is-reset-mode");
         document.getElementById("joinMemberFindPwReset")?.classList.add("is-visible");
         document.querySelector("[data-find-pw-check]")?.setAttribute("hidden", "");
         setJoinMemberLoginStatus("");
@@ -2771,26 +4584,36 @@
 
     async function checkJoinMemberKakaoSignupDuplicates(data) {
       joinMyMenuState.lastSignupDuplicateField = "";
-      const idCheck = await postJoinMemberForm("/member/getMemberIdCheck.json", { custId: data.custId });
+      const duplicateChecks = await Promise.allSettled([
+        postJoinMemberForm("/member/getMemberIdCheck.json", { custId: data.custId }),
+        postJoinMemberForm("/member/getMemberMobileCheck.json", {
+          mobile1: data.mobile1,
+          mobile2: data.mobile2,
+          mobile3: data.mobile3
+        }),
+        data.email
+          ? postJoinMemberForm("/member/getMemberEmailCheck.json", { email: data.email })
+          : Promise.resolve({ count: 0 })
+      ]);
+      const readDuplicateCheck = (index) => {
+        const result = duplicateChecks[index];
+        if (result?.status === "rejected") throw result.reason;
+        return result?.value || { count: 0 };
+      };
+      const idCheck = readDuplicateCheck(0);
       if (Number(idCheck?.count) !== 0) {
         joinMyMenuState.lastSignupDuplicateField = "id";
         return getJoinMemberSignupDuplicateMessage("id");
       }
-      const mobileCheck = await postJoinMemberForm("/member/getMemberMobileCheck.json", {
-        mobile1: data.mobile1,
-        mobile2: data.mobile2,
-        mobile3: data.mobile3
-      });
+      const mobileCheck = readDuplicateCheck(1);
       if (Number(mobileCheck?.count) !== 0) {
         joinMyMenuState.lastSignupDuplicateField = "mobile";
         return getJoinMemberSignupDuplicateMessage("mobile");
       }
-      if (data.email) {
-        const emailCheck = await postJoinMemberForm("/member/getMemberEmailCheck.json", { email: data.email });
-        if (Number(emailCheck?.count) !== 0) {
-          joinMyMenuState.lastSignupDuplicateField = "email";
-          return getJoinMemberSignupDuplicateMessage("email");
-        }
+      const emailCheck = readDuplicateCheck(2);
+      if (Number(emailCheck?.count) !== 0) {
+        joinMyMenuState.lastSignupDuplicateField = "email";
+        return getJoinMemberSignupDuplicateMessage("email");
       }
       return "";
     }
@@ -2801,6 +4624,7 @@
       const name = document.getElementById("joinMemberSignupName")?.value.trim() || pending.name || "";
       const email = document.getElementById("joinMemberSignupContactEmail")?.value.trim() || pending.email || "";
       const birthYear = document.getElementById("joinMemberSignupBirthYear")?.value || "";
+      const birthDate = getJoinMemberSignupBirthDate();
       const gender = getJoinMemberSignupSelectedGender();
       const profession = document.getElementById("joinMemberSignupProfession")?.value || "";
       const level = getJoinMemberSignupSelectedLevel();
@@ -2825,6 +4649,8 @@
         mobile,
         email,
         birthYear,
+        birthDate,
+        birthday: birthDate,
         gender,
         profession,
         level,
@@ -2865,27 +4691,37 @@
       return merged;
     }
 
-    async function saveJoinMemberKakaoProfileAndContinue(data = {}, erpMember = {}) {
+    async function saveJoinMemberKakaoProfileAndContinue(data = {}, erpMember = {}, options = {}) {
       const memberForSheet = mergeJoinMemberIdentity(getJoinMemberFromKakaoSignupData(data), erpMember);
-      const existingProfile = await fetchJoinMemberProfileFromGoogleSheet(memberForSheet, { refresh: true });
+      const serverFinalized = options.serverFinalized === true;
+      const existingProfile = serverFinalized
+        ? null
+        : await fetchJoinMemberProfileFromGoogleSheet(memberForSheet, { refresh: true });
       if (existingProfile?.profileId) {
         rememberJoinMemberProfileLocally(memberForSheet, existingProfile);
       }
       const profileSnapshot = getJoinSignupProfileSnapshot(memberForSheet);
-      const profilePayload = buildJoinMemberProfilePayload(memberForSheet);
+      const profilePayload = options.profilePayload || buildJoinMemberProfilePayload(memberForSheet);
       if (existingProfile?.profileId) {
         profilePayload.profileId = existingProfile.profileId;
         profilePayload.keyValue = existingProfile.profileId;
       }
       setJoinMemberLoginStatus("추가정보를 저장하고 있어요.");
-      const saveResult = await saveJoinMemberProfileWithConfirmation(profilePayload, memberForSheet);
+      const saveResult = serverFinalized
+        ? options.saveResult || {}
+        : await saveJoinMemberProfileWithConfirmation(profilePayload, memberForSheet);
       const savedProfile = {
         ...profileSnapshot,
         profileId: saveResult?.profileId || profilePayload.profileId
       };
       rememberJoinMemberProfileLocally(memberForSheet, savedProfile);
       clearJoinPendingKakaoProfile();
-      finishJoinMemberSignupAndContinue(memberForSheet, savedProfile);
+      finishJoinMemberSignupAndContinue(memberForSheet, savedProfile, {
+        trackSignup: options.trackSignup === true,
+        signupMethod: "kakao",
+        trackLogin: options.trackLogin === true,
+        loginMethod: "kakao"
+      });
     }
 
     function buildJoinMemberProfilePayload(member = {}) {
@@ -2895,6 +4731,7 @@
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinMemberSignupMobile")?.value || member.memberMobile || "");
       const email = member.memberEmail || document.getElementById("joinMemberSignupContactEmail")?.value.trim() || pendingKakao.email || "";
       const birthYear = document.getElementById("joinMemberSignupBirthYear")?.value || "";
+      const birthDate = getJoinMemberSignupBirthDate();
       const gender = getJoinMemberSignupSelectedGender();
       const profession = document.getElementById("joinMemberSignupProfession")?.value || "";
       const level = getJoinMemberSignupSelectedLevel();
@@ -2922,6 +4759,7 @@
         memberMobile: mobile,
         memberEmail: email,
         birthYear,
+        birthDate,
         gender,
         profession,
         level,
@@ -2936,6 +4774,7 @@
         },
         profile: {
           birthYear,
+          birthDate,
           gender,
           profession,
           level,
@@ -2995,16 +4834,34 @@
           setJoinMemberSignupStep(3);
           return;
         }
+        const profilePayload = buildJoinMemberProfilePayload(getJoinMemberFromKakaoSignupData(data));
+        rememberJoinPendingKakaoSignupDraft(profilePayload);
         try {
           joinMyMenuState.loginRedirecting = true;
-          setJoinMemberLoginStatus("카카오 회원가입을 진행하고 있어요.");
+          setJoinMemberLoginStatus("가입정보를 확인하고 있어요.");
           if (!canUseSecretTourMemberApi()) {
             golfJoinSafeWarn("Kakao ERP signup skipped outside secret-tour.com.", location.origin);
-            await saveJoinMemberKakaoProfileAndContinue(data);
+            await saveJoinMemberKakaoProfileAndContinue(data, {}, { trackSignup: true });
             return;
           }
+          let createdNewKakaoMember = false;
           const duplicateMessage = await checkJoinMemberKakaoSignupDuplicates(data);
           if (duplicateMessage) {
+            try {
+              setJoinMemberLoginStatus("로그인을 연결하고 있어요.");
+              await finalizeJoinKakaoSignupAndContinue(
+                data,
+                getJoinMemberFromKakaoSignupData(data),
+                profilePayload,
+                { trackLogin: true }
+              );
+              return;
+            } catch (resumeError) {
+              golfJoinSafeWarn("Existing Kakao ERP member server finalization failed.", {
+                code: resumeError?.code,
+                status: resumeError?.status
+              });
+            }
             joinMyMenuState.loginRedirecting = false;
             setJoinMemberLoginStatus(duplicateMessage);
             showJoinMemberSignupAlert(
@@ -3013,26 +4870,49 @@
             );
             return;
           }
+          setJoinMemberLoginStatus("회원정보를 생성하고 있어요.");
           const result = await postJoinMemberForm(
             "/member/saveExternalMember.json",
             buildJoinExternalMemberSavePayload(data)
           );
+          createdNewKakaoMember = true;
           if ((result?.message || "") !== "SUCCESS") {
-            throw createJoinMemberApiError(summarizeJoinMemberApiResponse(result) || "카카오 회원가입 저장에 실패했습니다.", {
-              endpoint: "/member/saveExternalMember.json",
-              responseData: result
+            golfJoinSafeWarn("Kakao ERP signup returned a non-success response; verifying on server.", {
+              message: summarizeJoinMemberApiResponse(result)
             });
           }
-          const savedErpMember = buildJoinErpMemberFromLoginResponse(
-            result,
-            buildJoinMemberKakaoResponseSnapshot(data)
+          setJoinMemberLoginStatus("로그인을 연결하고 있어요.");
+          await finalizeJoinKakaoSignupAndContinue(
+            data,
+            getJoinMemberFromKakaoSignupData(data),
+            profilePayload,
+            {
+              trackSignup: createdNewKakaoMember,
+              trackLogin: !createdNewKakaoMember
+            }
           );
-          await saveJoinMemberKakaoProfileAndContinue(data, savedErpMember);
           return;
         } catch (error) {
           joinMyMenuState.loginRedirecting = false;
           golfJoinSafeWarn("Kakao signup failed.", error);
-          if (error?.endpoint === "/member/saveExternalMember.json" && Number(error?.status) === 400) {
+          if (error?.endpoint === "/member/saveExternalMember.json") {
+            try {
+              joinMyMenuState.loginRedirecting = true;
+              setJoinMemberLoginStatus("회원정보를 확인하고 로그인을 연결하고 있어요.");
+              await finalizeJoinKakaoSignupAndContinue(
+                data,
+                getJoinMemberFromKakaoSignupData(data),
+                profilePayload,
+                { trackSignup: true }
+              );
+              return;
+            } catch (resumeError) {
+              golfJoinSafeWarn("Kakao signup server recovery after ERP save response failed.", {
+                code: resumeError?.code,
+                status: resumeError?.status
+              });
+              joinMyMenuState.loginRedirecting = false;
+            }
             try {
               const duplicateMessage = await checkJoinMemberKakaoSignupDuplicates(data);
               if (duplicateMessage) {
@@ -3052,7 +4932,7 @@
             ? "추가정보 저장이 지연되고 있습니다. 잠시 후 입력 완료를 다시 눌러 주세요."
             : "카카오 회원가입 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
           setJoinMemberLoginStatus(userMessage);
-          showJoinMemberSignupAlert(userMessage);
+          showJoinMemberSignupAlert(userMessage, "", "회원가입을 완료하지 못했습니다");
           return;
         }
       }
@@ -3083,6 +4963,7 @@
         const updatedMember = mergeJoinMemberWithProfile(member, savedProfile);
         rememberJoinMemberProfileCompletion(updatedMember, isJoinMemberProfileComplete(updatedMember));
         joinMyMenuState.memberPromise = Promise.resolve(updatedMember);
+        await promptJoinPendingRosterCandidates({ source: "profile-save" });
         if (profileRequired) {
           continueAfterJoinMemberProfileSave(updatedMember);
           return;
@@ -3108,6 +4989,7 @@
       const name = document.getElementById("joinMemberSignupName")?.value.trim() || "";
       const mobile = normalizeJoinMemberPhone(document.getElementById("joinMemberSignupMobile")?.value || "");
       const birthYear = document.getElementById("joinMemberSignupBirthYear")?.value || "";
+      const birthDate = getJoinMemberSignupBirthDate();
       const gender = getJoinMemberSignupSelectedGender();
       const profession = document.getElementById("joinMemberSignupProfession")?.value || "";
       const level = getJoinMemberSignupSelectedLevel();
@@ -3168,6 +5050,8 @@
         mobile,
         email,
         birthYear,
+        birthDate,
+        birthday: birthDate,
         gender,
         profession,
         level,
@@ -3182,6 +5066,39 @@
           setJoinMemberLoginStatus("");
           const focusTargetId = getJoinMemberSignupDuplicateFocusId(joinMyMenuState.lastSignupDuplicateField);
           showJoinMemberSignupAlert(duplicateMessage, focusTargetId);
+          return;
+        }
+        const signupPhoneAuth = joinMyMenuState.signupPhoneAuth;
+        if (
+          !isJoinMemberSignupPhoneVerified()
+          || signupPhoneAuth?.mobile !== mobile
+          || !signupPhoneAuth?.verificationToken
+        ) {
+          joinMyMenuState.loginRedirecting = false;
+          setJoinMemberSignupStep(3);
+          setJoinMemberFieldInvalid(
+            "joinMemberSignupMobileField",
+            "joinMemberSignupMobileHelper",
+            "휴대폰 인증을 완료해 주세요."
+          );
+          document.getElementById("joinMemberSignupPhoneSendButton")?.focus();
+          return;
+        }
+        try {
+          await postGolfJoinMemberAuthAction("member_signup_phone_assert", {
+            mobile,
+            verificationToken: signupPhoneAuth.verificationToken
+          });
+        } catch (phoneAuthError) {
+          joinMyMenuState.loginRedirecting = false;
+          resetJoinMemberSignupPhoneAuth({ keepHelper: true });
+          setJoinMemberSignupStep(3);
+          setJoinMemberFieldInvalid(
+            "joinMemberSignupMobileField",
+            "joinMemberSignupMobileHelper",
+            String(phoneAuthError?.message || "휴대폰 인증이 만료되었습니다. 다시 인증해 주세요.")
+          );
+          document.getElementById("joinMemberSignupPhoneSendButton")?.focus();
           return;
         }
         setJoinMemberLoginStatus("회원가입을 진행하고 있어요.");
@@ -3213,6 +5130,7 @@
           profileId: saveResult?.profileId || profilePayload.profileId
         };
         rememberJoinMemberProfileLocally(signupMember, savedSignupProfile);
+        trackGolfJoinGa4Event("sign_up", { method: "email", member_state: "homepage" });
         setJoinMemberLoginStatus("가입이 완료되었어요. 로그인하고 있어요.");
         joinMyMenuState.loginRedirecting = false;
         try {
@@ -3223,7 +5141,28 @@
           if ((loginResult?.message || "") !== "SUCCESS") {
             throw new Error(loginResult?.message || "login failed after signup");
           }
-          finishJoinMemberSignupAndContinue(signupMember, savedSignupProfile);
+          const verifiedSignupMember = buildJoinHomeMemberFromLoginResponse(loginResult, signupMember);
+          try {
+            const authResult = await postGolfJoinMemberAuthAction("member_signup_phone_complete", {
+              memberSeq: verifiedSignupMember.memberSeq,
+              memberId: verifiedSignupMember.memberId,
+              memberName: verifiedSignupMember.memberName,
+              mobile,
+              verificationToken: signupPhoneAuth.verificationToken
+            });
+            storeJoinMemberAuthSession(authResult);
+          } catch (smsAuthError) {
+            if (isJoinMemberSmsAuthEnabledFor(verifiedSignupMember)) {
+              await rollbackJoinMemberErpLoginAfterSmsAuthFailure();
+              throw smsAuthError;
+            }
+            golfJoinSafeWarn("Signup phone verification session completion failed.", {
+              code: smsAuthError?.code,
+              status: smsAuthError?.status
+            });
+          }
+          await promptJoinPendingRosterCandidates({ source: "signup" });
+          finishJoinMemberSignupAndContinue(verifiedSignupMember, savedSignupProfile);
           return;
         } catch (loginError) {
           golfJoinSafeWarn("Auto login after signup failed.", loginError);
@@ -3298,22 +5237,51 @@
         setJoinMemberLoginStatus("운영 도메인에서 로그인 모듈을 불러온 뒤 이용해 주세요.");
         return;
       }
+      trackGolfJoinGa4Event("golfjoin_login_start", { login_method: "email" });
       joinMyMenuState.loginRedirecting = true;
       setJoinMemberLoginStatus("");
+      const encryptedPassword = window.$.crypto.encrypt(custPwPlain);
       postJoinMemberLoginForm("/member/getMemberLoginCheck.json", {
         custId,
-        custPw: window.$.crypto.encrypt(custPwPlain)
-      }).then((aspData) => {
-        joinMyMenuState.loginRedirecting = false;
+        custPw: encryptedPassword
+      }).then(async (aspData) => {
         if ((aspData?.message || "") === "SUCCESS") {
+          let member = buildJoinHomeMemberFromLoginResponse(aspData, { memberId: custId });
+          if (isJoinMemberSmsAuthEnabledFor(member)) {
+            try {
+              if (!member.memberSeq || !member.memberName || !member.memberMobile) {
+                const profileMember = await fetchJoinMemberProfileFromGoogleSheet(member, { refresh: true });
+                member = mergeJoinMemberIdentity(member, profileMember);
+                member.memberChannel = "HOME";
+              }
+              setJoinMemberAuthPendingLogin(member);
+              await clearJoinMemberErpLoginForSmsAuth({ clearPending: false, revokeAuthSession: true });
+              await beginJoinMemberSmsAuth(member, {
+                flow: "login",
+                erpLogin: { custId, custPw: encryptedPassword }
+              });
+            } catch (error) {
+              await rollbackJoinMemberErpLoginAfterSmsAuthFailure();
+              joinMyMenuState.loginRedirecting = false;
+              golfJoinSafeWarn("Failed to start member SMS authentication.", { code: error?.code, status: error?.status });
+              setJoinMemberLoginStatus(getJoinMemberOtpErrorMessage(error));
+              document.getElementById("joinMemberLoginId")?.focus();
+            }
+            return;
+          }
           clearJoinLogoutMarker();
+          joinMyMenuState.loginRedirecting = false;
+          trackGolfJoinGa4Event("login", { method: "email", member_state: "homepage" });
           location.href = getJoinLoginRedirectTarget();
           return;
         }
+        joinMyMenuState.loginRedirecting = false;
+        trackGolfJoinGa4Event("golfjoin_login_fail", { login_method: "email", error_type: "invalid_credentials" });
         setJoinMemberLoginStatus("아이디와 비밀번호를 확인해 주세요.");
         document.getElementById("joinMemberLoginId")?.focus();
       }).catch((error) => {
         joinMyMenuState.loginRedirecting = false;
+        trackGolfJoinGa4Event("golfjoin_login_fail", { login_method: "email", error_type: "request_failed" });
         golfJoinSafeWarn("Email login failed.", error);
         setJoinMemberLoginStatus("로그인 처리 중 오류가 발생했습니다.");
       });
@@ -3453,7 +5421,18 @@
     }
 
     async function fetchJoinMemberDetailPage(path) {
-      const response = await fetch(path, { credentials: "include", cache: "no-store" });
+      const response = await fetch(path, {
+        credentials: "include",
+        cache: "no-store",
+        redirect: "manual"
+      });
+      if (
+        response.type === "opaqueredirect"
+        || response.status === 0
+        || (response.status >= 300 && response.status < 400)
+      ) {
+        return { sessionExpired: true };
+      }
       if (!response.ok) throw new Error(`member page failed: ${response.status}`);
       if (response.url && /\/member\/login/i.test(response.url)) {
         return { sessionExpired: true };
@@ -3535,6 +5514,8 @@
 
     function clearJoinClientSessionAfterErpLogout() {
       setJoinLogoutMarker();
+      clearJoinMemberAuthPendingLogin();
+      void revokeJoinMemberAuthSession();
       try {
         sessionStorage.removeItem(JOIN_SESSION_MEMBER_KEY);
       } catch (error) {
@@ -3554,7 +5535,10 @@
 
     async function synchronizeJoinErpSession(options = {}) {
       if (!canUseSecretTourMemberApi()) return getJoinLoginState();
+      await waitForRenderedCookieDataReady();
+      const renderedCookieData = getRenderedCookieDataString();
       const before = getJoinLoginState();
+      if (!renderedCookieData || isJoinLoggedOutFromRenderedCookie(renderedCookieData)) return before;
       if (before.member?.isTempAdmin) return before;
       const loginModalOpen = document.getElementById("joinMemberLoginModal")?.classList.contains("open");
       if (joinMyMenuState.loginRedirecting || joinMyMenuState.pendingKakaoSignup || loginModalOpen) {
@@ -3628,41 +5612,37 @@
         ? getJoinMemberWithCachedProfile(options.member)
         : getJoinCachedCurrentMember();
       const cachedCompletion = getRememberedJoinMemberProfileCompletion(cachedMember || baseMember || {});
-      if (
-        (options.skipProfileCheck && (cachedMember || baseMember))
-        || (cachedCompletion === true && isJoinMemberProfileComplete(cachedMember || {}))
-      ) {
+      if (options.skipProfileCheck && (cachedMember || baseMember)) return cachedMember || baseMember;
+      if (cachedCompletion === true && isJoinMemberProfileComplete(cachedMember || {})) {
+        if (isJoinMemberBirthDateUpgradeRequired(cachedMember || {})) {
+          openJoinMemberBirthDateUpgradePrompt(cachedMember, afterLogin, extraParams, { continueAfterSave: true });
+          return null;
+        }
         return cachedMember || baseMember;
       }
       if (cachedCompletion === false && cachedMember && !isJoinTempAdminMember(cachedMember)) {
-        openJoinMemberRequiredProfileForm(cachedMember, afterLogin, extraParams);
-        const refreshPromise = getJoinCurrentMember({ refresh: true })
-          .then((refreshedMember) => {
-            if (!refreshedMember) {
-              closeJoinMemberLoginModal();
-              redirectToJoinLogin(afterLogin, extraParams);
-              return null;
-            }
-            if (refreshedMember.__profileLookupFailed) return refreshedMember;
-            const form = document.getElementById("joinMemberSignupForm");
-            const isSameRequiredForm = Boolean(
-              form?.classList.contains("is-open")
-              && form.dataset.profileRequired === "true"
-              && joinMyMenuState.pendingProfileAfterLogin === (afterLogin || "my-menu")
-            );
-            if (!isSameRequiredForm) return refreshedMember;
-            if (isJoinMemberProfileComplete(refreshedMember)) {
-              continueAfterJoinMemberProfileSave(refreshedMember);
-              return refreshedMember;
-            }
-            updateOpenJoinMemberRequiredProfileFormMember(refreshedMember);
-            return refreshedMember;
-          })
-          .catch((error) => {
-            golfJoinSafeWarn("Failed to refresh cached incomplete join member profile.", error);
-            return null;
-          });
-        joinMyMenuState.pendingProfileDetailPromise = refreshPromise;
+        let refreshedMember;
+        try {
+          refreshedMember = await getJoinCurrentMember({ refresh: true });
+        } catch (error) {
+          golfJoinSafeWarn("Failed to refresh cached incomplete join member profile.", error);
+          alert("회원정보 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
+          return null;
+        }
+        if (!refreshedMember) {
+          redirectToJoinLogin(afterLogin, extraParams);
+          return null;
+        }
+        if (refreshedMember.__profileLookupFailed) {
+          alert("회원정보 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
+          return null;
+        }
+        if (isJoinMemberBirthDateUpgradeRequired(refreshedMember)) {
+          openJoinMemberBirthDateUpgradePrompt(refreshedMember, afterLogin, extraParams, { continueAfterSave: true });
+          return null;
+        }
+        if (isJoinMemberProfileComplete(refreshedMember)) return refreshedMember;
+        openJoinMemberRequiredProfileForm(refreshedMember, afterLogin, extraParams);
         return null;
       }
       const requiresSheetProfileCheck = isJoinTempAdminMember(baseMember);
@@ -3673,7 +5653,12 @@
         redirectToJoinLogin(afterLogin, extraParams);
         return null;
       }
-      if (options.skipProfileCheck || isJoinMemberProfileComplete(member)) return member;
+      if (options.skipProfileCheck) return member;
+      if (isJoinMemberBirthDateUpgradeRequired(member)) {
+        openJoinMemberBirthDateUpgradePrompt(member, afterLogin, extraParams, { continueAfterSave: true });
+        return null;
+      }
+      if (isJoinMemberProfileComplete(member)) return member;
       if (member.__profileLookupFailed) {
         alert("회원정보 확인이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
         return null;
@@ -3691,9 +5676,16 @@
         if (loginModal?.classList.contains("open") || signupForm?.dataset.profileRequired === "true") return false;
         const cachedMember = getJoinCachedCurrentMember();
         const requiresSheetProfileCheck = isJoinTempAdminMember(cachedMember || loginState.member);
+        if (!requiresSheetProfileCheck && isJoinMemberBirthDateUpgradeRequired(cachedMember)) {
+          return openJoinMemberBirthDateUpgradePrompt(cachedMember, "", {}, { continueAfterSave: false });
+        }
         if (!requiresSheetProfileCheck && isJoinMemberProfileComplete(cachedMember)) return false;
         const member = await getJoinCurrentMember({ refresh: true });
-        if (!member || member.__profileLookupFailed || isJoinMemberProfileComplete(member)) return false;
+        if (!member || member.__profileLookupFailed) return false;
+        if (isJoinMemberBirthDateUpgradeRequired(member)) {
+          return openJoinMemberBirthDateUpgradePrompt(member, "", {}, { continueAfterSave: false });
+        }
+        if (isJoinMemberProfileComplete(member)) return false;
         openJoinMemberRequiredProfileForm(member, "my-menu", { startupProfileRequired: "true" });
         return true;
       } catch (error) {
@@ -3705,9 +5697,15 @@
     function getJoinMemberBirthYear(member = {}) {
       const direct = String(member.birthYear || "").trim();
       if (/^\d{4}$/.test(direct)) return direct;
-      const birthday = String(member.birthday || "").trim();
+      const birthday = String(member.birthDate || member.birthday || "").trim();
       const match = birthday.match(/\b(19\d{2}|20\d{2})\b/);
-      return match ? match[1] : "";
+      if (match) return match[1];
+      const digits = birthday.replace(/\D/g, "");
+      return /^\d{8}$/.test(digits) ? digits.slice(0, 4) : "";
+    }
+
+    function getJoinMemberBirthDate(member = {}) {
+      return normalizeJoinMemberBirthDate(member.birthDate || member.birthday || "");
     }
 
     function getJoinMemberAgeBand(member = {}) {
@@ -3832,6 +5830,7 @@
       setJoinMyDrawerActiveMenu(joinMyDrawerActiveMenu);
       overlay?.style.setProperty("z-index", "2147483638", "important");
       overlay?.querySelector(".join-my-drawer")?.style.setProperty("z-index", "2147483639", "important");
+      if (overlay) overlay.inert = false;
       overlay?.classList.add("open");
       overlay?.setAttribute("aria-hidden", "false");
       setJoinMobileBottomNavLayerActive("my");
@@ -3868,8 +5867,13 @@
 
     function closeJoinMyDrawer() {
       const overlay = document.getElementById("joinMyDrawerOverlay");
+      const focusedElement = document.activeElement;
+      if (focusedElement instanceof HTMLElement && overlay?.contains(focusedElement)) {
+        focusedElement.blur();
+      }
       resetModalRuntimeState(overlay);
       overlay?.classList.remove("open");
+      if (overlay) overlay.inert = true;
       overlay?.setAttribute("aria-hidden", "true");
       if (!document.getElementById("joinMyMenuModal")?.classList.contains("open")) {
         setJoinHostHeaderCovered(false);
@@ -4169,19 +6173,23 @@
         wishType,
         targetType: wishType,
         targetKey,
-        status: item.status || "active",
+        status: String(item.status || "active").trim().toLowerCase(),
         savedAt: item.savedAt || item.createdAt || nowKstISOString()
       };
+    }
+
+    function getStoredJoinWishProducts() {
+      return readJoinMemberScopedItems(JOIN_WISH_STORAGE_KEY)
+        .map(normalizeJoinWishProduct)
+        .filter((item) => getJoinWishTargetKey(item));
     }
 
     function getJoinWishProducts() {
       try {
         const memberKey = getJoinWishMemberKey();
         if (!memberKey) return [];
-        const saved = readJoinMemberScopedItems(JOIN_WISH_STORAGE_KEY);
         const cachedRows = readGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, { memberKey }).map(normalizeJoinWishSheetRow);
-        const localItems = saved.map(normalizeJoinWishProduct).filter((item) => getJoinWishTargetKey(item) && item.status !== "deleted");
-        return mergeJoinWishProducts(localItems, cachedRows);
+        return mergeJoinWishProducts(getStoredJoinWishProducts(), cachedRows);
       } catch (error) {
         return [];
       }
@@ -4244,6 +6252,7 @@
         const cached = JSON.parse(localStorage.getItem(storageKey) || "null");
         if (!cached || Array.isArray(cached)) return [];
         if (String(cached.memberKey || "") !== memberKey) return [];
+        if (cached.dataType && String(cached.dataType) !== String(storageKey)) return [];
         return Array.isArray(cached.items) ? cached.items : [];
       } catch (error) {
         golfJoinSafeWarn("Failed to read member-scoped join cache.", storageKey, error);
@@ -4255,8 +6264,11 @@
       const memberKey = getJoinMemberCanonicalKey(member || {});
       if (!memberKey) return false;
       try {
+        const requestScope = syncJoinPrivateRequestScope(memberKey);
         localStorage.setItem(storageKey, JSON.stringify({
           memberKey,
+          sessionGeneration: requestScope.generation,
+          dataType: storageKey,
           updatedAt: Date.now(),
           items: Array.isArray(items) ? items : []
         }));
@@ -4267,7 +6279,53 @@
       }
     }
 
+    function syncJoinPrivateRequestScope(memberKey = getJoinWishMemberKey(getJoinCachedCurrentMember())) {
+      const normalizedMemberKey = String(memberKey || "").trim();
+      if (joinPrivateSessionMemberKey !== normalizedMemberKey) {
+        joinPrivateSessionGeneration += 1;
+        joinPrivateSessionMemberKey = normalizedMemberKey;
+        joinPrivateRequestRegistry.clear();
+      }
+      return {
+        generation: joinPrivateSessionGeneration,
+        memberKey: normalizedMemberKey
+      };
+    }
+
+    function invalidateJoinPrivateRequests() {
+      joinPrivateSessionGeneration += 1;
+      joinPrivateSessionMemberKey = "";
+      joinPrivateRequestRegistry.clear();
+      googleSheetBuilderApplicationsRequestGeneration += 1;
+      googleSheetJoinApplicationsRequestGeneration += 1;
+    }
+
+    function isJoinPrivateRequestScopeCurrent(scope = {}) {
+      return Number(scope.generation) === joinPrivateSessionGeneration
+        && String(scope.memberKey || "") === joinPrivateSessionMemberKey
+        && String(scope.memberKey || "") === getJoinWishMemberKey(getJoinCachedCurrentMember());
+    }
+
+    function runJoinPrivateRequestOnce(dataType = "", memberKey = "", requestFactory = null) {
+      if (typeof requestFactory !== "function") return Promise.resolve([]);
+      const scope = syncJoinPrivateRequestScope(memberKey);
+      if (!scope.memberKey) return Promise.resolve([]);
+      const requestKey = `${scope.generation}|${scope.memberKey}|${String(dataType || "private")}`;
+      const current = joinPrivateRequestRegistry.get(requestKey);
+      if (current) return current;
+      const promise = Promise.resolve()
+        .then(() => requestFactory(scope))
+        .finally(() => {
+          if (joinPrivateRequestRegistry.get(requestKey) === promise) {
+            joinPrivateRequestRegistry.delete(requestKey);
+          }
+        });
+      joinPrivateRequestRegistry.set(requestKey, promise);
+      return promise;
+    }
+
     function clearJoinPrivateClientCaches() {
+      invalidateJoinPrivateRequests();
       [
         JOIN_WISH_STORAGE_KEY,
         JOIN_APPLICATIONS_STORAGE_KEY,
@@ -4281,8 +6339,10 @@
       clearJoinApplicationRuntimeState();
       googleSheetJoinApplicationsReadCompleted = false;
       googleSheetJoinApplicationsReadFailed = false;
+      googleSheetJoinApplicationsReadMemberKey = "";
       googleSheetBuilderApplicationsReadCompleted = false;
       googleSheetBuilderApplicationsReadFailed = false;
+      googleSheetBuilderApplicationsReadMemberKey = "";
       googleSheetJoinWishesReadCompleted = false;
       googleSheetJoinWishesReadFailed = false;
       googleSheetJoinWishesReadMemberKey = "";
@@ -4295,6 +6355,7 @@
         memberKey: getJoinMemberCanonicalKey(normalized),
         memberSeq: normalized.memberSeq || "",
         memberId: normalized.memberId || "",
+        memberChannel: normalized.memberChannel || "",
         memberMobile: normalizeJoinMemberPhone(normalized.memberMobile || normalized.mobile || normalized.phone || ""),
         memberEmail: String(normalized.memberEmail || normalized.email || "").trim(),
         kakaoId: String(normalized.kakaoId || "").trim()
@@ -4328,11 +6389,12 @@
         departureDate: row.departureDate || "",
         returnDate: row.returnDate || "",
         status: row.status || "active",
-        savedAt: row.savedAt || row.createdAt || row.updatedAt || nowKstISOString()
+        savedAt: row.savedAt || row.createdAt || row.updatedAt || nowKstISOString(),
+        updatedAt: row.updatedAt || row.savedAt || row.createdAt || nowKstISOString()
       });
     }
 
-    function mergeJoinWishProducts(localItems = [], sheetItems = []) {
+    function mergeJoinWishProductRecords(localItems = [], sheetItems = []) {
       const merged = new Map();
       [...localItems, ...sheetItems].map(normalizeJoinWishProduct).forEach((item) => {
         const key = `${item.wishType}:${getJoinWishTargetKey(item)}`;
@@ -4342,7 +6404,12 @@
           merged.set(key, item);
         }
       });
-      return Array.from(merged.values()).filter((item) => item.status !== "deleted");
+      return Array.from(merged.values());
+    }
+
+    function mergeJoinWishProducts(localItems = [], sheetItems = []) {
+      return mergeJoinWishProductRecords(localItems, sheetItems)
+        .filter((item) => item.status !== "deleted");
     }
 
     function updateJoinWishRowsCache(item = {}, status = "active") {
@@ -4356,20 +6423,19 @@
           const rowType = row.wishType || row.targetType || "product";
           return !(rowType === normalized.wishType && getJoinWishTargetKey({ ...row, wishType: rowType }) === targetKey);
         });
-        if (status !== "deleted") {
-          nextRows.unshift({
-            ...normalized,
-            wishId: normalized.wishId || getJoinWishId(getJoinCachedCurrentMember(), normalized.wishType, targetKey),
-            targetType: normalized.wishType,
-            targetKey,
-            erpProductId: normalized.goodSeq || normalized.productId || (normalized.wishType === "product" ? targetKey : ""),
-            erpEventSeq: normalized.eventSeq || "",
-            productName: normalized.title || "",
-            country: normalized.country || "",
-            imageUrl: normalized.image || "",
-            updatedAt: nowKstISOString()
-          });
-        }
+        nextRows.unshift({
+          ...normalized,
+          wishId: normalized.wishId || getJoinWishId(getJoinCachedCurrentMember(), normalized.wishType, targetKey),
+          targetType: normalized.wishType,
+          targetKey,
+          erpProductId: normalized.goodSeq || normalized.productId || (normalized.wishType === "product" ? targetKey : ""),
+          erpEventSeq: normalized.eventSeq || "",
+          productName: normalized.title || "",
+          country: normalized.country || "",
+          imageUrl: normalized.image || "",
+          status: String(status || normalized.status || "active").trim().toLowerCase(),
+          updatedAt: nowKstISOString()
+        });
         localStorage.setItem(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, JSON.stringify({
           fetchedAt: Date.now(),
           memberKey: getJoinWishMemberKey(),
@@ -4494,7 +6560,11 @@
     }
 
     function addJoinWishProduct(join = {}) {
-      const snapshot = createJoinWishProductSnapshot(join);
+      const snapshot = {
+        ...createJoinWishProductSnapshot(join),
+        status: "active",
+        updatedAt: nowKstISOString()
+      };
       const targetKey = getJoinWishTargetKey(snapshot);
       if (!targetKey) return false;
       const current = getJoinWishProducts().filter((item) => !(item.wishType === snapshot.wishType && getJoinWishTargetKey(item) === targetKey));
@@ -4515,10 +6585,21 @@
         targetType: wishType,
         targetKey: key
       };
-      saveJoinWishProducts(getJoinWishProducts().filter((item) => !(item.wishType === wishType && getJoinWishTargetKey(item) === key)));
-      updateJoinWishRowsCache(removed, "deleted");
+      const tombstone = normalizeJoinWishProduct({
+        ...removed,
+        wishType,
+        targetType: wishType,
+        targetKey: key,
+        status: "deleted",
+        updatedAt: nowKstISOString()
+      });
+      const remaining = getStoredJoinWishProducts().filter((item) => (
+        !(item.wishType === wishType && getJoinWishTargetKey(item) === key)
+      ));
+      saveJoinWishProducts([tombstone, ...remaining].slice(0, 50));
+      updateJoinWishRowsCache(tombstone, "deleted");
       invalidateHomeBootstrapLightCache();
-      void saveJoinWishToGoogleSheet(removed, "deleted").catch((error) => {
+      void saveJoinWishToGoogleSheet(tombstone, "deleted").catch((error) => {
         golfJoinSafeWarn("Failed to remove wish from Google Sheet.", error);
       });
       refreshDetailWishButtons();
@@ -4607,7 +6688,7 @@
       `;
     }
 
-    async function hydrateJoinWishesFromGoogleSheet(options = {}) {
+    async function hydrateJoinWishesFromGoogleSheetUncoalesced(options = {}, requestScope = {}) {
       if (!GOLFJOIN_SHEET_API_ENDPOINT) return getJoinWishProducts();
       const member = getJoinCachedCurrentMember();
       const memberKey = getJoinWishMemberKey(member);
@@ -4624,28 +6705,42 @@
           ...memberLookupParams,
           limit: 200
         }, "Join wishes"));
-        const sheetItems = rows.map(normalizeJoinWishSheetRow).filter((item) => item.status !== "deleted");
-        const merged = mergeJoinWishProducts(getJoinWishProducts(), sheetItems);
-        saveJoinWishProducts(merged);
+        if (!isJoinPrivateRequestScopeCurrent(requestScope)) return getJoinWishProducts();
+        const sheetItems = rows.map(normalizeJoinWishSheetRow);
+        const records = mergeJoinWishProductRecords(getStoredJoinWishProducts(), sheetItems);
+        const merged = records.filter((item) => item.status !== "deleted");
+        saveJoinWishProducts(records);
         writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, rows, { memberKey });
         googleSheetJoinWishesReadCompleted = true;
         googleSheetJoinWishesReadFailed = false;
         googleSheetJoinWishesReadMemberKey = memberKey;
         return merged;
       } catch (error) {
+        if (!isJoinPrivateRequestScopeCurrent(requestScope)) return getJoinWishProducts();
         googleSheetJoinWishesReadCompleted = true;
         googleSheetJoinWishesReadFailed = true;
         golfJoinSafeWarn("Failed to load join wishes from Google Sheet.", error);
         return getJoinWishProducts();
       } finally {
-        googleSheetJoinWishesLoading = false;
+        if (isJoinPrivateRequestScopeCurrent(requestScope)) googleSheetJoinWishesLoading = false;
       }
     }
 
+    function hydrateJoinWishesFromGoogleSheet(options = {}) {
+      const memberKey = getJoinWishMemberKey(getJoinCachedCurrentMember());
+      if (!memberKey) return Promise.resolve(getJoinWishProducts());
+      return runJoinPrivateRequestOnce(
+        "join-wishes",
+        memberKey,
+        (requestScope) => hydrateJoinWishesFromGoogleSheetUncoalesced(options, requestScope)
+      );
+    }
+
     function applyJoinWishesFromGoogleSheetRows(rows = [], memberKey = getJoinWishMemberKey()) {
-      const sheetItems = rows.map(normalizeJoinWishSheetRow).filter((item) => item.status !== "deleted");
-      const merged = mergeJoinWishProducts(getJoinWishProducts(), sheetItems);
-      saveJoinWishProducts(merged);
+      const sheetItems = rows.map(normalizeJoinWishSheetRow);
+      const records = mergeJoinWishProductRecords(getStoredJoinWishProducts(), sheetItems);
+      const merged = records.filter((item) => item.status !== "deleted");
+      saveJoinWishProducts(records);
       writeGoogleSheetRowsCache(GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY, rows, { memberKey: String(memberKey || "") });
       googleSheetJoinWishesReadCompleted = true;
       googleSheetJoinWishesReadFailed = false;

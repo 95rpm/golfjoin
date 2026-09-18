@@ -1,18 +1,21 @@
 {
   "schemaVersion": 1,
   "baselineFile": "golfjoin_main.html",
-  "baselineSha256": "B6D09D1AA648D567BBF0BB5CCBF4A98D9EA653E1648C28318C56596080C773FA",
-  "baselineBytes": 2767496,
+  "baselineSha256": "51C943266F25A430514DD87D875AB887B596278B4D927B64B9F87A6E894CE9A8",
+  "baselineBytes": 2874285,
   "sourceOrder": [
     "source/shell/00-preamble.html",
     "source/styles/10-main.css",
     "source/markup/20-main.html",
     "source/scripts/store/30-state-and-presets.js",
+    "source/scripts/analytics/30-ga4-events.js",
     "source/scripts/performance/31-diagnostics.js",
     "source/scripts/store/32-runtime-state-and-guards.js",
     "source/scripts/loading/33-loading-and-modal-layer.js",
     "source/scripts/member/34-member-auth-profile-wishes.js",
+    "source/scripts/data/35-release-v2-bootstrap.js",
     "source/scripts/data/35-home-bootstrap.js",
+    "source/scripts/data/35-product-discovery.js",
     "source/scripts/member/36-member-reservations-deeplinks.js",
     "source/scripts/detail/37-detail-builder-calendar.js",
     "source/scripts/sections/38-home-sections.js",
@@ -28,8 +31,8 @@
     },
     {
       "path": "source/styles/10-main.css",
-      "bytes": 851540,
-      "sha256": "91AB5911D8E945C520A548B963A13BF82921A78C566C3FF6EEE6FEDAC592508B"
+      "bytes": 885102,
+      "sha256": "D185CABF6B297D44EE2471D82E19FE072B91E09818B0F62E6C0DFFEC0FAF74B8"
     },
     {
       "path": "source/markup/20-main.html",
@@ -38,8 +41,8 @@
     },
     {
       "path": "source/scripts/store/30-state-and-presets.js",
-      "bytes": 30429,
-      "sha256": "4D7E9EFE416F5C3FD6EEED23F050773CE8B976AD0B21F0195FAA5137AF608F76"
+      "bytes": 31019,
+      "sha256": "2915DF3207230D14D04AE3F3B36C93AF6EC97EFFB9574ADE3372D97A94DAA400"
     },
     {
       "path": "source/scripts/performance/31-diagnostics.js",
@@ -58,38 +61,48 @@
     },
     {
       "path": "source/scripts/member/34-member-auth-profile-wishes.js",
-      "bytes": 222237,
-      "sha256": "7C323F8596EFCCDEA15D93756CA269408E5165AF8DC7ED74A8054CBC10320613"
+      "bytes": 225106,
+      "sha256": "6FEFD976FA2E715DA1EA1A30E84053A91BC55FDEE765891A17BCA30F2A03AAF0"
+    },
+    {
+      "path": "source/scripts/data/35-release-v2-bootstrap.js",
+      "bytes": 33357,
+      "sha256": "325A5F7A3A1F3D06E90AB58F0461E333C1095F7DFCE7DC3D06CD8E8B8F408A35"
     },
     {
       "path": "source/scripts/data/35-home-bootstrap.js",
-      "bytes": 18831,
-      "sha256": "E19F2961853814468060B88773596171662D7C33DC4E2E98E16F385799E3BE6A"
+      "bytes": 20801,
+      "sha256": "180B9F6FE17B1E00AD549B9E7B34655E926E9334B024DB02B060EB81571C88FC"
+    },
+    {
+      "path": "source/scripts/data/35-product-discovery.js",
+      "bytes": 20764,
+      "sha256": "1743F13A2248D6E4DF685F67CFC09984A0BB8217AD77DBDF10A5DC4E4763B163"
     },
     {
       "path": "source/scripts/member/36-member-reservations-deeplinks.js",
-      "bytes": 293374,
-      "sha256": "106EDFC6D10DF0B826D6E2CA3C8730C71941F4294A2CF558549648C6C46A7916"
+      "bytes": 295008,
+      "sha256": "D647403C134A1BFB2DE6FD1F9D3F5A5E25B8E3929B6E24B3C46F4A7EFCDD4FEA"
     },
     {
       "path": "source/scripts/detail/37-detail-builder-calendar.js",
-      "bytes": 792941,
-      "sha256": "0E88B0E98CA1A479B878BAF1F1FE712256FEAD2E4E01C6B4F645A62910C46874"
+      "bytes": 826478,
+      "sha256": "A36A64FC23A6CD13B0A909E3E52B70098C72C898E0BD084B2210B0FE8CEFEA5E"
     },
     {
       "path": "source/scripts/sections/38-home-sections.js",
-      "bytes": 153809,
-      "sha256": "2CF2BEA6AC7D2C2417C1D3C71E809EEAC6854C54A81B1D2B7AE367F88F02177A"
+      "bytes": 169122,
+      "sha256": "68529E43A0E9FA5FB6DE1D3AE43156310CCB2A60797BEC1DF05C50B3ED702E6B"
     },
     {
       "path": "source/scripts/detail/39-detail-actions-participants.js",
-      "bytes": 82919,
-      "sha256": "01E8125D41C5B5748D936D6E93017C8E59F9DEFAB036B522E37E4F5AD15728BC"
+      "bytes": 83638,
+      "sha256": "14CFEC0115FCFD4455FE9E2A78E0FF9EA00BD9141CF18DEF2E2EE58E9F8FD13F"
     },
     {
       "path": "source/scripts/boot/40-initialize.js",
-      "bytes": 7296,
-      "sha256": "3995D87666135FE7A3E9D2ABE13DACFBCE3FAFA8F4C2D2C6CFC9F11A4FF430F7"
+      "bytes": 8069,
+      "sha256": "3B50F5D99BF1D1DB4652EF3616EC6C0CDCF881FACA3A9E27E6E9D58D0B48B83C"
     },
     {
       "path": "source/shell/40-suffix.html",

@@ -287,7 +287,10 @@ const SHEET_HEADERS = {
     "displayEndAt",
     "tripSummary",
     "adminMemo",
-    "updatedAt"
+    "updatedAt",
+    "productFamilyId",
+    "familyDepartureDate",
+    "familyOptionsJson"
   ]
 };
 
@@ -343,6 +346,9 @@ const KNOWN_COUNTRY_NAMES = [
 
 function doPost(e) {
   const payload = JSON.parse((e && e.postData && e.postData.contents) || "{}");
+  if (String(payload.action || "").toLowerCase() === "admin_email_send") {
+    return handleGolfjoinAdminEmailSend_(payload);
+  }
   setupGolfJoinSheets();
 
   if (String(payload.action || "").toLowerCase() === "admin_status_update") {
@@ -372,11 +378,15 @@ function doPost(e) {
   LockService.getScriptLock().waitLock(30000);
   let writeResult = { action: "append" };
   let capacityError = null;
+  let recommendationConflictError = null;
   try {
     if (sheetName === SHEET_NAMES.JOIN_APPLICATIONS) {
       capacityError = getJoinApplicationCapacityError_(payload, row);
     }
-    if (!capacityError) {
+    if (sheetName === SHEET_NAMES.PRODUCT_DISPLAY_RULES) {
+      recommendationConflictError = getRecommendedScheduleConflictError_(payload);
+    }
+    if (!capacityError && !recommendationConflictError) {
       writeResult = writeSheetRow_(sheetName, headers, row, payload);
       if (sheetName === SHEET_NAMES.NEW_SCHEDULE_APPLICATIONS || sheetName === SHEET_NAMES.PRODUCT_DISPLAY_RULES || value_(payload, "targetType") === "new_schedule" || value_(payload, "targetType") === "recommended_schedule") {
         refreshScheduleParticipantSummary_();
@@ -387,6 +397,7 @@ function doPost(e) {
   }
 
   if (capacityError) return jsonOutput_(capacityError);
+  if (recommendationConflictError) return jsonOutput_(recommendationConflictError);
 
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true, sheet: sheetName, write: writeResult.action, row: writeResult.row }))
@@ -899,7 +910,12 @@ function getProductDisplayRuleValue_(payload, header) {
     displayEndAt: formatDateCellAsISODate_(payload.displayEndAt || value_(payload, "product.returnDate") || payload.displayStartAt || value_(payload, "product.departureDate") || ""),
     tripSummary: payload.tripSummary || value_(payload, "product.tripSummary") || "",
     adminMemo: payload.adminMemo || "",
-    updatedAt: updatedAt
+    updatedAt: updatedAt,
+    productFamilyId: String(payload.productFamilyId || "").trim(),
+    familyDepartureDate: formatDateCellAsISODate_(payload.familyDepartureDate || payload.displayStartAt || ""),
+    familyOptionsJson: Array.isArray(payload.familyOptionsJson)
+      ? JSON.stringify(payload.familyOptionsJson)
+      : String(payload.familyOptionsJson || "")
   };
   return values[header] !== undefined ? values[header] : "";
 }
@@ -909,6 +925,45 @@ function isActiveRecommendedScheduleRule_(rule) {
   const visible = String(rule.isVisible === undefined || rule.isVisible === "" ? "true" : rule.isVisible).toLowerCase();
   const status = String(rule.status || "").toLowerCase();
   return section === "available_schedule" && visible !== "false" && visible !== "0" && visible !== "no" && status !== "cancelled" && status !== "hidden";
+}
+
+function getRecommendedScheduleOptionKeys_(rule) {
+  let familyOptions = [];
+  if (String(rule && rule.productFamilyId || "").trim()) {
+    try {
+      familyOptions = Array.isArray(rule.familyOptionsJson) ? rule.familyOptionsJson : JSON.parse(String(rule.familyOptionsJson || "[]"));
+    } catch (error) {
+      familyOptions = [];
+    }
+  }
+  const familyKeys = (Array.isArray(familyOptions) ? familyOptions : []).map(function (option) {
+    const goodSeq = String(option && (option.goodSeq || option.erpProductId) || "").trim();
+    const eventSeq = String(option && (option.eventSeq || option.erpEventSeq) || "").trim();
+    return /^\d+$/.test(goodSeq) && /^\d+$/.test(eventSeq) ? goodSeq + ":" + eventSeq : "";
+  }).filter(Boolean);
+  if (familyKeys.length) return familyKeys.filter(function (key, index, list) { return list.indexOf(key) === index; });
+  const goodSeq = String(rule && (rule.erpProductId || rule.goodSeq) || "").trim();
+  const eventSeq = String(rule && (rule.erpEventSeq || rule.eventSeq) || "").trim();
+  return /^\d+$/.test(goodSeq) && /^\d+$/.test(eventSeq) ? [goodSeq + ":" + eventSeq] : [];
+}
+
+function getRecommendedScheduleConflictError_(payload) {
+  const requestedId = String(payload.recommendedScheduleId || payload.displayRuleId || "").trim();
+  const requestedKeys = getRecommendedScheduleOptionKeys_(payload);
+  if (!requestedKeys.length) return null;
+  const requestedMap = {};
+  requestedKeys.forEach(function (key) { requestedMap[key] = true; });
+  const conflict = readSheetObjects_(SHEET_NAMES.PRODUCT_DISPLAY_RULES).find(function (rule) {
+    if (!isActiveRecommendedScheduleRule_(rule)) return false;
+    if (String(rule.recommendedScheduleId || rule.displayRuleId || "").trim() === requestedId) return false;
+    return getRecommendedScheduleOptionKeys_(rule).some(function (key) { return requestedMap[key]; });
+  });
+  return conflict ? {
+    ok: false,
+    error: "recommended_schedule_option_conflict",
+    message: "선택한 기간은 이미 다른 추천일정에 등록되어 있습니다.",
+    conflictingRecommendedScheduleId: String(conflict.recommendedScheduleId || conflict.displayRuleId || "")
+  } : null;
 }
 
 function buildRecommendedScheduleId_(rule) {
@@ -2136,6 +2191,73 @@ function getParticipantSummarySchedule_(row, newSchedules, displayRules) {
   return matches.length === 1 ? { row: matches[0], recommended: false } : null;
 }
 
+function getRecommendedFamilyOptions_(rule) {
+  if (!String(rule && rule.productFamilyId || "").trim()) return [];
+  var parsed;
+  try {
+    parsed = Array.isArray(rule.familyOptionsJson) ? rule.familyOptionsJson : JSON.parse(String(rule.familyOptionsJson || "[]"));
+  } catch (error) {
+    return [];
+  }
+  if (!Array.isArray(parsed) || parsed.length < 2) return [];
+  var options = parsed.map(function (option) {
+    return {
+      goodSeq: String(option.goodSeq || option.erpProductId || "").trim(),
+      eventSeq: String(option.eventSeq || option.erpEventSeq || "").trim(),
+      departureDate: formatDateCellAsISODate_(option.departureDate || rule.familyDepartureDate || rule.displayStartAt),
+      returnDate: formatDateCellAsISODate_(option.returnDate || option.departureDate || rule.displayEndAt),
+      durationLabel: String(option.durationLabel || "").trim(),
+      capacity: Math.max(0, parsePositiveInteger_(option.capacity) || 0)
+    };
+  }).filter(function (option) { return /^\d+$/.test(option.goodSeq) && /^\d+$/.test(option.eventSeq); });
+  if (options.length < 2) return [];
+  var totalCapacity = Math.max(options.length, parsePositiveInteger_(rule.capacity || rule.maxPeople) || 4);
+  var explicitTotal = options.reduce(function (sum, option) { return sum + option.capacity; }, 0);
+  var useExplicit = options.every(function (option) { return option.capacity > 0; }) && explicitTotal === totalCapacity;
+  if (useExplicit) return options;
+  var baseCapacity = Math.floor(totalCapacity / options.length);
+  var remainder = totalCapacity % options.length;
+  return options.map(function (option, index) {
+    option.capacity = baseCapacity + (index < remainder ? 1 : 0);
+    return option;
+  });
+}
+
+function buildRecommendedFamilyOptionSummaries_(rows, target, aggregateKey) {
+  var options = target && target.recommended ? getRecommendedFamilyOptions_(target.row) : [];
+  return options.map(function (option) {
+    var optionRows = rows.filter(function (row) {
+      return !isCancelledJoinApplication_(row)
+        && getParticipantSummaryKey_(row) === aggregateKey
+        && String(row.erpProductId || row.goodSeq || "").trim() === option.goodSeq
+        && String(row.erpEventSeq || row.eventSeq || "").trim() === option.eventSeq;
+    });
+    var requestedCount = optionRows.reduce(function (sum, row) {
+      return sum + Math.max(1, parsePeople_(row.applicantPeople || row.people || "1"));
+    }, 0);
+    var confirmedCount = Math.min(option.capacity, requestedCount);
+    var previews = [];
+    optionRows.forEach(function (row) {
+      previews = previews.concat(buildParticipantPreviewList_(row, Math.max(1, parsePeople_(row.applicantPeople || row.people || "1"))));
+    });
+    return {
+      goodSeq: option.goodSeq,
+      eventSeq: option.eventSeq,
+      departureDate: option.departureDate,
+      returnDate: option.returnDate,
+      durationLabel: option.durationLabel,
+      capacity: option.capacity,
+      confirmedCount: confirmedCount,
+      remainingSlots: Math.max(0, option.capacity - confirmedCount),
+      participantsPreview: previews.slice(0, Math.min(40, option.capacity)),
+      lastAppliedAt: optionRows.reduce(function (latest, row) {
+        var appliedAt = String(row.updatedAt || row.createdAt || row.submittedAt || "");
+        return appliedAt > latest ? appliedAt : latest;
+      }, "")
+    };
+  });
+}
+
 function buildParticipantSummaries_(rows, newSchedules, displayRules) {
   const groups = {};
   rows.filter(function (row) { return !isCancelledJoinApplication_(row); }).forEach(function (row) {
@@ -2167,7 +2289,13 @@ function buildParticipantSummaries_(rows, newSchedules, displayRules) {
     const appliedAt = String(row.updatedAt || row.createdAt || "");
     if (appliedAt > String(groups[key].lastAppliedAt || "")) groups[key].lastAppliedAt = appliedAt;
   });
-  return Object.keys(groups).map(function (key) { return groups[key]; });
+  return Object.keys(groups).map(function (key) {
+    var group = groups[key];
+    var target = getParticipantSummarySchedule_(group, newSchedules || [], displayRules || []);
+    var familyOptionSummaries = buildRecommendedFamilyOptionSummaries_(rows, target, key);
+    if (familyOptionSummaries.length >= 2) group.familyOptionSummaries = familyOptionSummaries;
+    return group;
+  });
 }
 
 function buildDisplayRuleSummary_(row) {
@@ -2205,6 +2333,9 @@ function buildDisplayRuleSummary_(row) {
     displayStartAt: formatDateCellAsISODate_(row.displayStartAt),
     displayEndAt: formatDateCellAsISODate_(row.displayEndAt),
     tripSummary: row.tripSummary || "",
+    productFamilyId: row.productFamilyId || "",
+    familyDepartureDate: formatDateCellAsISODate_(row.familyDepartureDate),
+    familyOptionsJson: row.familyOptionsJson || "",
     updatedAt: row.updatedAt || ""
   };
 }
@@ -2312,4 +2443,221 @@ function parsePositiveInteger_(value) {
 function stringifyCompanions_(value) {
   if (!value) return "";
   return JSON.stringify(Array.isArray(value) ? value : [value]);
+}
+
+/**
+ * Cloud Function에서 서명된 신규 신청 메일만 받아 발송한다.
+ * 웹앱은 반드시 "나로 실행"하고 접근 권한은 "모든 사용자"로 배포한다.
+ * Script Properties에 GOLFJOIN_EMAIL_RELAY_SECRET(32자 이상)을 등록해야 한다.
+ */
+function handleGolfjoinAdminEmailSend_(payload) {
+  const request = payload || {};
+  const secret = String(PropertiesService.getScriptProperties().getProperty("GOLFJOIN_EMAIL_RELAY_SECRET") || "");
+  if (secret.length < 32) {
+    return jsonOutput_({ ok: false, error: "apps_script_not_configured" });
+  }
+  if (String(request.action || "") !== "admin_email_send" || Number(request.version || 0) !== 1) {
+    return jsonOutput_({ ok: false, error: "apps_script_request_invalid" });
+  }
+
+  const timestamp = Number(request.timestamp || 0);
+  const nonce = String(request.nonce || "");
+  const idempotencyKey = String(request.idempotencyKey || "");
+  const recipient = String(request.to || "").trim().toLowerCase();
+  const subject = String(request.subject || "").trim();
+  const plainText = String(request.plainText || "");
+  const html = String(request.html || "");
+  const fromName = String(request.fromName || "시크릿투어 골프조인").trim().slice(0, 80);
+  const signature = String(request.signature || "").toLowerCase();
+
+  if (!Number.isFinite(timestamp) || Math.abs(Date.now() - timestamp) > 5 * 60 * 1000) {
+    return jsonOutput_({ ok: false, error: "apps_script_request_expired" });
+  }
+  if (!/^[a-f0-9]{32}$/.test(nonce) || !idempotencyKey || idempotencyKey.length > 120) {
+    return jsonOutput_({ ok: false, error: "apps_script_request_invalid" });
+  }
+  if (!golfjoinAdminEmailIsValidAddress_(recipient) || !subject || subject.length > 120 || !plainText || plainText.length > 30000 || html.length > 100000) {
+    return jsonOutput_({ ok: false, error: "email_message_invalid" });
+  }
+
+  const canonical = golfjoinAdminEmailSignaturePayload_({
+    action: "admin_email_send",
+    version: 1,
+    timestamp: timestamp,
+    nonce: nonce,
+    idempotencyKey: idempotencyKey,
+    to: recipient,
+    subject: subject,
+    plainText: plainText,
+    html: html,
+    fromName: fromName
+  });
+  const expectedSignature = golfjoinAdminEmailHmacHex_(canonical, secret);
+  if (!golfjoinAdminEmailSafeEqual_(signature, expectedSignature)) {
+    return jsonOutput_({ ok: false, error: "apps_script_signature_invalid" });
+  }
+
+  const cache = CacheService.getScriptCache();
+  const cacheKey = "gjaem_" + golfjoinAdminEmailSha256Hex_(idempotencyKey);
+  if (cache.get(cacheKey) === "sent") {
+    return jsonOutput_({ ok: true, duplicate: true, quotaRemaining: MailApp.getRemainingDailyQuota() });
+  }
+
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return jsonOutput_({ ok: false, error: "apps_script_busy" });
+  }
+  try {
+    if (cache.get(cacheKey) === "sent" || golfjoinAdminEmailWasSent_(idempotencyKey)) {
+      cache.put(cacheKey, "sent", 21600);
+      return jsonOutput_({ ok: true, duplicate: true, quotaRemaining: MailApp.getRemainingDailyQuota() });
+    }
+    const quotaRemaining = Number(MailApp.getRemainingDailyQuota() || 0);
+    if (quotaRemaining < 1) {
+      return jsonOutput_({ ok: false, error: "apps_script_quota_exceeded", quotaRemaining: 0 });
+    }
+    MailApp.sendEmail({
+      to: recipient,
+      subject: subject,
+      body: plainText,
+      htmlBody: html,
+      name: fromName
+    });
+    cache.put(cacheKey, "sent", 21600);
+    try {
+      golfjoinAdminEmailRememberSent_(idempotencyKey);
+    } catch (ledgerError) {
+      console.warn("golfjoin_admin_email_ledger_write_failed", {
+        name: ledgerError && ledgerError.name ? String(ledgerError.name) : "Error"
+      });
+    }
+    return jsonOutput_({
+      ok: true,
+      duplicate: false,
+      messageId: "gas_" + golfjoinAdminEmailSha256Hex_(idempotencyKey).slice(0, 24),
+      quotaRemaining: Math.max(0, quotaRemaining - 1)
+    });
+  } catch (error) {
+    console.error("golfjoin_admin_email_send_failed", {
+      name: error && error.name ? String(error.name) : "Error",
+      message: golfjoinAdminEmailSafeErrorCode_(error)
+    });
+    return jsonOutput_({ ok: false, error: golfjoinAdminEmailSafeErrorCode_(error) });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function golfjoinAdminEmailSignaturePayload_(payload) {
+  return [
+    String(payload.action || ""),
+    String(payload.version || ""),
+    String(payload.timestamp || ""),
+    String(payload.nonce || ""),
+    String(payload.idempotencyKey || ""),
+    String(payload.to || "").trim().toLowerCase(),
+    golfjoinAdminEmailSha256Hex_(payload.subject),
+    golfjoinAdminEmailSha256Hex_(payload.plainText),
+    golfjoinAdminEmailSha256Hex_(payload.html),
+    String(payload.fromName || "")
+  ].join("\n");
+}
+
+function golfjoinAdminEmailSha256Hex_(value) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    String(value || ""),
+    Utilities.Charset.UTF_8
+  );
+  return golfjoinAdminEmailBytesToHex_(bytes);
+}
+
+function golfjoinAdminEmailHmacHex_(value, secret) {
+  const bytes = Utilities.computeHmacSha256Signature(
+    String(value || ""),
+    String(secret || ""),
+    Utilities.Charset.UTF_8
+  );
+  return golfjoinAdminEmailBytesToHex_(bytes);
+}
+
+function golfjoinAdminEmailBytesToHex_(bytes) {
+  return bytes.map(function (byte) {
+    const normalized = byte < 0 ? byte + 256 : byte;
+    return ("0" + normalized.toString(16)).slice(-2);
+  }).join("");
+}
+
+function golfjoinAdminEmailSafeEqual_(left, right) {
+  const a = String(left || "");
+  const b = String(right || "");
+  if (!a || a.length !== b.length) return false;
+  let difference = 0;
+  for (let index = 0; index < a.length; index += 1) {
+    difference |= a.charCodeAt(index) ^ b.charCodeAt(index);
+  }
+  return difference === 0;
+}
+
+function golfjoinAdminEmailIsValidAddress_(value) {
+  const email = String(value || "").trim().toLowerCase();
+  return email.length <= 120 && /^[a-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(email);
+}
+
+function golfjoinAdminEmailSafeErrorCode_(error) {
+  const text = String(error && error.message ? error.message : "").toLowerCase();
+  if (text.indexOf("quota") !== -1 || text.indexOf("daily") !== -1) return "apps_script_quota_exceeded";
+  if (text.indexOf("service invoked too many times") !== -1 || text.indexOf("too many") !== -1) return "apps_script_rate_limited";
+  return "apps_script_temporary_error";
+}
+
+function golfjoinAdminEmailWasSent_(idempotencyKey) {
+  const ledger = golfjoinAdminEmailReadLedger_();
+  return Boolean(ledger[golfjoinAdminEmailLedgerKey_(idempotencyKey)]);
+}
+
+function golfjoinAdminEmailRememberSent_(idempotencyKey) {
+  const propertyName = "GOLFJOIN_EMAIL_SENT_KEYS_V1";
+  const now = Date.now();
+  const cutoff = now - 7 * 24 * 60 * 60 * 1000;
+  const ledger = golfjoinAdminEmailReadLedger_();
+  const compact = {};
+  Object.keys(ledger).forEach(function (key) {
+    const sentAt = Number(ledger[key] || 0);
+    if (sentAt >= cutoff) compact[key] = sentAt;
+  });
+  compact[golfjoinAdminEmailLedgerKey_(idempotencyKey)] = now;
+  const entries = Object.keys(compact).map(function (key) {
+    return [key, compact[key]];
+  }).sort(function (left, right) {
+    return right[1] - left[1];
+  }).slice(0, 2000);
+  const bounded = {};
+  entries.forEach(function (entry) { bounded[entry[0]] = entry[1]; });
+  PropertiesService.getScriptProperties().setProperty(propertyName, JSON.stringify(bounded));
+}
+
+function golfjoinAdminEmailReadLedger_() {
+  const raw = String(PropertiesService.getScriptProperties().getProperty("GOLFJOIN_EMAIL_SENT_KEYS_V1") || "{}");
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function golfjoinAdminEmailLedgerKey_(idempotencyKey) {
+  return golfjoinAdminEmailSha256Hex_(String(idempotencyKey || "")).slice(0, 32);
+}
+
+function checkGolfjoinAdminEmailRelaySetup() {
+  const secret = String(PropertiesService.getScriptProperties().getProperty("GOLFJOIN_EMAIL_RELAY_SECRET") || "");
+  const result = {
+    ok: secret.length >= 32,
+    secretConfigured: secret.length >= 32,
+    quotaRemaining: MailApp.getRemainingDailyQuota()
+  };
+  console.log(JSON.stringify(result));
+  return result;
 }

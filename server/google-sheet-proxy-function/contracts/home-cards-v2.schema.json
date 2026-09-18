@@ -23,6 +23,7 @@
     "sourceCount": { "type": "integer", "minimum": 0 },
     "productSummaryCount": { "type": "integer", "minimum": 0 },
     "count": { "type": "integer", "minimum": 0 },
+    "productFamilyCatalog": { "type": "object" },
     "items": {
       "type": "array",
       "items": {

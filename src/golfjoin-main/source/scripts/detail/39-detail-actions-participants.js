@@ -1,6 +1,49 @@
+    function parseDetailBottomPriceValue(value) {
+      if (typeof parseBuilderApplicationPrice === "function") {
+        return parseBuilderApplicationPrice(value);
+      }
+      const parsed = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    }
+
+    function getDetailBottomPriceValue(join = {}) {
+      const finalQuotePrice = typeof getJoinFinalQuoteUnitPrice === "function"
+        ? getJoinFinalQuoteUnitPrice(join)
+        : 0;
+      const candidates = [
+        finalQuotePrice,
+        join.quoteUnitPrice,
+        getNestedValue(join, "quote.unitPrice"),
+        getNestedValue(join, "sheetApplication.quoteUnitPrice"),
+        getNestedValue(join, "sheetApplication.quote.unitPrice"),
+        join.price,
+        join.salePrice,
+        join.lowestPrice,
+        join.minPrice
+      ];
+      for (const candidate of candidates) {
+        const price = parseDetailBottomPriceValue(candidate);
+        if (price > 0) return price;
+      }
+      return 0;
+    }
+
+    function renderDetailBottomSummary(join = {}) {
+      const periodNode = document.getElementById("detailBottomPeriod");
+      const priceValueNode = document.getElementById("detailBottomPriceValue");
+      const priceUnitNode = document.getElementById("detailBottomPriceUnit");
+      if (!periodNode || !priceValueNode || !priceUnitNode) return;
+      const period = formatCardDateRange(join, { selectedPeriod: true });
+      const price = getDetailBottomPriceValue(join);
+      periodNode.textContent = period || "여행기간 확인 중";
+      priceValueNode.textContent = price > 0 ? formatPrice(price) : "요금 문의";
+      priceUnitNode.hidden = price <= 0;
+    }
+
     function renderDetailContent(join, options = {}) {
       if (!join) return;
       const isBuilderMode = options.mode === "builder";
+      const progressiveShell = options.progressiveShell === true;
       const hideParticipants = Boolean(options.hideParticipants) || !isJoinScheduleLikeForDetail(join);
       const disableEmptySlots = options.disableEmptySlots !== false;
       const confirmedParticipants = getConfirmedParticipants(join);
@@ -12,9 +55,10 @@
       currentDetailSlideIndex = slideIndex;
       clearTimeout(detailParticipantTooltipTimer);
       detailParticipantTooltipTimer = null;
+      renderDetailBottomSummary(join);
 
       document.getElementById("detailContent").innerHTML = `
-        <div class="detail-mobile-sticky-header" aria-hidden="true">
+        <div class="detail-mobile-sticky-header" aria-hidden="true" inert>
           <button type="button" class="detail-mobile-header-button" onclick="closeModal('detailModal')" aria-label="뒤로가기">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left-icon lucide-arrow-left" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>
           </button>
@@ -58,10 +102,22 @@
           <div class="detail-product-price-row">
             <div class="detail-price-value">${formatPrice(join.price)}<div class="detail-price-unit">원~</div></div>
           </div>
-          ${renderDetailProductFamilyPeriods(join)}
+          ${progressiveShell ? `
+            <div class="detail-progressive-period" role="status" aria-live="polite">
+              <span class="detail-progressive-period-dot" aria-hidden="true"></span>
+              <span>출발 가능한 일정을 확인하고 있어요</span>
+            </div>
+          ` : renderDetailProductFamilyPeriods(join)}
           ${renderDetailBenefitCard()}
           ${hideParticipants ? "" : renderDetailParticipantStatus(join, confirmedParticipants, participantCapacity, { disableEmptySlots })}
         </div>
+        ${progressiveShell ? `
+          <div class="detail-progressive-shell" aria-hidden="true">
+            <div class="detail-progressive-shell-block is-summary"></div>
+            <div class="detail-progressive-shell-block"></div>
+            <div class="detail-progressive-shell-block is-wide"></div>
+          </div>
+        ` : `
         <div class="detail-anchor-tabs" aria-label="상세정보 바로가기">
           <button type="button" class="detail-anchor-chip" data-anchor-target="summary" onclick="scrollDetailSection('summary')">상품요약</button>
           <button type="button" class="detail-anchor-chip" data-anchor-target="flight" onclick="scrollDetailSection('flight')">항공정보</button>
@@ -76,9 +132,9 @@
         ${renderDetailInclusionSection(join)}
         ${renderDetailNotesSection(join)}
         ${renderDetailScheduleTabs(join)}
+        `}
         </div>
       `;
-      window.setTimeout(() => hydrateDetailProductFamilyPeriodMetadata(join), 0);
       const detailBody = document.getElementById("detailContent");
       document.querySelectorAll("#detailModal .detail-mobile-header-button[data-detail-wish-button]").forEach((button) => {
         if (button.dataset.wishBound === "true") return;
@@ -99,7 +155,7 @@
       });
       refreshDetailWishButtons();
       detailBody.onscroll = handleDetailContentScroll;
-      detailBody.onwheel = () => {
+      const clearDetailForcedAnchorState = () => {
         const tabs = detailBody.querySelector(".detail-anchor-tabs");
         const scheduleNav = detailBody.querySelector(".detail-schedule-day-nav");
         clearTimeout(detailAnchorForcedActiveTimer);
@@ -109,16 +165,11 @@
         }
         if (scheduleNav) delete scheduleNav.dataset.forcedActiveIndex;
       };
-      detailBody.ontouchstart = () => {
-        const tabs = detailBody.querySelector(".detail-anchor-tabs");
-        const scheduleNav = detailBody.querySelector(".detail-schedule-day-nav");
-        clearTimeout(detailAnchorForcedActiveTimer);
-        if (tabs) {
-          delete tabs.dataset.forcedActive;
-          delete tabs.dataset.pinnedVisible;
-        }
-        if (scheduleNav) delete scheduleNav.dataset.forcedActiveIndex;
-      };
+      if (detailBody.dataset.passiveAnchorResetBound !== "true") {
+        detailBody.dataset.passiveAnchorResetBound = "true";
+        detailBody.addEventListener("wheel", clearDetailForcedAnchorState, { passive: true });
+        detailBody.addEventListener("touchstart", clearDetailForcedAnchorState, { passive: true });
+      }
       detailBody.scrollTop = 0;
       const anchorTabs = detailBody.querySelector(".detail-anchor-tabs");
       const summarySection = detailBody.querySelector('[data-detail-section="summary"]');
@@ -360,11 +411,21 @@
           golfJoinSafeWarn("Secret Tour wish toggle request failed.", error);
         }
         removeJoinWishProduct(targetKey, wishType);
+        trackGolfJoinGa4Event("golfjoin_wish_remove", {
+          ...getGolfJoinGa4Item(join),
+          item_type: wishType,
+          source_area: "detail"
+        });
         refreshDetailWishButtons();
         alert(wishType === "join_schedule" ? "찜한 조인 일정에서 삭제되었습니다." : "찜한 상품에서 삭제되었습니다.");
         return;
       }
       addJoinWishProduct(join);
+      trackGolfJoinGa4Event("golfjoin_wish_add", {
+        ...getGolfJoinGa4Item(join),
+        item_type: wishType,
+        source_area: "detail"
+      });
       refreshDetailWishButtons();
       try {
         if (wishType === "product") await postDetailGoodsWish(goodSeq);
@@ -889,28 +950,37 @@
     function openDetail(id, options = {}) {
       const join = joins.find((item) => item.id === id);
       if (!join || (!options.allowUnavailable && !shouldDisplayJoinProduct(join))) return;
+      const familyPeriodOptions = join.isAdminRecommendedSchedule && join.productFamilyId
+        ? getAdminRecommendedDetailFamilyPeriodOptions(join)
+        : [];
+      const familyPeriodOption = familyPeriodOptions.find((option) => option.selected) || familyPeriodOptions[0] || null;
+      const detailJoin = familyPeriodOption?.product || join;
       const detailPerformanceGeneration = beginGolfJoinDetailPerformance();
+      const detailRequestGeneration = ++detailContentRequestGeneration;
       currentDetailMode = "normal";
       currentDetailJoinId = id;
-      currentDetailJoinData = join;
+      currentDetailJoinData = detailJoin;
       currentDetailReturnContext = options.returnToJoinMy || null;
       addJoinRecentViewedItem(join, "join_schedule");
       currentDetailSlideIndex = 0;
       stopDetailReviewAutoSlide();
       closeDetailApply();
       document.getElementById("detailModalTitle").textContent = join.title;
-      renderDetailContent(join, options);
+      renderDetailContent(detailJoin, options);
       const secondary = document.querySelector("#detailModal .detail-modal-actions .button.secondary");
-      setDetailNormalPrimaryAction(join, options);
+      setDetailNormalPrimaryAction(detailJoin, options);
       if (secondary) {
         setDetailDefaultContactActions();
       }
       const detailModal = document.getElementById("detailModal");
       detailModal?.classList.remove("builder-select-mode", "builder-product-detail-mode", "mdpick-recruit-mode", "my-reservation-view-mode");
       if (!options.elevateOverBuilder) detailModal?.style.removeProperty("z-index");
-      setDetailScheduleConflictState(join);
+      setDetailScheduleConflictState(detailJoin);
 
-      openModal("detailModal", { pageScrollState: options.pageScrollState });
+      openModal("detailModal", {
+        pageScrollState: options.pageScrollState,
+        analyticsSourceArea: options.sourceArea || options.sourceSection || options.returnToJoinMy?.menu || "home"
+      });
       requestAnimationFrame(() => {
         prepareDetailScheduleHeights({ forceOpen: true });
         resetDetailModalScroll();
@@ -920,7 +990,34 @@
           "golfjoin:duration:detail-visible"
         );
       });
-      enrichOpenDetailWithSecretTourData(join, options, detailPerformanceGeneration);
+      enrichOpenDetailWithSecretTourData(detailJoin, options, detailPerformanceGeneration, detailRequestGeneration);
+      if (join.isAdminRecommendedSchedule && join.productFamilyId) {
+        void ensureGolfJoinProductFamilyCatalogLoaded({
+          deferWhileHomeDataV2Startup: false,
+          requireGolfSummaryForFamilyId: join.productFamilyId
+        })
+          .then((catalog) => {
+            const detailModal = document.getElementById("detailModal");
+            if (
+              !catalog
+              || !detailModal?.classList.contains("open")
+              || currentDetailMode !== "normal"
+              || currentDetailJoinId !== id
+              || !currentDetailJoinData?.productFamilyId
+            ) return;
+            const optionByGoodSeq = new Map(
+              getAdminRecommendedDetailFamilyPeriodOptions(currentDetailJoinData)
+                .map((option) => [option.goodSeq, option])
+            );
+            detailModal.querySelectorAll(".detail-family-period-option[data-family-good-seq]").forEach((button) => {
+              const option = optionByGoodSeq.get(String(button.dataset.familyGoodSeq || "").trim());
+              const label = String(option?.golfSummary?.label || "").trim();
+              const target = button.querySelector(".detail-family-period-golf");
+              if (target && label) target.textContent = label;
+            });
+          })
+          .catch((error) => golfJoinSafeWarn("Failed to refresh integrated recommendation golf summaries.", error));
+      }
     }
 
     function openBuilderDetail(id) {
@@ -1115,7 +1212,8 @@
       const isMobileSheet = isMobileParticipantSheet();
       const shouldElevateOverParentModal = [
         "detailModal",
-        "joinMyMenuModal"
+        "joinMyMenuModal",
+        "builderActiveScheduleSheet"
       ].some((modalId) => (
         Boolean(trigger?.closest?.(`#${modalId}`))
         && document.getElementById(modalId)?.classList.contains("open")
@@ -1178,6 +1276,7 @@
       if (isMobileSheet) {
         activeParticipantTrigger = trigger;
         scheduleJoinMobileVisualViewportVarsUpdate({ settle: true });
+        setWidgetModalOpen(true);
         lockParticipantPageScroll();
         requestAnimationFrame(() => floating.classList.add("sheet-open"));
         return;
@@ -1357,13 +1456,11 @@
       }
     }, true);
 
-    ["wheel", "touchmove"].forEach((eventName) => {
-      document.addEventListener(eventName, (event) => {
-        if (!isJoinActionLoadingOpen()) return;
-        event.preventDefault();
-        event.stopPropagation();
-      }, { passive: false, capture: true });
-    });
+    document.addEventListener("touchmove", (event) => {
+      if (!isJoinActionLoadingOpen()) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, { passive: false, capture: true });
 
     function isParticipantModalBackgroundScrollBlocked() {
       return isMobileParticipantSheet()
@@ -1371,14 +1468,12 @@
         && document.body.classList.contains("join-participant-scroll-locked");
     }
 
-    ["wheel", "touchmove"].forEach((eventName) => {
-      document.addEventListener(eventName, (event) => {
-        if (!isParticipantModalBackgroundScrollBlocked()) return;
-        if (event.target.closest?.("#participantContent .participant-profile")) return;
-        event.preventDefault();
-        event.stopPropagation();
-      }, { passive: false, capture: true });
-    });
+    document.addEventListener("touchmove", (event) => {
+      if (!isParticipantModalBackgroundScrollBlocked()) return;
+      if (event.target.closest?.("#participantContent .participant-profile")) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, { passive: false, capture: true });
 
     document.querySelector("#regionSearchModal .region-search-body")?.addEventListener("click", (event) => {
       const option = event.target.closest(".region-option, .region-subregion, .region-subregion-heading");

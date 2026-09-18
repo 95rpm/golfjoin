@@ -317,6 +317,8 @@
     let currentDetailReturnContext = null;
     let currentMdPickProductGroupKey = "";
     let currentMdPickCountryKey = "";
+    let mdPickDetailOpenGeneration = 0;
+    let detailContentRequestGeneration = 0;
     let detailProductFamilyPeriodSwitching = false;
     let currentDetailSlideIndex = 0;
     let detailParticipantTooltipTimer = null;
@@ -329,6 +331,10 @@
     let detailReviewResetTimer = null;
     let heroSlideIndex = 1;
     let heroRealSlideCount = 0;
+    let heroSliderTimer = null;
+    let heroSwipeState = null;
+    let heroSuppressClickUntil = 0;
+    let heroVisibilityRecoveryBound = false;
     const QUICK_SECTION_DISPLAY_LIMIT = 2;
     let quickSectionFeaturedIndex = 0;
     const OVERSEAS_BEST_INITIAL_VISIBLE_COUNT = 4;
@@ -387,6 +393,35 @@
     let homeGolfJoinMinimumAdvanceDays = GOLFJOIN_DEFAULT_MINIMUM_ADVANCE_DAYS;
     const golfJoinProductAvailabilityCache = new Map();
     const golfJoinProductAvailabilityPromiseCache = new Map();
+    let golfJoinProductAvailabilityCacheRevision = 0;
+    let golfJoinProductAvailabilitySnapshotRevision = -1;
+    let golfJoinProductAvailabilitySnapshot = [];
+    const builderProductSourceCache = {
+      availabilityRef: null,
+      discoveryRef: null,
+      fallbackRef: null,
+      availabilityLength: -1,
+      discoveryLength: -1,
+      fallbackLength: -1,
+      items: []
+    };
+    const builderRegisteredProductsCache = {
+      sourceRef: null,
+      sourceLength: -1,
+      modeKey: "",
+      activeScheduleKey: "",
+      items: []
+    };
+    const builderAvailableProductsCache = {
+      sourceRef: null,
+      sourceLength: -1,
+      dateKey: "",
+      activeScheduleKey: "",
+      items: []
+    };
+    let builderProductDateIndexCache = new WeakMap();
+    const golfJoinProductFamilyAvailabilityCache = new Map();
+    const golfJoinProductFamilyAvailabilityPromiseCache = new Map();
     const golfJoinProductMetaByGoodSeq = new Map();
     let golfJoinProductFamilyManifest = null;
     let golfJoinProductFamilyCatalog = null;
@@ -405,12 +440,17 @@
     let pendingApplySubmitConfirmType = "";
     let applySubmitConfirmOpenedAt = 0;
     let applySubmitConfirmOpenFrame = 0;
+    const golfJoinApplyGa4Steps = new Set();
+    const golfJoinBuilderGa4Steps = new Set();
+    let golfJoinBuilderGa4SourceArea = "builder";
     let googleSheetBuilderApplicationsReadCompleted = false;
     let googleSheetBuilderApplicationsReadFailed = false;
+    let googleSheetBuilderApplicationsReadMemberKey = "";
     let googleSheetBuilderApplicationsRequestGeneration = 0;
     let googleSheetJoinApplicationsLoading = false;
     let googleSheetJoinApplicationsReadCompleted = false;
     let googleSheetJoinApplicationsReadFailed = false;
+    let googleSheetJoinApplicationsReadMemberKey = "";
     let googleSheetJoinApplicationsRequestGeneration = 0;
     let joinMyReservationsRefreshing = false;
     let joinMyReservationOpening = false;
@@ -421,11 +461,15 @@
     let googleSheetJoinWishesReadCompleted = false;
     let googleSheetJoinWishesReadFailed = false;
     let googleSheetJoinWishesReadMemberKey = "";
+    const joinPrivateRequestRegistry = new Map();
+    let joinPrivateSessionGeneration = 0;
+    let joinPrivateSessionMemberKey = "";
     let joinMyMenuViewGeneration = 0;
     let pendingHomeBootstrapLightData = null;
     let pendingHomeBootstrapLightOptions = { fromCache: true };
     let homeBootstrapLightAuthoritativeApplied = false;
     let homeBootstrapLightApplySignature = "";
+    let homeBootstrapLightRequestGeneration = 0;
     let homeBootstrapSnapshotNeedsRefresh = false;
     let homeSecondaryHydrationScheduled = false;
     const GOOGLE_SHEET_READ_CACHE_TTL_MS = 60 * 1000;
@@ -433,8 +477,10 @@
     const GOOGLE_SHEET_JOIN_APPLICATIONS_READ_CACHE_KEY = "joinApplicationsSheetReadCache";
     const GOOGLE_SHEET_BUILDER_APPLICATIONS_READ_CACHE_KEY = "builderApplicationsSheetReadCache";
     const GOOGLE_SHEET_JOIN_REVIEWS_READ_CACHE_KEY = "joinReviewsSheetReadCache";
-    const GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY = "joinWishesSheetReadCache";
+    const GOOGLE_SHEET_JOIN_WISHES_READ_CACHE_KEY = "joinWishesSheetReadCacheV2";
     const HOME_BOOTSTRAP_LIGHT_CACHE_KEY = "homeBootstrapLightPublicCache";
+    const PENDING_SCHEDULE_MUTATION_STORAGE_KEY = "golfJoinPendingScheduleMutationV1";
+    const PENDING_SCHEDULE_MUTATION_TTL_MS = 24 * 60 * 60 * 1000;
     const HOME_STATS_CACHE_KEY = "homeStatsCache";
     const HOME_STATS_VISITOR_TTL_MS = 10 * 60 * 1000;
     const HOME_STATS_ACTIVE_TTL_MS = 60 * 1000;
@@ -463,6 +509,6 @@
     const SHOW_DOMESTIC_JOIN_PRODUCTS = false;
     const joinApplicationPayloadMemory = new Map();
     const joinReviewPayloadMemory = new Map();
+    const scheduleMutationWatermarks = new Map();
     const PRODUCTION_DUMMY_JOIN_ID_PATTERN = /^(?:j\d+|dummy-)/;
     const PRODUCTION_DUMMY_PAYLOAD_PATTERN = /dummy-|테스트|01000000000|j[1-8]p\d/;
-

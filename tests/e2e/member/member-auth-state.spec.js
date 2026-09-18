@@ -472,8 +472,8 @@ test("나의 모임을 다시 열 때 회원 API 목록과 회원별 캐시를 �
   const openAndCollect = async () => {
     await page.evaluate(() => openJoinMyMenu({ skipProfileCheck: true }));
     await expect(page.locator("#joinMyMenuModal")).toHaveClass(/\bopen\b/);
-    await expect.poll(() => observed.sheetReads.length, { timeout: 20_000 }).toBeGreaterThanOrEqual(3);
     await page.waitForFunction(() => !joinMyReservationsRefreshing);
+    await page.waitForTimeout(250);
     const reads = observed.sheetReads.map((item) => ({ ...item }));
     const cacheScope = await page.evaluate(() => {
       const readScope = (key) => {
@@ -516,12 +516,8 @@ test("나의 모임을 다시 열 때 회원 API 목록과 회원별 캐시를 �
   const expectedMemberKey = `seq:${SESSION_MEMBER.memberSeq}`;
   expect(firstOpen.cacheScope).toEqual({ builder: expectedMemberKey, join: expectedMemberKey });
   expect(secondOpen.cacheScope).toEqual({ builder: expectedMemberKey, join: expectedMemberKey });
-  expect(summarize(firstOpen.reads)).toEqual([
-    { sheet: "new_schedule_applications", source: "new_schedule_builder", scoped: false },
-    { sheet: "new_schedule_applications", source: "new_schedule_builder", scoped: true },
-    { sheet: "join_applications", source: "", scoped: true }
-  ]);
-  expect(summarize(secondOpen.reads)).toEqual(summarize(firstOpen.reads));
+  expect(summarize(firstOpen.reads)).toEqual([]);
+  expect(summarize(secondOpen.reads)).toEqual([]);
   expect(secondOpen.reads.length).toBeLessThanOrEqual(firstOpen.reads.length);
   expect(observed.blockedWrites).toEqual([]);
 });

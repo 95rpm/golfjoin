@@ -3,6 +3,8 @@
 const crypto = require("crypto");
 
 const HOME_PRODUCT_MINIMUM_ADVANCE_DAYS = 7;
+const FAMILY_AVAILABILITY_MAX_RAW_BYTES = 1024 * 1024;
+const FAMILY_AVAILABILITY_MAX_EVENT_COUNT = 2000;
 
 function text(value) {
   return String(value ?? "").trim();
@@ -73,13 +75,23 @@ function buildAvailabilityRevision(summaryPayload = {}) {
 }
 
 function buildHomeCardsPublicationRevision(summaryPayload = {}) {
+  const productDetailReferences = Object.entries(summaryPayload.productMetaByGoodSeq || {})
+    .map(([goodSeq, meta]) => [
+      text(goodSeq),
+      text(meta?.detailRevision),
+      text(meta?.detailObjectName),
+      text(meta?.detailStatus)
+    ])
+    .filter((item) => item[0] && item[1])
+    .sort((left, right) => left[0].localeCompare(right[0]));
   return stableRevision("ghc", {
     sourceGeneratedAt: text(summaryPayload.sourceGeneratedAt || summaryPayload.generatedAt),
     range: summaryPayload.range || {},
     sourceCount: Number(summaryPayload.sourceCount || summaryPayload.count || 0),
     homeBootstrapLightUpdatedAt: text(summaryPayload.homeBootstrapLightUpdatedAt),
     refreshReason: text(summaryPayload.refreshReason),
-    availabilityRevision: buildAvailabilityRevision(summaryPayload)
+    availabilityRevision: buildAvailabilityRevision(summaryPayload),
+    productDetailReferences
   });
 }
 
@@ -211,12 +223,128 @@ function buildGolfJoinHomeArtifacts(summaryPayload = {}, options = {}) {
   };
 }
 
+function buildGolfJoinFamilyAvailabilityArtifacts(publishedCatalog = {}, availabilityArtifacts = [], options = {}) {
+  const familyRevision = text(publishedCatalog.publicationRevision);
+  const availabilityObjectPrefix = text(options.availabilityObjectPrefix).replace(/\/+$/, "");
+  const maximumRawBytes = Number.isFinite(Number(options.maximumRawBytes))
+    ? Math.max(1, Number(options.maximumRawBytes))
+    : FAMILY_AVAILABILITY_MAX_RAW_BYTES;
+  const maximumEventCount = Number.isFinite(Number(options.maximumEventCount))
+    ? Math.max(1, Number(options.maximumEventCount))
+    : FAMILY_AVAILABILITY_MAX_EVENT_COUNT;
+  const availabilityByGoodSeq = new Map((Array.isArray(availabilityArtifacts) ? availabilityArtifacts : [])
+    .map((artifact) => [getProductGoodSeq(artifact?.payload || artifact), artifact?.payload || artifact])
+    .filter(([goodSeq, payload]) => goodSeq && payload));
+  const diagnostics = [];
+  const artifacts = [];
+
+  (Array.isArray(publishedCatalog.families) ? publishedCatalog.families : [])
+    .slice()
+    .sort((left, right) => text(left?.familyId).localeCompare(text(right?.familyId)))
+    .forEach((family) => {
+      const familyId = text(family?.familyId);
+      const goodSeqs = [...new Set((Array.isArray(family?.members) ? family.members : [])
+        .map((member) => getProductGoodSeq(member))
+        .filter(Boolean))];
+      const sourcePayloads = goodSeqs.map((goodSeq) => availabilityByGoodSeq.get(goodSeq)).filter(Boolean);
+      const missingGoodSeqs = goodSeqs.filter((goodSeq) => !availabilityByGoodSeq.has(goodSeq));
+      const availabilityRevisions = [...new Set(sourcePayloads.map((payload) => text(payload.availabilityRevision)).filter(Boolean))];
+      const availabilityRevision = text(options.availabilityRevision) || availabilityRevisions[0] || "";
+      const invalidSourceGoodSeqs = sourcePayloads.filter((payload) => (
+        text(payload.schema) !== "secret-golf-join-product-availability-v1"
+        || getProductGoodSeq(payload) !== text(payload.goodSeq)
+        || (availabilityRevision && text(payload.availabilityRevision) !== availabilityRevision)
+        || !Array.isArray(payload.events)
+        || Number(payload.count) !== payload.events.length
+      )).map((payload) => text(payload.goodSeq)).filter(Boolean);
+
+      if (!familyId || goodSeqs.length < 2 || missingGoodSeqs.length || invalidSourceGoodSeqs.length || availabilityRevisions.length > 1) {
+        diagnostics.push({
+          familyId,
+          status: "skipped",
+          reason: "family_availability_source_invalid",
+          goodSeqs,
+          missingGoodSeqs,
+          invalidSourceGoodSeqs,
+          availabilityRevisions
+        });
+        return;
+      }
+
+      const products = goodSeqs.map((goodSeq) => {
+        const source = availabilityByGoodSeq.get(goodSeq);
+        return {
+          goodSeq,
+          count: source.events.length,
+          events: source.events
+        };
+      });
+      const eventCount = products.reduce((sum, product) => sum + product.count, 0);
+      const firstSource = sourcePayloads[0] || {};
+      const payload = {
+        schema: "secret-golf-join-family-availability-v1",
+        generatedAt: text(options.generatedAt || firstSource.generatedAt),
+        sourceGeneratedAt: text(options.sourceGeneratedAt || firstSource.sourceGeneratedAt || firstSource.generatedAt),
+        availabilityRevision,
+        familyRevision,
+        familyId,
+        minimumAdvanceDays: Number.isFinite(Number(firstSource.minimumAdvanceDays))
+          ? Number(firstSource.minimumAdvanceDays)
+          : 0,
+        bookableFrom: text(firstSource.bookableFrom),
+        goodSeqs,
+        productCount: products.length,
+        count: eventCount,
+        products
+      };
+      const rawBytes = Buffer.byteLength(`${JSON.stringify(payload)}\n`, "utf8");
+      if (eventCount > maximumEventCount || rawBytes > maximumRawBytes) {
+        diagnostics.push({
+          familyId,
+          status: "skipped",
+          reason: "family_availability_safety_limit_exceeded",
+          eventCount,
+          rawBytes,
+          maximumEventCount,
+          maximumRawBytes
+        });
+        return;
+      }
+      artifacts.push({
+        familyId,
+        availabilityRevision,
+        familyRevision,
+        objectName: availabilityObjectPrefix && familyRevision
+          ? `${availabilityObjectPrefix}/families/${familyRevision}/${familyId}.json`
+          : "",
+        eventCount,
+        rawBytes,
+        payload
+      });
+    });
+
+  return {
+    schema: "secret-golf-join-family-availability-publication-v1",
+    availabilityRevision: text(options.availabilityRevision)
+      || artifacts[0]?.availabilityRevision
+      || "",
+    familyRevision,
+    familyCount: artifacts.length,
+    eventCount: artifacts.reduce((sum, artifact) => sum + artifact.eventCount, 0),
+    artifacts,
+    diagnostics
+  };
+}
+
 module.exports = {
   HOME_PRODUCT_MINIMUM_ADVANCE_DAYS,
+  FAMILY_AVAILABILITY_MAX_RAW_BYTES,
+  FAMILY_AVAILABILITY_MAX_EVENT_COUNT,
   addDaysToISODate,
   isBookableProductEvent,
   compareProductEventsByDeparture,
   buildAvailabilityRevision,
   buildHomeCardsPublicationRevision,
-  buildGolfJoinHomeArtifacts
+  buildGolfJoinHomeArtifacts,
+  buildGolfJoinFamilyAvailabilityArtifacts
 };

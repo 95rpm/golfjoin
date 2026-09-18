@@ -82,6 +82,12 @@ test("MD PICK captures page scroll before availability loading and forwards the 
   const product = { id: "test-product", groupKey: "test-group", homeReferenceOnly: false };
 
   const sandbox = {
+    mdPickDetailOpenGeneration: 0,
+    detailContentRequestGeneration: 0,
+    currentDetailMode: "mdPickProduct",
+    beginGolfJoinDetailPerformance() {
+      return 1;
+    },
     capturePageScrollState() {
       events.push("capture");
       return pageScrollState;
@@ -112,15 +118,24 @@ test("MD PICK captures page scroll before availability loading and forwards the 
     openBuilderAlert() {
       throw new Error("unexpected empty-product alert");
     },
+    document: {
+      getElementById(id) {
+        assert.equal(id, "detailModal");
+        return { classList: { contains: (name) => name === "open" } };
+      }
+    },
+    captureDetailModalScrollState() {
+      return { top: 0, left: 0 };
+    },
     ensureExternalGolfJoinProductsLoaded() {
       events.push("external-products");
     },
     showMdPickDetailProduct(selectedProduct, groupKey, countryKey, options) {
-      events.push("detail");
+      events.push(options.progressiveShell ? "detail-shell" : "detail-ready");
       assert.equal(selectedProduct, product);
       assert.equal(groupKey, "test-group");
       assert.equal(countryKey, "thailand");
-      assert.equal(options.pageScrollState, pageScrollState);
+      if (options.progressiveShell) assert.equal(options.pageScrollState, pageScrollState);
       return "opened";
     }
   };
@@ -132,7 +147,8 @@ test("MD PICK captures page scroll before availability loading and forwards the 
   assert.equal(events[0], "capture");
   assert.ok(events.includes("read-loading"));
   assert.ok(events.indexOf("capture") < events.indexOf("availability"));
-  assert.ok(events.indexOf("capture") < events.indexOf("detail"));
+  assert.ok(events.indexOf("capture") < events.indexOf("detail-shell"));
+  assert.ok(events.indexOf("capture") < events.indexOf("detail-ready"));
 });
 
 test("MD PICK detail forwards the supplied page scroll state to the modal", () => {

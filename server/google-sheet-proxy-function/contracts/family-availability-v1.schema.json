@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/family-availability-v1.schema.json",
+  "title": "GolfJoin product family availability v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "generatedAt",
+    "sourceGeneratedAt",
+    "availabilityRevision",
+    "familyRevision",
+    "familyId",
+    "minimumAdvanceDays",
+    "bookableFrom",
+    "goodSeqs",
+    "productCount",
+    "count",
+    "products"
+  ],
+  "properties": {
+    "schema": { "const": "secret-golf-join-family-availability-v1" },
+    "generatedAt": { "type": "string", "minLength": 1 },
+    "sourceGeneratedAt": { "type": "string", "minLength": 1 },
+    "availabilityRevision": { "type": "string", "pattern": "^gpa_[a-f0-9]{24}$" },
+    "familyRevision": { "type": "string", "pattern": "^pfc_[a-f0-9]{24}$" },
+    "familyId": { "type": "string", "minLength": 1 },
+    "minimumAdvanceDays": { "type": "integer", "minimum": 0 },
+    "bookableFrom": { "type": "string", "format": "date" },
+    "goodSeqs": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "type": "string", "pattern": "^\\d+$" }
+    },
+    "productCount": { "type": "integer", "minimum": 2 },
+    "count": { "type": "integer", "minimum": 0 },
+    "products": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["goodSeq", "count", "events"],
+        "properties": {
+          "goodSeq": { "type": "string", "pattern": "^\\d+$" },
+          "count": { "type": "integer", "minimum": 0 },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["goodSeq", "eventSeq", "departureDate", "returnDate", "price"],
+              "properties": {
+                "goodSeq": { "type": "string", "pattern": "^\\d+$" },
+                "eventSeq": { "type": ["string", "number"] },
+                "departureDate": { "type": "string", "format": "date" },
+                "returnDate": { "type": "string", "format": "date" },
+                "price": { "type": "number", "exclusiveMinimum": 0 },
+                "status": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

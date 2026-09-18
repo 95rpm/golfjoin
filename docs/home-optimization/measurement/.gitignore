@@ -1,0 +1,6 @@
+# Raw browser captures may contain cookies, member identifiers, email, mobile, and response bodies.
+hars/raw/
+traces/raw/
+*.har
+*.json.gz
+

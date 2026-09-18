@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/release-manifest-v2.schema.json",
+  "title": "GolfJoin atomic release manifest v2",
+  "type": "object",
+  "required": [
+    "schema",
+    "generatedAt",
+    "publishedAt",
+    "releaseRevision",
+    "previousStableRevision",
+    "sourceSnapshotWatermark",
+    "staticRevision",
+    "liveRevision",
+    "familyRevision",
+    "availabilityRevision",
+    "detailRevision",
+    "browserReadEnabled",
+    "manifestObjectName",
+    "manifestUrl",
+    "objects"
+  ],
+  "properties": {
+    "schema": { "const": "secret-golf-join-release-manifest-v2" },
+    "generatedAt": { "type": "string", "minLength": 1 },
+    "publishedAt": { "type": "string", "minLength": 1 },
+    "releaseRevision": { "type": "string", "pattern": "^gjr_[a-f0-9]{24}$" },
+    "previousStableRevision": { "type": "string", "pattern": "^(?:|gjr_[a-f0-9]{24})$" },
+    "sourceSnapshotWatermark": { "type": "string", "minLength": 1 },
+    "staticRevision": { "type": "string", "minLength": 1 },
+    "liveRevision": { "type": "string", "minLength": 1 },
+    "familyRevision": { "type": "string", "minLength": 1 },
+    "availabilityRevision": { "type": "string", "minLength": 1 },
+    "detailRevision": { "type": "string", "minLength": 1 },
+    "browserReadEnabled": { "const": false },
+    "manifestObjectName": { "type": "string", "minLength": 1 },
+    "manifestUrl": { "type": "string", "pattern": "^https://storage\\.googleapis\\.com/" },
+    "rollbackFromRevision": { "type": "string", "pattern": "^gjr_[a-f0-9]{24}$" },
+    "rollbackAt": { "type": "string", "minLength": 1 },
+    "objects": {
+      "type": "object",
+      "required": ["homeCards", "liveHome", "productFamily", "availability", "productDetail"],
+      "properties": {
+        "homeCards": { "$ref": "#/$defs/objectReference" },
+        "liveHome": { "$ref": "#/$defs/objectReference" },
+        "productFamily": { "$ref": "#/$defs/objectReference" },
+        "availability": { "$ref": "#/$defs/objectReference" },
+        "productDetail": { "$ref": "#/$defs/objectReference" }
+      }
+    }
+  },
+  "$defs": {
+    "objectReference": {
+      "type": "object",
+      "required": [
+        "role",
+        "revision",
+        "schema",
+        "objectName",
+        "url",
+        "contentSha256",
+        "bytes",
+        "contentType",
+        "contentEncoding"
+      ],
+      "properties": {
+        "role": {
+          "enum": ["homeCards", "liveHome", "productFamily", "availability", "productDetail"]
+        },
+        "revision": { "type": "string", "minLength": 1 },
+        "schema": { "type": "string", "minLength": 1 },
+        "objectName": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "pattern": "^https://storage\\.googleapis\\.com/" },
+        "contentSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "contentType": { "const": "application/json; charset=utf-8" },
+        "contentEncoding": { "enum": ["identity", "gzip"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/home-cards-v2.schema.json",
+  "title": "GolfJoin home cards v2",
+  "type": "object",
+  "required": [
+    "schema",
+    "publicationRevision",
+    "availabilityRevision",
+    "minimumAdvanceDays",
+    "bookableFrom",
+    "sourceCount",
+    "productSummaryCount",
+    "count",
+    "items"
+  ],
+  "properties": {
+    "schema": { "const": "secret-golf-join-home-cards-v2" },
+    "publicationRevision": { "type": "string", "pattern": "^ghc_[a-f0-9]{24}$" },
+    "availabilityRevision": { "type": "string", "pattern": "^gpa_[a-f0-9]{24}$" },
+    "minimumAdvanceDays": { "type": "integer", "minimum": 0 },
+    "bookableFrom": { "type": "string", "format": "date" },
+    "sourceCount": { "type": "integer", "minimum": 0 },
+    "productSummaryCount": { "type": "integer", "minimum": 0 },
+    "count": { "type": "integer", "minimum": 0 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["goodSeq", "title"],
+        "properties": {
+          "goodSeq": { "type": "string", "pattern": "^\\d+$" },
+          "eventSeq": { "type": ["string", "number"] },
+          "title": { "type": "string", "minLength": 1 },
+          "departureDate": { "type": "string", "format": "date" },
+          "returnDate": { "type": "string", "format": "date" },
+          "price": { "type": "number", "exclusiveMinimum": 0 },
+          "status": { "type": "string", "minLength": 1 },
+          "availabilityRevision": { "type": "string", "pattern": "^gpa_[a-f0-9]{24}$" },
+          "availabilityObjectName": { "type": "string", "minLength": 1 },
+          "homeProductSummary": { "type": "boolean" },
+          "homeReferenceOnly": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/product-availability-v1.schema.json",
+  "title": "GolfJoin product availability v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "availabilityRevision",
+    "goodSeq",
+    "minimumAdvanceDays",
+    "bookableFrom",
+    "count",
+    "events"
+  ],
+  "properties": {
+    "schema": { "const": "secret-golf-join-product-availability-v1" },
+    "availabilityRevision": { "type": "string", "pattern": "^gpa_[a-f0-9]{24}$" },
+    "goodSeq": { "type": "string", "pattern": "^\\d+$" },
+    "minimumAdvanceDays": { "type": "integer", "minimum": 0 },
+    "bookableFrom": { "type": "string", "format": "date" },
+    "count": { "type": "integer", "minimum": 0 },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["goodSeq", "eventSeq", "title", "departureDate", "returnDate", "price", "status"],
+        "properties": {
+          "goodSeq": { "type": "string", "pattern": "^\\d+$" },
+          "eventSeq": { "type": ["string", "number"] },
+          "title": { "type": "string", "minLength": 1 },
+          "departureDate": { "type": "string", "format": "date" },
+          "returnDate": { "type": "string", "format": "date" },
+          "price": { "type": "number", "exclusiveMinimum": 0 },
+          "status": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

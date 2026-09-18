@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/product-family-catalog-v1.schema.json",
+  "title": "GolfJoin product family catalog v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "publicationRevision",
+    "familyCount",
+    "memberCount",
+    "families",
+    "familyIdByGoodSeq",
+    "diagnostics"
+  ],
+  "properties": {
+    "schema": { "const": "golfjoin-product-family-catalog-v1" },
+    "publicationRevision": { "type": "string", "pattern": "^pfc_[a-f0-9]{24}$" },
+    "familyCount": { "type": "integer", "minimum": 0 },
+    "memberCount": { "type": "integer", "minimum": 0 },
+    "families": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["familyId", "representativeGoodSeq", "representative", "members"],
+        "properties": {
+          "familyId": { "type": "string", "pattern": "^pf_[A-Za-z0-9_-]+$" },
+          "representativeGoodSeq": { "type": "string", "pattern": "^\\d+$" },
+          "representative": { "$ref": "#/$defs/member" },
+          "members": {
+            "type": "array",
+            "minItems": 2,
+            "items": { "$ref": "#/$defs/member" }
+          }
+        }
+      }
+    },
+    "familyIdByGoodSeq": { "type": "object" },
+    "diagnostics": { "type": "array" }
+  },
+  "$defs": {
+    "member": {
+      "type": "object",
+      "required": [
+        "goodSeq",
+        "title",
+        "durationNights",
+        "durationDays",
+        "durationLabel",
+        "lowestPrice",
+        "earliestDepartureDate",
+        "representativeEventSeq"
+      ],
+      "properties": {
+        "goodSeq": { "type": "string", "pattern": "^\\d+$" },
+        "title": { "type": "string", "minLength": 1 },
+        "durationNights": { "type": "integer", "minimum": 0 },
+        "durationDays": { "type": "integer", "minimum": 1 },
+        "durationLabel": { "type": "string", "minLength": 1 },
+        "lowestPrice": { "type": "number", "exclusiveMinimum": 0 },
+        "earliestDepartureDate": { "type": "string", "format": "date" },
+        "representativeEventSeq": { "type": ["string", "number"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://golfjoin.local/contracts/home-manifest-v1.schema.json",
+  "title": "GolfJoin home manifest v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "generatedAt",
+    "activePublicationRevision",
+    "activeCardsObjectName",
+    "activeCardsUrl",
+    "availabilityRevision",
+    "minimumAdvanceDays",
+    "bookableFrom"
+  ],
+  "properties": {
+    "schema": { "const": "secret-golf-join-home-manifest-v1" },
+    "generatedAt": { "type": "string", "minLength": 1 },
+    "activePublicationRevision": { "type": "string", "pattern": "^ghc_[a-f0-9]{24}$" },
+    "activeCardsObjectName": { "type": "string", "minLength": 1 },
+    "activeCardsUrl": { "type": "string", "pattern": "^https://" },
+    "availabilityRevision": { "type": "string", "pattern": "^gpa_[a-f0-9]{24}$" },
+    "minimumAdvanceDays": { "type": "integer", "minimum": 0 },
+    "bookableFrom": { "type": "string", "format": "date" }
+  }
+}

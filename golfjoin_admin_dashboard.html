@@ -422,13 +422,17 @@
       margin-top: 8px;
     }
     .table-wrap {
+      --schedule-table-sticky-header-height: 44px;
       overflow: auto;
       max-height: calc(100vh - 300px);
+    }
+    .schedule-table > thead > tr > th {
+      z-index: 5;
     }
     .recommendation-manager {
       display: grid;
       gap: 18px;
-      padding: 18px;
+      padding: 0px;
     }
     .recommendation-manager-status {
       color: var(--muted);
@@ -520,6 +524,94 @@
       font-size: 14px;
       font-weight: 800;
       text-align: right;
+    }
+    .recommendation-registration-badge {
+      border: 0;
+      cursor: pointer;
+    }
+    .recommendation-registration-badge::after {
+      content: "";
+      width: 6px;
+      height: 6px;
+      margin-left: 7px;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
+      transform: translateY(-2px) rotate(45deg);
+      transition: transform 0.16s ease;
+    }
+    .recommendation-registration-badge[aria-expanded="true"]::after {
+      transform: translateY(2px) rotate(225deg);
+    }
+    .recommendation-accordion-row > td {
+      padding: 0;
+      border-top: 0;
+      background: #f8fafc;
+    }
+    .recommendation-accordion {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .recommendation-registered-item {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto auto;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+    .recommendation-registered-main {
+      min-width: 0;
+      display: grid;
+      gap: 5px;
+    }
+    .recommendation-registered-title {
+      overflow: hidden;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.4;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .recommendation-registered-meta {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+    }
+    .recommendation-capacity-editor {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .recommendation-capacity-editor .recommendation-capacity-input {
+      width: 72px;
+      text-align: center;
+    }
+    .recommendation-capacity-save {
+      min-width: 64px;
+      min-height: 34px;
+      border: 1px solid #108bff;
+      border-radius: 8px;
+      background: #108bff;
+      color: #fff;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .recommendation-capacity-save:disabled {
+      cursor: wait;
+      opacity: 0.65;
     }
     .recommendation-calendar-picker {
       position: relative;
@@ -1178,7 +1270,7 @@
       background: var(--panel);
     }
     .participant-table-wrap {
-      overflow-x: auto;
+      overflow: visible;
       border: 1px solid #dadada;
       border-radius: 8px;
       background: #ffffff;
@@ -1209,9 +1301,9 @@
       overflow-wrap: normal;
     }
     .participant-table th {
-      position: static;
-      top: auto;
-      z-index: auto;
+      position: sticky;
+      top: var(--schedule-table-sticky-header-height, 44px);
+      z-index: 4;
       background: #f3f8ff;
       color: #373a3c;
       font-size: 15px;
@@ -1539,6 +1631,11 @@
       gap: 8px;
       white-space: nowrap;
     }
+    .schedule-group-gender-summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
     .schedule-group-gender-count {
       color: #667085;
       font-size: 14px;
@@ -1696,7 +1793,7 @@
       display: block;
       font-size: 14px;
       line-height: 1.35;
-      white-space: normal;
+      white-space: pre-line;
     }
     .consultation-table .product-cell {
       max-width: none;
@@ -2616,6 +2713,662 @@
       font-size: 15px;
       font-weight: 600;
     }
+
+    /* Product family management prototype */
+    .family-prototype-toolbar {
+      position: sticky;
+      top: 0;
+      left: 0;
+      z-index: 6;
+      display: grid;
+      grid-template-columns: minmax(280px, 1fr) 140px 140px 140px auto;
+      gap: 8px;
+      align-items: center;
+      padding: 14px;
+      border-bottom: 1px solid var(--line-soft);
+      background: var(--surface-soft);
+    }
+    .family-prototype-toolbar input,
+    .family-prototype-toolbar select {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      padding: 0 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    .family-prototype-toolbar select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 38px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235d6b82' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 18px 18px;
+    }
+    .family-prototype-toolbar input:focus,
+    .family-prototype-toolbar select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(84, 171, 255, 0.14);
+    }
+    .family-prototype-search-button {
+      height: 42px;
+      border: 0;
+      border-radius: 8px;
+      background: #3489f8;
+      color: #fff;
+      padding: 0 18px;
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .family-prototype-search-button:hover { background: #237ee8; }
+    .family-prototype-table {
+      width: 100%;
+      min-width: 1360px;
+      table-layout: fixed;
+    }
+    .family-prototype-table > thead > tr > th {
+      top: 71px;
+      z-index: 5;
+    }
+    .family-prototype-table th:nth-child(1) { width: 110px; }
+    .family-prototype-table th:nth-child(2) { width: 74px; }
+    .family-prototype-table th:nth-child(3) { width: 90px; }
+    .family-prototype-table th:nth-child(4) { width: 110px; }
+    .family-prototype-table th:nth-child(6) { width: 235px; }
+    .family-prototype-table th:nth-child(7) { width: 82px; }
+    .family-prototype-table th:nth-child(8) { width: 216px; }
+    .family-prototype-table th:nth-child(9) { width: 96px; }
+    .family-prototype-table th:nth-child(10) { width: 160px; }
+    .family-prototype-table th:nth-child(11) { width: 106px; }
+    .family-prototype-table th:nth-child(11),
+    .family-prototype-table td:nth-child(11) {
+      padding-right: 12px;
+    }
+    .family-prototype-table th:nth-child(5),
+    .family-prototype-table td:nth-child(5) {
+      width: auto;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .family-prototype-table th:nth-child(n+6),
+    .family-prototype-table td:nth-child(n+6) {
+      white-space: nowrap;
+    }
+    .family-prototype-name {
+      display: block;
+      width: 100%;
+      min-width: 0;
+      overflow: hidden;
+      color: #373a3c;
+      font-weight: 800;
+      line-height: 1.45;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .family-prototype-sub {
+      display: none;
+    }
+    .family-prototype-duration-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .family-prototype-duration {
+      padding: 5px 8px;
+      border: 1px solid #e4e7ec;
+      border-radius: 6px;
+      background: #f8f9fb;
+      color: #475467;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .family-prototype-duration.assigned {
+      border-color: var(--family-chip-border, #cabffd);
+      background: var(--family-chip-bg, #f1edff);
+      color: var(--family-chip-color, #5b48b7);
+    }
+    .family-prototype-duration.representative {
+      box-shadow: inset 0 0 0 1px var(--family-chip-color, #5b48b7);
+    }
+    .family-prototype-duration small {
+      margin-left: 4px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .family-color-1 { --family-chip-bg: #f0edff; --family-chip-border: #cfc5ff; --family-chip-color: #6251bf; }
+    .family-color-2 { --family-chip-bg: #e9f7f2; --family-chip-border: #b9e2d3; --family-chip-color: #287b60; }
+    .family-color-3 { --family-chip-bg: #eaf4ff; --family-chip-border: #bdd9f5; --family-chip-color: #2f72b4; }
+    .family-color-4 { --family-chip-bg: #fff0f5; --family-chip-border: #f1c5d4; --family-chip-color: #a64f70; }
+    .family-color-5 { --family-chip-bg: #fff5e7; --family-chip-border: #f0d2a5; --family-chip-color: #966021; }
+    .family-color-6 { --family-chip-bg: #edf7f8; --family-chip-border: #bee0e3; --family-chip-color: #33787e; }
+    .family-status,
+    .family-risk {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 27px;
+      padding: 0 9px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .family-status.pending { background: #eef4ff; color: #2f6fc7; }
+    .family-status.partial { background: #f0edff; color: #6251bf; }
+    .family-status.approved { background: #e7f7e8; color: #268238; }
+    .family-status.hold { background: #fff4dd; color: #a76610; }
+    .family-status.recheck { background: #ffebeb; color: #c33b3b; }
+    .family-status.excluded { background: #eef0f3; color: #697386; }
+    .family-risk.safe { background: #edf8ef; color: #368046; }
+    .family-risk.review { background: #fff4dd; color: #a76610; }
+    .family-risk.conflict { background: #ffebeb; color: #c33b3b; }
+    .family-review-button {
+      min-width: 82px;
+      height: 34px;
+      border: 1px solid #cfd8e5;
+      border-radius: 7px;
+      background: #fff;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .family-review-button:hover {
+      border-color: #72b5f7;
+      color: #237fda;
+    }
+    .family-prototype-empty {
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      color: #7b8798;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .family-review-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 70;
+      display: none;
+      place-items: center;
+      padding: 26px;
+      background: rgba(20, 27, 39, 0.5);
+      backdrop-filter: blur(2px);
+    }
+    .family-review-backdrop.open { display: grid; }
+    .family-review-shell {
+      width: min(1480px, 96vw);
+      height: min(900px, 92vh);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 28px 80px rgba(15, 23, 42, 0.24);
+    }
+    .family-review-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 26px 18px;
+      border-bottom: 1px solid #e7ebf0;
+    }
+    .family-review-eyebrow {
+      margin-bottom: 5px;
+      color: #3289df;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .family-review-title {
+      margin: 0;
+      color: #373a3c;
+      font-size: 23px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .family-review-subtitle {
+      margin-top: 6px;
+      color: #667085;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .family-review-close {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 8px;
+      background: #f5f6f8;
+      color: #4b5565;
+    }
+    .family-review-close svg { width: 22px; height: 22px; }
+    .family-review-body {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      overflow: hidden;
+    }
+    .family-review-summary {
+      overflow-y: auto;
+      padding: 22px;
+      border-right: 1px solid #e7ebf0;
+      background: #fafbfc;
+    }
+    .family-review-section + .family-review-section { margin-top: 24px; }
+    .family-review-section h3 {
+      margin: 0 0 12px;
+      color: #373a3c;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .family-review-field { display: grid; gap: 7px; }
+    .family-review-field + .family-review-field { margin-top: 13px; }
+    .family-review-field label {
+      color: #667085;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .family-review-field input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid #d8dee8;
+      border-radius: 7px;
+      background: #fff;
+      color: #373a3c;
+      padding: 0 10px;
+      font-size: 16px;
+      font-weight: 700;
+      outline: none;
+    }
+    .family-review-key-value {
+      color: #475467;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.55;
+    }
+    .family-review-check-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 9px;
+    }
+    .family-review-check-list li {
+      position: relative;
+      padding-left: 20px;
+      color: #475467;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.45;
+    }
+    .family-review-check-list li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 4px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #dcefe0;
+      box-shadow: inset 0 0 0 4px #4ba65c;
+    }
+    .family-review-check-list li.warning::before {
+      background: #fff1cf;
+      box-shadow: inset 0 0 0 4px #e4a229;
+    }
+    .family-review-check-list li.danger::before {
+      background: #ffe0e0;
+      box-shadow: inset 0 0 0 4px #d95858;
+    }
+    .family-review-content {
+      min-width: 0;
+      overflow: auto;
+      padding: 22px 24px 28px;
+    }
+    .family-review-content-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .family-review-content-head h3 {
+      margin: 0;
+      color: #373a3c;
+      font-size: 19px;
+      font-weight: 800;
+    }
+    .family-review-legend {
+      display: flex;
+      gap: 12px;
+      color: #7a8494;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .family-review-legend span::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 5px;
+      border-radius: 2px;
+      background: #edf8ef;
+    }
+    .family-review-legend .missing::before { background: #fff4dd; }
+    .family-review-legend .different::before { background: #ffebeb; }
+    .family-compare-wrap {
+      overflow-x: auto;
+      border: 1px solid #e1e6ed;
+      border-radius: 12px;
+    }
+    .family-compare-table {
+      width: 100%;
+      min-width: 820px;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    .family-compare-table th,
+    .family-compare-table td {
+      padding: 12px 14px;
+      border-right: 1px solid #edf0f4;
+      border-bottom: 1px solid #edf0f4;
+      text-align: left;
+      vertical-align: top;
+      color: #344054;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.45;
+      white-space: pre-line;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .family-compare-table tr:last-child th,
+    .family-compare-table tr:last-child td { border-bottom: 0; }
+    .family-compare-table th:last-child,
+    .family-compare-table td:last-child { border-right: 0; }
+    .family-compare-table thead th {
+      background: #f6f8fa;
+      color: #373a3c;
+      font-weight: 800;
+    }
+    .family-compare-table thead th:first-child,
+    .family-compare-table tbody th {
+      width: 138px;
+      background: #fafbfc;
+      color: #667085;
+      font-weight: 800;
+    }
+    .family-compare-table td.same { background: #f5fbf6; }
+    .family-compare-table td.missing { background: #fffaf0; color: #9a671b; }
+    .family-compare-table td.different { background: #fff4f4; color: #b43f3f; }
+    .family-compare-list {
+      display: grid;
+      gap: 6px;
+    }
+    .family-compare-list-item {
+      display: block;
+    }
+    .family-compare-list-item svg {
+      width: 15px;
+      height: 15px;
+      display: inline-block;
+      margin-left: 4px;
+      color: #3489f8;
+      vertical-align: -2px;
+    }
+    .family-compare-product-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .family-compare-product-head span { font-size: 16px; }
+    .family-compare-product-head input { width: 16px; height: 16px; accent-color: #3489f8; }
+    .family-compare-product-head input:disabled { cursor: not-allowed; opacity: .45; }
+    .family-assignment-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      margin-top: 7px;
+      padding: 0 7px;
+      border: 1px solid var(--family-chip-border, #cfc5ff);
+      border-radius: 999px;
+      background: var(--family-chip-bg, #f0edff);
+      color: var(--family-chip-color, #6251bf);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .family-assignment-list {
+      display: grid;
+      gap: 9px;
+      margin-bottom: 18px;
+    }
+    .family-assignment-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 15px;
+      border: 1px solid var(--family-chip-border, #dce2ea);
+      border-radius: 10px;
+      background: var(--family-chip-bg, #f8fafc);
+    }
+    .family-assignment-card strong { color: #373a3c; font-size: 15px; }
+    .family-assignment-card p { margin: 4px 0 0; color: #667085; font-size: 13px; font-weight: 600; }
+    .family-assignment-manage {
+      height: 32px;
+      padding: 0 11px;
+      border: 1px solid var(--family-chip-border, #cfd8e5);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--family-chip-color, #475467);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .family-prototype-preview {
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid #e1e6ed;
+      border-radius: 12px;
+      background: #fff;
+    }
+    .family-prototype-preview-title {
+      margin: 0 0 12px;
+      color: #373a3c;
+      font-size: 19px;
+      font-weight: 800;
+    }
+    .family-prototype-card-preview {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: #f7f8fa;
+    }
+    .family-prototype-card-preview.family-preview-spaced { margin-top: 10px; }
+    .family-prototype-card-preview strong {
+      color: #373a3c;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .family-prototype-card-preview p {
+      margin: 5px 0 0;
+      color: #667085;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .family-prototype-option-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .family-prototype-option {
+      min-width: 136px;
+      display: grid;
+      grid-template-columns: 16px 1fr;
+      gap: 3px 8px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid #dbe1e9;
+      border-radius: 9px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .family-prototype-option.selected {
+      border-color: #4399ee;
+      box-shadow: 0 0 0 2px rgba(67, 153, 238, 0.12);
+    }
+    .family-prototype-option input { grid-row: span 4; accent-color: #3489f8; }
+    .family-prototype-option b { color: #373a3c; font-size: 14px; }
+    .family-prototype-option span { color: #667085; font-size: 14px; font-weight: 700; }
+    .family-review-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px 22px;
+      border-top: 1px solid #e7ebf0;
+      background: #fff;
+    }
+    .family-review-foot-note {
+      color: #7a8494;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .family-review-actions { display: flex; align-items: center; gap: 8px; }
+    .family-review-action {
+      min-width: 88px;
+      height: 40px;
+      border: 1px solid #d5dce6;
+      border-radius: 8px;
+      background: #fff;
+      color: #475467;
+      padding: 0 18px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .family-review-action.danger { color: #c13d3d; }
+    .family-review-action.primary {
+      min-width: 110px;
+      border-color: #3489f8;
+      background: #3489f8;
+      color: #fff;
+    }
+    .family-review-action:disabled {
+      border-color: #e1e5ea;
+      background: #eff1f4;
+      color: #a1a8b3;
+      cursor: not-allowed;
+    }
+    .family-group-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 82;
+      display: none;
+      place-items: center;
+      padding: 24px;
+      background: rgba(20, 27, 39, .42);
+    }
+    .family-group-backdrop.open { display: grid; }
+    .family-group-shell {
+      width: min(620px, 94vw);
+      max-height: min(720px, 90vh);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .26);
+    }
+    .family-group-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid #e7ebf0;
+    }
+    .family-group-title { margin: 0; color: #373a3c; font-size: 21px; font-weight: 800; }
+    .family-group-subtitle { margin-top: 6px; color: #667085; font-size: 14px; font-weight: 600; line-height: 1.5; }
+    .family-group-body { overflow-y: auto; padding: 20px 24px; }
+    .family-group-help { margin: 0 0 12px; color: #475467; font-size: 15px; font-weight: 700; }
+    .family-group-options { display: grid; gap: 9px; }
+    .family-group-option {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 11px;
+      padding: 13px 14px;
+      border: 1px solid #dfe4eb;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .family-group-option:has(input:checked) { border-color: #65aaf0; background: #f3f8ff; box-shadow: 0 0 0 2px rgba(52, 137, 248, .08); }
+    .family-group-option input { width: 17px; height: 17px; accent-color: #3489f8; }
+    .family-group-option strong { display: block; color: #373a3c; font-size: 15px; line-height: 1.4; }
+    .family-group-option span { display: block; margin-top: 3px; color: #667085; font-size: 13px; font-weight: 600; }
+    .family-group-option b { color: #373a3c; font-size: 14px; white-space: nowrap; }
+    .family-group-confirm-copy {
+      padding: 18px;
+      border-radius: 12px;
+      background: #f7f8fa;
+      color: #373a3c;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+    .family-group-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 24px;
+      border-top: 1px solid #e7ebf0;
+    }
+    .family-group-foot-side { display: flex; gap: 8px; margin-left: auto; }
+    .family-group-button {
+      min-width: 92px;
+      height: 40px;
+      padding: 0 16px;
+      border: 1px solid #d5dce6;
+      border-radius: 8px;
+      background: #fff;
+      color: #475467;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .family-group-button.primary { border-color: #3489f8; background: #3489f8; color: #fff; }
+    .family-group-button.danger {
+      border-color: #efc5c5;
+      background: #fff;
+      color: #bf4040;
+    }
+    .family-prototype-toast {
+      position: fixed;
+      right: 30px;
+      bottom: 30px;
+      z-index: 90;
+      max-width: 360px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      background: #27313f;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 14px 38px rgba(15, 23, 42, 0.22);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .family-prototype-toast.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
@@ -2645,6 +3398,7 @@
       <nav class="nav" aria-label="대시보드 메뉴">
         <button class="nav-button active" type="button" data-menu="schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-calendar-check-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="nav-icon-outline"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 14V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="m16 20 2 2 4-4"/></g><g class="nav-icon-solid" stroke="none"><rect x="2" y="4" width="20" height="18" rx="3" fill="currentColor"/><rect x="6" y="2" width="2" height="5" rx="1" fill="currentColor"/><rect x="16" y="2" width="2" height="5" rx="1" fill="currentColor"/><path d="M3 10h18" fill="none" stroke="#fff" stroke-width="2"/><path d="m14.5 16.5 2.1 2.1 4-4.3" fill="none" stroke="#fff" stroke-width="2"/></g></svg><span class="nav-label">일정 관리</span></button>
         <button class="nav-button" type="button" data-menu="recommended-schedules"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="nav-icon-outline"><path d="M11.5 2.9a.6.6 0 0 1 1 0l2.5 5.1a.6.6 0 0 0 .5.3l5.6.8a.6.6 0 0 1 .3 1l-4 3.9a.6.6 0 0 0-.2.6l1 5.5a.6.6 0 0 1-.9.6l-5-2.6a.6.6 0 0 0-.6 0l-5 2.6a.6.6 0 0 1-.9-.6l1-5.5a.6.6 0 0 0-.2-.6l-4-3.9a.6.6 0 0 1 .3-1l5.6-.8a.6.6 0 0 0 .5-.3z"/></g><path class="nav-icon-solid" d="M11.1 2.5a1 1 0 0 1 1.8 0l2.6 5.3 5.8.8a1 1 0 0 1 .6 1.7l-4.2 4.1 1 5.8a1 1 0 0 1-1.5 1.1L12 18.6l-5.2 2.7a1 1 0 0 1-1.5-1.1l1-5.8-4.2-4.1a1 1 0 0 1 .6-1.7l5.8-.8z" fill="currentColor" stroke="none"/></svg><span class="nav-label">추천 일정</span></button>
+        <button class="nav-button" type="button" data-menu="product-families"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-boxes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="nav-icon-outline"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></g><g class="nav-icon-solid" fill="currentColor" stroke="none"><path d="M11.2 1.57a1.6 1.6 0 0 1 1.6 0l7 4A1.6 1.6 0 0 1 20.6 7L12 11.94 3.4 7a1.6 1.6 0 0 1 .8-1.43Z"/><path d="M3 8.73 11 13.3v8.35l-6.8-3.88A2.4 2.4 0 0 1 3 15.68Z"/><path d="M13 13.3 21 8.73v6.95a2.4 2.4 0 0 1-1.2 2.09L13 21.65Z"/></g></svg><span class="nav-label">상품군 관리</span></button>
         <button class="nav-button" type="button" data-menu="participant-management"><svg xmlns="http://www.w3.org/2000/svg" class="nav-icon lucide lucide-users-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g class="nav-icon-outline"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></g><g class="nav-icon-solid" fill="currentColor" stroke="none"><circle cx="17.5" cy="7.5" r="3.5"/><path d="M15.2 13.1c4.9-.3 7.8 3.2 7.8 7.9h-4.2c0-3.2-1.3-5.9-3.6-7.9Z"/><circle cx="9" cy="8" r="5"/><path d="M1 22a8 8 0 0 1 16 0Z"/></g></svg><span class="nav-label">고객 관리</span></button>
       </nav>
       <div class="sidebar-footer">
@@ -2698,6 +3452,47 @@
     </div>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
+
+  <div class="family-review-backdrop" id="familyReviewBackdrop" aria-hidden="true">
+    <section class="family-review-shell" role="dialog" aria-modal="true" aria-labelledby="familyReviewTitle">
+      <header class="family-review-head">
+        <div>
+          <div class="family-review-eyebrow">상품군 후보 비교검토</div>
+          <h2 class="family-review-title" id="familyReviewTitle">상품군 후보</h2>
+          <div class="family-review-subtitle" id="familyReviewSubtitle"></div>
+        </div>
+        <button class="family-review-close" type="button" id="familyReviewClose" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </header>
+      <div class="family-review-body">
+        <aside class="family-review-summary" id="familyReviewSummary"></aside>
+        <main class="family-review-content" id="familyReviewContent"></main>
+      </div>
+      <footer class="family-review-foot">
+        <div class="family-review-foot-note">승인 결과는 Google Sheet에 저장되며 메인페이지 발행 전까지 관리자 설정으로 유지됩니다.</div>
+        <div class="family-review-actions" id="familyReviewActions"></div>
+      </footer>
+    </section>
+  </div>
+  <div class="family-group-backdrop" id="familyGroupAssignBackdrop" aria-hidden="true">
+    <section class="family-group-shell" role="dialog" aria-modal="true" aria-labelledby="familyGroupAssignTitle">
+      <header class="family-group-head">
+        <div>
+          <h2 class="family-group-title" id="familyGroupAssignTitle">상품군 지정</h2>
+          <div class="family-group-subtitle" id="familyGroupAssignSubtitle"></div>
+        </div>
+        <button class="family-review-close" type="button" id="familyGroupAssignClose" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </header>
+      <div class="family-group-body" id="familyGroupAssignBody"></div>
+      <footer class="family-group-foot">
+        <button class="family-group-button danger" type="button" id="familyGroupAssignRevoke" hidden>상품군 지정 취소</button>
+        <div class="family-group-foot-side">
+          <button class="family-group-button" type="button" id="familyGroupAssignCancel">취소</button>
+          <button class="family-group-button primary" type="button" id="familyGroupAssignConfirm">확인</button>
+        </div>
+      </footer>
+    </section>
+  </div>
+  <div class="family-prototype-toast" id="familyPrototypeToast" role="status" aria-live="polite"></div>
 
   <div class="quote-editor-backdrop" id="quoteEditorBackdrop" aria-hidden="true">
     <section class="quote-editor-shell" role="dialog" aria-modal="true" aria-labelledby="quoteEditorTitle">
@@ -2889,7 +3684,32 @@
       currentMenu: "schedules",
       currentSchedulePanel: "schedules",
       expandedParticipantKey: "",
-      expandedCustomerKey: ""
+      expandedCustomerKey: "",
+      familyPrototypeSearch: "",
+      familyPrototypePack: "",
+      familyPrototypeStatus: "",
+      familyPrototypeRisk: "",
+      recommendationRegisteredOnly: false,
+      expandedRecommendationGoodSeq: ""
+    };
+
+    let activeFamilyPrototypeId = "";
+    let familyPrototypeToastTimer = null;
+    let familyPrototypeGroups = [];
+    let familyPrototypeBuildVersion = 0;
+    let familyPrototypeHydrationPromise = null;
+    let familyGroupAssignContext = null;
+    let productFamilyAdminState = {
+      loaded: false,
+      loading: false,
+      error: "",
+      catalogRevision: "",
+      analysisRevision: "",
+      catalog: [],
+      candidates: [],
+      families: [],
+      familyDiagnostics: [],
+      summary: {}
     };
 
     function asText(value) {
@@ -2940,6 +3760,12 @@
         refreshedAt: payload.generatedAt || "",
         count: Number(payload.count || payload.items.length) || payload.items.length
       };
+      if (productFamilyAdminState.loaded
+        && asText(payload.generatedAt)
+        && asText(productFamilyAdminState.catalogRevision) !== asText(payload.generatedAt)) {
+        productFamilyAdminState.loaded = false;
+      }
+      rebuildFamilyPrototypeGroups({ hydrate: state.currentMenu === "product-families" });
       return true;
     }
 
@@ -3075,13 +3901,15 @@
     function normalizeSecretTourGoodsItem(item, index) {
       const departureDate = secretTourDateToISO(item.minStartDay);
       const dayCnt = Number(item.dayCnt) || 1;
-      const price = Number(item.dpPrice) || Number(item.minPrice) || 0;
+      const price = Number(item.dpPrice) || Number(item.maxPrice) || Number(item.adultPrice) || Number(item.minPrice) || 0;
       const productType = item.productType || item.goodsType || item.goodType || item.goodKind || item.goodDetailCdNm || item.goodDetailName || item.packageType || item.packType || item.tourType || item.airProductYn || item.airYn || item.flightYn || item.includeAirYn || "";
       const title = item.goodNm || "Golf join product";
       const destination = parseSecretTourTitleDestination(title);
       return {
         id: item.goodSeq ? `secret-tour-${item.goodSeq}` : `secret-tour-product-${index}`,
         goodSeq: item.goodSeq,
+        erpProductId: asText(item.goodSeq),
+        erpEventSeq: "",
         goodTransportSeq: item.goodTransportSeq || item.transportSeq || item.goodAirSeq || item.airSeq || item.flightSeq || "",
         goodCd: item.goodCd || "",
         productType,
@@ -3117,7 +3945,7 @@
     function normalizeSecretTourGoodsEventItem(product, event, index) {
       const departureDate = secretTourDateToISO(event.startDay || event.depStartDay || product.minStartDay);
       const returnDate = secretTourDateToISO(event.endDay || event.arrStartDay);
-      const price = Number(event.adultPrice) || Number(event.minPrice) || Number(product.minPrice) || 0;
+      const price = Number(event.adultPrice) || Number(event.maxPrice) || Number(product.dpPrice) || Number(product.maxPrice) || Number(event.minPrice) || Number(product.minPrice) || 0;
       const restCnt = Number(event.restCnt);
       const productType = event.productType || event.goodsType || event.goodType || event.goodKind || event.goodDetailCdNm || event.goodDetailName || event.packageType || event.packType || event.tourType || event.airProductYn || event.airYn || event.flightYn || event.includeAirYn || product.productType || product.goodsType || product.goodType || product.goodKind || product.goodDetailCdNm || product.goodDetailName || product.packageType || product.packType || product.tourType || product.airProductYn || product.airYn || product.flightYn || product.includeAirYn || "";
       const title = event.eventNm || product.goodNm || "Golf join product";
@@ -3126,6 +3954,8 @@
         id: event.eventSeq ? `secret-tour-${product.goodSeq}-${event.eventSeq}` : `secret-tour-${product.goodSeq}-event-${index}`,
         goodSeq: product.goodSeq,
         eventSeq: event.eventSeq,
+        erpProductId: asText(product.goodSeq),
+        erpEventSeq: asText(event.eventSeq),
         goodTransportSeq: event.goodTransportSeq || event.transportSeq || event.goodAirSeq || event.airSeq || event.flightSeq || product.goodTransportSeq || product.transportSeq || product.goodAirSeq || product.airSeq || product.flightSeq || "",
         goodCd: product.goodCd || "",
         productType,
@@ -3685,6 +4515,11 @@
       return text;
     }
 
+    function normalizeCanonicalErpProductId(value = "", eventSeq = "") {
+      const normalized = normalizeErpProductId(value, eventSeq);
+      return /^\d+$/.test(normalized) ? normalized : "";
+    }
+
     function formatPhone(value) {
       const digits = normalizePhone(value);
       if (/^010\d{8}$/.test(digits)) return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
@@ -3975,7 +4810,11 @@
         const message = data.message === "join_schedule_full"
           ? `잔여 정원은 ${Number(data.remainingSeats || data.details?.remainingSeats || 0)}명입니다.`
           : (data.message || data.error || text || `요청 실패: ${response.status}`);
-        throw new Error(message);
+        const requestError = new Error(message);
+        requestError.status = response.status;
+        requestError.code = asText(data.code);
+        requestError.data = data;
+        throw requestError;
       }
       return data;
     }
@@ -4390,7 +5229,7 @@
     }
 
     function findProduct(row = {}) {
-      const erpProductId = firstText(
+      const rawErpProductId = firstText(
         getNestedValue(row, "trip.erpProductId"),
         getNestedValue(row, "trip.productId"),
         getNestedValue(row, "product.erpProductId"),
@@ -4406,13 +5245,12 @@
         row.erpEventSeq,
         row.eventSeq
       );
+      const erpProductId = normalizeCanonicalErpProductId(rawErpProductId, erpEventSeq);
       const title = getTitle(row);
       return products.find((product) => erpProductId && (
-        asText(product.id) === erpProductId ||
-        asText(product.goodSeq) === erpProductId ||
-        asText(product.erpProductId) === erpProductId
+        normalizeCanonicalErpProductId(product.goodSeq || product.erpProductId || product.id, product.eventSeq || product.erpEventSeq) === erpProductId
       ) && (!erpEventSeq || asText(product.eventSeq) === erpEventSeq || asText(product.erpEventSeq) === erpEventSeq))
-        || products.find((product) => erpProductId && (asText(product.goodSeq) === erpProductId || asText(product.erpProductId) === erpProductId))
+        || products.find((product) => erpProductId && normalizeCanonicalErpProductId(product.goodSeq || product.erpProductId || product.id, product.eventSeq || product.erpEventSeq) === erpProductId)
         || products.find((product) => title && asText(product.title) === title)
         || {};
     }
@@ -4713,12 +5551,16 @@
       state.error = "";
       renderTable();
       try {
-        await loadLatestSavedGolfJoinProductsData();
+        const loadedSavedProducts = await loadLatestSavedGolfJoinProductsData();
+        if (!loadedSavedProducts) rebuildFamilyPrototypeGroups({ hydrate: state.currentMenu === "product-families" });
         const { builderRows, joinRows, profileRows, displayRuleRows } = await fetchAdminRows();
         state.rawRows = [...builderRows, ...joinRows];
         state.schedules = buildSchedules(builderRows, joinRows, displayRuleRows);
         state.memberProfiles = buildMemberProfiles(profileRows);
         state.displayRules = Array.isArray(displayRuleRows) ? displayRuleRows : [];
+        if (state.currentMenu === "product-families") {
+          await loadProductFamilyAdminData({ force: true, hydrate: false });
+        }
         $("#lastUpdated").textContent = `최근 갱신 ${formatDateTime(new Date())}`;
       } catch (error) {
         state.error = error.message || "데이터 로드 실패";
@@ -4796,6 +5638,13 @@
           count: Number(data.count || products.length) || products.length
         };
         secretTourGoodsDetailCache.clear();
+        if (data.productFamily) {
+          applyProductFamilyAdminPayload(data.productFamily);
+          if (state.currentMenu === "product-families") hydrateFamilyPrototypeGroups(familyPrototypeBuildVersion);
+        } else {
+          productFamilyAdminState.loaded = false;
+          rebuildFamilyPrototypeGroups({ hydrate: state.currentMenu === "product-families" });
+        }
         renderMetrics();
         renderTable();
       } catch (error) {
@@ -5052,6 +5901,41 @@
       }) || {};
     }
 
+    function getRecommendationRuleSchedule(rule = {}) {
+      const scheduleKey = getRecommendationScheduleKey(rule);
+      return state.schedules.find((schedule) => asText(schedule.key) === scheduleKey) || null;
+    }
+
+    function getRecommendationRulePeople(rule = {}) {
+      const schedule = getRecommendationRuleSchedule(rule);
+      return schedule ? getSchedulePaymentCounts(schedule).total : 0;
+    }
+
+    function renderRecommendationRegisteredItem(rule = {}) {
+      const recommendedScheduleId = getRecommendationDisplayRuleId(rule);
+      const product = findProductForDisplayRule(rule);
+      const title = rule.overrideTitle || product.title || "상품명 없음";
+      const capacity = getRecommendationRuleCapacity(rule);
+      const currentPeople = getRecommendationRulePeople(rule);
+      const departureDate = formatDate(rule.displayStartAt || product.departureDate) || "-";
+      const returnDate = formatDate(rule.displayEndAt || product.returnDate) || "-";
+      const typeLabel = isMonthlyRecommendationRule(rule) ? "단체여행" : "일반일정";
+      return `
+        <div class="recommendation-registered-item" data-recommended-schedule-id="${escapeHtml(recommendedScheduleId)}">
+          <div class="recommendation-registered-main">
+            <div class="recommendation-registered-title">${escapeHtml(title)}</div>
+            <div class="recommendation-registered-meta">${escapeHtml(`${departureDate} ~ ${returnDate} · ${typeLabel} · 현재 ${currentPeople}명 · 행사 ${rule.erpEventSeq || "-"}`)}</div>
+          </div>
+          <label class="recommendation-capacity-editor">
+            <span>정원</span>
+            <input class="recommendation-capacity-input" type="text" inputmode="numeric" pattern="[0-9]*" value="${escapeHtml(String(capacity))}" data-recommendation-registered-capacity aria-label="등록 추천일정 정원">
+            <span>명</span>
+          </label>
+          <button class="recommendation-capacity-save" type="button" data-action="recommendation-capacity-save">저장</button>
+        </div>
+      `;
+    }
+
     function renderRecommendedSchedulesManager() {
       const tableWrap = $("#tableWrap");
       const keyword = asText($("#searchInput")?.value).toLowerCase();
@@ -5122,7 +6006,9 @@
       const keyword = asText($("#searchInput")?.value).toLowerCase();
       const productItems = getRecommendationProductItems();
       const activeRules = getActiveRecommendationRules();
+      const registeredGoodSeqs = new Set(activeRules.map((rule) => asText(rule.erpProductId)).filter(Boolean));
       const productGroups = getRecommendationProductGroups(productItems).filter((group) => {
+        if (state.recommendationRegisteredOnly && !registeredGoodSeqs.has(asText(group.goodSeq))) return false;
         if (!keyword) return true;
         return [
           group.title,
@@ -5157,7 +6043,9 @@
               </thead>
               <tbody>
                 ${productGroups.map((group) => {
-                  const activeCount = activeRules.filter((rule) => asText(rule.erpProductId) === asText(group.goodSeq)).length;
+                  const registeredRules = activeRules.filter((rule) => asText(rule.erpProductId) === asText(group.goodSeq));
+                  const activeCount = registeredRules.length;
+                  const isExpanded = activeCount > 0 && state.expandedRecommendationGoodSeq === asText(group.goodSeq);
                   return `
                     <tr data-recommendation-product="${escapeHtml(group.goodSeq)}">
                       <td><span class="badge ${group.packType === "air" ? "air" : "golf"}">${escapeHtml(getPackLabel(group.packType))}</span></td>
@@ -5180,7 +6068,7 @@
                         </div>
                       </td>
                       <td><input class="recommendation-capacity-input" type="text" inputmode="numeric" pattern="[0-9]*" value="4" data-recommendation-capacity aria-label="정원"></td>
-                      <td>${activeCount ? `<span class="badge status-open">${escapeHtml(`${activeCount}개 등록`)}</span>` : '<span class="badge">미등록</span>'}</td>
+                      <td>${activeCount ? `<button class="badge status-open recommendation-registration-badge" type="button" data-action="recommendation-registration-toggle" aria-expanded="${isExpanded ? "true" : "false"}">${escapeHtml(`${activeCount}개 등록`)}</button>` : '<span class="badge">미등록</span>'}</td>
                       <td>
                         <div class="row-actions">
                           <button class="row-button" type="button" data-action="recommendation-product-view">상품보기</button>
@@ -5188,6 +6076,15 @@
                         </div>
                       </td>
                     </tr>
+                    ${isExpanded ? `
+                      <tr class="recommendation-accordion-row">
+                        <td colspan="12">
+                          <div class="recommendation-accordion">
+                            ${registeredRules.map(renderRecommendationRegisteredItem).join("")}
+                          </div>
+                        </td>
+                      </tr>
+                    ` : ""}
                   `;
                 }).join("")}
               </tbody>
@@ -5197,18 +6094,1183 @@
       `;
     }
 
+    function getFamilyPrototypeStatusLabel(status = "") {
+      return ({ pending: "검토 필요", partial: "일부 승인", approved: "승인 완료", recheck: "재검토 필요", review_required: "재검토 필요" })[status] || "검토 필요";
+    }
+
+    function getFamilyPrototypeRiskLabel(risk = "") {
+      return ({ safe: "안전", review: "확인 필요", conflict: "충돌" })[risk] || "확인 필요";
+    }
+
+    function getFamilyPrototypePackLabel(pack = "") {
+      return pack === "air" ? "항공팩" : "골프팩";
+    }
+
+    function getFamilyPrototypeDurationInfo(product = {}) {
+      const sourceText = [
+        product.duration,
+        product.dayNightCnt,
+        product.tripSummary,
+        product.title
+      ].map(asText).filter(Boolean).join(" ");
+      const matched = /(\d+)\s*박\s*(\d+)\s*일/.exec(sourceText);
+      if (matched) {
+        const nights = Number(matched[1]);
+        const days = Number(matched[2]);
+        if (Number.isFinite(nights) && Number.isFinite(days) && days > nights) {
+          return { nights, days, label: `${nights}박 ${days}일` };
+        }
+      }
+      const calculated = formatTripNightsDays(product.departureDate, product.returnDate);
+      const calculatedMatch = /(\d+)박\s*(\d+)일/.exec(calculated);
+      if (!calculatedMatch) return { nights: 0, days: 0, label: "" };
+      return {
+        nights: Number(calculatedMatch[1]),
+        days: Number(calculatedMatch[2]),
+        label: `${Number(calculatedMatch[1])}박 ${Number(calculatedMatch[2])}일`
+      };
+    }
+
+    function stripFamilyPrototypePackPrefix(value = "") {
+      return asText(value)
+        .replace(/^\s*\[(?:항공팩|골프팩)[^\]]*\]\s*/i, "")
+        .replace(/^\s*(?:항공팩|골프팩)\s*[-:·|]?\s*/i, "")
+        .trim();
+    }
+
+    function getFamilyPrototypeBaseTitle(value = "") {
+      const title = stripFamilyPrototypePackPrefix(value);
+      if (!title) return "";
+      const durationMatch = /(\d+)\s*박\s*(\d+)\s*일/.exec(title);
+      const base = durationMatch?.index > 0 ? title.slice(0, durationMatch.index) : title;
+      return base
+        .replace(/(?:19|20)\d{2}[.\-/]\d{1,2}[.\-/]\d{1,2}/g, " ")
+        .replace(/[\s·|/,:;\-]+$/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function normalizeFamilyPrototypeKeyText(value = "") {
+      return asText(value)
+        .normalize("NFKC")
+        .toLowerCase()
+        .replace(/[\s\[\](){}·|/,:;_\-]+/g, "");
+    }
+
+    function hashFamilyPrototypeKey(value = "") {
+      let hash = 2166136261;
+      const source = String(value || "");
+      for (let index = 0; index < source.length; index += 1) {
+        hash ^= source.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(36);
+    }
+
+    function getFamilyPrototypeProductRank(product = {}) {
+      const price = Number(product.price || 0);
+      const departureDate = asText(product.departureDate) || "9999-12-31";
+      return `${String(price > 0 ? price : Number.MAX_SAFE_INTEGER).padStart(16, "0")}|${departureDate}`;
+    }
+
+    function buildFamilyPrototypeProduct(product = {}) {
+      const reference = getSecretTourProductReference({}, product);
+      const duration = getFamilyPrototypeDurationInfo(product);
+      const title = asText(product.title || product.productName || product.goodName);
+      const baseTitle = getFamilyPrototypeBaseTitle(title);
+      const country = getRecommendationProductCountry(product);
+      const region = getRecommendationProductRegion(product);
+      const pack = getPackType({}, product);
+      if (!reference.goodSeq || !reference.eventSeq || !duration.label || !baseTitle) return null;
+      if (!country || country === "-" || !region || region === "-") return null;
+      const airport = firstText(product.departureAirport, product.airport);
+      const airline = firstText(product.airline, product.air2Nm, product.air2CdNm);
+      const departurePattern = parseFamilyPrototypeDeparturePattern(product.sourceProductTitle || title);
+      return {
+        goodSeq: reference.goodSeq,
+        eventSeq: reference.eventSeq,
+        goodTransportSeq: reference.goodTransportSeq,
+        departureDate: reference.startDay || product.departureDate || "",
+        returnDate: reference.endDay || product.returnDate || "",
+        title,
+        baseTitle,
+        duration: duration.label,
+        durationNights: duration.nights,
+        durationDays: duration.days,
+        country,
+        region,
+        pack,
+        airport,
+        airline,
+        departurePattern,
+        departurePatternLabel: departurePattern.label,
+        golfCourses: "",
+        golfSummary: null,
+        golfSummaryLabel: "골프 일정 확인 중",
+        hotel: "",
+        included: parseList(product.includes).join(" · "),
+        excluded: parseList(product.excludes).join(" · "),
+        price: Number(product.price || 0),
+        detailStatus: "pending",
+        sourceProduct: product
+      };
+    }
+
+    function getFamilyPrototypeCandidateKey(product = {}) {
+      return [
+        product.pack,
+        normalizeFamilyPrototypeKeyText(product.country),
+        normalizeFamilyPrototypeKeyText(product.region),
+        normalizeFamilyPrototypeKeyText(product.baseTitle)
+      ].join("|");
+    }
+
+    function getFamilyPrototypeDistinctValues(products = [], key = "") {
+      return [...new Set(products.map((product) => normalizeFamilyPrototypeKeyText(product[key])).filter(Boolean))];
+    }
+
+    function evaluateFamilyPrototypeGroup(group = {}) {
+      const products = group.products || [];
+      const detailFailed = products.some((product) => product.detailStatus === "failed");
+      const detailPending = products.some((product) => product.detailStatus !== "loaded");
+      const conflictFields = group.pack === "air" ? ["airport", "airline"] : [];
+      const reviewFields = ["golfCourses", "hotel", "included", "excluded"];
+      const conflicts = conflictFields.filter((key) => getFamilyPrototypeDistinctValues(products, key).length > 1);
+      const differences = reviewFields.filter((key) => getFamilyPrototypeDistinctValues(products, key).length > 1);
+      const missing = [...conflictFields, ...reviewFields].filter((key) => products.some((product) => !asText(product[key])));
+      const issues = [];
+      if (conflicts.includes("airport")) issues.push({ level: "danger", text: "출발공항이 서로 달라 동일 상품군으로 승인할 수 없습니다." });
+      if (conflicts.includes("airline")) issues.push({ level: "danger", text: "항공사가 서로 달라 상품군 분리가 필요합니다." });
+      if (differences.length) issues.push({ level: "warning", text: `${differences.map((key) => ({ golfCourses: "골프장", hotel: "숙소", included: "포함사항", excluded: "불포함사항" })[key]).join("·")} 정보가 서로 달라 확인이 필요합니다.` });
+      if (missing.length) issues.push({ level: "warning", text: "일부 상품의 상세 비교 정보가 없거나 비어 있습니다." });
+      if (detailFailed) issues.push({ level: "warning", text: "ERP 상품상세를 불러오지 못한 상품이 있습니다." });
+      if (detailPending && !detailFailed) issues.push({ level: "warning", text: "ERP 상품상세 비교를 진행하고 있습니다." });
+      if (!issues.length) {
+        issues.push({ level: "safe", text: "상품 유형과 방문 지역이 일치합니다." });
+        issues.push({ level: "safe", text: "공항·항공·골프장·숙소·이용 조건이 일치합니다." });
+        issues.push({ level: "safe", text: "여행기간과 판매가격만 다릅니다." });
+      }
+      group.risk = conflicts.length ? "conflict" : (differences.length || missing.length || detailFailed || detailPending ? "review" : "safe");
+      group.issues = issues;
+      return group;
+    }
+
+    function getFamilyPrototypeScheduleDayLabel(item = {}, index = 0) {
+      const matched = /(\d+)\s*일차/.exec(firstText(item.day, item.dayLabel));
+      return matched ? `${Number(matched[1])}일차` : `${index + 1}일차`;
+    }
+
+    function parseFamilyPrototypeDeparturePattern(value = "") {
+      const title = asText(value).normalize("NFKC");
+      const durationMatch = /(\d+)\s*박\s*(\d+)\s*일/.exec(title);
+      if (!durationMatch) return { mode: "unknown", weekdays: [], label: "출발요일 확인 필요", status: "review_required" };
+      const tail = title.slice((durationMatch.index || 0) + durationMatch[0].length);
+      const departureIndex = tail.indexOf("출발");
+      if (departureIndex < 0) return { mode: "daily", weekdays: [], label: "매일출발", status: "resolved" };
+      const weekdayText = tail.slice(0, departureIndex).trim();
+      const matched = /^\s*[([{]?\s*([월화수목금토일](?:\s*[\/·,]\s*[월화수목금토일])*)\s*[)\]}]?\s*$/.exec(weekdayText);
+      if (!matched) return { mode: "unknown", weekdays: [], label: "출발요일 확인 필요", status: "review_required" };
+      const weekdays = [...new Set(matched[1].match(/[월화수목금토일]/g) || [])];
+      return weekdays.length
+        ? { mode: "weekday", weekdays, label: `${weekdays.join("/")}출발`, status: "resolved" }
+        : { mode: "unknown", weekdays: [], label: "출발요일 확인 필요", status: "review_required" };
+    }
+
+    function analyzeFamilyPrototypeHoleLine(value = "") {
+      const source = asText(value).normalize("NFKC").replace(/\s+/g, " ");
+      const holes = [...source.matchAll(/(\d+)\s*(?:홀|H\b)/gi)]
+        .map((match) => Number(match[1]))
+        .filter((number) => Number.isFinite(number) && number > 0 && number <= 144);
+      if (!holes.length) return null;
+      if (/또는/.test(source) || /주중[\s\S]*\/[\s\S]*주말|주말[\s\S]*\/[\s\S]*주중/.test(source)) {
+        return { minHoles: Math.min(...holes), maxHoles: Math.max(...holes), condition: "alternative" };
+      }
+      if (/보너스/.test(source)) {
+        return { minHoles: holes[0], maxHoles: holes.reduce((sum, number) => sum + number, 0), condition: "optional_bonus" };
+      }
+      const total = holes.reduce((sum, number) => sum + number, 0);
+      return { minHoles: total, maxHoles: total, condition: "fixed" };
+    }
+
+    function buildFamilyPrototypeGolfSummary(schedule = []) {
+      const dayBreakdown = [];
+      (Array.isArray(schedule) ? schedule : []).forEach((item, index) => {
+        const points = parseList(item?.points).map(cleanSecretTourDetailText).filter(Boolean);
+        const lines = points.length
+          ? points
+          : asText(item?.content)
+            ? asText(item.content).split(/\s*,\s*|\s*\n\s*/).map(cleanSecretTourDetailText).filter(Boolean)
+            : asText(item?.rawText) ? [cleanSecretTourDetailText(item.rawText)] : [];
+        const golfLines = [...new Set(lines
+          .filter((line) => /라운드|라운딩|\d+\s*(?:홀|H\b)/i.test(line) || (/골프/i.test(line) && !/이동|출발|도착|중\s*한\s*곳/.test(line)))
+          .map((line) => asText(line).normalize("NFKC").replace(/\s+/g, " ")))];
+        if (!golfLines.length) return;
+        const analyses = golfLines.map(analyzeFamilyPrototypeHoleLine).filter(Boolean);
+        const resolved = analyses.length > 0;
+        dayBreakdown.push({
+          day: index + 1,
+          minHoles: resolved ? analyses.reduce((sum, row) => sum + row.minHoles, 0) : 0,
+          maxHoles: resolved ? analyses.reduce((sum, row) => sum + row.maxHoles, 0) : 0,
+          status: resolved ? "resolved" : "review_required"
+        });
+      });
+      const golfDays = dayBreakdown.length;
+      if (!golfDays) return { golfDays: 0, minTotalHoles: 0, maxTotalHoles: 0, label: "골프 일정 확인 필요", status: "review_required", dayBreakdown: [] };
+      const unresolved = dayBreakdown.some((item) => item.status !== "resolved");
+      const minTotalHoles = dayBreakdown.reduce((sum, item) => sum + item.minHoles, 0);
+      const maxTotalHoles = dayBreakdown.reduce((sum, item) => sum + item.maxHoles, 0);
+      const holeLabel = unresolved
+        ? "총 홀수 확인 필요"
+        : minTotalHoles === maxTotalHoles ? `총 ${minTotalHoles}홀` : `총 ${minTotalHoles}~${maxTotalHoles}홀`;
+      return {
+        golfDays,
+        minTotalHoles,
+        maxTotalHoles,
+        label: `골프 ${golfDays}일 · ${holeLabel}`,
+        status: unresolved ? "review_required" : "resolved",
+        dayBreakdown
+      };
+    }
+
+    function isFamilyPrototypeGenericGolfMove(value = "") {
+      const normalized = cleanSecretTourDetailText(value).replace(/[.!。]+$/g, "");
+      return /^(?:(?:호텔|숙소)(?:에서)?\s*)?(?:조식\s*후\s*)?(?:예정된\s*)?골프장(?:으로)?\s*(?:이동|출발)(?:합니다|해요|예정)?$/.test(normalized)
+        || /^(?:조식\s*후\s*)?골프장(?:으로)?\s*이동\s*후$/.test(normalized);
+    }
+
+    function cleanFamilyPrototypeGolfScheduleLine(value = "") {
+      return cleanSecretTourDetailText(value)
+        .replace(/^(?:호텔|숙소)(?:에서)?\s*(?:조식\s*후\s*)?/g, "")
+        .replace(/^조식\s*후\s*/g, "")
+        .replace(/^골프장(?:으로)?\s*이동\s*(?:후\s*)?/g, "")
+        .replace(/골프장\s*중\s*(?:한|1|택\s*1)\s*곳/g, "골프장")
+        .replace(/\s*(?:골프\s*)?(?:라운딩|라운드)(?:을|를)?(?:\s*진행)?/gi, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function extractFamilyPrototypeGolfCourses(schedule = []) {
+      const rows = (Array.isArray(schedule) ? schedule : []).flatMap((item, index) => {
+        const points = parseList(item?.points).map(cleanSecretTourDetailText).filter(Boolean);
+        const sourceLines = points.length ? points : [item?.content].map(cleanSecretTourDetailText).filter(Boolean);
+        const relevantLines = [...new Set(sourceLines)]
+          .filter((value) => /골프장|골프클럽|컨트리|\bCC\b|GOLF|라운드|라운딩|\d+\s*홀/i.test(value))
+          .filter((value) => !isFamilyPrototypeGenericGolfMove(value))
+          .map(cleanFamilyPrototypeGolfScheduleLine)
+          .filter(Boolean);
+        if (!relevantLines.length) return [];
+        const courseLines = relevantLines.filter((value) => /골프장|골프클럽|컨트리|\bCC\b|GOLF/i.test(value));
+        const combinedText = relevantLines.join(" ");
+        const timeText = combinedText.match(/오전|오후/)?.[0] || "";
+        const holeText = combinedText.match(/\d+\s*홀/)?.[0]?.replace(/\s+/g, "") || "";
+        const courseText = cleanFamilyPrototypeGolfScheduleLine(courseLines[0] || "골프장")
+          .replace(/오전|오후/g, " ")
+          .replace(/\d+\s*홀/g, " ")
+          .replace(/\s*(?:골프장|골프클럽|컨트리클럽|컨트리|GOLF(?:\s*CLUB)?|CC)\s*$/i, "")
+          .replace(/\s+/g, " ")
+          .trim() || "골프장명 미정";
+        const displayLine = [courseText, timeText, holeText].filter(Boolean).join(" ");
+        const dayLabel = getFamilyPrototypeScheduleDayLabel(item, index);
+        return displayLine ? [`${dayLabel} - ${displayLine}`] : [];
+      });
+      return [...new Set(rows)].join("\n");
+    }
+
+    function extractFamilyPrototypeHotels(schedule = []) {
+      const values = (Array.isArray(schedule) ? schedule : [])
+        .flatMap((item) => cleanSecretTourDetailText(item?.hotel).split(/\s*[·|\n]\s*/))
+        .filter((value) => value && !/^(?:(?:숙소|호텔)\s*[:：-]?\s*)?(?:없음|미정|해당\s*없음|예정)$/i.test(value));
+      return [...new Set(values)].join("\n");
+    }
+
+    function formatFamilyPrototypeDetailList(values = []) {
+      const items = parseList(values).flatMap((value) => cleanSecretTourDetailText(value).split(/\s*[·•\n]\s*/));
+      return [...new Set(items.map(cleanSecretTourDetailText).filter(Boolean))].join("\n");
+    }
+
+    async function hydrateFamilyPrototypeProduct(product = {}) {
+      if (product.detailStatus === "loaded" || product.detailStatus === "failed") return product;
+      product.detailStatus = "loading";
+      const detail = await loadSecretTourGoodsDetail({}, {
+        ...product.sourceProduct,
+        goodSeq: product.goodSeq,
+        eventSeq: product.eventSeq,
+        goodTransportSeq: product.goodTransportSeq,
+        departureDate: product.departureDate,
+        returnDate: product.returnDate
+      });
+      if (!detail || detail.loadError) {
+        product.detailStatus = "failed";
+        return product;
+      }
+      product.airport = firstText(detail.departureAirport, product.airport);
+      product.airline = firstText(detail.airline, product.airline);
+      product.golfCourses = extractFamilyPrototypeGolfCourses(detail.schedule);
+      product.golfSummary = buildFamilyPrototypeGolfSummary(detail.schedule);
+      product.golfSummaryLabel = product.golfSummary.label;
+      product.hotel = extractFamilyPrototypeHotels(detail.schedule);
+      product.included = formatFamilyPrototypeDetailList(detail.includes) || product.included;
+      product.excluded = formatFamilyPrototypeDetailList(detail.excludes) || product.excluded;
+      product.detailStatus = "loaded";
+      return product;
+    }
+
+    async function hydrateFamilyPrototypeGroup(group = {}, buildVersion = familyPrototypeBuildVersion) {
+      if (!group?.products?.length) return;
+      await Promise.all(group.products.map(hydrateFamilyPrototypeProduct));
+      if (buildVersion !== familyPrototypeBuildVersion) return;
+      evaluateFamilyPrototypeGroup(group);
+      if (state.currentMenu === "product-families" && !state.loading) {
+        renderMetrics();
+        renderTable();
+      }
+      if (activeFamilyPrototypeId === group.id && document.getElementById("familyReviewBackdrop")?.classList.contains("open")) {
+        renderFamilyReviewModal(group);
+      }
+    }
+
+    function hydrateFamilyPrototypeGroups(buildVersion = familyPrototypeBuildVersion) {
+      const groups = familyPrototypeGroups.slice();
+      const queue = groups.flatMap((group) => group.products.map((product) => ({ group, product })));
+      if (!queue.length) return Promise.resolve();
+      let cursor = 0;
+      const worker = async () => {
+        while (cursor < queue.length) {
+          const item = queue[cursor];
+          cursor += 1;
+          await hydrateFamilyPrototypeProduct(item.product);
+          evaluateFamilyPrototypeGroup(item.group);
+          if (buildVersion !== familyPrototypeBuildVersion) return;
+        }
+      };
+      familyPrototypeHydrationPromise = Promise.all(Array.from({ length: Math.min(3, queue.length) }, worker))
+        .then(() => {
+          if (buildVersion !== familyPrototypeBuildVersion) return;
+          familyPrototypeGroups.forEach(evaluateFamilyPrototypeGroup);
+          if (state.currentMenu === "product-families" && !state.loading) {
+            renderMetrics();
+            renderTable();
+          }
+          const activeGroup = getActiveFamilyPrototypeGroup();
+          if (activeGroup && document.getElementById("familyReviewBackdrop")?.classList.contains("open")) {
+            renderFamilyReviewModal(activeGroup);
+          }
+        });
+      return familyPrototypeHydrationPromise;
+    }
+
+    function getFamilyPrototypeAssignment(group = {}, goodSeq = "") {
+      return (group.assignments || []).find((assignment) => (assignment.memberGoodSeqs || []).includes(asText(goodSeq))) || null;
+    }
+
+    function getFamilyPrototypeUnassignedProducts(group = {}) {
+      return (group.products || []).filter((product) => !getFamilyPrototypeAssignment(group, product.goodSeq));
+    }
+
+    function getFamilyPrototypeAssignmentProducts(group = {}, assignment = {}) {
+      const memberIds = new Set((assignment.memberGoodSeqs || []).map(asText));
+      return (group.products || []).filter((product) => memberIds.has(asText(product.goodSeq)));
+    }
+
+    function getFamilyPrototypeLowestPriceProduct(items = []) {
+      return items.slice().sort((a, b) => {
+        const priceA = Number(a.price || 0) > 0 ? Number(a.price) : Number.MAX_SAFE_INTEGER;
+        const priceB = Number(b.price || 0) > 0 ? Number(b.price) : Number.MAX_SAFE_INTEGER;
+        return priceA - priceB || a.durationDays - b.durationDays || asText(a.goodSeq).localeCompare(asText(b.goodSeq));
+      })[0] || null;
+    }
+
+    function getFamilyPrototypeRepresentative(group = {}, assignment = {}) {
+      const items = getFamilyPrototypeAssignmentProducts(group, assignment);
+      const preferredId = asText(assignment.preferredRepresentativeGoodSeq);
+      const resolvedId = asText(assignment.resolvedRepresentativeGoodSeq);
+      return items.find((product) => asText(product.goodSeq) === preferredId)
+        || items.find((product) => asText(product.goodSeq) === resolvedId)
+        || getFamilyPrototypeLowestPriceProduct(items);
+    }
+
+    function updateFamilyPrototypeApprovalState(group = {}) {
+      const assignedCount = (group.assignments || []).reduce((sum, assignment) => sum + (assignment.memberGoodSeqs || []).length, 0);
+      const unassignedCount = Math.max(0, (group.products || []).length - assignedCount);
+      const requiresReview = (group.assignments || []).some((assignment) => asText(assignment.status) === "review_required");
+      group.status = requiresReview ? "recheck" : assignedCount ? (unassignedCount >= 2 ? "partial" : "approved") : "pending";
+      return group;
+    }
+
+    function normalizeFamilyPrototypeAssignments(group = {}, assignments = []) {
+      const validIds = new Set((group.products || []).map((product) => asText(product.goodSeq)));
+      const claimedIds = new Set();
+      group.assignments = (Array.isArray(assignments) ? assignments : []).map((assignment, index) => {
+        const memberGoodSeqs = [...new Set((assignment.memberGoodSeqs || []).map(asText))]
+          .filter((goodSeq) => validIds.has(goodSeq) && !claimedIds.has(goodSeq));
+        memberGoodSeqs.forEach((goodSeq) => claimedIds.add(goodSeq));
+        if (memberGoodSeqs.length < 2) return null;
+        const preferredId = asText(assignment.preferredRepresentativeGoodSeq);
+        return {
+          ...assignment,
+          id: asText(assignment.id) || `${group.id}-assignment-${index + 1}`,
+          familyId: asText(assignment.familyId || assignment.id),
+          ordinal: Number(assignment.ordinal || index + 1),
+          memberGoodSeqs,
+          preferredRepresentativeGoodSeq: memberGoodSeqs.includes(preferredId) ? preferredId : ""
+        };
+      }).filter(Boolean).sort((a, b) => a.ordinal - b.ordinal);
+      return updateFamilyPrototypeApprovalState(group);
+    }
+
+    function getNextFamilyPrototypeAssignmentOrdinal(group = {}) {
+      return Math.max(0, ...(group.assignments || []).map((assignment) => Number(assignment.ordinal || 0))) + 1;
+    }
+
+    function getFamilyPrototypeAssignmentLabel(assignment = {}) {
+      return `상품군 ${Number(assignment.ordinal || 1)}`;
+    }
+
+    function getFamilyPrototypeAssignmentColorClass(group = {}, assignment = {}) {
+      const ordinal = Math.max(1, Number(assignment.ordinal || 1));
+      return `family-color-${(ordinal - 1) % 6 + 1}`;
+    }
+
+    function normalizeFamilyServerStatus(status = "") {
+      return asText(status) === "review_required" ? "recheck" : asText(status) || "pending";
+    }
+
+    function buildFamilyPrototypeSourceMaps() {
+      const byReference = new Map();
+      const byGoodSeq = new Map();
+      products.forEach((sourceProduct) => {
+        const reference = getSecretTourProductReference({}, sourceProduct);
+        const goodSeq = asText(reference.goodSeq);
+        if (!goodSeq) return;
+        if (reference.eventSeq) byReference.set(`${goodSeq}::${asText(reference.eventSeq)}`, sourceProduct);
+        const current = byGoodSeq.get(goodSeq);
+        const candidate = buildFamilyPrototypeProduct(sourceProduct);
+        const previous = current ? buildFamilyPrototypeProduct(current) : null;
+        if (candidate && (!previous || getFamilyPrototypeProductRank(candidate) < getFamilyPrototypeProductRank(previous))) {
+          byGoodSeq.set(goodSeq, sourceProduct);
+        }
+      });
+      return { byReference, byGoodSeq };
+    }
+
+    function buildFamilyPrototypeProductFromServer(product = {}, sourceMaps = buildFamilyPrototypeSourceMaps()) {
+      const goodSeq = asText(product.goodSeq);
+      const eventSeq = asText(product.representativeEventSeq);
+      const sourceProduct = sourceMaps.byReference.get(`${goodSeq}::${eventSeq}`) || sourceMaps.byGoodSeq.get(goodSeq) || {};
+      const localProduct = buildFamilyPrototypeProduct(sourceProduct) || {};
+      const departurePattern = product.departurePattern || localProduct.departurePattern || parseFamilyPrototypeDeparturePattern(product.sourceProductTitle || product.title || localProduct.title);
+      return {
+        ...localProduct,
+        goodSeq,
+        eventSeq: eventSeq || localProduct.eventSeq || "",
+        title: asText(product.title || localProduct.title),
+        baseTitle: asText(product.baseTitle || localProduct.baseTitle),
+        duration: asText(product.durationLabel || localProduct.duration),
+        durationNights: Number(product.durationNights || localProduct.durationNights || 0),
+        durationDays: Number(product.durationDays || localProduct.durationDays || 0),
+        country: asText(product.country || localProduct.country),
+        region: asText(product.region || localProduct.region),
+        pack: asText(product.packType || localProduct.pack) === "air" ? "air" : "golf",
+        price: Number(product.lowestPrice || localProduct.price || 0),
+        departureDate: asText(product.earliestDepartureDate || localProduct.departureDate),
+        departurePattern,
+        departurePatternLabel: asText(departurePattern.label) || "출발요일 확인 필요",
+        golfSummary: product.golfSummary?.label ? product.golfSummary : localProduct.golfSummary || null,
+        golfSummaryLabel: asText(product.golfSummary?.label || localProduct.golfSummaryLabel) || "골프 일정 확인 중",
+        sourceActive: product.sourceActive !== false,
+        sourceProduct,
+        detailStatus: localProduct.detailStatus || "pending"
+      };
+    }
+
+    function buildFamilyPrototypeAssignmentsFromServer(group = {}, families = []) {
+      const productIds = new Set((group.products || []).map((product) => asText(product.goodSeq)));
+      return (families || []).filter((family) => {
+        if (asText(family.status) === "revoked") return false;
+        const activeIds = (family.members || [])
+          .filter((member) => asText(member.memberStatus || "active") === "active")
+          .map((member) => asText(member.goodSeq));
+        return activeIds.length >= 2 && activeIds.every((goodSeq) => productIds.has(goodSeq));
+      }).map((family, index) => ({
+        id: asText(family.familyId),
+        familyId: asText(family.familyId),
+        ordinal: index + 1,
+        memberGoodSeqs: (family.members || [])
+          .filter((member) => asText(member.memberStatus || "active") === "active")
+          .map((member) => asText(member.goodSeq))
+          .filter(Boolean),
+        representativeMode: asText(family.representativeMode) || "lowest_price",
+        preferredRepresentativeGoodSeq: asText(family.representativeMode) === "manual" ? asText(family.preferredGoodSeq) : "",
+        resolvedRepresentativeGoodSeq: asText(family.resolvedRepresentativeGoodSeq),
+        configRevision: Number(family.configRevision || 0),
+        status: asText(family.status),
+        updatedAt: asText(family.updatedAt)
+      }));
+    }
+
+    function applyProductFamilyAdminPayload(payload = {}) {
+      const sourceMaps = buildFamilyPrototypeSourceMaps();
+      const catalog = Array.isArray(payload.catalog) ? payload.catalog : [];
+      const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
+      const families = Array.isArray(payload.families) ? payload.families : [];
+      const catalogMap = new Map(catalog.map((product) => [asText(product.goodSeq), product]));
+      const assignedFamilyIds = new Set();
+      const groups = candidates.map((candidate) => {
+        const group = {
+          id: asText(candidate.candidateId) || `family-${hashFamilyPrototypeKey(candidate.candidateKey)}`,
+          candidateTitle: asText(candidate.baseTitle),
+          pack: asText(candidate.packType) === "air" ? "air" : "golf",
+          country: asText(candidate.country),
+          region: asText(candidate.region),
+          status: normalizeFamilyServerStatus(candidate.status),
+          risk: "review",
+          updatedAt: payload.catalogRevision ? (formatDateTime(payload.catalogRevision) || payload.catalogRevision) : "최신 상품 데이터",
+          candidateKey: asText(candidate.candidateKey),
+          issues: [],
+          products: (candidate.products || []).map((product) => buildFamilyPrototypeProductFromServer(product, sourceMaps)),
+          assignments: []
+        };
+        group.assignments = buildFamilyPrototypeAssignmentsFromServer(group, families);
+        group.assignments.forEach((assignment) => assignedFamilyIds.add(assignment.familyId));
+        normalizeFamilyPrototypeAssignments(group, group.assignments);
+        return evaluateFamilyPrototypeGroup(group);
+      });
+      families.filter((family) => asText(family.status) !== "revoked" && !assignedFamilyIds.has(asText(family.familyId))).forEach((family) => {
+        const familyProducts = (family.members || [])
+          .map((member) => catalogMap.get(asText(member.goodSeq)))
+          .filter(Boolean)
+          .map((product) => buildFamilyPrototypeProductFromServer(product, sourceMaps));
+        if (!familyProducts.length) return;
+        const assignment = {
+          id: asText(family.familyId),
+          familyId: asText(family.familyId),
+          ordinal: 1,
+          memberGoodSeqs: (family.members || []).map((member) => asText(member.goodSeq)).filter(Boolean),
+          representativeMode: asText(family.representativeMode) || "lowest_price",
+          preferredRepresentativeGoodSeq: asText(family.representativeMode) === "manual" ? asText(family.preferredGoodSeq) : "",
+          resolvedRepresentativeGoodSeq: asText(family.resolvedRepresentativeGoodSeq),
+          configRevision: Number(family.configRevision || 0),
+          status: asText(family.status),
+          updatedAt: asText(family.updatedAt)
+        };
+        const group = {
+          id: `family-review-${asText(family.familyId)}`,
+          candidateTitle: asText(familyProducts[0]?.baseTitle || family.members?.[0]?.sourceTitleSnapshot || "재검토 상품군"),
+          pack: asText(familyProducts[0]?.pack) || "golf",
+          country: asText(familyProducts[0]?.country),
+          region: asText(familyProducts[0]?.region),
+          status: "recheck",
+          risk: "review",
+          updatedAt: asText(family.updatedAt) ? (formatDateTime(family.updatedAt) || family.updatedAt) : "재검토 필요",
+          candidateKey: asText(family.candidateKeySnapshot),
+          issues: [{ level: "warning", text: "현재 후보 분석 기준과 달라 재검토가 필요한 승인 상품군입니다." }],
+          products: familyProducts,
+          assignments: [assignment]
+        };
+        groups.push(evaluateFamilyPrototypeGroup(group));
+      });
+      familyPrototypeGroups = groups.sort((left, right) => (
+        left.country.localeCompare(right.country, "ko")
+        || left.region.localeCompare(right.region, "ko")
+        || left.candidateTitle.localeCompare(right.candidateTitle, "ko")
+      ));
+      productFamilyAdminState = {
+        loaded: true,
+        loading: false,
+        error: "",
+        catalogRevision: asText(payload.catalogRevision),
+        analysisRevision: asText(payload.analysisRevision),
+        catalog,
+        candidates,
+        families,
+        familyDiagnostics: Array.isArray(payload.familyDiagnostics) ? payload.familyDiagnostics : [],
+        summary: payload.summary || {}
+      };
+      familyPrototypeBuildVersion += 1;
+      if (state.currentMenu === "product-families" && !state.loading) {
+        renderMetrics();
+        renderTable();
+      }
+      return familyPrototypeGroups;
+    }
+
+    async function loadProductFamilyAdminData(options = {}) {
+      if (productFamilyAdminState.loading) return productFamilyAdminState;
+      if (productFamilyAdminState.loaded && options.force !== true) return productFamilyAdminState;
+      productFamilyAdminState.loading = true;
+      productFamilyAdminState.error = "";
+      if (state.currentMenu === "product-families") renderTable();
+      try {
+        const data = await postAdminAction("admin_product_family_bootstrap", {});
+        applyProductFamilyAdminPayload(data);
+        if (options.hydrate !== false) hydrateFamilyPrototypeGroups(familyPrototypeBuildVersion);
+        return productFamilyAdminState;
+      } catch (error) {
+        productFamilyAdminState.loading = false;
+        productFamilyAdminState.error = error.message || "상품군 정보를 불러오지 못했습니다.";
+        if (state.currentMenu === "product-families") renderTable();
+        throw error;
+      }
+    }
+
+    function rebuildFamilyPrototypeGroups(options = {}) {
+      if (productFamilyAdminState.loaded) {
+        return applyProductFamilyAdminPayload(productFamilyAdminState);
+      }
+      const previousState = new Map(familyPrototypeGroups.map((group) => [group.candidateKey, {
+        assignments: (group.assignments || []).map((assignment) => ({
+          ...assignment,
+          memberGoodSeqs: [...(assignment.memberGoodSeqs || [])]
+        }))
+      }]));
+      const today = getRecommendationMinDepartureISO(0);
+      const uniqueProducts = new Map();
+      products.forEach((sourceProduct) => {
+        const candidate = buildFamilyPrototypeProduct(sourceProduct);
+        if (!candidate || (candidate.departureDate && candidate.departureDate < today)) return;
+        const current = uniqueProducts.get(candidate.goodSeq);
+        if (!current || getFamilyPrototypeProductRank(candidate) < getFamilyPrototypeProductRank(current)) {
+          uniqueProducts.set(candidate.goodSeq, candidate);
+        }
+      });
+      const grouped = new Map();
+      uniqueProducts.forEach((product) => {
+        const candidateKey = getFamilyPrototypeCandidateKey(product);
+        if (!grouped.has(candidateKey)) grouped.set(candidateKey, []);
+        grouped.get(candidateKey).push(product);
+      });
+      familyPrototypeGroups = [...grouped.entries()].map(([candidateKey, candidateProducts]) => {
+        const durationCount = new Set(candidateProducts.map((product) => product.durationDays)).size;
+        if (candidateProducts.length < 2 || durationCount < 2) return null;
+        const sortedProducts = candidateProducts.slice().sort((a, b) => a.durationDays - b.durationDays || a.price - b.price || a.goodSeq.localeCompare(b.goodSeq));
+        const previous = previousState.get(candidateKey) || {};
+        const group = {
+          id: `family-${hashFamilyPrototypeKey(candidateKey)}`,
+          candidateTitle: sortedProducts[0].baseTitle,
+          pack: sortedProducts[0].pack,
+          country: sortedProducts[0].country,
+          region: sortedProducts[0].region,
+          status: "pending",
+          risk: "review",
+          updatedAt: productDataInfo.generatedAt ? (formatDateTime(productDataInfo.generatedAt) || productDataInfo.generatedAt) : "최신 상품 데이터",
+          candidateKey,
+          issues: [],
+          products: sortedProducts,
+          assignments: []
+        };
+        normalizeFamilyPrototypeAssignments(group, previous.assignments);
+        return evaluateFamilyPrototypeGroup(group);
+      }).filter(Boolean).sort((a, b) => a.country.localeCompare(b.country, "ko") || a.region.localeCompare(b.region, "ko") || a.candidateTitle.localeCompare(b.candidateTitle, "ko"));
+      familyPrototypeBuildVersion += 1;
+      if (state.currentMenu === "product-families" && !state.loading) {
+        renderMetrics();
+        renderTable();
+      }
+      if (options.hydrate === true) hydrateFamilyPrototypeGroups(familyPrototypeBuildVersion);
+      return familyPrototypeGroups;
+    }
+
+    function getFilteredFamilyPrototypeGroups() {
+      const keyword = asText(state.familyPrototypeSearch).toLowerCase();
+      return familyPrototypeGroups.filter((group) => {
+        if (state.familyPrototypePack && group.pack !== state.familyPrototypePack) return false;
+        if (state.familyPrototypeStatus && group.status !== state.familyPrototypeStatus) return false;
+        if (state.familyPrototypeRisk && group.risk !== state.familyPrototypeRisk) return false;
+        if (!keyword) return true;
+        return [
+          group.candidateTitle,
+          group.country,
+          group.region,
+          group.candidateKey,
+          ...group.products.flatMap((product) => [product.goodSeq, product.title, product.duration])
+        ].join(" ").toLowerCase().includes(keyword);
+      });
+    }
+
+    function getFamilyPrototypePriceRange(group = {}) {
+      const prices = (group.products || []).map((product) => Number(product.price || 0)).filter((price) => price > 0);
+      if (!prices.length) return "-";
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      return min === max ? formatPrice(min) : `${formatPrice(min)} ~ ${formatPrice(max)}`;
+    }
+
+    function renderFamilyPrototypeDurationChip(group = {}, product = {}) {
+      const assignment = getFamilyPrototypeAssignment(group, product.goodSeq);
+      if (!assignment) return `<span class="family-prototype-duration">${escapeHtml(product.duration)}</span>`;
+      const representative = getFamilyPrototypeRepresentative(group, assignment);
+      const isRepresentative = asText(representative?.goodSeq) === asText(product.goodSeq);
+      const colorClass = getFamilyPrototypeAssignmentColorClass(group, assignment);
+      const representativeLabel = isRepresentative
+        ? `<small>${assignment.preferredRepresentativeGoodSeq ? "대표" : "자동 대표"}</small>`
+        : "";
+      return `<span class="family-prototype-duration assigned ${colorClass}${isRepresentative ? " representative" : ""}" title="${escapeHtml(`${getFamilyPrototypeAssignmentLabel(assignment)}${isRepresentative ? " · 대표상품" : ""}`)}">${escapeHtml(product.duration)}${representativeLabel}</span>`;
+    }
+
+    function renderFamilyPrototypeManager() {
+      if (productFamilyAdminState.loading) {
+        $("#tableWrap").innerHTML = '<div class="empty loading-state"><span class="loading-spinner" aria-hidden="true"></span><span>상품군 후보와 승인 정보를 불러오는 중입니다.</span></div>';
+        return;
+      }
+      if (productFamilyAdminState.error) {
+        $("#tableWrap").innerHTML = `<div class="error">${escapeHtml(productFamilyAdminState.error)}<div style="margin-top:12px"><button class="family-prototype-search-button" type="button" data-action="family-reload">다시 불러오기</button></div></div>`;
+        return;
+      }
+      const rows = getFilteredFamilyPrototypeGroups();
+      const selected = (value, current) => value === current ? " selected" : "";
+      $("#tableWrap").innerHTML = `
+        <div class="family-prototype-toolbar">
+          <input type="search" data-family-search value="${escapeHtml(state.familyPrototypeSearch)}" placeholder="상품군명, ERP 상품번호, 국가·지역 검색">
+          <select data-family-filter="pack" aria-label="상품 구분">
+            <option value="">전체 구분</option>
+            <option value="golf"${selected("golf", state.familyPrototypePack)}>골프팩</option>
+            <option value="air"${selected("air", state.familyPrototypePack)}>항공팩</option>
+          </select>
+          <select data-family-filter="status" aria-label="검토 상태">
+            <option value="">전체 상태</option>
+            <option value="pending"${selected("pending", state.familyPrototypeStatus)}>검토 필요</option>
+            <option value="partial"${selected("partial", state.familyPrototypeStatus)}>일부 승인</option>
+            <option value="approved"${selected("approved", state.familyPrototypeStatus)}>승인 완료</option>
+            <option value="recheck"${selected("recheck", state.familyPrototypeStatus)}>재검토 필요</option>
+          </select>
+          <select data-family-filter="risk" aria-label="위험도">
+            <option value="">전체 위험도</option>
+            <option value="safe"${selected("safe", state.familyPrototypeRisk)}>안전</option>
+            <option value="review"${selected("review", state.familyPrototypeRisk)}>확인 필요</option>
+            <option value="conflict"${selected("conflict", state.familyPrototypeRisk)}>충돌</option>
+          </select>
+          <button class="family-prototype-search-button" type="button" data-action="family-search">검색</button>
+        </div>
+        ${rows.length ? `
+          <table class="family-prototype-table">
+            <thead>
+              <tr>
+                <th>상태</th>
+                <th>구분</th>
+                <th>국가</th>
+                <th>지역</th>
+                <th>상품명</th>
+                <th>기간</th>
+                <th>상품 수</th>
+                <th>가격 범위</th>
+                <th>위험도</th>
+                <th>최근 변경</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((group) => `
+                <tr data-family-prototype-id="${escapeHtml(group.id)}">
+                  <td><span class="family-status ${escapeHtml(group.status)}">${escapeHtml(getFamilyPrototypeStatusLabel(group.status))}</span></td>
+                  <td><span class="badge ${group.pack === "air" ? "air" : "golf"}">${escapeHtml(getFamilyPrototypePackLabel(group.pack))}</span></td>
+                  <td>${escapeHtml(group.country)}</td>
+                  <td>${escapeHtml(group.region)}</td>
+                  <td>
+                    <div class="family-prototype-name" title="${escapeHtml(group.candidateTitle)}">${escapeHtml(group.candidateTitle)}</div>
+                    <div class="family-prototype-sub">${escapeHtml(group.candidateKey)}</div>
+                  </td>
+                  <td><div class="family-prototype-duration-list">${group.products.map((product) => renderFamilyPrototypeDurationChip(group, product)).join("")}</div></td>
+                  <td>${escapeHtml(`${group.products.length}개`)}</td>
+                  <td>${escapeHtml(getFamilyPrototypePriceRange(group))}</td>
+                  <td><span class="family-risk ${escapeHtml(group.risk)}">${escapeHtml(getFamilyPrototypeRiskLabel(group.risk))}</span></td>
+                  <td>${escapeHtml(group.updatedAt)}</td>
+                  <td><button class="family-review-button" type="button" data-action="family-review" data-family-id="${escapeHtml(group.id)}">비교검토</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        ` : '<div class="family-prototype-empty">조건에 맞는 상품군 후보가 없습니다.</div>'}
+      `;
+    }
+
+    function getActiveFamilyPrototypeGroup() {
+      return familyPrototypeGroups.find((group) => group.id === activeFamilyPrototypeId) || null;
+    }
+
+    function getFamilyComparisonCellClass(products = [], key = "", allowDifference = false) {
+      if (allowDifference) return "";
+      const values = products.map((product) => asText(product[key]));
+      if (values.some((value) => !value)) return "missing";
+      return new Set(values).size === 1 ? "same" : "different";
+    }
+
+    function getFamilyComparisonListItems(value = "") {
+      return [...new Set(asText(value)
+        .split(/\s*(?:\n|·|•)\s*/)
+        .map(cleanSecretTourDetailText)
+        .filter(Boolean))];
+    }
+
+    function getFamilyComparisonCommonItemKeys(products = [], key = "") {
+      const itemSets = products.map((product) => new Set(
+        getFamilyComparisonListItems(product[key]).map(normalizeFamilyPrototypeKeyText).filter(Boolean)
+      ));
+      const firstItems = itemSets[0] ? [...itemSets[0]] : [];
+      return new Set(firstItems.filter((itemKey) => itemSets.every((itemSet) => itemSet.has(itemKey))));
+    }
+
+    function renderFamilyComparisonDifferenceIcon() {
+      return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-icon lucide-check" role="img" aria-label="다른 상품에 없는 추가 항목"><path d="M20 6 9 17l-5-5"/></svg>';
+    }
+
+    function renderFamilyComparisonCellValue(products = [], product = {}, key = "") {
+      if (key === "price") return escapeHtml(formatPrice(product[key]));
+      if (key !== "included" && key !== "excluded") return escapeHtml(asText(product[key]) || "정보 없음");
+      const items = getFamilyComparisonListItems(product[key]);
+      if (!items.length) return escapeHtml("정보 없음");
+      const commonItemKeys = getFamilyComparisonCommonItemKeys(products, key);
+      return `<div class="family-compare-list">${items.map((item) => {
+        const isAdditional = !commonItemKeys.has(normalizeFamilyPrototypeKeyText(item));
+        return `<span class="family-compare-list-item">${escapeHtml(item)}${isAdditional ? renderFamilyComparisonDifferenceIcon() : ""}</span>`;
+      }).join("")}</div>`;
+    }
+
+    function renderFamilyAssignmentOverview(group = {}) {
+      if (!(group.assignments || []).length) return '<div class="family-review-key-value">아직 지정된 상품군이 없습니다.</div>';
+      return `<div class="family-assignment-list">${group.assignments.map((assignment) => {
+        const products = getFamilyPrototypeAssignmentProducts(group, assignment);
+        const representative = getFamilyPrototypeRepresentative(group, assignment);
+        const colorClass = getFamilyPrototypeAssignmentColorClass(group, assignment);
+        return `<div class="family-assignment-card ${colorClass}">
+          <div>
+            <strong>${escapeHtml(getFamilyPrototypeAssignmentLabel(assignment))} · ${escapeHtml(products.map((product) => product.duration).join(" / "))}</strong>
+            <p>대표: ${escapeHtml(representative?.duration || "-")} · ${assignment.preferredRepresentativeGoodSeq ? "관리자 지정" : "최저가 자동 선택"}</p>
+          </div>
+          <button class="family-assignment-manage" type="button" data-family-group-manage="${escapeHtml(assignment.id)}">대표·지정 관리</button>
+        </div>`;
+      }).join("")}</div>`;
+    }
+
+    function renderFamilyPrototypePreview(group = {}) {
+      const previews = (group.assignments || []).length
+        ? group.assignments.map((assignment) => ({ assignment, products: getFamilyPrototypeAssignmentProducts(group, assignment) }))
+        : [{ assignment: null, products: group.products || [] }];
+      return previews.map(({ assignment, products }, previewIndex) => {
+        const representative = assignment
+          ? getFamilyPrototypeRepresentative(group, assignment)
+          : getFamilyPrototypeLowestPriceProduct(products);
+        if (!representative) return "";
+        return `<div class="family-prototype-card-preview${previewIndex ? " family-preview-spaced" : ""}">
+          <div>
+            <strong>${escapeHtml(representative.title)}</strong>
+            <p>${escapeHtml(`${group.country} ${group.region}`)} · ${assignment ? escapeHtml(getFamilyPrototypeAssignmentLabel(assignment)) : "미승인 자동 대표 미리보기"}</p>
+          </div>
+          <div class="family-prototype-option-list">
+            ${products.map((product) => {
+              const selected = asText(product.goodSeq) === asText(representative.goodSeq);
+              return `<div class="family-prototype-option${selected ? " selected" : ""}">
+                <input type="radio" tabindex="-1"${selected ? " checked" : ""} disabled>
+                <b>${escapeHtml(product.duration)}</b>
+                <span>${escapeHtml(product.departurePatternLabel || "매일출발")}</span>
+                <span>${escapeHtml(product.golfSummaryLabel || "골프 일정 확인 중")}</span>
+                <span>${escapeHtml(formatPrice(product.price))}</span>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    function renderFamilyReviewActions(group = {}) {
+      const selectedIds = [...document.querySelectorAll("[data-family-product-select]:checked")].map((input) => asText(input.value));
+      const selectedCount = selectedIds.length;
+      const selectedProducts = (group.products || []).filter((product) => selectedIds.includes(asText(product.goodSeq)));
+      const unassignedProducts = getFamilyPrototypeUnassignedProducts(group);
+      const unassignedCount = unassignedProducts.length;
+      const selectedReady = selectedProducts.every((product) => product.detailStatus === "loaded" && product.golfSummary?.status === "resolved");
+      const unassignedReady = unassignedProducts.every((product) => product.detailStatus === "loaded" && product.golfSummary?.status === "resolved");
+      $("#familyReviewActions").innerHTML = `
+        <button class="family-review-action" type="button" data-family-modal-action="split"${selectedCount < 2 || !selectedReady ? " disabled" : ""} title="${selectedCount >= 2 && !selectedReady ? "상세 일정 확인이 완료된 후 상품군을 지정할 수 있습니다." : ""}">선택 후보 분리</button>
+        <button class="family-review-action primary" type="button" data-family-modal-action="approve"${unassignedCount < 2 || !unassignedReady ? " disabled" : ""} title="${unassignedCount >= 2 && !unassignedReady ? "상세 일정 확인이 완료된 후 상품군을 승인할 수 있습니다." : ""}">상품군 승인</button>
+      `;
+    }
+
+    function renderFamilyReviewModal(group) {
+      if (!group) return;
+      const comparisonRows = [
+        ["ERP 상품번호", "goodSeq", true], ["상품명 원문", "title", true], ["여행기간", "duration", true],
+        ["출발요일", "departurePatternLabel", true], ["골프 일수 · 총 홀수", "golfSummaryLabel", true],
+        ["국가", "country", false], ["지역", "region", false], ["출발공항", "airport", false],
+        ["항공", "airline", false], ["골프장 구성", "golfCourses", false], ["숙소", "hotel", false],
+        ["포함사항", "included", false], ["불포함사항", "excluded", false], ["판매가격", "price", true]
+      ];
+      $("#familyReviewTitle").textContent = group.candidateTitle;
+      $("#familyReviewSubtitle").textContent = `${getFamilyPrototypePackLabel(group.pack)} · ${group.country} ${group.region} · 후보 상품 ${group.products.length}개`;
+      $("#familyReviewSummary").innerHTML = `
+        <section class="family-review-section">
+          <h3>상품군 기본정보</h3>
+          <div class="family-review-field"><label>후보 키</label><div class="family-review-key-value">${escapeHtml(group.candidateKey)}</div></div>
+          <div class="family-review-field"><label>현재 상태</label><div><span class="family-status ${escapeHtml(group.status)}">${escapeHtml(getFamilyPrototypeStatusLabel(group.status))}</span></div></div>
+          <div class="family-review-field"><label>자동 판정</label><div><span class="family-risk ${escapeHtml(group.risk)}">${escapeHtml(getFamilyPrototypeRiskLabel(group.risk))}</span></div></div>
+        </section>
+        <section class="family-review-section"><h3>지정된 상품군</h3>${renderFamilyAssignmentOverview(group)}</section>
+        <section class="family-review-section"><h3>검토 결과</h3><ul class="family-review-check-list">${group.issues.map((issue) => `<li class="${issue.level === "warning" ? "warning" : issue.level === "danger" ? "danger" : ""}">${escapeHtml(issue.text)}</li>`).join("")}</ul></section>
+        <section class="family-review-section"><h3>적용 범위</h3><div class="family-review-key-value">MD PICK · 취향맞춤 TOP3<br>새로운 모임 만들기 상품 검색</div></section>
+      `;
+      $("#familyReviewContent").innerHTML = `
+        <div class="family-review-content-head"><h3>상품별 상세 비교</h3><div class="family-review-legend"><span>일치</span><span class="missing">누락</span><span class="different">불일치</span></div></div>
+        <div class="family-compare-wrap"><table class="family-compare-table">
+          <thead><tr><th>비교 항목</th>${group.products.map((product) => {
+            const assignment = getFamilyPrototypeAssignment(group, product.goodSeq);
+            const colorClass = assignment ? getFamilyPrototypeAssignmentColorClass(group, assignment) : "";
+            return `<th><label class="family-compare-product-head"><input type="checkbox" data-family-product-select value="${escapeHtml(product.goodSeq)}"${assignment ? " disabled" : ""}><span>${escapeHtml(product.duration)}</span></label>${assignment ? `<span class="family-assignment-badge ${colorClass}">${escapeHtml(getFamilyPrototypeAssignmentLabel(assignment))}</span>` : ""}</th>`;
+          }).join("")}</tr></thead>
+          <tbody>${comparisonRows.map(([label, key, allowDifference]) => `<tr><th>${escapeHtml(label)}</th>${group.products.map((product) => `<td class="${getFamilyComparisonCellClass(group.products, key, allowDifference)}">${renderFamilyComparisonCellValue(group.products, product, key)}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table></div>
+        <section class="family-prototype-preview"><h3 class="family-prototype-preview-title">메인페이지 노출 미리보기</h3>${renderFamilyPrototypePreview(group)}</section>
+      `;
+      renderFamilyReviewActions(group);
+      $("#familyReviewBackdrop").classList.add("open");
+      $("#familyReviewBackdrop").setAttribute("aria-hidden", "false");
+      document.body.classList.add("dashboard-busy");
+      window.setTimeout(() => $("#familyReviewClose")?.focus(), 0);
+    }
+
+    function openFamilyReviewModal(familyId = "") {
+      activeFamilyPrototypeId = familyId;
+      const group = getActiveFamilyPrototypeGroup();
+      renderFamilyReviewModal(group);
+      hydrateFamilyPrototypeGroup(group, familyPrototypeBuildVersion);
+    }
+
+    function closeFamilyReviewModal() {
+      closeFamilyGroupAssignModal();
+      $("#familyReviewBackdrop").classList.remove("open");
+      $("#familyReviewBackdrop").setAttribute("aria-hidden", "true");
+      document.body.classList.remove("dashboard-busy");
+      activeFamilyPrototypeId = "";
+    }
+
+    function showFamilyPrototypeToast(message = "") {
+      const toast = $("#familyPrototypeToast");
+      if (!toast) return;
+      window.clearTimeout(familyPrototypeToastTimer);
+      toast.textContent = message;
+      toast.classList.add("show");
+      familyPrototypeToastTimer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    function applyFamilyPrototypeAction(action = "") {
+      const group = getActiveFamilyPrototypeGroup();
+      if (!group) return;
+      if (action === "split") {
+        const selectedIds = [...document.querySelectorAll("[data-family-product-select]:checked")].map((input) => asText(input.value));
+        if (selectedIds.length < 2) return showFamilyPrototypeToast("상품군으로 묶을 상품을 2개 이상 선택해 주세요.");
+        openFamilyGroupAssignModal({ mode: "create", source: "split", memberGoodSeqs: selectedIds });
+        return;
+      }
+      if (action === "approve") {
+        const memberGoodSeqs = getFamilyPrototypeUnassignedProducts(group).map((product) => asText(product.goodSeq));
+        if (memberGoodSeqs.length < 2) return showFamilyPrototypeToast("상품군으로 묶을 미지정 상품이 2개 이상 필요합니다.");
+        openFamilyGroupAssignModal({ mode: "create", source: "approve", memberGoodSeqs });
+      }
+    }
+
+    function getFamilyGroupAssignProducts(group = {}, context = {}) {
+      const memberIds = new Set((context.memberGoodSeqs || []).map(asText));
+      return (group.products || []).filter((product) => memberIds.has(asText(product.goodSeq)));
+    }
+
+    function renderFamilyGroupAssignModal() {
+      const group = getActiveFamilyPrototypeGroup();
+      const context = familyGroupAssignContext;
+      if (!group || !context) return;
+      const assignment = context.assignmentId
+        ? (group.assignments || []).find((item) => item.id === context.assignmentId)
+        : null;
+      const products = assignment ? getFamilyPrototypeAssignmentProducts(group, assignment) : getFamilyGroupAssignProducts(group, context);
+      const isRevokeConfirm = context.mode === "revoke-confirm";
+      const isManage = context.mode === "manage";
+      const label = assignment ? getFamilyPrototypeAssignmentLabel(assignment) : `상품군 ${getNextFamilyPrototypeAssignmentOrdinal(group)}`;
+      $("#familyGroupAssignTitle").textContent = isRevokeConfirm ? `${label} 지정 취소` : (isManage ? `${label} 관리` : `${label} 지정`);
+      $("#familyGroupAssignSubtitle").textContent = isRevokeConfirm
+        ? "상품은 삭제되지 않으며 다시 미지정 후보로 돌아갑니다."
+        : `${products.length}개 기간 상품을 하나의 상품군으로 묶습니다.`;
+      if (isRevokeConfirm) {
+        $("#familyGroupAssignBody").innerHTML = `<div class="family-group-confirm-copy">${escapeHtml(label)} 지정을 취소하시겠습니까?<br>기간 색상과 대표상품 지정이 함께 해제됩니다.</div>`;
+      } else {
+        const preferredId = asText(assignment?.preferredRepresentativeGoodSeq);
+        $("#familyGroupAssignBody").innerHTML = `
+          <p class="family-group-help">고객에게 먼저 노출할 대표상품을 선택해 주세요.</p>
+          <div class="family-group-options">
+            <label class="family-group-option">
+              <input type="radio" name="familyGroupRepresentative" value=""${preferredId ? "" : " checked"}>
+              <span><strong>최저가 상품 자동 선택</strong><span>출발 가능한 상품 중 가격이 가장 낮은 기간을 자동 노출합니다.</span></span>
+              <b>권장</b>
+            </label>
+            ${products.map((product) => `
+              <label class="family-group-option">
+                <input type="radio" name="familyGroupRepresentative" value="${escapeHtml(product.goodSeq)}"${preferredId === asText(product.goodSeq) ? " checked" : ""}>
+                <span><strong>${escapeHtml(product.duration)} · ${escapeHtml(product.title)}</strong><span>ERP 상품번호 ${escapeHtml(product.goodSeq)}</span></span>
+                <b>${escapeHtml(formatPrice(product.price))}</b>
+              </label>
+            `).join("")}
+          </div>
+        `;
+      }
+      $("#familyGroupAssignRevoke").hidden = !isManage;
+      $("#familyGroupAssignCancel").textContent = isRevokeConfirm ? "돌아가기" : "취소";
+      $("#familyGroupAssignConfirm").textContent = isRevokeConfirm ? "지정 취소" : (isManage ? "변경 저장" : "상품군으로 묶기");
+      $("#familyGroupAssignConfirm").classList.toggle("danger", isRevokeConfirm);
+    }
+
+    function openFamilyGroupAssignModal(options = {}) {
+      const group = getActiveFamilyPrototypeGroup();
+      if (!group) return;
+      familyGroupAssignContext = {
+        mode: options.mode || "create",
+        source: options.source || "",
+        assignmentId: asText(options.assignmentId),
+        memberGoodSeqs: [...new Set((options.memberGoodSeqs || []).map(asText))],
+        operationId: asText(options.operationId)
+      };
+      renderFamilyGroupAssignModal();
+      $("#familyGroupAssignBackdrop").classList.add("open");
+      $("#familyGroupAssignBackdrop").setAttribute("aria-hidden", "false");
+      window.setTimeout(() => $("#familyGroupAssignClose")?.focus(), 0);
+    }
+
+    function closeFamilyGroupAssignModal() {
+      const backdrop = $("#familyGroupAssignBackdrop");
+      if (!backdrop) return;
+      backdrop.classList.remove("open");
+      backdrop.setAttribute("aria-hidden", "true");
+      familyGroupAssignContext = null;
+    }
+
+    function createProductFamilyOperationId(action = "update") {
+      return `pfo_dashboard_${asText(action).replace(/[^A-Za-z0-9_.:-]/g, "_")}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    }
+
+    async function refreshFamilyPrototypeAfterAssignment(previousGroup = {}, familyId = "", message = "") {
+      const candidateKey = asText(previousGroup.candidateKey);
+      await loadProductFamilyAdminData({ force: true, hydrate: false });
+      const nextGroup = familyPrototypeGroups.find((group) => (
+        (group.assignments || []).some((assignment) => asText(assignment.familyId) === asText(familyId))
+      )) || familyPrototypeGroups.find((group) => asText(group.candidateKey) === candidateKey) || null;
+      closeFamilyGroupAssignModal();
+      if (nextGroup) {
+        activeFamilyPrototypeId = nextGroup.id;
+        renderFamilyReviewModal(nextGroup);
+        hydrateFamilyPrototypeGroup(nextGroup, familyPrototypeBuildVersion);
+      } else {
+        closeFamilyReviewModal();
+      }
+      if (message) showFamilyPrototypeToast(message);
+    }
+
+    async function confirmFamilyGroupAssignment() {
+      const group = getActiveFamilyPrototypeGroup();
+      const context = familyGroupAssignContext;
+      if (!group || !context) return;
+      const assignment = context.assignmentId
+        ? (group.assignments || []).find((item) => item.id === context.assignmentId)
+        : null;
+      const preferredRepresentativeGoodSeq = asText(document.querySelector('input[name="familyGroupRepresentative"]:checked')?.value);
+      const confirmButton = $("#familyGroupAssignConfirm");
+      if (confirmButton) confirmButton.disabled = true;
+      context.operationId = context.operationId || createProductFamilyOperationId(context.mode);
+      showDashboardLoading(context.mode === "revoke-confirm"
+        ? "상품군 지정을 취소하는 중입니다."
+        : context.mode === "manage"
+          ? "대표상품 설정을 저장하는 중입니다."
+          : "상품군을 승인하고 저장하는 중입니다.");
+      try {
+        if (context.mode === "revoke-confirm") {
+          if (!assignment) return closeFamilyGroupAssignModal();
+          const data = await postAdminAction("admin_product_family_revoke", {
+            familyId: asText(assignment.familyId || assignment.id),
+            expectedConfigRevision: Number(assignment.configRevision || 0),
+            operationId: context.operationId
+          });
+          await refreshFamilyPrototypeAfterAssignment(group, asText(data.family?.familyId || assignment.familyId), `${getFamilyPrototypeAssignmentLabel(assignment)} 지정을 취소했습니다.`);
+          return;
+        }
+        if (context.mode === "manage") {
+          if (!assignment) return closeFamilyGroupAssignModal();
+          const data = await postAdminAction("admin_product_family_representative_update", {
+            familyId: asText(assignment.familyId || assignment.id),
+            expectedConfigRevision: Number(assignment.configRevision || 0),
+            expectedAnalysisRevision: productFamilyAdminState.analysisRevision,
+            representativeMode: preferredRepresentativeGoodSeq ? "manual" : "lowest_price",
+            preferredGoodSeq: preferredRepresentativeGoodSeq,
+            operationId: context.operationId
+          });
+          await refreshFamilyPrototypeAfterAssignment(group, asText(data.family?.familyId || assignment.familyId), `${getFamilyPrototypeAssignmentLabel(assignment)} 대표상품을 변경했습니다.`);
+          return;
+        }
+        const products = getFamilyGroupAssignProducts(group, context);
+        const availableIds = new Set(getFamilyPrototypeUnassignedProducts(group).map((product) => asText(product.goodSeq)));
+        const memberGoodSeqs = products.map((product) => asText(product.goodSeq)).filter((goodSeq) => availableIds.has(goodSeq));
+        if (memberGoodSeqs.length < 2) {
+          showFamilyPrototypeToast("이미 지정된 상품을 제외하면 묶을 상품이 부족합니다.");
+          closeFamilyGroupAssignModal();
+          renderFamilyReviewModal(group);
+          return;
+        }
+        const data = await postAdminAction("admin_product_family_assign", {
+          expectedConfigRevision: 0,
+          expectedAnalysisRevision: productFamilyAdminState.analysisRevision,
+          memberGoodSeqs,
+          representativeMode: preferredRepresentativeGoodSeq ? "manual" : "lowest_price",
+          preferredGoodSeq: preferredRepresentativeGoodSeq,
+          operationId: context.operationId
+        });
+        await refreshFamilyPrototypeAfterAssignment(group, asText(data.family?.familyId), "상품군을 승인하고 저장했습니다.");
+      } catch (error) {
+        if (["product_family_revision_conflict", "product_family_analysis_revision_conflict"].includes(asText(error.code))) {
+          try { await loadProductFamilyAdminData({ force: true, hydrate: false }); } catch (reloadError) {}
+        }
+        alert(error.message || "상품군 설정 저장에 실패했습니다.");
+      } finally {
+        hideDashboardLoading();
+        if (confirmButton) confirmButton.disabled = false;
+      }
+    }
+
+    function requestFamilyGroupAssignmentRevoke() {
+      if (!familyGroupAssignContext?.assignmentId) return;
+      familyGroupAssignContext.mode = "revoke-confirm";
+      renderFamilyGroupAssignModal();
+    }
+
+    function cancelFamilyGroupAssignStep() {
+      if (familyGroupAssignContext?.mode === "revoke-confirm") {
+        familyGroupAssignContext.mode = "manage";
+        renderFamilyGroupAssignModal();
+        return;
+      }
+      closeFamilyGroupAssignModal();
+    }
+
     function renderMetrics() {
+      if (state.currentMenu === "product-families") {
+        const metrics = [
+          ["검토 필요", "pending"],
+          ["일부 승인", "partial"],
+          ["승인 완료", "approved"],
+          ["재검토 필요", "recheck"]
+        ];
+        $("#metrics").classList.remove("with-action");
+        $("#metrics").innerHTML = metrics.map(([label, status]) => `
+          <div class="metric actionable${state.familyPrototypeStatus === status ? " active" : ""}" data-family-metric-status="${escapeHtml(status)}">
+            <div class="metric-label">${escapeHtml(label)}</div>
+            <div class="metric-value">${familyPrototypeGroups.filter((group) => group.status === status).length}</div>
+          </div>
+        `).join("");
+        return;
+      }
       if (state.currentMenu === "recommended-schedules") {
         const activeRules = getActiveRecommendationRules();
         const productItems = getRecommendationProductItems();
         const items = [
-          ["추천 등록", activeRules.length],
-          ["상품 후보", getRecommendationUniqueProductCount(productItems)]
+          ["추천 등록", activeRules.length, "registered"],
+          ["상품 후보", getRecommendationUniqueProductCount(productItems), ""]
         ];
         const metrics = $("#metrics");
         metrics.classList.add("with-action");
-        metrics.innerHTML = `${items.map(([label, value]) => `
-          <div class="metric">
+        metrics.innerHTML = `${items.map(([label, value, filter]) => `
+          <div class="metric${filter ? " actionable" : ""}${filter === "registered" && state.recommendationRegisteredOnly ? " active" : ""}"${filter ? ` data-recommendation-metric-filter="${escapeHtml(filter)}"` : ""}>
             <div class="metric-label">${escapeHtml(label)}</div>
             <div class="metric-value">${escapeHtml(value)}</div>
           </div>
@@ -5269,6 +7331,16 @@
       `; }).join("");
     }
 
+    function syncScheduleStickyHeaderOffset() {
+      const tableWrap = $("#tableWrap");
+      const scheduleHeader = tableWrap?.querySelector(".schedule-table > thead > tr");
+      if (!tableWrap || !scheduleHeader) return;
+      const headerHeight = Math.ceil(scheduleHeader.getBoundingClientRect().height || 0);
+      if (headerHeight > 0) {
+        tableWrap.style.setProperty("--schedule-table-sticky-header-height", `${headerHeight}px`);
+      }
+    }
+
     function renderTable() {
       const tableWrap = $("#tableWrap");
       syncMenuToolbar();
@@ -5282,6 +7354,10 @@
       }
       if (state.currentMenu === "participant-management") {
         renderMemberProfileTable();
+        return;
+      }
+      if (state.currentMenu === "product-families") {
+        renderFamilyPrototypeManager();
         return;
       }
       if (state.currentMenu === "recommended-schedules") {
@@ -5321,12 +7397,15 @@
           </tbody>
         </table>
       `;
+      requestAnimationFrame(syncScheduleStickyHeaderOffset);
     }
 
     function syncMenuToolbar() {
       const isParticipantMenu = state.currentMenu === "participant-management";
       const isRecommendationMenu = state.currentMenu === "recommended-schedules";
+      const isFamilyMenu = state.currentMenu === "product-families";
       const isConsultationPanel = state.currentMenu === "schedules" && state.currentSchedulePanel === "consultation";
+      $(".toolbar").hidden = isFamilyMenu;
       $(".toolbar").classList.toggle("compact", isParticipantMenu || isRecommendationMenu || isConsultationPanel);
       $("#searchInput").placeholder = isParticipantMenu
         ? "고객명, 핸드폰 번호, 전문분야, 라운드스타일 검색"
@@ -5565,13 +7644,15 @@
       if (isGroupTravel) {
         const people = getSchedulePaymentCounts(schedule).total;
         const genderCounts = getScheduleGroupGenderCounts(schedule);
-        const summaryLabel = `${people}명, 남성 ${genderCounts.male}명, 여성 ${genderCounts.female}명`;
+        const summaryLabel = `${people}/${capacity}명, 남성 ${genderCounts.male}명, 여성 ${genderCounts.female}명`;
         return `
           <span class="schedule-group-people-summary" aria-label="${escapeHtml(summaryLabel)}" title="${escapeHtml(summaryLabel)}">
-            <span class="schedule-people-text">${escapeHtml(`${people}명`)}</span>
-            <span class="schedule-group-gender-count">남성 ${escapeHtml(`${genderCounts.male}명`)}</span>
-            <i class="schedule-group-gender-dot" aria-hidden="true"></i>
-            <span class="schedule-group-gender-count">여성 ${escapeHtml(`${genderCounts.female}명`)}</span>
+            <span class="schedule-people-text">${escapeHtml(`${people}/${capacity}명`)}</span>
+            <span class="schedule-group-gender-summary">
+              <span class="schedule-group-gender-count">남성 ${escapeHtml(`${genderCounts.male}명`)}</span>
+              <i class="schedule-group-gender-dot" aria-hidden="true"></i>
+              <span class="schedule-group-gender-count">여성 ${escapeHtml(`${genderCounts.female}명`)}</span>
+            </span>
           </span>
         `;
       }
@@ -7979,6 +10060,10 @@
         renderMemberProfileTable();
         return;
       }
+      if (state.currentMenu === "product-families") {
+        renderFamilyPrototypeManager();
+        return;
+      }
       if (state.currentMenu === "recommended-schedules") {
         renderRecommendedSchedulesManager();
         return;
@@ -8017,6 +10102,7 @@
           </tbody>
         </table>
       `;
+      requestAnimationFrame(syncScheduleStickyHeaderOffset);
     }
 
     async function submitProductDisplayRule(payload) {
@@ -8096,6 +10182,54 @@
       else state.displayRules.unshift({ ...payload, updatedAt: nowKstISOString() });
       renderMetrics();
       renderTable();
+    }
+
+    async function saveRegisteredRecommendationCapacity(button) {
+      const item = button.closest("[data-recommended-schedule-id]");
+      const recommendedScheduleId = asText(item?.dataset.recommendedScheduleId);
+      const current = state.displayRules.find((rule) => getRecommendationDisplayRuleId(rule) === recommendedScheduleId);
+      if (!item || !current) throw new Error("수정할 추천일정을 찾지 못했습니다.");
+      const input = item.querySelector("[data-recommendation-registered-capacity]");
+      const currentPeople = getRecommendationRulePeople(current);
+      const capacity = normalizeRecommendationCapacity(input?.value, getRecommendationRuleCapacity(current));
+      if (input) input.value = String(capacity);
+      if (capacity < currentPeople) {
+        throw new Error(`현재 참여자 ${currentPeople}명보다 정원을 작게 설정할 수 없습니다.`);
+      }
+      const previousCapacity = getRecommendationRuleCapacity(current);
+      const product = findProductForDisplayRule(current);
+      const title = current.overrideTitle || product.title || "추천일정";
+      const confirmed = await openConfirmDialog({
+        title: "정원 수정",
+        message: `${title}의 정원을 ${previousCapacity}명에서 ${capacity}명으로 수정할까요?`,
+        okText: "수정",
+        cancelText: "취소"
+      });
+      if (!confirmed) return;
+      button.disabled = true;
+      try {
+        const result = await submitProductDisplayRule({
+          ...current,
+          recommendedScheduleId,
+          capacity: String(capacity),
+          maxPeople: String(capacity)
+        });
+        if (result.participantSummarySync?.ok === false) {
+          throw new Error("정원은 저장되었지만 참여자 요약 반영에 실패했습니다. 다시 조회해 주세요.");
+        }
+        current.capacity = String(capacity);
+        current.maxPeople = String(capacity);
+        current.updatedAt = nowKstISOString();
+        const schedule = getRecommendationRuleSchedule(current);
+        if (schedule?.row) {
+          schedule.row.capacity = capacity;
+          schedule.row.maxPeople = capacity;
+        }
+        renderMetrics();
+        renderTable();
+      } finally {
+        button.disabled = false;
+      }
     }
 
     function buildRecommendationCandidateSchedule(productKey) {
@@ -8457,8 +10591,43 @@
     });
     $("#drawerClose").addEventListener("click", closeDrawer);
     $("#drawerBackdrop").addEventListener("click", closeDrawer);
+    $("#familyReviewClose")?.addEventListener("click", closeFamilyReviewModal);
+    $("#familyReviewBackdrop")?.addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeFamilyReviewModal();
+    });
+    $("#familyReviewActions")?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-family-modal-action]");
+      if (!button || button.disabled) return;
+      applyFamilyPrototypeAction(button.dataset.familyModalAction || "");
+    });
+    $("#familyReviewSummary")?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-family-group-manage]");
+      if (!button) return;
+      openFamilyGroupAssignModal({ mode: "manage", assignmentId: button.dataset.familyGroupManage || "" });
+    });
+    $("#familyReviewContent")?.addEventListener("change", (event) => {
+      if (!event.target.closest("[data-family-product-select]")) return;
+      renderFamilyReviewActions(getActiveFamilyPrototypeGroup());
+    });
+    $("#familyGroupAssignClose")?.addEventListener("click", closeFamilyGroupAssignModal);
+    $("#familyGroupAssignCancel")?.addEventListener("click", cancelFamilyGroupAssignStep);
+    $("#familyGroupAssignConfirm")?.addEventListener("click", confirmFamilyGroupAssignment);
+    $("#familyGroupAssignRevoke")?.addEventListener("click", requestFamilyGroupAssignmentRevoke);
+    $("#familyGroupAssignBackdrop")?.addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeFamilyGroupAssignModal();
+    });
 
     $("#tableWrap").addEventListener("change", (event) => {
+      const familyFilter = event.target.closest("[data-family-filter]");
+      if (familyFilter) {
+        const key = familyFilter.dataset.familyFilter || "";
+        if (key === "pack") state.familyPrototypePack = familyFilter.value;
+        if (key === "status") state.familyPrototypeStatus = familyFilter.value;
+        if (key === "risk") state.familyPrototypeRisk = familyFilter.value;
+        renderMetrics();
+        renderTable();
+        return;
+      }
       const monthlyToggle = event.target.closest("[data-recommendation-monthly]");
       if (!monthlyToggle) return;
       const row = monthlyToggle.closest("tr[data-recommendation-product]");
@@ -8533,9 +10702,32 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && document.getElementById("quoteEditorBackdrop")?.classList.contains("open")) closeQuoteEditor();
       if (event.key === "Escape" && document.getElementById("rosterBackdrop")?.classList.contains("open")) closeRosterEditor();
+      if (event.key === "Escape" && document.getElementById("familyGroupAssignBackdrop")?.classList.contains("open")) {
+        closeFamilyGroupAssignModal();
+      } else if (event.key === "Escape" && document.getElementById("familyReviewBackdrop")?.classList.contains("open")) {
+        closeFamilyReviewModal();
+      }
     });
 
     $("#tableWrap").addEventListener("click", (event) => {
+      const familySearchButton = event.target.closest('[data-action="family-search"]');
+      if (familySearchButton) {
+        state.familyPrototypeSearch = asText(document.querySelector("[data-family-search]")?.value);
+        renderTable();
+        return;
+      }
+      const familyReloadButton = event.target.closest('[data-action="family-reload"]');
+      if (familyReloadButton) {
+        loadProductFamilyAdminData({ force: true }).catch((error) => {
+          alert(error.message || "상품군 정보를 불러오지 못했습니다.");
+        });
+        return;
+      }
+      const familyReviewButton = event.target.closest('[data-action="family-review"]');
+      if (familyReviewButton) {
+        openFamilyReviewModal(familyReviewButton.dataset.familyId || "");
+        return;
+      }
       const recommendationRefreshButton = event.target.closest('[data-action="recommendation-refresh-products"]');
       if (recommendationRefreshButton) {
         refreshRecommendationProductsFromHomepage();
@@ -8583,6 +10775,21 @@
       if (recommendationProductViewButton) {
         openRecommendationCandidateProduct(recommendationProductViewButton).catch((error) => {
           alert(error.message || "상품 상세를 불러오지 못했습니다.");
+        });
+        return;
+      }
+      const recommendationRegistrationToggle = event.target.closest('[data-action="recommendation-registration-toggle"]');
+      if (recommendationRegistrationToggle) {
+        const row = recommendationRegistrationToggle.closest("tr[data-recommendation-product]");
+        const goodSeq = asText(row?.dataset.recommendationProduct);
+        state.expandedRecommendationGoodSeq = state.expandedRecommendationGoodSeq === goodSeq ? "" : goodSeq;
+        renderTable();
+        return;
+      }
+      const recommendationCapacitySaveButton = event.target.closest('[data-action="recommendation-capacity-save"]');
+      if (recommendationCapacitySaveButton) {
+        saveRegisteredRecommendationCapacity(recommendationCapacitySaveButton).catch((error) => {
+          alert(error.message || "정원 수정에 실패했습니다.");
         });
         return;
       }
@@ -8673,6 +10880,13 @@
       if (button.dataset.action === "product") openProductDrawer(schedule);
     });
 
+    $("#tableWrap").addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" || !event.target.matches("[data-family-search]")) return;
+      event.preventDefault();
+      state.familyPrototypeSearch = asText(event.target.value);
+      renderTable();
+    });
+
     $("#drawerBody").addEventListener("click", (event) => {
       const button = event.target.closest('[data-action="participant-status-update"]');
       if (!button) return;
@@ -8680,9 +10894,27 @@
     });
 
     $("#metrics").addEventListener("click", (event) => {
+      const familyMetric = event.target.closest("[data-family-metric-status]");
+      if (familyMetric && state.currentMenu === "product-families") {
+        const nextStatus = familyMetric.dataset.familyMetricStatus || "";
+        state.familyPrototypeStatus = state.familyPrototypeStatus === nextStatus ? "" : nextStatus;
+        renderMetrics();
+        renderTable();
+        return;
+      }
       const recommendationRefreshButton = event.target.closest('[data-action="recommendation-refresh-products"]');
       if (recommendationRefreshButton) {
         refreshRecommendationProductsFromHomepage();
+        return;
+      }
+      const recommendationMetric = event.target.closest("[data-recommendation-metric-filter]");
+      if (recommendationMetric && state.currentMenu === "recommended-schedules") {
+        const filter = recommendationMetric.dataset.recommendationMetricFilter || "";
+        if (filter === "registered") {
+          state.recommendationRegisteredOnly = !state.recommendationRegisteredOnly;
+          renderMetrics();
+          renderTable();
+        }
         return;
       }
       const metric = event.target.closest("[data-metric-action]");
@@ -8716,6 +10948,12 @@
           : "항공팩, 골프팩 일정별 참여자와 상품 상세 정보를 확인합니다.";
         if (state.currentMenu === "recommended-schedules") {
           $(".page-sub").textContent = "참여 가능한 일정이 없을 때 노출할 관리자 추천 상품/출발일을 관리합니다.";
+        }
+        if (state.currentMenu === "product-families") {
+          $(".page-sub").textContent = "기간만 다른 ERP 상품 후보를 비교하고 상품군을 승인·관리합니다.";
+          loadProductFamilyAdminData({ force: !productFamilyAdminState.loaded }).catch((error) => {
+            console.error("Product family bootstrap failed", error);
+          });
         }
         renderMetrics();
         renderTable();

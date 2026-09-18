@@ -9356,6 +9356,89 @@
       return dateMatches.length === 1 ? dateMatches[0] : null;
     }
 
+    function findProductForFamilyPeriodOption(option = {}) {
+      const optionId = getRecommendationFamilyOptionId(option);
+      if (!optionId) return {};
+      return products.find((product) => {
+        const reference = getSecretTourProductReference({}, product);
+        return getRecommendationFamilyOptionId(reference) === optionId;
+      }) || {};
+    }
+
+    function getParticipantSelectedScheduleContext(schedule = {}, participant = {}) {
+      const scheduleRow = schedule.row || {};
+      const scheduleProduct = schedule.product || {};
+      const option = findScheduleFamilyPeriodOption(schedule, participant);
+      const participantReference = getSecretTourProductReference(participant, getNestedValue(participant, "product") || {});
+      const selectedReference = option || participantReference;
+      const exactProduct = option ? findProductForFamilyPeriodOption(option) : findProduct(participant);
+      const departureDate = firstText(
+        option?.departureDate,
+        participant.departureDate,
+        participant.departureDateFrom,
+        getNestedValue(participant, "product.departureDate"),
+        getDeparture(scheduleRow, exactProduct)
+      );
+      const returnDate = firstText(
+        option?.returnDate,
+        participant.returnDate,
+        participant.returnDateTo,
+        getNestedValue(participant, "product.returnDate"),
+        getReturn(scheduleRow, exactProduct)
+      );
+      const productName = firstText(
+        exactProduct.title,
+        exactProduct.productName,
+        getNestedValue(participant, "product.productName"),
+        participant.productName,
+        getTitle(scheduleRow)
+      );
+      const periodLabel = firstText(
+        option?.durationLabel,
+        participant.selectedDurationLabel,
+        participant.durationLabel,
+        extractTripSummaryPeriod(participant, exactProduct),
+        formatTripNightsDays(departureDate, returnDate)
+      );
+      const productPrice = firstText(
+        option?.price,
+        participant.productPrice,
+        participant.price,
+        exactProduct.price,
+        exactProduct.productPrice,
+        scheduleRow.productPrice,
+        scheduleRow.price
+      );
+      const goodSeq = firstText(selectedReference.goodSeq, selectedReference.erpProductId);
+      const eventSeq = firstText(selectedReference.eventSeq, selectedReference.erpEventSeq);
+      return {
+        option,
+        productName,
+        periodLabel,
+        departureDate,
+        returnDate,
+        row: {
+          ...scheduleRow,
+          productName,
+          title: productName,
+          ...(goodSeq ? { erpProductId: goodSeq, goodSeq } : {}),
+          ...(eventSeq ? { erpEventSeq: eventSeq, eventSeq } : {}),
+          ...(departureDate ? { departureDate, departureDateFrom: departureDate } : {}),
+          ...(returnDate ? { returnDate, returnDateFrom: returnDate } : {}),
+          ...(productPrice ? { productPrice, price: productPrice } : {})
+        },
+        product: {
+          ...scheduleProduct,
+          ...exactProduct,
+          ...(goodSeq ? { erpProductId: goodSeq, goodSeq } : {}),
+          ...(eventSeq ? { erpEventSeq: eventSeq, eventSeq } : {}),
+          ...(departureDate ? { departureDate } : {}),
+          ...(returnDate ? { returnDate } : {}),
+          ...(productPrice ? { productPrice, price: productPrice } : {})
+        }
+      };
+    }
+
     function getRecommendationRuleOptionIds(rule = {}) {
       const familyIds = parseRecommendationFamilyOptions(rule.familyOptionsJson)
         .map(getRecommendationFamilyOptionId)
@@ -11935,7 +12018,7 @@
     function renderConsultationApplicantRow(item) {
       const schedule = item.schedule;
       const row = item.row;
-      const product = schedule.product || {};
+      const selected = getParticipantSelectedScheduleContext(schedule, row);
       const birthYear = getParticipantBirthYear(row);
       const age = calculateAge(birthYear);
       return `
@@ -11946,10 +12029,10 @@
           <td>${escapeHtml(formatPhone(getParticipantPhone(row)))}</td>
           <td>${escapeHtml(getParticipantGender(row) || "-")}</td>
           <td>${escapeHtml(age ? `${age}세` : "-")}</td>
-          <td class="product-cell">${escapeHtml(getTitle(schedule.row))}</td>
-          <td>${escapeHtml(getSchedulePeriodLabel(schedule))}</td>
-          <td>${renderScheduleDateCell(getDeparture(schedule.row, product))}</td>
-          <td>${renderScheduleDateCell(getReturn(schedule.row, product))}</td>
+          <td class="product-cell">${escapeHtml(selected.productName)}</td>
+          <td>${escapeHtml(selected.periodLabel || "-")}</td>
+          <td>${renderScheduleDateCell(selected.departureDate)}</td>
+          <td>${renderScheduleDateCell(selected.returnDate)}</td>
           <td>${escapeHtml(`${getParticipantPeopleTotal(row, item.companions)}명`)}</td>
           <td>${renderParticipantGenderIcons(row, item.companions)}</td>
           <td>
@@ -12893,14 +12976,20 @@
       const schedule = findSchedule(rowElement.dataset.scheduleKey);
       const participant = schedule?.participants?.[Number(rowElement.dataset.participantIndex)];
       if (!schedule || !participant) return null;
-      return { rowElement, schedule, participant };
+      return {
+        rowElement,
+        schedule,
+        participant,
+        selectedProductContext: getParticipantSelectedScheduleContext(schedule, participant)
+      };
     }
 
     function buildQuoteEditorDraft(context = {}) {
       const participant = context.participant || {};
       const schedule = context.schedule || {};
-      const row = schedule.row || {};
-      const product = schedule.product || {};
+      const selected = context.selectedProductContext || getParticipantSelectedScheduleContext(schedule, participant);
+      const row = selected.row || schedule.row || {};
+      const product = selected.product || schedule.product || {};
       const people = Math.max(1, Math.min(4, Number(participant.applicantPeople || participant.creatorPeople || participant.people || 1) || 1));
       const packType = schedule.packType || getPackType(row, product);
       const savedFlightDetails = normalizeQuoteEditorFlightDetails(participant.quoteFlightDetailsJson || row.quoteFlightDetailsJson);
@@ -12915,16 +13004,16 @@
         applicantName: getParticipantName(participant) || participant.applicantName || participant.creatorName || "",
         applicantPhone: participant.applicantMobile || participant.memberMobile || participant.creatorPhone || participant.phone || "",
         applicationType: getParticipantSheetName(participant) === "new_schedule_applications" ? "새모임 생성" : "참여신청",
-        productName: participant.productName || row.productName || product.productName || product.title || schedule.title || "",
+        productName: selected.productName || participant.productName || row.productName || product.productName || product.title || schedule.title || "",
         productImageUrl: QUOTE_HERO_IMAGE_URL,
         country: participant.country || row.country || product.country || "",
         region: participant.region || row.region || product.region || schedule.region || "",
-        departureDate: normalizeQuoteEditorDate(participant.departureDate || participant.departureDateFrom || row.departureDate || row.departureDateFrom || product.departureDate),
-          returnDate: normalizeQuoteEditorDate(participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate),
-          tripSummary: extractTripSummaryPeriod(row, product) || formatTripNightsDays(
-            participant.departureDate || participant.departureDateFrom || row.departureDate || row.departureDateFrom || product.departureDate,
-            participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate
-          ),
+        departureDate: normalizeQuoteEditorDate(selected.departureDate || participant.departureDate || participant.departureDateFrom || row.departureDate || row.departureDateFrom || product.departureDate),
+        returnDate: normalizeQuoteEditorDate(selected.returnDate || participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate),
+        tripSummary: selected.periodLabel || extractTripSummaryPeriod(row, product) || formatTripNightsDays(
+          selected.departureDate || participant.departureDate || participant.departureDateFrom || row.departureDate || row.departureDateFrom || product.departureDate,
+          selected.returnDate || participant.returnDate || participant.returnDateTo || row.returnDate || row.returnDateTo || product.returnDate
+        ),
         airline: participant.airline || row.airline || product.airline || product.airlineName || product.air2Nm || "담당자 확인",
         packType,
         flightRequestType: firstText(
@@ -12942,10 +13031,10 @@
         additionalAmounts: normalizeQuoteEditorAdditionalAmounts(participant.quoteAdditionalAmountsJson || row.quoteAdditionalAmountsJson),
         ...flightDetails,
         depositPerPerson: 200000,
-          flightScheduleItems: "",
-          itineraryItems: "",
-          itinerarySchedule: [],
-          itinerarySourceText: "",
+        flightScheduleItems: "",
+        itineraryItems: "",
+        itinerarySchedule: [],
+        itinerarySourceText: "",
         includedItems: "",
         excludedItems: "",
         productNotes: "",
@@ -13502,7 +13591,8 @@
       setQuoteProductSourceState("실제 상품 상세 정보를 불러오는 중입니다.");
       const activeContext = context;
       try {
-        const detail = await getProductDetailContent(context.schedule.row || {}, context.schedule.product || {});
+        const selected = context.selectedProductContext || getParticipantSelectedScheduleContext(context.schedule, context.participant);
+        const detail = await getProductDetailContent(selected.row || {}, selected.product || {});
         if (quoteEditorContext !== activeContext || !quoteEditorDraft) return;
         applyQuoteProductDetailToDraft(detail);
         populateQuoteEditorForm();
@@ -13589,8 +13679,8 @@
             keyField: "applicationId",
             keyValue: applicationId,
             participant,
-            schedule: schedule?.row || {},
-            product: schedule?.product || {},
+            schedule: quoteEditorContext.selectedProductContext?.row || schedule?.row || {},
+            product: quoteEditorContext.selectedProductContext?.product || schedule?.product || {},
             quote: quoteEditorDraft
           })
         });
